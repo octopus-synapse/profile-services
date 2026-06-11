@@ -9,11 +9,10 @@
  */
 
 import { z } from 'zod';
-import {
-  CompanySearchPort,
-  type CompanySuggestion,
-} from '../../domain/ports/company-search.port';
+import type { LoggerPort } from '@/shared-kernel';
+import { CompanySearchPort, type CompanySuggestion } from '../../domain/ports/company-search.port';
 
+const CTX = 'LogoDevCompanySearchAdapter';
 const SEARCH_URL = 'https://api.logo.dev/search';
 // Autocomplete keystroke budget: past this the user already moved on, and
 // the use-case turns the timeout into an empty result anyway.
@@ -24,7 +23,10 @@ const FETCH_TIMEOUT_MS = 5_000;
 const ResultsSchema = z.array(z.object({ name: z.unknown(), domain: z.unknown() }).passthrough());
 
 export class LogoDevCompanySearchAdapter extends CompanySearchPort {
-  constructor(private readonly secretKey: string | undefined) {
+  constructor(
+    private readonly secretKey: string | undefined,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -34,7 +36,10 @@ export class LogoDevCompanySearchAdapter extends CompanySearchPort {
       headers: { Authorization: `Bearer ${this.secretKey}`, Accept: 'application/json' },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
-    if (!response.ok) throw new Error(`logo.dev search responded ${response.status}`);
+    if (!response.ok) {
+      this.logger.warn(`logo.dev search responded ${response.status}`, CTX);
+      throw new Error(`logo.dev search responded ${response.status}`);
+    }
 
     const parsed = ResultsSchema.safeParse(await response.json());
     if (!parsed.success) return [];

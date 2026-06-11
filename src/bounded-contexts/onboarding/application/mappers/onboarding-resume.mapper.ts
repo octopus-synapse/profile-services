@@ -99,7 +99,10 @@ function deriveSemanticKind(sectionTypeKey: string): string {
 }
 
 function humanize(sectionTypeKey: string): string {
-  const words = sectionTypeKey.replace(/_v\d+$/i, '').replace(/_/g, ' ').trim();
+  const words = sectionTypeKey
+    .replace(/_v\d+$/i, '')
+    .replace(/_/g, ' ')
+    .trim();
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 

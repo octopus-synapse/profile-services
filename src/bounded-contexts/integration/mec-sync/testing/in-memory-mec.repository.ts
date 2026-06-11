@@ -8,12 +8,12 @@
  */
 
 import type { NormalizedCourse, NormalizedInstitution } from '../domain/entities/mec-row';
-import { scoreInstitution } from '../domain/services/institution-search-ranking';
 import { MecCourseRepositoryPort } from '../domain/ports/mec-course.repository.port';
 import {
   type InstitutionWithCoursesRow,
   MecInstitutionRepositoryPort,
 } from '../domain/ports/mec-institution.repository.port';
+import { scoreInstitution } from '../domain/services/institution-search-ranking';
 import type { Course, CourseBasic, Institution } from '../schemas/mec.schema';
 
 interface InstitutionRow extends Institution {

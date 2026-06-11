@@ -50,6 +50,7 @@
     "db:reset": "bunx prisma migrate reset --config ./prisma.config.ts --force",
     "schemas:export": "bun run src/scripts/export-schemas.ts",
     "geo:import": "bun run src/scripts/import-geonames.ts",
+    "roles:import": "bun run src/scripts/import-roles.ts",
     "openapi:generate": "bun run src/scripts/generate-openapi.ts",
     "swagger:generate": "bun run scripts/generate-swagger-from-decorators.ts && bun run contracts:export",
     "contracts:export": "bun run scripts/export-contracts.ts",

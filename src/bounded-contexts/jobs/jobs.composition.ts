@@ -49,6 +49,7 @@ import { RunExternalJobsIngestionUseCase } from './application/use-cases/run-ext
 import { UnbookmarkJobUseCase } from './application/use-cases/unbookmark-job/unbookmark-job.use-case';
 import { UpdateJobUseCase } from './application/use-cases/update-job/update-job.use-case';
 import { WithdrawApplicationUseCase } from './application/use-cases/withdraw-application/withdraw-application.use-case';
+import { externalJobsRoutes } from './external-jobs.routes';
 import { EmailServiceAntiGhostingEmailerAdapter } from './infrastructure/adapters/external-services/email-service-anti-ghosting-emailer.adapter';
 import { JSearchJobSearchAdapter } from './infrastructure/adapters/external-services/jsearch-job-search.adapter';
 import { NotConfiguredExternalJobSearchAdapter } from './infrastructure/adapters/external-services/not-configured-external-job-search.adapter';
@@ -59,7 +60,6 @@ import { PrismaExternalJobListingsRepository } from './infrastructure/adapters/p
 import { PrismaJobsRepository } from './infrastructure/adapters/persistence/prisma-jobs.repository';
 import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
 import { ExternalJobsIngestionWorker } from './infrastructure/workers/external-jobs-ingestion.worker';
-import { externalJobsRoutes } from './external-jobs.routes';
 import { jobsRoutes } from './jobs.routes';
 
 export { JobsUseCases };
@@ -79,7 +79,7 @@ export function buildJobsUseCases(
   const jobsRepo = new PrismaJobsRepository(prisma, logger);
   const trackerRepo = new PrismaApplicationTrackerRepository(prisma, logger);
   const antiGhostingRepo = new PrismaAntiGhostingRepository(prisma, logger);
-  const externalListingsRepo = new PrismaExternalJobListingsRepository(prisma);
+  const externalListingsRepo = new PrismaExternalJobListingsRepository(prisma, logger);
 
   // External adapters
   const antiGhostingEmailer = new EmailServiceAntiGhostingEmailerAdapter(email, logger);

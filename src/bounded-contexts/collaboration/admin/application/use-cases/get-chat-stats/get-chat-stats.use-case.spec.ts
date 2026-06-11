@@ -6,6 +6,10 @@ describe('GetChatStatsUseCase', () => {
   let repo: InMemoryAdminChatRepository;
   let useCase: GetChatStatsUseCase;
   const fixedNow = new Date('2026-04-26T12:00:00.000Z').getTime();
+  // Keep the REAL Date.now so afterEach can restore it. The previous
+  // "restore" (`Date.prototype.getTime.bind(new Date())`) froze the
+  // clock at restore time for every spec that ran after this file.
+  const realDateNow = Date.now;
 
   beforeEach(() => {
     repo = new InMemoryAdminChatRepository();
@@ -14,7 +18,7 @@ describe('GetChatStatsUseCase', () => {
   });
 
   afterEach(() => {
-    Date.now = Date.prototype.getTime.bind(new Date());
+    Date.now = realDateNow;
   });
 
   it('returns the seeded stats and asks the repo for the 30-day window', async () => {

@@ -15,9 +15,9 @@ export const GeoLocationItemSchema = z.object({
   label: z.string(),
   city: z.string().optional(),
   state: z.string().optional(),
-  stateCode: z.string().optional(),
+  stateCode: z.string().optional().openapi({ example: 'SP' }),
   country: z.string(),
-  countryCode: z.string(),
+  countryCode: z.string().openapi({ example: 'BR' }),
 });
 export type GeoLocationItem = z.infer<typeof GeoLocationItemSchema>;
 

@@ -63,7 +63,7 @@ export const PresignedDownloadResponseSchema = z.object({
 // self-contained HTML document (high-fidelity mirror of the Typst PDF) and
 // returns it inline — no MinIO upload, no presigned URL.
 export const ResumePreviewResponseSchema = z.object({
-  html: z.string(),
+  html: z.string().openapi({ example: '<!doctype html><html>…</html>' }),
 });
 
 // F3-PD-009c — bundle (multi-format zip) request body.

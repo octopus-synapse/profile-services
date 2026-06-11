@@ -204,6 +204,15 @@ export const EnvConfigSchema = z
     LINKEDIN_OAUTH_CLIENT_ID: z.string().optional(),
     LINKEDIN_OAUTH_SECRET: z.string().optional(),
     GITHUB_TOKEN: z.string().optional(),
+    // CSV of wildcard patterns the mobile deep-link flow may redirect to
+    // (V2 D41). Consumed via `config.getOrDefault` in oauth.composition.
+    OAUTH_REDIRECT_URI_ALLOWLIST: z.string().optional(),
+
+    // --- Session cookie lifetimes (days) ---
+    // Consumed via `config.get/getOrDefault` in the authentication BC;
+    // declared here so boot-time validation covers them (env-example sync).
+    SESSION_EXPIRY_DAYS: PositiveIntString.optional(),
+    PERSISTENT_SESSION_EXPIRY_DAYS: PositiveIntString.optional(),
 
     // --- OpenAI / AI ---
     OPENAI_API_KEY: z.string().optional(),

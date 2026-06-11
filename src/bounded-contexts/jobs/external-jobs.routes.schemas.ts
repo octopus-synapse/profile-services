@@ -26,14 +26,14 @@ export type ExternalJobListQuery = z.infer<typeof ExternalJobListQuerySchema>;
 // internal bookkeeping, not feed content.
 export const ExternalJobItemSchema = z.object({
   id: z.string(),
-  externalId: z.string(),
+  externalId: z.string().openapi({ example: 'BreJXMXqEoK60_-dAAAAAA==' }),
   title: z.string(),
   company: z.string(),
   location: z.string().nullable(),
-  isRemote: z.boolean(),
+  isRemote: z.boolean().openapi({ example: true }),
   employmentType: z.nativeEnum(JobType).nullable(),
   applyUrl: z.string(),
-  publisher: z.string().nullable(),
+  publisher: z.string().nullable().openapi({ example: 'Indeed' }),
   description: z.string().nullable(),
   postedAt: IsoDateTimeSchema.nullable(),
   fetchedAt: IsoDateTimeSchema,

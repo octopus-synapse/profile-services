@@ -4,16 +4,16 @@
  * batching (`BATCH_SIZE` rows per `createMany`).
  */
 
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
-import { Prisma } from '@prisma/client';
 import { BATCH_SIZE } from '../../../constants';
 import type { NormalizedInstitution } from '../../../domain/entities/mec-row';
-import { INSTITUTION_SEARCH_TIERS } from '../../../domain/services/institution-search-ranking';
 import {
   type InstitutionWithCoursesRow,
   MecInstitutionRepositoryPort,
 } from '../../../domain/ports/mec-institution.repository.port';
+import { INSTITUTION_SEARCH_TIERS } from '../../../domain/services/institution-search-ranking';
 import type { Institution } from '../../../schemas/mec.schema';
 
 const INSTITUTION_SELECT = {

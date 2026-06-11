@@ -10,9 +10,7 @@
       "employer_website": null,
       "job_publisher": "Indeed",
       "job_employment_type": "Tempo integral",
-      "job_employment_types": [
-        "FULLTIME"
-      ],
+      "job_employment_types": ["FULLTIME"],
       "job_apply_link": "https://br.indeed.com/viewjob?jk=0637bb1158fb811a",
       "job_apply_is_direct": false,
       "apply_options": [
@@ -54,9 +52,7 @@
       "employer_website": null,
       "job_publisher": "Catho",
       "job_employment_type": "Tempo integral",
-      "job_employment_types": [
-        "FULLTIME"
-      ],
+      "job_employment_types": ["FULLTIME"],
       "job_apply_link": "https://www.catho.com.br/vagas/desenvolvedor-de-inteligencia-artificial/36995747/",
       "job_apply_is_direct": false,
       "apply_options": [
@@ -98,9 +94,7 @@
       "employer_website": "https://www.frameworkdigital.com.au",
       "job_publisher": "BeBee",
       "job_employment_type": "Estágio",
-      "job_employment_types": [
-        "INTERN"
-      ],
+      "job_employment_types": ["INTERN"],
       "job_apply_link": "https://bebee.com/br/jobs/desenvolvedor-front-end-sr-framework-digital-primavera-do-leste--jobtome-617d7705e848df49f26961f741f551e9",
       "job_apply_is_direct": false,
       "apply_options": [
@@ -142,9 +136,7 @@
       "employer_website": null,
       "job_publisher": "CareerSprint",
       "job_employment_type": "Tempo integral",
-      "job_employment_types": [
-        "FULLTIME"
-      ],
+      "job_employment_types": ["FULLTIME"],
       "job_apply_link": "https://careersprint.7f.liveblog365.com/job/2339374",
       "job_apply_is_direct": false,
       "apply_options": [
@@ -186,9 +178,7 @@
       "employer_website": null,
       "job_publisher": "Indeed",
       "job_employment_type": "Tempo integral",
-      "job_employment_types": [
-        "FULLTIME"
-      ],
+      "job_employment_types": ["FULLTIME"],
       "job_apply_link": "https://br.indeed.com/viewjob?jk=6a3c4ca1d698410e",
       "job_apply_is_direct": false,
       "apply_options": [

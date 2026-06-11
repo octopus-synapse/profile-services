@@ -41,7 +41,7 @@ async function main(): Promise<void> {
   try {
     const service = new ExternalJobsIngestionService(
       new JSearchJobSearchAdapter(apiKey, apiHost, logger),
-      new PrismaExternalJobListingsRepository(prisma as never),
+      new PrismaExternalJobListingsRepository(prisma as never, logger),
       new JSearchQuotaService(new RedisCacheAdapter(redis)),
       logger,
     );

@@ -26,6 +26,7 @@ export interface CreateMockUserOptions {
   website?: string | null;
   linkedin?: string | null;
   github?: string | null;
+  portfolio?: string | null;
   hasCompletedOnboarding?: boolean;
   onboardingCompletedAt?: Date | null;
   isActive?: boolean;
@@ -53,6 +54,7 @@ const defaultUser: User = {
   website: null,
   linkedin: null,
   github: null,
+  portfolio: null,
   onboardingCompletedAt: null,
   isActive: true,
   lastLoginAt: null,

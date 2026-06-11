@@ -7,6 +7,7 @@
 
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   type ExternalJobListFilters,
   type ExternalJobListingRecord,
@@ -15,8 +16,13 @@ import {
 } from '../../../domain/ports/external-job-listings.repository.port';
 import type { ExternalJobPosting } from '../../../domain/ports/external-job-search.port';
 
+const CTX = 'PrismaExternalJobListingsRepository';
+
 export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -100,6 +106,9 @@ export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepo
     const result = await this.prisma.externalJobListing.deleteMany({
       where: { fetchedAt: { lt: cutoff } },
     });
+    if (result.count > 0) {
+      this.logger.log(`retention sweep removed ${result.count} listings`, CTX);
+    }
     return result.count;
   }
 }

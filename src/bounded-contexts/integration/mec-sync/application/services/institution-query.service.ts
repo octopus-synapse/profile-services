@@ -7,12 +7,12 @@
 
 import { APP_CONFIG, LoggerPort } from '@/shared-kernel';
 import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../../domain/entities/mec-row';
-import { tokenizeInstitutionQuery } from '../../domain/services/institution-search-ranking';
 import { MecCachePort } from '../../domain/ports/mec-cache.port';
 import {
   type InstitutionWithCoursesRow,
   MecInstitutionRepositoryPort,
 } from '../../domain/ports/mec-institution.repository.port';
+import { tokenizeInstitutionQuery } from '../../domain/services/institution-search-ranking';
 import type { CourseBasic, Institution, InstitutionWithCourses } from '../../schemas/mec.schema';
 
 export class InstitutionQueryService {

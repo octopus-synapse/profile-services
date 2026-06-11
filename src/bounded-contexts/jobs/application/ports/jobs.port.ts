@@ -15,8 +15,8 @@ import type { GetJobFitUseCase } from '../use-cases/get-job-fit/get-job-fit.use-
 import type { ImportJobFromUrlUseCase } from '../use-cases/import-job-from-url/import-job-from-url.use-case';
 import type { ListApplicationTimelineUseCase } from '../use-cases/list-application-timeline/list-application-timeline.use-case';
 import type { ListBookmarkedJobsUseCase } from '../use-cases/list-bookmarked-jobs/list-bookmarked-jobs.use-case';
-import type { ListJobApplicationsUseCase } from '../use-cases/list-job-applications/list-job-applications.use-case';
 import type { ListExternalJobsUseCase } from '../use-cases/list-external-jobs/list-external-jobs.use-case';
+import type { ListJobApplicationsUseCase } from '../use-cases/list-job-applications/list-job-applications.use-case';
 import type { ListJobsUseCase } from '../use-cases/list-jobs/list-jobs.use-case';
 import type { ListJobsWithFitScoreUseCase } from '../use-cases/list-jobs-with-fit-score/list-jobs-with-fit-score.use-case';
 import type { ListMyApplicationsUseCase } from '../use-cases/list-my-applications/list-my-applications.use-case';

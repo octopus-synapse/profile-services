@@ -10,13 +10,12 @@ import type { CachePort } from '@/shared-kernel/cache';
 import type { ConfigPort } from '@/shared-kernel/config/config.port';
 import type { LoggerPort } from '@/shared-kernel/logger';
 import { SearchCompaniesUseCase } from './application/use-cases/search-companies.use-case';
+import type { CompaniesBundle } from './companies.bundle';
 import { companiesRoutes } from './companies.routes';
-import { LogoDevCompanySearchAdapter } from './infrastructure/adapters/logo-dev-company-search.adapter';
 
-/** The route bundle: the use cases a companies route handler can call. */
-export interface CompaniesBundle {
-  readonly searchCompanies: SearchCompaniesUseCase;
-}
+export type { CompaniesBundle } from './companies.bundle';
+
+import { LogoDevCompanySearchAdapter } from './infrastructure/adapters/logo-dev-company-search.adapter';
 
 export function buildCompaniesComposition(
   cache: CachePort,
@@ -30,7 +29,7 @@ export function buildCompaniesComposition(
       'CompaniesComposition',
     );
   }
-  const search = new LogoDevCompanySearchAdapter(secretKey);
+  const search = new LogoDevCompanySearchAdapter(secretKey, logger);
 
   const useCases: CompaniesBundle = {
     searchCompanies: new SearchCompaniesUseCase(search, cache, logger),

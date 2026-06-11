@@ -13,6 +13,17 @@ import { Permission } from '@/shared-kernel/authorization';
 import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { FeedUseCases } from './application/ports/feed.port';
+
+// Shape the multipart pipeline hands to handlers (Multer-compatible).
+// Local type: importing another BC's domain for this would cross BC
+// boundaries, and @types/multer left with the Nest stack.
+type MultipartImageFile = {
+  buffer: Buffer;
+  originalname: string;
+  mimetype: string;
+  size: number;
+};
+
 import { CreatePostSchema } from './dto/create-post-request.schema';
 import {
   BookmarkPostResponseSchema,
@@ -463,7 +474,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const file = (ctx.body as { file?: Express.Multer.File }).file;
+      const file = (ctx.body as { file?: MultipartImageFile }).file;
       return bc.uploadPostImage.execute(
         file
           ? {

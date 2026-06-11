@@ -26,9 +26,12 @@ const KNOWN_DOMAIN_EXCEPTION_BASES = new Set([
   'BusinessRuleViolationException',
   'LimitExceededException',
   'OnboardingValidationException',
+  // Q24: ownership exceptions MUST extend this shared-kernel base.
+  'OwnershipAccessDeniedException',
 ]);
 
-const CLASS_DECL_RE = /export\s+(abstract\s+)?class\s+(\w+)\s+extends\s+([A-Za-z_][\w]*)/g;
+// `export` is optional: use-case-local exception classes still emit codes.
+const CLASS_DECL_RE = /(?:export\s+)?(abstract\s+)?class\s+(\w+)\s+extends\s+([A-Za-z_][\w]*)/g;
 const CODE_LITERAL_RE = /readonly\s+code(?:\s*:\s*string)?\s*=\s*['"]([A-Z][A-Z0-9_]*)['"]/;
 // `domainCode('CODE', ...)` calls — the canonical builder for non-throwable
 // catalog emissions (validation results, etc — see Q8b in CLAUDE.md).

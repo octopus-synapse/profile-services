@@ -230,6 +230,15 @@
     "PENDING",
     "REVIEWED"
   ],
+  "RoleTitleLang": [
+    "EN",
+    "PT"
+  ],
+  "RoleTitleSource": [
+    "CBO",
+    "ESCO",
+    "ONET"
+  ],
   "SkillProficiency": [
     "ADVANCED",
     "BEGINNER",

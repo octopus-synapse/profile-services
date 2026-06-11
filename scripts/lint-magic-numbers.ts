@@ -34,7 +34,9 @@ const BASELINE_PATH = resolve(ROOT, 'scripts/lint-magic-numbers.baseline.txt');
 
 const ALLOWED = new Set<number>([
   0, 1, -1, 2, 8, 10, 12, 16, 24, 32, 48, 60, 64, 100, 200, 201, 204, 400, 401, 403, 404, 409, 422,
-  500, 1000, 3600, 86400,
+  // 429/502/503 complete the HTTP-status family above (rate-limit /
+  // bad-gateway / unavailable statusHints on DomainExceptions).
+  429, 500, 502, 503, 1000, 3600, 86400,
 ]);
 
 // Match a numeric literal that isn't part of an identifier/property
@@ -44,31 +46,57 @@ const ALLOWED = new Set<number>([
 const NUM_RE = /(?<![A-Za-z_$.\d])-?\d+(?:\.\d+)?(?:e[+-]?\d+)?(?![\w$])/g;
 const ESCAPE_RE = /lint-allow-magic-number:\s*\S/;
 
-function stripStringsAndComments(line: string): string {
-  let out = '';
-  let i = 0;
+/**
+ * Strips strings and comments from a whole file, line by line, carrying
+ * block-comment and template-literal state ACROSS lines. The previous
+ * per-line version treated every middle line of a `/** … *​/` doc block
+ * or a multi-line template literal as code, flagging numbers in prose
+ * ("06:00", "2026-06-11") and CSS values inside backtick HTML/CSS
+ * templates. `${…}` interpolations inside templates are blanked too —
+ * conservative, but a number that matters there belongs in a constant
+ * anyway.
+ */
+function stripFile(src: string): string[] {
+  const out: string[] = [];
   let inSingle = false;
   let inDouble = false;
   let inBack = false;
-  while (i < line.length) {
-    const ch = line[i];
-    if (!inSingle && !inDouble && !inBack && ch === '/' && line[i + 1] === '/') return out;
-    if (!inSingle && !inDouble && !inBack && ch === '/' && line[i + 1] === '*') {
-      const end = line.indexOf('*/', i + 2);
-      if (end === -1) return out;
-      i = end + 2;
-      continue;
+  let inBlockComment = false;
+  for (const line of src.split('\n')) {
+    // ' / " never span lines (unterminated would be a syntax error).
+    inSingle = false;
+    inDouble = false;
+    let stripped = '';
+    let i = 0;
+    while (i < line.length) {
+      const ch = line[i];
+      if (inBlockComment) {
+        if (ch === '*' && line[i + 1] === '/') {
+          inBlockComment = false;
+          i += 2;
+          continue;
+        }
+        i++;
+        continue;
+      }
+      if (!inSingle && !inDouble && !inBack && ch === '/' && line[i + 1] === '/') break;
+      if (!inSingle && !inDouble && !inBack && ch === '/' && line[i + 1] === '*') {
+        inBlockComment = true;
+        i += 2;
+        continue;
+      }
+      if (ch === '\\') {
+        i += 2;
+        continue;
+      }
+      if (!inDouble && !inBack && ch === "'") inSingle = !inSingle;
+      else if (!inSingle && !inBack && ch === '"') inDouble = !inDouble;
+      else if (!inSingle && !inDouble && ch === '`') inBack = !inBack;
+      if (!inSingle && !inDouble && !inBack) stripped += ch;
+      else stripped += ' '; // keep column alignment but blank string content
+      i++;
     }
-    if (ch === '\\') {
-      i += 2;
-      continue;
-    }
-    if (!inDouble && !inBack && ch === "'") inSingle = !inSingle;
-    else if (!inSingle && !inBack && ch === '"') inDouble = !inDouble;
-    else if (!inSingle && !inDouble && ch === '`') inBack = !inBack;
-    if (!inSingle && !inDouble && !inBack) out += ch;
-    else out += ' '; // keep column alignment but blank string content
-    i++;
+    out.push(stripped);
   }
   return out;
 }
@@ -110,8 +138,9 @@ for (const file of walk(SRC)) {
   const rel = relative(ROOT, file);
   const src = readFileSync(file, 'utf8');
   const lines = src.split('\n');
+  const strippedLines = stripFile(src);
   for (let i = 0; i < lines.length; i++) {
-    const stripped = stripStringsAndComments(lines[i]);
+    const stripped = strippedLines[i];
     NUM_RE.lastIndex = 0;
     for (
       let m: RegExpExecArray | null = NUM_RE.exec(stripped);

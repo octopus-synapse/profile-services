@@ -33,13 +33,6 @@ export const ENUM_DICTIONARY = {
     DOWNLOAD: { en: 'Download', 'pt-BR': 'Download' },
     VIEW: { en: 'View', 'pt-BR': 'Visualização' },
   },
-  AnonymousCategory: {
-    HARASSMENT: { en: 'Harassment', 'pt-BR': 'Assédio' },
-    INTERVIEW: { en: 'Interview', 'pt-BR': 'Entrevista' },
-    LAYOFF: { en: 'Layoff', 'pt-BR': 'Demissão' },
-    SALARY: { en: 'Salary', 'pt-BR': 'Salário' },
-    TOXIC_CULTURE: { en: 'Toxic culture', 'pt-BR': 'Cultura tóxica' },
-  },
   ApplyMode: {
     AUTO_APPLY: { en: 'Auto-apply', 'pt-BR': 'Candidatura automática' },
     ONE_CLICK: { en: 'One-click', 'pt-BR': 'Um clique' },
@@ -254,22 +247,6 @@ export const ENUM_DICTIONARY = {
     GBP: { en: 'GBP', 'pt-BR': 'GBP' },
     USD: { en: 'USD', 'pt-BR': 'USD' },
   },
-  PostType: {
-    ACHIEVEMENT: { en: 'Achievement', 'pt-BR': 'Conquista' },
-    BUILD: { en: 'Build', 'pt-BR': 'Build' },
-    CHALLENGE: { en: 'Challenge', 'pt-BR': 'Desafio' },
-    LEARNING: { en: 'Learning', 'pt-BR': 'Aprendizado' },
-    OPPORTUNITY: { en: 'Opportunity', 'pt-BR': 'Oportunidade' },
-    QUESTION: { en: 'Question', 'pt-BR': 'Pergunta' },
-    REPOST: { en: 'Repost', 'pt-BR': 'Repostagem' },
-  },
-  ReactionType: {
-    CELEBRATE: { en: 'Celebrate', 'pt-BR': 'Celebrar' },
-    CURIOUS: { en: 'Curious', 'pt-BR': 'Curioso' },
-    INSIGHTFUL: { en: 'Insightful', 'pt-BR': 'Perspicaz' },
-    LIKE: { en: 'Like', 'pt-BR': 'Curtir' },
-    LOVE: { en: 'Love', 'pt-BR': 'Adorar' },
-  },
   RemotePolicy: {
     HYBRID: { en: 'Hybrid', 'pt-BR': 'Híbrido' },
     ONSITE: { en: 'Onsite', 'pt-BR': 'Presencial' },
@@ -279,6 +256,16 @@ export const ENUM_DICTIONARY = {
     DISMISSED: { en: 'Dismissed', 'pt-BR': 'Descartada' },
     PENDING: { en: 'Pending', 'pt-BR': 'Pendente' },
     REVIEWED: { en: 'Reviewed', 'pt-BR': 'Revisada' },
+  },
+  RoleTitleLang: {
+    EN: { en: 'English', 'pt-BR': 'Inglês' },
+    PT: { en: 'Portuguese', 'pt-BR': 'Português' },
+  },
+  RoleTitleSource: {
+    // Taxonomy names are proper nouns — same label in both locales.
+    CBO: { en: 'CBO', 'pt-BR': 'CBO' },
+    ESCO: { en: 'ESCO', 'pt-BR': 'ESCO' },
+    ONET: { en: 'O*NET', 'pt-BR': 'O*NET' },
   },
   LayoutKind: {
     SINGLE_COLUMN: { en: 'Single column', 'pt-BR': 'Coluna única' },

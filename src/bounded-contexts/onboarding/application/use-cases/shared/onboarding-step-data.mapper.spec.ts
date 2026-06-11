@@ -98,14 +98,15 @@ describe('OnboardingStepDataMapper', () => {
       });
     });
 
-    it('should merge professionalProfile from root-level keys', () => {
+    it('should merge professionalProfile from root-level keys, dropping jobTitle', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
+      // jobTitle left the professional-profile step in the redesign (it is
+      // derived from work experience) — the mapper must filter it out.
       const stepData = { jobTitle: 'Designer', github: 'github.com/jane', website: 'jane.dev' };
 
       mapper.mergeStepData(update, 'professional-profile', stepData, baseProgress);
 
       expect(update.professionalProfile).toEqual({
-        jobTitle: 'Designer',
         github: 'github.com/jane',
         website: 'jane.dev',
       });
@@ -113,11 +114,11 @@ describe('OnboardingStepDataMapper', () => {
 
     it('should ignore unrelated root keys', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
-      const stepData = { jobTitle: 'Dev', unrelatedField: 'should be ignored' };
+      const stepData = { headline: 'Dev', unrelatedField: 'should be ignored' };
 
       mapper.mergeStepData(update, 'professional-profile', stepData, baseProgress);
 
-      expect(update.professionalProfile).toEqual({ jobTitle: 'Dev' });
+      expect(update.professionalProfile).toEqual({ headline: 'Dev' });
     });
   });
 

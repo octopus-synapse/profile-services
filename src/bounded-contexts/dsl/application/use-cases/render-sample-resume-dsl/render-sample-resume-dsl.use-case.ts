@@ -16,10 +16,9 @@
 import type { LoggerPort } from '@/shared-kernel';
 import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import type { ResumeAst } from '../../../domain/schemas/ast/resume-ast.schema';
-import type { ResumeDsl } from '../../../domain/schemas/dsl';
 import { mergeDsl } from '../../../domain/value-objects/merge-dsl';
 import type { DslCompilerService } from '../../services/dsl-compiler.service';
-import { SAMPLE_RESUME_DSL, buildSampleResume } from './sample-resume';
+import { buildSampleResume, SAMPLE_RESUME_DSL } from './sample-resume';
 
 export type RenderSampleTarget = 'html' | 'pdf';
 
@@ -46,10 +45,7 @@ export class RenderSampleResumeDslUseCase {
     if (isPlainObject(input.styleConfig.layout)) overlay.layout = input.styleConfig.layout;
     if (isPlainObject(input.styleConfig.tokens)) overlay.tokens = input.styleConfig.tokens;
 
-    const merged = mergeDsl(
-      SAMPLE_RESUME_DSL as unknown as Record<string, unknown>,
-      overlay,
-    ) as ResumeDsl;
+    const merged = mergeDsl(SAMPLE_RESUME_DSL, overlay);
 
     const resume = buildSampleResume(input.locale);
     const ast =

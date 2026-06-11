@@ -6,9 +6,8 @@
  */
 
 import type { Route } from '@/shared-kernel/http/route.types';
-import type { CompaniesBundle } from './companies.composition';
+import type { CompaniesBundle } from './companies.bundle';
 import {
-  type CompaniesSearchQuery,
   CompaniesSearchQuerySchema,
   CompaniesSearchResponseSchema,
 } from './companies.routes.schemas';
@@ -27,7 +26,7 @@ export const companiesRoutes: ReadonlyArray<Route<CompaniesBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
-      const query = ctx.query as unknown as CompaniesSearchQuery;
+      const query = CompaniesSearchQuerySchema.parse(ctx.query);
       const companies = await bundle.searchCompanies.execute(query);
       return { companies };
     },

@@ -127,7 +127,9 @@ export type ResumePreviewQuery = z.infer<typeof ResumePreviewQuery>;
 
 // Self-contained HTML mirroring the Typst PDF (mirror of the export BC's
 // `ResumePreviewResponseSchema`), ready for an iframe/WebView.
-export const OnboardingResumePreviewResponseSchema = z.object({ html: z.string() });
+export const OnboardingResumePreviewResponseSchema = z.object({
+  html: z.string().openapi({ example: '<!doctype html><html>…</html>' }),
+});
 
 // Helper to fetch the system resume styles shown on the picker step.
 export async function getSystemResumeStyles(bundle: OnboardingHttpBundle) {

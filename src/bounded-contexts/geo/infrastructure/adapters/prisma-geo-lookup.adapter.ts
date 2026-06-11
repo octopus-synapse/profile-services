@@ -10,8 +10,11 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { type GeoLookupParams, GeoLookupPort } from '../../domain/ports/geo-lookup.port';
 import type { GeoLocationItem } from '../../geo.routes.schemas';
+
+const CTX = 'PrismaGeoLookupAdapter';
 
 /** Accent- and case-insensitive normalisation matching the import script. */
 function norm(value: string): string {
@@ -19,13 +22,17 @@ function norm(value: string): string {
 }
 
 export class PrismaGeoLookupAdapter extends GeoLookupPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
   async search(params: GeoLookupParams): Promise<GeoLocationItem[]> {
     const nq = norm(params.q);
     if (!nq) return [];
+    this.logger.debug(`geo search '${nq}' (level=${params.level})`, CTX);
 
     const { level, country, state, limit } = params;
     const countryScope = country ? country.toUpperCase() : undefined;

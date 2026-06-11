@@ -1,7 +1,4 @@
-import {
-  CompanySearchPort,
-  type CompanySuggestion,
-} from '../domain/ports/company-search.port';
+import { CompanySearchPort, type CompanySuggestion } from '../domain/ports/company-search.port';
 
 /** Fake `CompanySearchPort`: serves seeded suggestions filtered by substring,
  *  records calls, and can be armed to throw (provider-outage paths). */

@@ -33,6 +33,7 @@ import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persiste
 import { ResumeStylesQueryAdapter } from './infrastructure/adapters/resume-styles-query.adapter';
 import { AdminOnboardingService } from './infrastructure/services/admin-onboarding.service';
 import { onboardingRoutes } from './onboarding.routes';
+import { onboardingAdminRoutes } from './onboarding-admin.routes';
 
 export { OnboardingHttpBundle };
 
@@ -120,7 +121,7 @@ export function buildOnboardingComposition(
 
   return {
     useCases: bundle.httpBundle,
-    routes: onboardingRoutes,
+    routes: [...onboardingRoutes, ...onboardingAdminRoutes],
     lifecycles: [],
   };
 }

@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { UploadUseCases } from './application/ports/upload.port';
+import type { FileUpload } from './domain/services/file-validator';
 
 const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
 
@@ -48,7 +49,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const file = (ctx.body as { file: Express.Multer.File }).file;
+      const file = (ctx.body as { file: FileUpload }).file;
       const result = await bc.uploadProfileImage.execute(ctx.user!.userId, {
         buffer: file.buffer,
         originalname: file.originalname,
@@ -75,7 +76,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
-      const file = (ctx.body as { file: Express.Multer.File }).file;
+      const file = (ctx.body as { file: FileUpload }).file;
       const result = await bc.uploadCompanyLogo.execute(ctx.user!.userId, resumeId, {
         buffer: file.buffer,
         originalname: file.originalname,

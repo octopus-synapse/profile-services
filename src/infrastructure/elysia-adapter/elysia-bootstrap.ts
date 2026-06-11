@@ -32,6 +32,7 @@ import { PrismaCuratedSelectorRepository } from '@/bounded-contexts/automation/i
 import { buildBadgesComposition } from '@/bounded-contexts/badges/badges.composition';
 import { buildCareerGraphComposition } from '@/bounded-contexts/career-graph/career-graph.composition';
 import { buildCollaborationComposition } from '@/bounded-contexts/collaboration/collaboration.composition';
+import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
 import { buildDslComposition } from '@/bounded-contexts/dsl/dsl.composition';
 import {
   ExportCompletedEvent,
@@ -45,6 +46,7 @@ import {
   buildFitProfileBundle,
   buildFitProfileComposition,
 } from '@/bounded-contexts/fit-profile/fit-profile.composition';
+import { buildGeoComposition } from '@/bounded-contexts/geo/geo.composition';
 import { buildAccountLifecycleUseCases } from '@/bounded-contexts/identity/account-lifecycle/account-lifecycle.composition';
 import { accountLifecycleRoutes } from '@/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes';
 import { buildAuthenticationUseCases } from '@/bounded-contexts/identity/authentication/authentication.composition';
@@ -87,8 +89,6 @@ import { buildUploadComposition } from '@/bounded-contexts/integration/upload/up
 import { InvalidateMatchCacheOnJobUpdatedHandler } from '@/bounded-contexts/job-match/infrastructure/handlers/invalidate-match-cache-on-job-updated.handler';
 import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match.composition';
 import { JobUpdatedEvent } from '@/bounded-contexts/jobs/domain/events';
-import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
-import { buildGeoComposition } from '@/bounded-contexts/geo/geo.composition';
 import {
   buildJobsComposition,
   isExternalJobsIngestionEnabled,
@@ -142,6 +142,7 @@ import { VersionAuditHandler } from '@/bounded-contexts/resumes/resume-versions/
 import { buildResumeVersionsComposition } from '@/bounded-contexts/resumes/resume-versions/resume-versions.composition';
 import { buildAdminSectionTypesComposition } from '@/bounded-contexts/resumes/section-types/application/admin-section-types.composition';
 import { buildTimeCapsuleComposition } from '@/bounded-contexts/resumes/time-capsule/time-capsule.composition';
+import { buildRolesComposition } from '@/bounded-contexts/roles/roles.composition';
 import { buildAdminCatalogUseCases } from '@/bounded-contexts/skills-catalog/admin/admin-catalog.composition';
 import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalog/skills-catalog.composition';
 import {
@@ -725,9 +726,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;
   // Geo lookup BC — `GEO_SOURCE=postgres` uses the GeoNames import, else the
   // bundled dataset baked into the adapter.
-  const geo = buildGeoComposition(prisma as never, config as never);
+  const geo = buildGeoComposition(prisma as never, config as never, logger);
   // Companies BC — logo.dev brand search proxy for the company autocomplete.
   const companies = buildCompaniesComposition(cache, config, logger);
+  // Roles BC — ESCO/CBO/O*NET job-title dictionary for the role autocomplete.
+  const roles = buildRolesComposition(prisma as never, logger);
 
   // Analytics sub-BCs.
   const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);
@@ -1200,6 +1203,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     { bundle: uiState, routes: uiStateRoutes },
     { bundle: geo.useCases, routes: geo.routes },
     { bundle: companies.useCases, routes: companies.routes },
+    { bundle: roles.useCases, routes: roles.routes },
     {
       bundle: (translation as { useCases: unknown }).useCases ?? translation,
       routes: translationRoutes,

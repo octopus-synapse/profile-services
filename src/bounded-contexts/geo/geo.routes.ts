@@ -6,12 +6,8 @@
  */
 
 import type { Route } from '@/shared-kernel/http/route.types';
-import type { GeoBundle } from './geo.composition';
-import {
-  type GeoLocationsQuery,
-  GeoLocationsQuerySchema,
-  GeoLocationsResponseSchema,
-} from './geo.routes.schemas';
+import type { GeoBundle } from './geo.bundle';
+import { GeoLocationsQuerySchema, GeoLocationsResponseSchema } from './geo.routes.schemas';
 
 export const geoRoutes: ReadonlyArray<Route<GeoBundle>> = [
   {
@@ -27,7 +23,7 @@ export const geoRoutes: ReadonlyArray<Route<GeoBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
-      const query = ctx.query as GeoLocationsQuery;
+      const query = GeoLocationsQuerySchema.parse(ctx.query);
       const items = await bundle.searchLocations.execute(query);
       return { items };
     },

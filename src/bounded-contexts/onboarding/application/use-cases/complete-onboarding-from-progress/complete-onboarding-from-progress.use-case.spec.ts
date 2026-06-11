@@ -164,8 +164,10 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
   });
 
-  it('throws when professionalProfile is missing', async () => {
-    // Arrange
+  it('completes even when professionalProfile is missing (optional since the redesign)', async () => {
+    // Arrange — professional-profile data is optional: the resume job
+    // title is derived from work experience (deriveJobTitle), so a null
+    // profile must NOT block completion.
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
@@ -178,7 +180,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     );
 
     // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
+    await expect(useCase.execute(USER_ID)).resolves.toBeDefined();
   });
 
   it('throws when personalInfo.fullName is missing', async () => {
@@ -202,8 +204,10 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
   // (signup) is the canonical email; there is no separate personalInfo.email
   // field anymore. See onboarding-data.schema.ts.
 
-  it('throws when professionalProfile.jobTitle is missing', async () => {
-    // Arrange
+  it('completes when professionalProfile has no job title (derived from work experience)', async () => {
+    // Arrange — jobTitle left the professional-profile step in the
+    // redesign; `deriveJobTitle` extracts it from the current work
+    // experience with `headline` as fallback.
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
@@ -211,12 +215,12 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe' },
-        professionalProfile: { summary: 'No job title' }, // missing jobTitle
+        professionalProfile: { summary: 'No job title' },
       }),
     );
 
     // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
+    await expect(useCase.execute(USER_ID)).resolves.toBeDefined();
   });
 
   it('passes resumeStyleId=null through when the user skipped the picker', async () => {

@@ -30,7 +30,7 @@ export const SendVerificationResponseSchema = z.object({
   code: z.string().optional(),
   message: z.string().optional(),
   cooldown: ResendCooldownShape,
-  testCode: z.string().optional(),
+  testCode: z.string().optional().openapi({ example: '123456' }),
 });
 
 export const ResendCooldownResponseSchema = ResendCooldownShape;

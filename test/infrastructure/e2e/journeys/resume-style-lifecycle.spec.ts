@@ -245,9 +245,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
     );
 
     it.serial('should reject unauthenticated preview reads', async () => {
-      const res = await app.request.get(
-        `/api/v1/resume-styles/${firstSystemStyleId}/preview.pdf`,
-      );
+      const res = await app.request.get(`/api/v1/resume-styles/${firstSystemStyleId}/preview.pdf`);
       expect(res.status).toBe(401);
     });
   });

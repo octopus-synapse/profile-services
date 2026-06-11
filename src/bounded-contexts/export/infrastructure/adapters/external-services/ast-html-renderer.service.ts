@@ -1,3 +1,5 @@
+// lint-allow-file-size: single cohesive AST→HTML mirror of the Typst templates;
+// splitting the per-section renderers would let HTML and PDF drift independently.
 /**
  * AST → HTML Renderer
  *

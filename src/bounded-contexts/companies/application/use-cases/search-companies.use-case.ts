@@ -1,7 +1,7 @@
 import { CACHE_PRESETS, type CachePort } from '@/shared-kernel/cache';
 import type { LoggerPort } from '@/shared-kernel/logger';
-import type { CompanySearchPort, CompanySuggestion } from '../../domain/ports/company-search.port';
 import type { CompaniesSearchQuery } from '../../companies.routes.schemas';
+import type { CompanySearchPort, CompanySuggestion } from '../../domain/ports/company-search.port';
 
 const DEFAULT_LIMIT = 20;
 

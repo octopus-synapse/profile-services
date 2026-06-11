@@ -76,13 +76,14 @@ describe('SaveOnboardingStepDataUseCase', () => {
 
     // Act
     const result = await useCase.execute(USER_ID, {
-      jobTitle: 'Product Manager',
+      headline: 'Product Manager',
       summary: 'Experienced PM',
     });
 
-    // Assert
+    // Assert — jobTitle is no longer a professional-profile field (it is
+    // derived from work experience); headline/summary are what persists.
     expect(result.professionalProfile).toEqual({
-      jobTitle: 'Product Manager',
+      headline: 'Product Manager',
       summary: 'Experienced PM',
     });
   });

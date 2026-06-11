@@ -9,7 +9,8 @@
  * un-approved extension makes the migration fail at deploy time.
  *
  * This script runs in CI BEFORE `prisma migrate deploy` and asserts
- * that the target Postgres has `pg_uuidv7` available — both as a smoke
+ * that the target Postgres has every extension our migrations create
+ * (`REQUIRED_EXTENSIONS` below) available — both as a smoke
  * test of the migration itself and as a parity check that the same
  * extension allowlist exists in production. If CI passes this and
  * prod lacks the extension, the bug is in prod allowlist provisioning.
@@ -26,6 +27,12 @@ interface ExtensionRow {
   readonly default_version: string;
 }
 
+/** Extensions our migrations `CREATE EXTENSION`, with the migration that needs them. */
+const REQUIRED_EXTENSIONS: ReadonlyArray<{ name: string; migration: string }> = [
+  { name: 'pg_uuidv7', migration: '20260503120000_install_pg_uuidv7' },
+  { name: 'pg_trgm', migration: '20260610000000_add_role_titles' },
+];
+
 async function main(): Promise<number> {
   if (!process.env.DATABASE_URL) {
     // eslint-disable-next-line no-console
@@ -35,26 +42,33 @@ async function main(): Promise<number> {
 
   const prisma = new PrismaClient();
   try {
+    const names = REQUIRED_EXTENSIONS.map((e) => e.name);
     const rows = await prisma.$queryRaw<ExtensionRow[]>`
       SELECT name, default_version
         FROM pg_available_extensions
-       WHERE name = 'pg_uuidv7'
+       WHERE name = ANY(${names})
     `;
-    if (rows.length === 0) {
-      // eslint-disable-next-line no-console
-      console.error(
-        'check-pg-extensions: pg_uuidv7 is NOT in pg_available_extensions.\n' +
-          '  This Postgres cannot run the 20260503120000_install_pg_uuidv7 migration.\n' +
-          '  Fix: add "pg_uuidv7" to the cluster\'s extension allowlist (shared_preload_libraries\n' +
-          '  or the provider-specific equivalent). For local dev: install the extension via your\n' +
-          '  package manager and restart Postgres.',
-      );
+    const available = new Map(rows.map((r) => [r.name, r.default_version]));
+    const missing = REQUIRED_EXTENSIONS.filter((e) => !available.has(e.name));
+    if (missing.length > 0) {
+      for (const ext of missing) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `check-pg-extensions: ${ext.name} is NOT in pg_available_extensions.\n` +
+            `  This Postgres cannot run the ${ext.migration} migration.\n` +
+            `  Fix: add "${ext.name}" to the cluster's extension allowlist (shared_preload_libraries\n` +
+            '  or the provider-specific equivalent). For local dev: install the extension via your\n' +
+            '  package manager and restart Postgres.',
+        );
+      }
       return 1;
     }
-    // eslint-disable-next-line no-console
-    console.log(
-      `check-pg-extensions: pg_uuidv7 available (default_version=${rows[0].default_version}).`,
-    );
+    for (const ext of REQUIRED_EXTENSIONS) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `check-pg-extensions: ${ext.name} available (default_version=${available.get(ext.name)}).`,
+      );
+    }
     return 0;
   } catch (err) {
     // eslint-disable-next-line no-console

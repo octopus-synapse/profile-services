@@ -33,7 +33,12 @@ export class ExternalJobsIngestionWorker {
         logger: this.logger,
       },
       async () => {
-        await this.bc.runExternalJobsIngestion.execute();
+        const summary = await this.bc.runExternalJobsIngestion.execute();
+        this.logger.log(
+          `External jobs ingestion: ${summary.totalFetched} fetched, ${summary.totalCreated} new, ` +
+            `${summary.creditsUsed} credits (${summary.quotaUsedThisMonth}/month)`,
+          CTX,
+        );
       },
     );
   }

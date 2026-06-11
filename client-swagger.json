@@ -20430,7 +20430,8 @@
                       ]
                     },
                     "testCode": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "123456"
                     }
                   },
                   "required": [
@@ -30602,7 +30603,8 @@
                   "type": "object",
                   "properties": {
                     "html": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "<!doctype html><html>…</html>"
                     }
                   },
                   "required": [
@@ -35759,13 +35761,15 @@
                             "type": "string"
                           },
                           "stateCode": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "SP"
                           },
                           "country": {
                             "type": "string"
                           },
                           "countryCode": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "BR"
                           }
                         },
                         "required": [
@@ -39165,6 +39169,334 @@
                           "enrichedBy",
                           "culturalProfileCaptured",
                           "bookmarkedAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
+      }
+    },
+    "/api/v1/jobs/external": {
+      "get": {
+        "summary": "List externally aggregated job postings (daily JSearch batch)",
+        "description": "Jobs API",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "get_v1_jobs_external",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Page"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Limit"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "postedAt",
+                "fetchedAt"
+              ]
+            },
+            "required": false,
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isRemote",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INTERNSHIP",
+                "CONTRACT",
+                "FULL_TIME",
+                "PART_TIME",
+                "VOLUNTEER",
+                "FREELANCE"
+              ]
+            },
+            "required": false,
+            "name": "employmentType",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "externalId": {
+                            "type": "string",
+                            "example": "BreJXMXqEoK60_-dAAAAAA=="
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "company": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "isRemote": {
+                            "type": "boolean",
+                            "example": true
+                          },
+                          "employmentType": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "INTERNSHIP",
+                              "CONTRACT",
+                              "FULL_TIME",
+                              "PART_TIME",
+                              "VOLUNTEER",
+                              "FREELANCE"
+                            ]
+                          },
+                          "applyUrl": {
+                            "type": "string"
+                          },
+                          "publisher": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "Indeed"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "postedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "fetchedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "externalId",
+                          "title",
+                          "company",
+                          "location",
+                          "isRemote",
+                          "employmentType",
+                          "applyUrl",
+                          "publisher",
+                          "description",
+                          "postedAt",
+                          "fetchedAt"
                         ]
                       }
                     },
@@ -48038,7 +48370,8 @@
                           },
                           "cargaHoraria": {
                             "type": "number",
-                            "nullable": true
+                            "nullable": true,
+                            "example": 3200
                           },
                           "institution": {
                             "type": "object",
@@ -48177,7 +48510,8 @@
                         },
                         "cargaHoraria": {
                           "type": "number",
-                          "nullable": true
+                          "nullable": true,
+                          "example": 3200
                         },
                         "institution": {
                           "type": "object",
@@ -48802,7 +49136,8 @@
                           },
                           "cargaHoraria": {
                             "type": "number",
-                            "nullable": true
+                            "nullable": true,
+                            "example": 3200
                           },
                           "institution": {
                             "type": "object",
@@ -54873,7 +55208,8 @@
                   "type": "object",
                   "properties": {
                     "html": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "<!doctype html><html>…</html>"
                     }
                   },
                   "required": [
@@ -60704,7 +61040,8 @@
                         },
                         "portfolio": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "example": "https://alexrivera.dev/portfolio"
                         },
                         "linkedin": {
                           "type": "string",
@@ -80045,6 +80382,180 @@
           },
           "404": {
             "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/roles/search": {
+      "get": {
+        "summary": "Search job-title suggestions for the experience role autocomplete",
+        "description": "Role title search",
+        "tags": [
+          "roles"
+        ],
+        "operationId": "get_v1_roles_search",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "example": "fixture"
+            },
+            "required": true,
+            "name": "q",
+            "in": "query",
+            "example": "fixture"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EN",
+                "PT"
+              ]
+            },
+            "required": false,
+            "name": "lang",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "lang": {
+                            "type": "string",
+                            "enum": [
+                              "EN",
+                              "PT"
+                            ]
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "ESCO",
+                              "CBO",
+                              "ONET"
+                            ]
+                          },
+                          "isPreferred": {
+                            "type": "boolean",
+                            "example": true
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "lang",
+                          "source",
+                          "isPreferred"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
             "content": {
               "application/json": {
                 "schema": {
@@ -103682,6 +104193,9 @@
     },
     {
       "name": "resumes"
+    },
+    {
+      "name": "roles"
     },
     {
       "name": "search"

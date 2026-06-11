@@ -74,12 +74,12 @@ export class RenderInMemoryResumeDslUseCase {
     if (isPlainObject(input.styleConfig.layout)) overlay.layout = input.styleConfig.layout;
     if (isPlainObject(input.styleConfig.tokens)) overlay.tokens = input.styleConfig.tokens;
 
-    const base = {
+    const base: ResumeDsl = {
       ...SAMPLE_RESUME_DSL,
       sections: buildDslSections(input.resume),
-    } as unknown as Record<string, unknown>;
+    };
 
-    const merged = mergeDsl(base, overlay) as ResumeDsl;
+    const merged = mergeDsl(base, overlay);
 
     let ast: ResumeAst;
     try {
@@ -97,7 +97,7 @@ export class RenderInMemoryResumeDslUseCase {
         }`,
         'RenderInMemoryResumeDslUseCase',
       );
-      ast = this.compileFor(base as unknown as ResumeDsl, input);
+      ast = this.compileFor(base, input);
     }
 
     this.logger.log('Rendered in-memory résumé DSL', 'RenderInMemoryResumeDslUseCase');

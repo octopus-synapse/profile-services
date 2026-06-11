@@ -10,25 +10,28 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import type { ConfigPort } from '@/shared-kernel/config/config.port';
 import { SearchLocationsUseCase } from './application/use-cases/search-locations.use-case';
 import type { GeoLookupPort } from './domain/ports/geo-lookup.port';
+import type { GeoBundle } from './geo.bundle';
 import { geoRoutes } from './geo.routes';
+
+export type { GeoBundle } from './geo.bundle';
+
 import { BundledGeoLookupAdapter } from './infrastructure/adapters/bundled-geo-lookup.adapter';
 import { PrismaGeoLookupAdapter } from './infrastructure/adapters/prisma-geo-lookup.adapter';
-
-/** The route bundle: the use cases a geo route handler can call. */
-export interface GeoBundle {
-  readonly searchLocations: SearchLocationsUseCase;
-}
 
 export function buildGeoComposition(
   prisma: PrismaService,
   config: ConfigPort,
+  logger: LoggerPort,
 ): { useCases: GeoBundle; routes: typeof geoRoutes; lookup: GeoLookupPort } {
   const source = config.getOrDefault<string>('GEO_SOURCE', 'bundled');
   const lookup: GeoLookupPort =
-    source === 'postgres' ? new PrismaGeoLookupAdapter(prisma) : new BundledGeoLookupAdapter();
+    source === 'postgres'
+      ? new PrismaGeoLookupAdapter(prisma, logger)
+      : new BundledGeoLookupAdapter();
 
   const useCases: GeoBundle = {
     searchLocations: new SearchLocationsUseCase(lookup),

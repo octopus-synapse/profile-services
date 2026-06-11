@@ -1,0 +1,38 @@
+// Job-title dictionary powering the Add Experience role autocomplete.
+// Populated from ESCO v1.2 (en+pt), CBO 2002 (pt) and O*NET (en) by
+// `bun run roles:import` (src/scripts/import-roles.ts) and read by
+// `PrismaRoleSearchAdapter`.
+//
+// `normalizedLabel` holds the diacritic-stripped, lower-cased label so search
+// never calls `immutable_unaccent` per row at query time. The unique on
+// (lang, normalizedLabel) plus the import order (esco → cbo → onet, with
+// `skipDuplicates`) dedupes overlapping titles across sources, keeping the
+// ESCO row (and its conceptUri) when sources collide. The trigram GIN index
+// backing the contains tier is added via raw SQL in the migration.
+
+enum RoleTitleSource {
+  ESCO
+  CBO
+  ONET
+}
+
+enum RoleTitleLang {
+  EN
+  PT
+}
+
+model RoleTitle {
+  id              String          @id @default(dbgenerated("uuidv7()"))
+  label           String
+  normalizedLabel String
+  lang            RoleTitleLang
+  source          RoleTitleSource
+  /// ESCO conceptUri | CBO code | O*NET SOC code — kept so EN↔PT title
+  /// mapping can be built later without re-importing.
+  sourceId        String?
+  /// true = preferredLabel / título oficial; false = altLabel / sinônimo.
+  isPreferred     Boolean         @default(false)
+
+  @@unique([lang, normalizedLabel])
+  @@index([lang])
+}

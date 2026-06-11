@@ -12,6 +12,14 @@ afterEach(() => {
   globalThis.fetch = realFetch;
 });
 
+const noopLogger = {
+  log: () => {},
+  debug: () => {},
+  warn: () => {},
+  error: () => {},
+  // biome-ignore lint/suspicious/noExplicitAny: minimal LoggerPort stub
+} as any;
+
 describe('LogoDevCompanySearchAdapter', () => {
   it('queries logo.dev with the secret key and maps name/domain', async () => {
     const seen: { url?: string; auth?: string | null } = {};
@@ -23,7 +31,7 @@ describe('LogoDevCompanySearchAdapter', () => {
         { name: 'Nu Pagamentos', domain: 'nu.com.br' },
       ]);
     });
-    const adapter = new LogoDevCompanySearchAdapter('sk_test');
+    const adapter = new LogoDevCompanySearchAdapter('sk_test', noopLogger);
 
     const result = await adapter.search('nubank', 20);
 
@@ -45,27 +53,27 @@ describe('LogoDevCompanySearchAdapter', () => {
         { name: 'B', domain: 'b.com' },
       ]),
     );
-    const adapter = new LogoDevCompanySearchAdapter('sk_test');
+    const adapter = new LogoDevCompanySearchAdapter('sk_test', noopLogger);
 
     expect(await adapter.search('x', 1)).toEqual([{ name: 'A', domain: 'a.com' }]);
   });
 
   it('returns empty when the response is not an array', async () => {
     stubFetch(() => Response.json({ error: 'unexpected shape' }));
-    const adapter = new LogoDevCompanySearchAdapter('sk_test');
+    const adapter = new LogoDevCompanySearchAdapter('sk_test', noopLogger);
 
     expect(await adapter.search('x', 20)).toEqual([]);
   });
 
   it('throws on a non-OK upstream response', async () => {
     stubFetch(() => new Response('rate limited', { status: 429 }));
-    const adapter = new LogoDevCompanySearchAdapter('sk_test');
+    const adapter = new LogoDevCompanySearchAdapter('sk_test', noopLogger);
 
     await expect(adapter.search('x', 20)).rejects.toThrow('logo.dev search responded 429');
   });
 
   it('throws when the secret key is missing', async () => {
-    const adapter = new LogoDevCompanySearchAdapter(undefined);
+    const adapter = new LogoDevCompanySearchAdapter(undefined, noopLogger);
 
     await expect(adapter.search('x', 20)).rejects.toThrow('LOGO_DEV_SECRET_KEY');
   });

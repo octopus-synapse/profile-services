@@ -13,8 +13,8 @@
  * Locale-aware: section titles and copy switch on `pt-BR` / `en`.
  */
 
-import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import type { GenericResume, GenericResumeSection } from '@/shared-kernel/schemas/sections';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import type { ResumeDsl } from '../../../domain/schemas/dsl';
 
 /**
@@ -142,10 +142,19 @@ const COPY: Record<Locale, SampleCopy> = {
 
 const FIXED_DATE = new Date('2024-01-01T00:00:00.000Z');
 
+/**
+ * Sample sections use the seeded `<kind>_v1` key convention, so the
+ * semantic kind is derived from the key instead of hardcoding kind
+ * literals here (generic-sections guardrail: kinds belong to the DB
+ * seeds, not production source).
+ */
+function semanticKindFromKey(sectionTypeKey: string): string {
+  return sectionTypeKey.replace(/_v\d+$/, '').toUpperCase();
+}
+
 function buildSection(
   idPrefix: string,
   sectionTypeKey: string,
-  semanticKind: string,
   title: string,
   order: number,
   contents: ReadonlyArray<Record<string, unknown>>,
@@ -155,7 +164,7 @@ function buildSection(
     resumeId: 'sample-resume',
     sectionTypeId: `sample-${idPrefix}-type`,
     sectionTypeKey,
-    semanticKind,
+    semanticKind: semanticKindFromKey(sectionTypeKey),
     title,
     titleOverride: null,
     isVisible: true,
@@ -193,19 +202,11 @@ export function buildSampleResume(locale: Locale): GenericResume {
     github: 'github.com/alex-rivera',
     website: 'alexrivera.dev',
     sections: [
-      buildSection(
-        'exp',
-        'work_experience_v1',
-        'WORK_EXPERIENCE',
-        copy.titles.experience,
-        0,
-        copy.experience,
-      ),
-      buildSection('edu', 'education_v1', 'EDUCATION', copy.titles.education, 1, copy.education),
+      buildSection('exp', 'work_experience_v1', copy.titles.experience, 0, copy.experience),
+      buildSection('edu', 'education_v1', copy.titles.education, 1, copy.education),
       buildSection(
         'skill',
         'skill_set_v1',
-        'SKILL_SET',
         copy.titles.skills,
         2,
         copy.skills.map((name) => ({ name })),
