@@ -89,7 +89,11 @@ import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match
 import { JobUpdatedEvent } from '@/bounded-contexts/jobs/domain/events';
 import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
 import { buildGeoComposition } from '@/bounded-contexts/geo/geo.composition';
-import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
+import {
+  buildJobsComposition,
+  isExternalJobsIngestionEnabled,
+  registerJobsJobs,
+} from '@/bounded-contexts/jobs/jobs.composition';
 import { buildNotificationsComposition } from '@/bounded-contexts/notifications/notifications.composition';
 import {
   buildOnboardingComposition,
@@ -523,7 +527,15 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     ai.bundle.llm,
     resumeAnalytics.useCases,
     safeFetch,
+    cache,
+    config,
   );
+  // Cron workers (anti-ghosting sweep + JSearch ingestion). This call was
+  // missing in the Elysia bootstrap — `registerJobsJobs` existed but was
+  // never invoked, so the anti-ghosting cron is (re)activated here too.
+  registerJobsJobs(cron, jobs.useCases, logger, distributedLock, {
+    externalIngestionEnabled: isExternalJobsIngestionEnabled(config),
+  });
 
   // Social: idempotency is the cache-backed `CacheIdempotencyAdapter`
   // wired above (lock semantics over `CachePort.acquireLock`).
