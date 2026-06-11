@@ -208,6 +208,10 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
         label: v.label,
         createdAt: v.createdAt,
         tailoredJobId: v.tailoredJobId,
+        tailoredJobTitle: v.tailoredJobId ? (this.jobs.get(v.tailoredJobId)?.title ?? null) : null,
+        tailoredJobCompany: v.tailoredJobId
+          ? (this.jobs.get(v.tailoredJobId)?.company ?? null)
+          : null,
       }));
   }
 

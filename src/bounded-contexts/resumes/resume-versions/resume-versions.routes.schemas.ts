@@ -52,6 +52,14 @@ export const ResumeVersionsResponseSchema = z.object({
 
 export const TailoredVersionSummarySchema = ResumeVersionListItemSchema.extend({
   tailoredJobId: z.string().uuid().nullable(),
+  tailoredJobTitle: z.string().nullable().openapi({
+    description: 'Title of the job this variant was tailored for (null if the job was deleted).',
+    example: 'Senior Backend Engineer',
+  }),
+  tailoredJobCompany: z.string().nullable().openapi({
+    description: 'Company of the job this variant was tailored for (null if the job was deleted).',
+    example: 'Acme Corp',
+  }),
 });
 
 export const TailoredVersionsResponseSchema = z.object({

@@ -36,6 +36,8 @@ export type ResumeResult = {
   updatedAt: Date;
   styleId?: string | null;
   style?: { id: string; name: string; description?: string | null } | null;
+  /** Owner projection used by list responses to mark the master resume. */
+  user?: { primaryResumeId?: string | null } | null;
   resumeSections?: Array<{
     id: string;
     order: number;

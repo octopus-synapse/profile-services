@@ -189,6 +189,17 @@ export const ResumeListItemSchema = ResumeBaseSchema.extend({
   fullName: z.string().nullable().optional(),
   jobTitle: z.string().nullable().optional(),
   summary: z.string().nullable().optional(),
+  isPrimary: z.boolean().openapi({
+    description: 'True when this resume is the master (User.primaryResumeId).',
+    example: true,
+  }),
+  style: z
+    .object({
+      id: z.string().openapi({ example: '01900000-0000-7000-a000-000000000042' }),
+      name: z.string().openapi({ example: 'Swiss Minimal' }),
+    })
+    .optional()
+    .openapi({ description: 'Active visual style (template) of the resume.' }),
 });
 
 export const PaginatedResumesResponseSchema = z.object({
@@ -396,6 +407,11 @@ export const ResolvedSectionTypeSchema = z.object({
   isActive: z.boolean(),
   isSystem: z.boolean(),
   isRepeatable: z.boolean(),
+  isMandatory: z.boolean().openapi({
+    description:
+      'Derived from definition.ats.isMandatory || minItems > 0. Mandatory sections are shown by the app even when empty.',
+    example: true,
+  }),
   minItems: z.number().int().nullable(),
   maxItems: z.number().int().nullable(),
   definition: JsonObjectSchema,

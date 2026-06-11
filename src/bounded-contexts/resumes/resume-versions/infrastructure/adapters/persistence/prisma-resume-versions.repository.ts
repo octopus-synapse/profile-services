@@ -277,7 +277,7 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
   }
 
   async findTailoredVersions(resumeId: string): Promise<TailoredVersionSummary[]> {
-    return this.prisma.resumeVersion.findMany({
+    const versions = await this.prisma.resumeVersion.findMany({
       where: { resumeId, isTailored: true },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -286,7 +286,13 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         label: true,
         createdAt: true,
         tailoredJobId: true,
+        tailoredJob: { select: { title: true, company: true } },
       },
     });
+    return versions.map(({ tailoredJob, ...version }) => ({
+      ...version,
+      tailoredJobTitle: tailoredJob?.title ?? null,
+      tailoredJobCompany: tailoredJob?.company ?? null,
+    }));
   }
 }

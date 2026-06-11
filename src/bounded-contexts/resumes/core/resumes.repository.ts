@@ -37,10 +37,18 @@ export class ResumesRepository extends ResumesRepositoryPort {
     super();
   }
 
+  /** List projection: style ref + owner's primaryResumeId so the
+   *  presenter can mark the master resume (`isPrimary`). */
+  private readonly listInclude = {
+    style: { select: { id: true, name: true, description: true } },
+    user: { select: { primaryResumeId: true } },
+  };
+
   async listUserResumes(userId: string): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
+      include: this.listInclude,
     });
   }
 
@@ -250,6 +258,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
       orderBy: { updatedAt: 'desc' },
       skip,
       take,
+      include: this.listInclude,
     });
   }
 

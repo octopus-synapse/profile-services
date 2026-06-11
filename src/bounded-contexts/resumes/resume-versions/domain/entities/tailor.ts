@@ -32,6 +32,9 @@ export type TailoredVersionSummary = {
   label: string | null;
   createdAt: Date;
   tailoredJobId: string | null;
+  /** Title/company of the tailored-for job (null when the job was deleted). */
+  tailoredJobTitle: string | null;
+  tailoredJobCompany: string | null;
 };
 
 /**

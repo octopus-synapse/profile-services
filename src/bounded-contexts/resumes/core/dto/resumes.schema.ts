@@ -82,6 +82,8 @@ const ResumeListItemSchema = ResumeResponseSchema.extend({
   fullName: z.string().nullable().optional(),
   jobTitle: z.string().nullable().optional(),
   summary: z.string().nullable().optional(),
+  isPrimary: z.boolean(),
+  style: z.object({ id: z.string(), name: z.string() }).optional(),
 });
 
 const ResumeSlotsResponseSchema = z.object({

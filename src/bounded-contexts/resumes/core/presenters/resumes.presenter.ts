@@ -35,6 +35,8 @@ export function toResumeListItemDto(resume: ResumeResult): ResumeListItemDto {
     fullName: resume.fullName ?? undefined,
     jobTitle: resume.jobTitle ?? undefined,
     summary: resume.summary ?? undefined,
+    isPrimary: resume.user ? resume.user.primaryResumeId === resume.id : false,
+    style: resume.style ? { id: resume.style.id, name: resume.style.name } : undefined,
   };
 }
 

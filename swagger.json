@@ -63663,6 +63663,29 @@
                           "summary": {
                             "type": "string",
                             "nullable": true
+                          },
+                          "isPrimary": {
+                            "type": "boolean",
+                            "description": "True when this resume is the master (User.primaryResumeId).",
+                            "example": true
+                          },
+                          "style": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "example": "01900000-0000-7000-a000-000000000042"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Swiss Minimal"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ],
+                            "description": "Active visual style (template) of the resume."
                           }
                         },
                         "required": [
@@ -63670,7 +63693,8 @@
                           "title",
                           "isPublic",
                           "createdAt",
-                          "updatedAt"
+                          "updatedAt",
+                          "isPrimary"
                         ]
                       }
                     },
@@ -77379,6 +77403,11 @@
                           "isRepeatable": {
                             "type": "boolean"
                           },
+                          "isMandatory": {
+                            "type": "boolean",
+                            "description": "Derived from definition.ats.isMandatory || minItems > 0. Mandatory sections are shown by the app even when empty.",
+                            "example": true
+                          },
                           "minItems": {
                             "type": "integer",
                             "nullable": true
@@ -77446,6 +77475,7 @@
                           "isActive",
                           "isSystem",
                           "isRepeatable",
+                          "isMandatory",
                           "minItems",
                           "maxItems",
                           "definition",
@@ -80074,6 +80104,18 @@
                             "type": "string",
                             "nullable": true,
                             "format": "uuid"
+                          },
+                          "tailoredJobTitle": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Title of the job this variant was tailored for (null if the job was deleted).",
+                            "example": "Senior Backend Engineer"
+                          },
+                          "tailoredJobCompany": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Company of the job this variant was tailored for (null if the job was deleted).",
+                            "example": "Acme Corp"
                           }
                         },
                         "required": [
@@ -80081,7 +80123,9 @@
                           "versionNumber",
                           "label",
                           "createdAt",
-                          "tailoredJobId"
+                          "tailoredJobId",
+                          "tailoredJobTitle",
+                          "tailoredJobCompany"
                         ]
                       }
                     }

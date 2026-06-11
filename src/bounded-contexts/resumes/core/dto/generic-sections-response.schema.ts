@@ -21,6 +21,7 @@ const ResolvedSectionTypeSchema = z.object({
   isActive: z.boolean(),
   isSystem: z.boolean(),
   isRepeatable: z.boolean(),
+  isMandatory: z.boolean(),
   minItems: z.number().int().nullable(),
   maxItems: z.number().int().nullable(),
   definition: z.unknown(),
