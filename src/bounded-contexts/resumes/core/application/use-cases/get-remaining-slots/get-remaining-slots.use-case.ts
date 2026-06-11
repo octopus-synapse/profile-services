@@ -1,7 +1,6 @@
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeSlots } from '../../../ports/resumes-service.port';
-
-const MAX_RESUMES_PER_USER = 4;
+import { MAX_RESUMES_PER_USER } from '../../resume-limits.const';
 
 export class GetRemainingSlotsUseCase {
   constructor(private readonly repository: ResumesRepositoryPort) {}

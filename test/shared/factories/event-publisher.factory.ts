@@ -53,6 +53,7 @@ export function buildResumeEventPublisher() {
     publishVersionRestored: mock(),
     publishResumeCreatedAsync: mock(async () => {}),
     publishResumeDeletedAsync: mock(async () => {}),
+    publishResumeDuplicatedAsync: mock(async () => {}),
     publishVersionCreatedAsync: mock(async () => {}),
     publishVersionRestoredAsync: mock(async () => {}),
   };

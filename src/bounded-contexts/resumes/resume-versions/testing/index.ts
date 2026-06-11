@@ -316,6 +316,10 @@ export class InMemoryResumeEventPublisher implements ResumeEventPublisher {
     this.events.push({ type: 'resume_deleted', resumeId, payload });
   }
 
+  async publishResumeDuplicatedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'resume_duplicated', resumeId, payload });
+  }
+
   async publishVersionCreatedAsync(resumeId: string, payload: unknown): Promise<void> {
     this.events.push({ type: 'version_created', resumeId, payload });
   }

@@ -11,6 +11,8 @@ import {
   type ResumeCreatedPayload,
   ResumeDeletedEvent,
   type ResumeDeletedPayload,
+  ResumeDuplicatedEvent,
+  type ResumeDuplicatedPayload,
   ResumeUpdatedEvent,
   type ResumeUpdatedPayload,
   SectionAddedEvent,
@@ -67,6 +69,10 @@ export class ResumeEventPublisherAdapter implements ResumeEventPublisher {
 
   publishResumeDeletedAsync(resumeId: string, payload: ResumeDeletedPayload): Promise<void> {
     return this.eventPublisher.publishAsync(new ResumeDeletedEvent(resumeId, payload));
+  }
+
+  publishResumeDuplicatedAsync(resumeId: string, payload: ResumeDuplicatedPayload): Promise<void> {
+    return this.eventPublisher.publishAsync(new ResumeDuplicatedEvent(resumeId, payload));
   }
 
   publishVersionCreatedAsync(resumeId: string, payload: VersionCreatedPayload): Promise<void> {

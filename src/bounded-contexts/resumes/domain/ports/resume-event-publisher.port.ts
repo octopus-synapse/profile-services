@@ -10,6 +10,7 @@
 import type {
   ResumeCreatedPayload,
   ResumeDeletedPayload,
+  ResumeDuplicatedPayload,
   ResumeUpdatedPayload,
   SectionAddedPayload,
   SectionRemovedPayload,
@@ -43,6 +44,10 @@ export abstract class ResumeEventPublisher {
   abstract publishResumeDeletedAsync(
     resumeId: string,
     payload: ResumeDeletedPayload,
+  ): Promise<void>;
+  abstract publishResumeDuplicatedAsync(
+    resumeId: string,
+    payload: ResumeDuplicatedPayload,
   ): Promise<void>;
   abstract publishVersionCreatedAsync(
     resumeId: string,

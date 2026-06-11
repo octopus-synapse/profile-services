@@ -57,6 +57,22 @@ class StubResumesRepository {
     return this.createResumeForUser(userId, data);
   }
 
+  async duplicateResumeForUserWithQuota(
+    userId: string,
+    sourceResumeId: string,
+    overrides: { title: string },
+    _sectionFilter: unknown,
+    quota: { max: number; exception: Error },
+  ): Promise<Resume> {
+    const existing = this.resumes.filter((r) => r.userId === userId);
+    if (existing.length >= quota.max) {
+      throw quota.exception;
+    }
+    const source = await this.findResumeByIdAndUserId(sourceResumeId, userId);
+    if (!source) throw new Error('Resume not found');
+    return this.createResumeForUser(userId, { title: overrides.title });
+  }
+
   async updateResumeForUser(
     resumeId: string,
     _userId: string,
@@ -110,6 +126,7 @@ class StubResumeEventPublisher implements ResumeEventPublisher {
   publishVersionRestored(): void {}
   async publishResumeCreatedAsync(): Promise<void> {}
   async publishResumeDeletedAsync(): Promise<void> {}
+  async publishResumeDuplicatedAsync(): Promise<void> {}
   async publishVersionCreatedAsync(): Promise<void> {}
   async publishVersionRestoredAsync(): Promise<void> {}
 }

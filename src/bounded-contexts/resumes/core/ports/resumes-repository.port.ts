@@ -53,6 +53,25 @@ export abstract class ResumesRepositoryPort {
     quota: { readonly max: number; readonly exception: DomainException },
   ): Promise<ResumeEntity>;
 
+  /**
+   * Snapshot-copy of an owned resume inside one quota-guarded tx
+   * (same lock/count as `createResumeForUserWithQuota`). Copies the
+   * source's contact/content scalars plus the sections/items passing
+   * `sectionFilter` (null = copy everything); publish/stat fields
+   * (`slug`, `isPublic`, `publishedAt`, `profileViews`) are reset —
+   * the copy diverges from the source from this point on.
+   */
+  abstract duplicateResumeForUserWithQuota(
+    userId: string,
+    sourceResumeId: string,
+    overrides: { readonly title: string; readonly styleId?: string; readonly language?: string },
+    sectionFilter: ReadonlyArray<{
+      readonly sectionTypeKey: string;
+      readonly itemIds?: readonly string[];
+    }> | null,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<ResumeEntity>;
+
   abstract updateResumeForUser(
     id: string,
     userId: string,

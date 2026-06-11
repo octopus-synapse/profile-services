@@ -98,6 +98,49 @@ export const CreateResumeBody = z
     },
   });
 
+export const DuplicateResumeBody = z
+  .object({
+    title: z
+      .string()
+      .min(1)
+      .max(100)
+      .openapi({ description: 'Title for the new resume (max 100 chars).' }),
+    styleId: z.string().uuid().optional().openapi({
+      description: 'ResumeStyle for the copy. Defaults to the source resume style.',
+    }),
+    language: z.string().optional().openapi({
+      description: 'Language of the copy (e.g. pt-br, en). Defaults to the source language.',
+    }),
+    include: z
+      .array(
+        z.object({
+          sectionTypeKey: z.string().openapi({ example: 'work_experience_v1' }),
+          itemIds: z.array(z.string().uuid()).optional().openapi({
+            description: 'Item ids of this section to copy. Omitted = every item.',
+          }),
+        }),
+      )
+      .optional()
+      .openapi({
+        description:
+          'Sections (and optionally which items) to copy from the source. Omitted = copy everything.',
+      }),
+  })
+  .openapi('DuplicateResumeRequest', {
+    description:
+      'Snapshot-copy of an existing resume. The copy diverges from the source — later edits to either do not affect the other. Publish state (slug/isPublic) and stats are reset.',
+    example: {
+      title: 'Backend Sênior — fintech',
+      include: [
+        { sectionTypeKey: 'work_experience_v1' },
+        {
+          sectionTypeKey: 'education_v1',
+          itemIds: ['01900000-0000-7000-a000-000000000087'],
+        },
+      ],
+    },
+  });
+
 export const UpdateResumeBody = CreateResumeBody.partial().openapi('UpdateResumeRequest', {
   description:
     'Partial update of a resume. Same shape as CreateResumeRequest with all fields optional.',

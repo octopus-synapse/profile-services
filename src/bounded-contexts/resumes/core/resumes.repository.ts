@@ -9,6 +9,11 @@ import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 const CTX = 'ResumesRepository';
 
+/** Nullable Json columns require the `Prisma.JsonNull` sentinel on write. */
+function jsonOrDbNull(value: Prisma.JsonValue | null) {
+  return value === null ? Prisma.JsonNull : (value as Prisma.InputJsonValue);
+}
+
 export class ResumesRepository extends ResumesRepositoryPort {
   private readonly includeRelations = {
     resumeSections: {
@@ -71,6 +76,116 @@ export class ResumesRepository extends ResumesRepositoryPort {
       });
       const resumeData = { userId, ...resumeCreationData };
       return await tx.resume.create({ data: resumeData });
+    });
+  }
+
+  async duplicateResumeForUserWithQuota(
+    userId: string,
+    sourceResumeId: string,
+    overrides: { readonly title: string; readonly styleId?: string; readonly language?: string },
+    sectionFilter: ReadonlyArray<{
+      readonly sectionTypeKey: string;
+      readonly itemIds?: readonly string[];
+    }> | null,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<Resume> {
+    this.logger.log(
+      `Duplicating resume ${sourceResumeId} (with quota guard) for user: ${userId}`,
+      CTX,
+    );
+    return await runInTransaction(this.prisma, async (tx) => {
+      await enforceQuotaInTx(tx, {
+        lockSql: Prisma.sql`SELECT 1 FROM "User" WHERE "id" = ${userId} FOR UPDATE`,
+        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "Resume" WHERE "userId" = ${userId}`,
+        max: quota.max,
+        exception: quota.exception,
+      });
+
+      // Re-read inside the tx so the copy is consistent with concurrent edits.
+      const source = await tx.resume.findFirst({
+        where: { id: sourceResumeId, userId },
+        include: {
+          resumeSections: {
+            orderBy: { order: 'asc' },
+            include: { sectionType: true, items: { orderBy: { order: 'asc' } } },
+          },
+        },
+      });
+      if (!source) throw new ResumeNotFoundException();
+
+      const copy = await tx.resume.create({
+        data: {
+          userId,
+          title: overrides.title,
+          language: overrides.language ?? source.language,
+          styleId: overrides.styleId ?? source.styleId,
+          contentPtBr: jsonOrDbNull(source.contentPtBr),
+          contentEn: jsonOrDbNull(source.contentEn),
+          primaryLanguage: source.primaryLanguage,
+          techPersona: source.techPersona,
+          techArea: source.techArea,
+          primaryStack: source.primaryStack,
+          experienceYears: source.experienceYears,
+          fullName: source.fullName,
+          jobTitle: source.jobTitle,
+          phone: source.phone,
+          location: source.location,
+          linkedin: source.linkedin,
+          github: source.github,
+          website: source.website,
+          summary: source.summary,
+          currentCompanyLogo: source.currentCompanyLogo,
+          twitter: source.twitter,
+          medium: source.medium,
+          devto: source.devto,
+          stackoverflow: source.stackoverflow,
+          kaggle: source.kaggle,
+          hackerrank: source.hackerrank,
+          leetcode: source.leetcode,
+          accentColor: source.accentColor,
+          customTheme: jsonOrDbNull(source.customTheme),
+          // Publish/stat state is per-document, not content — the copy
+          // starts unpublished with fresh analytics.
+          slug: null,
+          isPublic: false,
+          publishedAt: null,
+          profileViews: 0,
+          totalStars: 0,
+          totalCommits: 0,
+        },
+      });
+
+      for (const section of source.resumeSections) {
+        const filter = sectionFilter?.find((f) => f.sectionTypeKey === section.sectionType.key);
+        if (sectionFilter && !filter) continue;
+
+        const items = filter?.itemIds
+          ? section.items.filter((item) => filter.itemIds?.includes(item.id))
+          : section.items;
+
+        const copiedSection = await tx.resumeSection.create({
+          data: {
+            resumeId: copy.id,
+            sectionTypeId: section.sectionTypeId,
+            titleOverride: section.titleOverride,
+            isVisible: section.isVisible,
+            order: section.order,
+          },
+        });
+
+        if (items.length > 0) {
+          await tx.sectionItem.createMany({
+            data: items.map((item) => ({
+              resumeSectionId: copiedSection.id,
+              content: jsonOrDbNull(item.content),
+              isVisible: item.isVisible,
+              order: item.order,
+            })),
+          });
+        }
+      }
+
+      return copy;
     });
   }
 

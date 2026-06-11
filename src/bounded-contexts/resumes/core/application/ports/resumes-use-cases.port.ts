@@ -4,6 +4,7 @@ import type {
   ResumeSlots,
   UserResumesPaginatedResult,
 } from '../../ports/resumes-service.port';
+import type { DuplicateResumeInput } from '../use-cases/duplicate-resume-for-user/duplicate-resume-for-user.use-case';
 
 export abstract class ResumesUseCases {
   abstract readonly listUserResumesUseCase: {
@@ -18,6 +19,13 @@ export abstract class ResumesUseCases {
   };
   abstract readonly createResumeForUserUseCase: {
     execute: (userId: string, data: CreateResume) => Promise<ResumeResult>;
+  };
+  abstract readonly duplicateResumeForUserUseCase: {
+    execute: (
+      userId: string,
+      sourceResumeId: string,
+      data: DuplicateResumeInput,
+    ) => Promise<ResumeResult>;
   };
   abstract readonly updateResumeForUserUseCase: {
     execute: (id: string, userId: string, data: UpdateResume) => Promise<ResumeResult>;

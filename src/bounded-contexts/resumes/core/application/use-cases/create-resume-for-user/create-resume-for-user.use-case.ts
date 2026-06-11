@@ -4,8 +4,7 @@ import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions';
 import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeResult } from '../../../ports/resumes-service.port';
-
-const MAX_RESUMES_PER_USER = 4;
+import { MAX_RESUMES_PER_USER } from '../../resume-limits.const';
 
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;

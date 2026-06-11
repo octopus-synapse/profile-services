@@ -7,6 +7,7 @@
 
 import type { CreateResumeData, UpdateResumeData } from '@/shared-kernel';
 import type { DomainException } from '@/shared-kernel/exceptions';
+import { ResumeNotFoundException } from '../../domain/exceptions';
 import type { ResumeEventPublisher } from '../../domain/ports';
 import { ResumeVersionServicePort } from '../ports/resume-version-service.port';
 import { type ResumeEntity, ResumesRepositoryPort } from '../ports/resumes-repository.port';
@@ -89,6 +90,37 @@ export class InMemoryResumesRepository extends ResumesRepositoryPort {
       throw quota.exception;
     }
     return this.createResumeForUser(userId, data);
+  }
+
+  async duplicateResumeForUserWithQuota(
+    userId: string,
+    sourceResumeId: string,
+    overrides: { readonly title: string; readonly styleId?: string; readonly language?: string },
+    _sectionFilter: ReadonlyArray<{
+      readonly sectionTypeKey: string;
+      readonly itemIds?: readonly string[];
+    }> | null,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<ResumeEntity> {
+    const existing = await this.listUserResumes(userId);
+    if (existing.length >= quota.max) {
+      throw quota.exception;
+    }
+    const source = await this.findResumeByIdAndUserId(sourceResumeId, userId);
+    if (!source) {
+      throw new ResumeNotFoundException();
+    }
+    const id = `resume-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const copy: ResumeEntity = {
+      ...source,
+      id,
+      title: overrides.title,
+      isPublic: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.resumes.set(id, copy);
+    return copy;
   }
 
   async updateResumeForUser(
@@ -234,6 +266,10 @@ export class InMemoryResumesEventPublisher implements ResumeEventPublisher {
 
   async publishResumeDeletedAsync(resumeId: string, payload: unknown): Promise<void> {
     this.events.push({ type: 'resume_deleted', resumeId, payload });
+  }
+
+  async publishResumeDuplicatedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'resume_duplicated', resumeId, payload });
   }
 
   async publishVersionCreatedAsync(resumeId: string, payload: unknown): Promise<void> {

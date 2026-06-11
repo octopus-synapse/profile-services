@@ -29,6 +29,9 @@ class StubRepo extends ResumesRepositoryPort {
   async createResumeForUserWithQuota(_userId: string, _: CreateResumeData): Promise<ResumeEntity> {
     throw new Error('not used');
   }
+  async duplicateResumeForUserWithQuota(): Promise<ResumeEntity> {
+    throw new Error('not used');
+  }
   async updateResumeForUser(
     _id: string,
     _userId: string,
