@@ -129,3 +129,37 @@ enum JobApplicationStatus {
   ACCEPTED
   WITHDRAWN
 }
+
+// External listings ingested daily from the JSearch aggregator (RapidAPI).
+// Deliberately decoupled from `Job`: no FKs, no fit-score, no recruiter
+// authorship — these rows are a read-only mirror of third-party postings
+// with a 30-day retention sweep. `externalId` is JSearch's job_id;
+// `dedupHash` (normalized title|company) absorbs the same vacancy being
+// re-listed under a different publisher/job_id.
+model ExternalJobListing {
+  id             String    @id @default(dbgenerated("uuidv7()"))
+  externalId     String    @unique
+  dedupHash      String
+  title          String
+  company        String
+  location       String?
+  isRemote       Boolean   @default(false)
+  employmentType JobType?
+  applyUrl       String
+  publisher      String?
+  // Truncated at ingestion (5000 chars) — `raw` stores the rest of the
+  // upstream payload *without* the description to keep JSONB rows sane.
+  description    String?   @db.Text
+  // Often null for BR results: JSearch returns only a relative
+  // "há 15 horas" string for most Brazilian postings.
+  postedAt       DateTime?
+  fetchedAt      DateTime
+  sourceQuery    String
+  raw            Json
+
+  @@index([dedupHash])
+  @@index([fetchedAt])
+  @@index([postedAt])
+  @@index([isRemote, postedAt])
+  @@index([employmentType, postedAt])
+}
