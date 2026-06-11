@@ -223,6 +223,13 @@ export const EnvConfigSchema = z
     // --- Company brand search (logo.dev) ---
     LOGO_DEV_SECRET_KEY: z.string().optional(),
 
+    // --- External job ingestion (JSearch / RapidAPI) ---
+    // Both optional: when absent the daily ingestion cron is disabled
+    // (composition logs a warning); the read route still serves whatever
+    // is already in Postgres.
+    JSEARCH_RAPIDAPI_KEY: z.string().optional(),
+    JSEARCH_RAPIDAPI_HOST: z.string().optional(),
+
     // --- Typst PDF rendering ---
     TYPST_BINARY_PATH: z.string().optional(),
     TYPST_FONT_PATH: z.string().optional(),

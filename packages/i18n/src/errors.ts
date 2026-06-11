@@ -534,6 +534,10 @@ export const ERROR_DICTIONARY = {
     en: 'Location is not a recognized place — pick one from the suggestions',
     'pt-BR': 'Localização não reconhecida — escolha uma das sugestões',
   },
+  INVALID_OCCURRED_AT: {
+    en: 'The event date is invalid — it cannot be in the future or before the application',
+    'pt-BR': 'A data do evento é inválida — não pode estar no futuro nem antes da candidatura',
+  },
   INVALID_PERSONAL_INFO: {
     en: 'Personal information is invalid',
     'pt-BR': 'Informações pessoais inválidas',
@@ -597,6 +601,18 @@ export const ERROR_DICTIONARY = {
   JOB_IMPORT_PAGE_TOO_THIN: {
     en: 'The page did not contain enough text to extract a job posting',
     'pt-BR': 'A página não tinha texto suficiente para extrair uma vaga',
+  },
+  JSEARCH_NOT_CONFIGURED: {
+    en: 'External job search is not configured',
+    'pt-BR': 'A busca externa de vagas não está configurada',
+  },
+  JSEARCH_QUOTA_EXCEEDED: {
+    en: 'External job search monthly quota exceeded',
+    'pt-BR': 'Cota mensal da busca externa de vagas excedida',
+  },
+  JSEARCH_UPSTREAM_FAILED: {
+    en: 'External job provider request failed',
+    'pt-BR': 'Falha na requisição ao provedor externo de vagas',
   },
   INVALID_APPLICATION_STATE: {
     en: 'Application state does not allow this transition',
