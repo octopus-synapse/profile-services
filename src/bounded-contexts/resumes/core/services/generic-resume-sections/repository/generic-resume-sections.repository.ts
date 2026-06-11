@@ -28,8 +28,13 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
   }
 
   findActiveSectionTypes() {
+    // `isSystem` gates the user-facing catalog: every real section type is
+    // system-seeded (isSystem: true), so this excludes the Dredd contract
+    // fixture (`fixture-slug`, isSystem: false) that would otherwise show up
+    // as "Fixture Section" in the add-section picker. Section-item contract
+    // probes still resolve the fixture by exact key (it stays isActive).
     return this.prisma.sectionType.findMany({
-      where: { isActive: true },
+      where: { isActive: true, isSystem: true },
       orderBy: [{ semanticKind: 'asc' }, { title: 'asc' }, { version: 'desc' }],
     });
   }
