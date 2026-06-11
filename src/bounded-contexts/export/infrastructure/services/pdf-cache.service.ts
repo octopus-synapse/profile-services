@@ -4,9 +4,12 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { LoggerPort } from '@/shared-kernel';
 
 export interface PdfCacheKeyInput {
-  /** Either a userId (default lookup) or a resumeId. The cache lookup
-   *  always resolves the active style + resume `updatedAt` from this. */
+  /** Owner of the resume — always part of the key (cross-user isolation). */
   readonly userId: string;
+  /** Specific resume to render. Omitted = the user's primary resume.
+   *  MUST match the resume the render callback targets, otherwise the
+   *  key tracks the wrong row's `updatedAt`/style and serves stale PDFs. */
+  readonly resumeId?: string;
   /** Free-form render parameters that affect the output. Anything that
    *  changes the byte stream MUST be in here so we don't serve a stale
    *  PDF when the user toggles palette / language / template. */
@@ -85,24 +88,35 @@ export class PdfCacheService {
   }
 
   private async buildKey(input: PdfCacheKeyInput): Promise<string | null> {
-    // 1:1 user ↔ resume relationship in this codebase: the export
-    // controller passes userId as the resume identifier. Resolve via
-    // primaryResume if present, otherwise the first owned resume.
-    const user = await this.prisma.user.findUnique({
-      where: { id: input.userId },
-      select: {
-        primaryResumeId: true,
-        primaryResume: {
+    const resume = input.resumeId
+      ? // Explicit resume: resolve its own updatedAt/style, scoped to the
+        // owner. Foreign/unknown id → null key → cache bypass; the render
+        // path 404s via its own ownership check (findOwnedResume).
+        await this.prisma.resume.findFirst({
+          where: { id: input.resumeId, userId: input.userId },
           select: {
             id: true,
             updatedAt: true,
             styleId: true,
             style: { select: { id: true, version: true } },
           },
-        },
-      },
-    });
-    const resume = user?.primaryResume;
+        })
+      : // Default: the user's primary resume.
+        (
+          await this.prisma.user.findUnique({
+            where: { id: input.userId },
+            select: {
+              primaryResume: {
+                select: {
+                  id: true,
+                  updatedAt: true,
+                  styleId: true,
+                  style: { select: { id: true, version: true } },
+                },
+              },
+            },
+          })
+        )?.primaryResume;
     if (!resume) return null;
     const styleId = resume.style?.id ?? 'none';
     const styleVersion = resume.style?.version ?? 0;

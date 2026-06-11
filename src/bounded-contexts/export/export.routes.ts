@@ -88,6 +88,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         bundle.pdfCache.serve(
           {
             userId,
+            resumeId: q.resumeId,
             renderArgs: {
               palette: safePalette,
               lang: safeLang,
@@ -101,6 +102,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
               lang: safeLang,
               bannerColor: safeBannerColor,
               userId,
+              resumeId: q.resumeId,
               template: safeTemplate,
             }),
         ),
@@ -138,6 +140,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
       const userId = ctx.user!.userId;
       const html = await bundle.resumeHtmlGenerator.generate({
         userId,
+        resumeId: q.resumeId,
         lang: sanitizeQueryParam(q.lang),
         template: q.template === 'ats' ? 'ats' : 'default',
       });

@@ -21,6 +21,10 @@ export const ResumePdfQuery = z.object({
   lang: z.string().optional(),
   bannerColor: z.string().optional(),
   template: z.string().optional(),
+  resumeId: z.string().uuid().optional().openapi({
+    description:
+      'Resume to render. Omitted = the primary resume (backward-compatible default). Must be owned by the authenticated user.',
+  }),
 });
 export const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
 export const UserIdParams = z.object({ userId: z.string().uuid() });

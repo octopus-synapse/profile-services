@@ -30462,6 +30462,16 @@
             "required": false,
             "name": "template",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resume to render. Omitted = the primary resume (backward-compatible default). Must be owned by the authenticated user."
+            },
+            "required": false,
+            "name": "resumeId",
+            "in": "query"
           }
         ],
         "responses": {
@@ -30653,6 +30663,16 @@
             },
             "required": false,
             "name": "template",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resume to render. Omitted = the primary resume (backward-compatible default). Must be owned by the authenticated user."
+            },
+            "required": false,
+            "name": "resumeId",
             "in": "query"
           }
         ],
