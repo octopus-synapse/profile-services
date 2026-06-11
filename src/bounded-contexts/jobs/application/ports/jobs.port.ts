@@ -16,6 +16,7 @@ import type { ImportJobFromUrlUseCase } from '../use-cases/import-job-from-url/i
 import type { ListApplicationTimelineUseCase } from '../use-cases/list-application-timeline/list-application-timeline.use-case';
 import type { ListBookmarkedJobsUseCase } from '../use-cases/list-bookmarked-jobs/list-bookmarked-jobs.use-case';
 import type { ListJobApplicationsUseCase } from '../use-cases/list-job-applications/list-job-applications.use-case';
+import type { ListExternalJobsUseCase } from '../use-cases/list-external-jobs/list-external-jobs.use-case';
 import type { ListJobsUseCase } from '../use-cases/list-jobs/list-jobs.use-case';
 import type { ListJobsWithFitScoreUseCase } from '../use-cases/list-jobs-with-fit-score/list-jobs-with-fit-score.use-case';
 import type { ListMyApplicationsUseCase } from '../use-cases/list-my-applications/list-my-applications.use-case';
@@ -23,6 +24,7 @@ import type { ListMyJobsUseCase } from '../use-cases/list-my-jobs/list-my-jobs.u
 import type { ListRecommendedJobsUseCase } from '../use-cases/list-recommended-jobs/list-recommended-jobs.use-case';
 import type { RecordApplicationEventUseCase } from '../use-cases/record-application-event/record-application-event.use-case';
 import type { RunAntiGhostingSweepUseCase } from '../use-cases/run-anti-ghosting-sweep/run-anti-ghosting-sweep.use-case';
+import type { RunExternalJobsIngestionUseCase } from '../use-cases/run-external-jobs-ingestion/run-external-jobs-ingestion.use-case';
 import type { UnbookmarkJobUseCase } from '../use-cases/unbookmark-job/unbookmark-job.use-case';
 import type { UpdateJobUseCase } from '../use-cases/update-job/update-job.use-case';
 import type { WithdrawApplicationUseCase } from '../use-cases/withdraw-application/withdraw-application.use-case';
@@ -54,4 +56,8 @@ export abstract class JobsUseCases {
   abstract readonly recordApplicationEvent: RecordApplicationEventUseCase;
   abstract readonly getCompanyResponseStats: GetCompanyResponseStatsUseCase;
   abstract readonly runAntiGhostingSweep: RunAntiGhostingSweepUseCase;
+
+  // External listings (JSearch daily batch)
+  abstract readonly listExternalJobs: ListExternalJobsUseCase;
+  abstract readonly runExternalJobsIngestion: RunExternalJobsIngestionUseCase;
 }

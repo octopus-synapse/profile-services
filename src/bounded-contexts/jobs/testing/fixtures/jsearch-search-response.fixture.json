@@ -1,0 +1,232 @@
+{
+  "status": "OK",
+  "request_id": "fixture",
+  "data": [
+    {
+      "job_id": "BreJXMXqEoK60_-dAAAAAA==",
+      "job_title": "Desenvolvedor FrontEnd React SR | nstech | Remoto",
+      "employer_name": "NSTECH",
+      "employer_logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXGbJIXNDwObxNMFO00p5KE2Frzi4wciHErT-o&s=0",
+      "employer_website": null,
+      "job_publisher": "Indeed",
+      "job_employment_type": "Tempo integral",
+      "job_employment_types": [
+        "FULLTIME"
+      ],
+      "job_apply_link": "https://br.indeed.com/viewjob?jk=0637bb1158fb811a",
+      "job_apply_is_direct": false,
+      "apply_options": [
+        {
+          "apply_link": "https://br.indeed.com/viewjob?jk=0637bb1158fb811a",
+          "is_direct": false,
+          "publisher": "Indeed"
+        }
+      ],
+      "job_description": "A nstech é a maior empresa de software para logística da América Latina e conecta empresas, soluções e talentos para transformar um dos setores mais essenciais da economia. Na Holding, atuamos de forma estratégica, apoiando as empresas do grupo em temas corporativos, tecnologia, pessoas, cultura, go",
+      "job_is_remote": true,
+      "job_posted_at": "há 15 horas",
+      "job_posted_at_timestamp": null,
+      "job_posted_at_datetime_utc": null,
+      "job_location": "Qualquer lugar",
+      "job_city": null,
+      "job_state": null,
+      "job_country": null,
+      "job_latitude": null,
+      "job_longitude": null,
+      "job_benefits": null,
+      "job_benefits_strings": null,
+      "job_google_link": "https://www.google.com/search?q=jobs&gl=br&hl=pt&udm=8#vhid=vt%3D20/docid%3DBreJXMXqEoK60_-dAAAAAA%3D%3D&vssid=jobs-detail-viewer",
+      "job_salary": null,
+      "job_salary_string": null,
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_period": null,
+      "job_highlights": {},
+      "job_onet_soc": null,
+      "job_onet_job_zone": null,
+      "employer_reviews": null
+    },
+    {
+      "job_id": "CtRPR4k1WBfQC2TUAAAAAA==",
+      "job_title": "Desenvolvedor de Inteligencia Artificial",
+      "employer_name": "confidential",
+      "employer_logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNGje_bW_xkgxwbgGO-FrwkM-xGMg73CfHb34q&s=0",
+      "employer_website": null,
+      "job_publisher": "Catho",
+      "job_employment_type": "Tempo integral",
+      "job_employment_types": [
+        "FULLTIME"
+      ],
+      "job_apply_link": "https://www.catho.com.br/vagas/desenvolvedor-de-inteligencia-artificial/36995747/",
+      "job_apply_is_direct": false,
+      "apply_options": [
+        {
+          "apply_link": "https://www.catho.com.br/vagas/desenvolvedor-de-inteligencia-artificial/36995747/",
+          "is_direct": false,
+          "publisher": "Catho"
+        }
+      ],
+      "job_description": "Buscamos um(a) Especialista em Automações e IA para atuar na implementação, manutenção e otimização de fluxos automatizados voltados para atendimento e relacionamento com clientes.\n\nPrincipais atividades:\n\nConfigurar e manter automações utilizando n8n;\nCriar, testar e otimizar prompts para Inteligên",
+      "job_is_remote": false,
+      "job_posted_at": "há 14 horas",
+      "job_posted_at_timestamp": null,
+      "job_posted_at_datetime_utc": "2026-06-10T14:30:00.000Z",
+      "job_location": "Goiânia, GO",
+      "job_city": "Goiânia",
+      "job_state": "Goiás",
+      "job_country": "BR",
+      "job_latitude": -16.6868491,
+      "job_longitude": -49.2707899,
+      "job_benefits": null,
+      "job_benefits_strings": null,
+      "job_google_link": "https://www.google.com/search?q=jobs&gl=br&hl=pt&udm=8#vhid=vt%3D20/docid%3DCtRPR4k1WBfQC2TUAAAAAA%3D%3D&vssid=jobs-detail-viewer",
+      "job_salary": null,
+      "job_salary_string": null,
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_period": null,
+      "job_highlights": {},
+      "job_onet_soc": null,
+      "job_onet_job_zone": null,
+      "employer_reviews": null
+    },
+    {
+      "job_id": "-t5JHQBgvoECz9HGAAAAAA==",
+      "job_title": "Desenvolvedor Front-End Sr",
+      "employer_name": "Framework Digital",
+      "employer_logo": "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://frameworkdigital.com.au&size=128",
+      "employer_website": "https://www.frameworkdigital.com.au",
+      "job_publisher": "BeBee",
+      "job_employment_type": "Estágio",
+      "job_employment_types": [
+        "INTERN"
+      ],
+      "job_apply_link": "https://bebee.com/br/jobs/desenvolvedor-front-end-sr-framework-digital-primavera-do-leste--jobtome-617d7705e848df49f26961f741f551e9",
+      "job_apply_is_direct": false,
+      "apply_options": [
+        {
+          "apply_link": "https://bebee.com/br/jobs/desenvolvedor-front-end-sr-framework-digital-primavera-do-leste--jobtome-617d7705e848df49f26961f741f551e9",
+          "is_direct": false,
+          "publisher": "BeBee"
+        }
+      ],
+      "job_description": "At INDI, we're passionate about empowering individuals and businesses worldwide. Our cutting-edge recruiters connect leading companies with top talent, fostering a dynamic environment where innovation thrives. Join us in shaping the future of work.Overview of the role:Join our dynamic Team as a Reac",
+      "job_is_remote": false,
+      "job_posted_at": "há 14 horas",
+      "job_posted_at_timestamp": null,
+      "job_posted_at_datetime_utc": null,
+      "job_location": "Primavera do Leste, MT",
+      "job_city": "Primavera do Leste",
+      "job_state": "Mato Grosso",
+      "job_country": "BR",
+      "job_latitude": -15.5570854,
+      "job_longitude": -54.2974513,
+      "job_benefits": null,
+      "job_benefits_strings": null,
+      "job_google_link": "https://www.google.com/search?ibp=htl;jobs&q&htidocid=-t5JHQBgvoECz9HGAAAAAA%3D%3D&hl=pt-BR&shem=rimspwouohc&shndl=37&shmd=H4sIAAAAAAAA_xXNsQ6CMBCA4bjyCE43G6XGhKWuiosmJrqTApdSbXv1riKP5SMqy798w198F4U-oGAcyY_YE0PNFPPmGHu4sYaE8no7MdAjYEiMlgQiwYnIelzuh5yTaKVEfGklm-y6sqOgKGJLk3pQK3MaGQxj8iZjs6u2U5miXVU1m4Af4iccnHXZeIgoGcFTZ7yGK7tgRuT_nOA8yxou9x_9N88FswAAAA&shmds=v1_ATWGeeMlUmMj1DF25qfFEXhdR2y1HRQffNCZpaKPWYuH7WRFTA&source=sh/x/job/li/m1/1#fpstate=tldetail&htivrt=jobs&htiq&htidocid=-t5JHQBgvoECz9HGAAAAAA%3D%3D",
+      "job_salary": null,
+      "job_salary_string": null,
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_period": null,
+      "job_highlights": {},
+      "job_onet_soc": null,
+      "job_onet_job_zone": null,
+      "employer_reviews": null
+    },
+    {
+      "job_id": "QNtWl-k-1A413klGAAAAAA==",
+      "job_title": "[Job - 29422]  Desenvolvedor FullStack Sênior (.Net/Angular/IA), Brazil",
+      "employer_name": "careersprint",
+      "employer_logo": "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://careersprint.7f.liveblog365.com&size=128",
+      "employer_website": null,
+      "job_publisher": "CareerSprint",
+      "job_employment_type": "Tempo integral",
+      "job_employment_types": [
+        "FULLTIME"
+      ],
+      "job_apply_link": "https://careersprint.7f.liveblog365.com/job/2339374",
+      "job_apply_is_direct": false,
+      "apply_options": [
+        {
+          "apply_link": "https://careersprint.7f.liveblog365.com/job/2339374",
+          "is_direct": false,
+          "publisher": "CareerSprint"
+        }
+      ],
+      "job_description": "We are tech transformation specialists, uniting human expertise with AI to create scalable tech solutions. With over 8,000 CI&Ters around the world, we’ve built partnerships with more than 1,000 clients during our 30 years of history. Artificial Intelligence is our reality. Na CI&T, estamos em busca",
+      "job_is_remote": true,
+      "job_posted_at": "há 14 horas",
+      "job_posted_at_timestamp": null,
+      "job_posted_at_datetime_utc": null,
+      "job_location": "Qualquer lugar",
+      "job_city": null,
+      "job_state": null,
+      "job_country": null,
+      "job_latitude": null,
+      "job_longitude": null,
+      "job_benefits": null,
+      "job_benefits_strings": null,
+      "job_google_link": "https://www.google.com/search?q=jobs&gl=br&hl=pt&udm=8#vhid=vt%3D20/docid%3DQNtWl-k-1A413klGAAAAAA%3D%3D&vssid=jobs-detail-viewer",
+      "job_salary": null,
+      "job_salary_string": null,
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_period": null,
+      "job_highlights": {},
+      "job_onet_soc": null,
+      "job_onet_job_zone": null,
+      "employer_reviews": null
+    },
+    {
+      "job_id": "5iYvSL1Ftm6n7j00AAAAAA==",
+      "job_title": "Desenvolvedor(a) Fullstack Especialista",
+      "employer_name": "South System",
+      "employer_logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcbigYsBpXRujca8Bx0Mk0zfXz7bKZJwSaWHjZ&s=0",
+      "employer_website": null,
+      "job_publisher": "Indeed",
+      "job_employment_type": "Tempo integral",
+      "job_employment_types": [
+        "FULLTIME"
+      ],
+      "job_apply_link": "https://br.indeed.com/viewjob?jk=6a3c4ca1d698410e",
+      "job_apply_is_direct": false,
+      "apply_options": [
+        {
+          "apply_link": "https://br.indeed.com/viewjob?jk=6a3c4ca1d698410e",
+          "is_direct": false,
+          "publisher": "Indeed"
+        }
+      ],
+      "job_description": "Desenvolvedor(a) Fullstack - Especialista\n\nEstamos em busca de um Desenvolvedor(a) Fullstack - Especialista para impulsionar pessoas e negócios por meio da inovação, com atitude, protagonismo e foco em fazer acontecer.\n\nO seu impacto nessa posição:\n\n•\n\nEvoluir e manter componentes, bibliotecas e pad",
+      "job_is_remote": true,
+      "job_posted_at": "há 21 horas",
+      "job_posted_at_timestamp": null,
+      "job_posted_at_datetime_utc": null,
+      "job_location": "Qualquer lugar",
+      "job_city": null,
+      "job_state": null,
+      "job_country": null,
+      "job_latitude": null,
+      "job_longitude": null,
+      "job_benefits": null,
+      "job_benefits_strings": null,
+      "job_google_link": "https://www.google.com/search?q=jobs&gl=br&hl=pt&udm=8#vhid=vt%3D20/docid%3D5iYvSL1Ftm6n7j00AAAAAA%3D%3D&vssid=jobs-detail-viewer",
+      "job_salary": null,
+      "job_salary_string": null,
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_period": null,
+      "job_highlights": {},
+      "job_onet_soc": null,
+      "job_onet_job_zone": null,
+      "employer_reviews": null
+    },
+    {
+      "job_id": 12345,
+      "job_title": null,
+      "employer_name": "Broken Row Ltda",
+      "job_apply_link": "https://example.com/x"
+    }
+  ]
+}
