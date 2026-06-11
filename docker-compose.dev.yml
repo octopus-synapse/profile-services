@@ -147,6 +147,11 @@ services:
       # Company autocomplete (logo.dev Brand Search). Unset = search degrades
       # to empty results; set it in the host `.env`.
       LOGO_DEV_SECRET_KEY: ${LOGO_DEV_SECRET_KEY:-}
+      # External jobs (JSearch/RapidAPI) daily ingestion cron. Unset =
+      # adapter is NotConfigured and the 06:00 cron is not registered;
+      # set both in the host `.env` to enable it.
+      JSEARCH_RAPIDAPI_KEY: ${JSEARCH_RAPIDAPI_KEY:-}
+      JSEARCH_RAPIDAPI_HOST: ${JSEARCH_RAPIDAPI_HOST:-}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
