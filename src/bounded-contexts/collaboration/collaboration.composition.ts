@@ -21,6 +21,7 @@
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { JwtPort, LoggerPort } from '@/shared-kernel';
+import type { AuthorizationCheckPort } from '@/shared-kernel/authorization/authorization-check.port';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
@@ -109,12 +110,15 @@ export interface CollaborationCompositionDeps {
   readonly cache: CachePort;
   readonly eventPublisher: EventPublisherPort;
   readonly logger: LoggerPort;
+  /** Cross-BC RBAC check, used by the chat message-privacy policy
+   *  (RECRUITERS_ONLY → `job:create` permission). */
+  readonly authCheck: AuthorizationCheckPort;
 }
 
 export function buildCollaborationComposition(
   deps: CollaborationCompositionDeps,
 ): CollaborationComposition {
-  const { prisma, cache, eventPublisher, logger } = deps;
+  const { prisma, cache, eventPublisher, logger, authCheck } = deps;
 
   // ─── chat slice ─────────────────────────────────────────────────────
   const conversationRepo = new ConversationRepository(prisma, logger);
@@ -123,7 +127,7 @@ export function buildCollaborationComposition(
   const chatCache = new ChatCacheService(cache);
   const chatPreference = new ChatPreferenceService(prisma);
   const chatUserSearch = new ChatUserSearchService(prisma);
-  const messagePrivacy = new MessagePrivacyPolicyService(prisma, blockedUserRepo);
+  const messagePrivacy = new MessagePrivacyPolicyService(prisma, blockedUserRepo, authCheck);
 
   const chatUseCases = buildChatUseCases(
     conversationRepo,

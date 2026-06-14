@@ -1,19 +1,20 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { AuthorizationCheckPort } from '@/shared-kernel/authorization/authorization-check.port';
 import { CannotSendMessageToUserException } from '../../domain/exceptions/collaboration.exceptions';
 import { BlockedUserRepositoryPort } from '../application/ports/chat.port';
 import { MessagePrivacyPolicyPort } from '../application/ports/message-privacy.port';
 
 /**
  * Enforces blocking + `UserPreferences.messagePrivacy` on every
- * conversation-create path. Recruiter detection uses the denormalized
- * `User.roles` array (legacy RBAC shadow) — sufficient for the
- * RECRUITERS_ONLY gate; swap for `AuthorizationCheckPort.hasPermission`
- * once that port is wired into the collaboration composition.
+ * conversation-create path. Recruiter detection goes through the
+ * `AuthorizationCheckPort` (RBAC permission `job:create`), so it tracks the
+ * real permission model rather than a denormalized role shadow.
  */
 export class MessagePrivacyPolicyService extends MessagePrivacyPolicyPort {
   constructor(
     private readonly prisma: PrismaService,
     private readonly blockedUserRepo: BlockedUserRepositoryPort,
+    private readonly authCheck: AuthorizationCheckPort,
   ) {
     super();
   }
@@ -38,10 +39,7 @@ export class MessagePrivacyPolicyService extends MessagePrivacyPolicyPort {
   }
 
   private async isRecruiter(userId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { roles: true },
-    });
-    return (user?.roles ?? []).includes('recruiter');
+    // A recruiter is anyone the RBAC grants job-posting permission.
+    return this.authCheck.hasPermission(userId, 'job', 'create');
   }
 }

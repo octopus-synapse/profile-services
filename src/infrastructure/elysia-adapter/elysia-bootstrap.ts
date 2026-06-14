@@ -62,6 +62,7 @@ import {
 import { AuthAuditHandler } from '@/bounded-contexts/identity/authentication/infrastructure/handlers/auth-audit.handler';
 import { accessModifierRoutes } from '@/bounded-contexts/identity/authorization/access-modifier.routes';
 import { buildAuthorizationUseCases } from '@/bounded-contexts/identity/authorization/authorization.composition';
+import { AuthorizationCheckAdapter } from '@/bounded-contexts/identity/authorization/infrastructure/adapters/authorization-check.adapter';
 import { buildEmailVerificationUseCases } from '@/bounded-contexts/identity/email-verification/email-verification.composition';
 import { emailVerificationRoutes } from '@/bounded-contexts/identity/email-verification/email-verification.routes';
 import {
@@ -574,6 +575,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     cache,
     eventPublisher: eventBus,
     logger,
+    // Lazily resolves `authorization` (built below) at request time — used by
+    // the chat message-privacy policy (RECRUITERS_ONLY → `job:create`).
+    authCheck: new AuthorizationCheckAdapter(() => authorization.checks),
   });
 
   // Presentation (public-resumes).
