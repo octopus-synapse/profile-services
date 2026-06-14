@@ -159,3 +159,19 @@ export const NotificationTypesResponseSchema = z.object({
 });
 
 export const SetPreferenceResponseSchema = NotificationPreferenceSchema;
+
+// ─── Push devices ────────────────────────────────────────────────────
+export const RegisterPushDeviceBody = z
+  .object({
+    expoPushToken: z.string().min(1),
+    platform: z.enum(['IOS', 'ANDROID', 'WEB']),
+  })
+  .openapi('RegisterPushDeviceRequest', {
+    example: { expoPushToken: 'ExponentPushToken[xxxxxxxxxxxx]', platform: 'IOS' },
+  });
+
+export const PushDeviceTokenParam = z.object({ token: z.string() });
+
+export const PushDeviceResponseSchema = z
+  .object({ code: z.string().optional(), message: z.string().optional() })
+  .openapi('PushDeviceResponse');

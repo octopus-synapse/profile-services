@@ -26,6 +26,12 @@ import { UnknownNotificationTypeException } from '../../../domain/exceptions/not
 import type { NotificationEmailPort } from '../../../domain/ports/notification-email.port';
 import type { NotificationStreamPort } from '../../../domain/ports/notification-stream.port';
 import type { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
+import type { PushSenderPort } from '../../../domain/ports/push-sender.port';
+
+/** Reads the recipient's registered Expo push tokens. */
+export interface PushTokenReaderPort {
+  listTokensByUser(userId: string): Promise<string[]>;
+}
 import { escapeHtml, humanizeType } from '../../shared/format';
 
 const CTX = 'CreateNotificationUseCase';
@@ -54,6 +60,7 @@ const KNOWN_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
   'MATCH_RECOMMENDATIONS_READY',
   'RESUME_QUALITY_IMPROVED',
   'RESUME_QUALITY_REGRESSED',
+  'MESSAGE_RECEIVED',
 ] satisfies NotificationType[]);
 
 export interface CreateNotificationInput {
@@ -86,6 +93,14 @@ export class CreateNotificationUseCase {
     private readonly stream: NotificationStreamPort,
     private readonly email: NotificationEmailPort,
     private readonly logger: LoggerPort,
+    // Optional with no-op defaults so existing tests construct without push
+    // wiring; production always injects the real adapters via composition.
+    private readonly pushSender: PushSenderPort = { async sendToTokens() {} },
+    private readonly pushTokens: PushTokenReaderPort = {
+      async listTokensByUser() {
+        return [];
+      },
+    },
   ) {}
 
   async execute(input: CreateNotificationInput): Promise<NotificationView | null> {
@@ -145,8 +160,32 @@ export class CreateNotificationUseCase {
 
     // Fire-and-forget email delivery; never block notification creation on SMTP.
     void this.maybeSendInstantEmail(input.userId, input.type, notification.id, renderedMessage);
+    // Fire-and-forget push; never block on the Expo service.
+    void this.maybeSendPush(input.userId, input.type, renderedMessage);
 
     return notification;
+  }
+
+  private async maybeSendPush(
+    userId: string,
+    type: NotificationType,
+    message: string,
+  ): Promise<void> {
+    try {
+      const pref = await this.repository.findUserPreference(userId, type);
+      // Default off: push only fires when the user opted in for this type.
+      if (!pref?.pushEnabled) return;
+
+      const tokens = await this.pushTokens.listTokensByUser(userId);
+      if (tokens.length === 0) return;
+
+      await this.pushSender.sendToTokens(tokens, { title: humanizeType(type), body: message });
+    } catch (err) {
+      this.logger.warn(
+        `Notification push failed for user ${userId}: ${err instanceof Error ? err.message : 'unknown'}`,
+        CTX,
+      );
+    }
   }
 
   private async maybeSendInstantEmail(

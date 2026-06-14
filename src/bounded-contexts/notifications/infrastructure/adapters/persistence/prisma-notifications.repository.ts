@@ -162,12 +162,13 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
   ): Promise<UnreadPreferenceLookup | null> {
     const row = await this.prisma.notificationPreference.findUnique({
       where: { userId_type: { userId, type } },
-      select: { enabled: true, emailEnabled: true, emailDelivery: true },
+      select: { enabled: true, emailEnabled: true, pushEnabled: true, emailDelivery: true },
     });
     if (!row) return null;
     return {
       enabled: row.enabled,
       emailEnabled: row.emailEnabled,
+      pushEnabled: row.pushEnabled,
       emailDelivery: row.emailDelivery as EmailDeliveryMode,
     };
   }

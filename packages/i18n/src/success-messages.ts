@@ -104,6 +104,20 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
+  PUSH_DEVICE_REGISTERED: {
+    message: {
+      en: 'Push notifications enabled on this device.',
+      'pt-BR': 'Notificações push ativadas neste dispositivo.',
+    },
+    params: [],
+  },
+  PUSH_DEVICE_UNREGISTERED: {
+    message: {
+      en: 'Push notifications disabled on this device.',
+      'pt-BR': 'Notificações push desativadas neste dispositivo.',
+    },
+    params: [],
+  },
   PASSWORD_RESET_LINK_SENT: {
     message: {
       en: 'If this email exists, a reset link has been sent.',

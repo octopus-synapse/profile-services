@@ -50,14 +50,18 @@ import { NotifyResumeQualityRankChangeUseCase } from './application/use-cases/no
 import { SendDailyDigestsUseCase } from './application/use-cases/send-daily-digests/send-daily-digests.use-case';
 import { SendExpiryReminderUseCase } from './application/use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
 import { SendWeeklyDigestsUseCase } from './application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
+import { RegisterPushDeviceUseCase } from './application/use-cases/register-push-device/register-push-device.use-case';
 import { SetPreferenceUseCase } from './application/use-cases/set-preference/set-preference.use-case';
+import { UnregisterPushDeviceUseCase } from './application/use-cases/unregister-push-device/unregister-push-device.use-case';
 import type { NotificationStreamEvent } from './domain/entities/notification.entity';
 import type { NotificationStreamPort } from './domain/ports/notification-stream.port';
 import { CacheReminderStateAdapter } from './infrastructure/adapters/external-services/cache-reminder-state.adapter';
 import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters/external-services/event-emitter-notification-stream.adapter';
+import { ExpoPushAdapter } from './infrastructure/adapters/external-services/expo-push.adapter';
 import { PlatformEmailAdapter } from './infrastructure/adapters/external-services/platform-email.adapter';
 import { PrismaFitProfileExpiryAdapter } from './infrastructure/adapters/persistence/prisma-fit-profile-expiry.adapter';
 import { PrismaNotificationsRepository } from './infrastructure/adapters/persistence/prisma-notifications.repository';
+import { PrismaPushDeviceRepository } from './infrastructure/adapters/persistence/prisma-push-device.repository';
 import { PrismaResumeQualitySnapshotAdapter } from './infrastructure/adapters/persistence/prisma-resume-quality-snapshot.adapter';
 import { PrismaWeeklyDigestLogAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-log.adapter';
 import { PrismaWeeklyDigestStatsAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-stats.adapter';
@@ -111,6 +115,7 @@ export function buildNotificationsUseCases(
   const stream: NotificationStreamPort = new EventEmitterNotificationStreamAdapter(sse);
 
   const repository = new PrismaNotificationsRepository(prisma);
+  const pushDeviceRepository = new PrismaPushDeviceRepository(prisma);
   const stats = new PrismaWeeklyDigestStatsAdapter(prisma);
   const digestLog = new PrismaWeeklyDigestLogAdapter(prisma);
   const fitProfileExpiry = new PrismaFitProfileExpiryAdapter(prisma);
@@ -118,11 +123,14 @@ export function buildNotificationsUseCases(
   const emailAdapter = new PlatformEmailAdapter(email);
   const reminderState = new CacheReminderStateAdapter(cache, prisma, logger);
 
+  const pushSender = new ExpoPushAdapter(logger);
   const createNotification = new CreateNotificationUseCase(
     repository,
     stream,
     emailAdapter,
     logger,
+    pushSender,
+    pushDeviceRepository,
   );
 
   return {
@@ -132,6 +140,8 @@ export function buildNotificationsUseCases(
     markNotificationsRead: new MarkNotificationsReadUseCase(repository),
     getPreferences: new GetPreferencesUseCase(repository),
     setPreference: new SetPreferenceUseCase(repository),
+    registerPushDevice: new RegisterPushDeviceUseCase(pushDeviceRepository),
+    unregisterPushDevice: new UnregisterPushDeviceUseCase(pushDeviceRepository),
     deleteOldNotifications: new DeleteOldNotificationsUseCase(repository),
     sendDailyDigests: new SendDailyDigestsUseCase(repository, emailAdapter, logger),
     sendWeeklyDigests: new SendWeeklyDigestsUseCase(

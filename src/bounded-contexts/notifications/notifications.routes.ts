@@ -18,6 +18,9 @@ import {
   NotificationsSseBundle,
   NotificationTypesResponseSchema,
   PaginationQuery,
+  PushDeviceResponseSchema,
+  PushDeviceTokenParam,
+  RegisterPushDeviceBody,
   SetPreferenceBody,
   SetPreferenceResponseSchema,
   TypeParam,
@@ -261,6 +264,49 @@ export const notificationsRoutes: ReadonlyArray<Route<NotificationsUseCases>> = 
       const { type } = ctx.params as { type: string };
       const body = ctx.body as z.infer<typeof SetPreferenceBody>;
       return bc.setPreference.execute(ctx.user!.userId, type as NotificationType, body);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/notifications/devices',
+    auth: { kind: 'jwt' },
+    permission: Permission.NOTIFICATION_READ,
+    body: RegisterPushDeviceBody,
+    statusCode: 200,
+    response: PushDeviceResponseSchema,
+    openapi: {
+      summary: 'Register an Expo push device token',
+      tags: ['notifications'],
+      description: 'Notifications API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as z.infer<typeof RegisterPushDeviceBody>;
+      await bc.registerPushDevice.execute({
+        userId: ctx.user!.userId,
+        expoPushToken: body.expoPushToken,
+        platform: body.platform,
+      });
+      return { code: 'PUSH_DEVICE_REGISTERED' as const };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/v1/notifications/devices/:token',
+    auth: { kind: 'jwt' },
+    permission: Permission.NOTIFICATION_READ,
+    params: PushDeviceTokenParam,
+    response: PushDeviceResponseSchema,
+    openapi: {
+      summary: 'Unregister an Expo push device token',
+      tags: ['notifications'],
+      description: 'Notifications API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { token } = ctx.params as { token: string };
+      await bc.unregisterPushDevice.execute(ctx.user!.userId, token);
+      return { code: 'PUSH_DEVICE_UNREGISTERED' as const };
     },
   },
 ];

@@ -33,6 +33,7 @@ export interface MarkReadResult {
 export interface UnreadPreferenceLookup {
   readonly enabled: boolean;
   readonly emailEnabled: boolean;
+  readonly pushEnabled: boolean;
   readonly emailDelivery: EmailDeliveryMode;
 }
 
