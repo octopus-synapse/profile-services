@@ -89,6 +89,7 @@ export const UpdateFullPreferencesSchema = z
     emailShareExpiring: z.boolean().optional(),
     digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(), // Privacy
     profileVisibility: z.enum(['PUBLIC', 'RECRUITERS_ONLY', 'PRIVATE']).optional(),
+    messagePrivacy: z.enum(['EVERYONE', 'RECRUITERS_ONLY', 'NOBODY']).optional(),
     showEmail: z.boolean().optional(),
     showPhone: z.boolean().optional(),
     allowSearchEngineIndex: z.boolean().optional(), // Export defaults

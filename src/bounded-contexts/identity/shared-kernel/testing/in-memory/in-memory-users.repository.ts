@@ -81,6 +81,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       emailShareExpiring: prefs.emailShareExpiring ?? true,
       digestFrequency: prefs.digestFrequency ?? 'WEEKLY',
       profileVisibility: prefs.profileVisibility ?? 'PRIVATE',
+      messagePrivacy: prefs.messagePrivacy ?? 'EVERYONE',
       showEmail: prefs.showEmail ?? false,
       showPhone: prefs.showPhone ?? false,
       allowSearchEngineIndex: prefs.allowSearchEngineIndex ?? false,
@@ -326,6 +327,8 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       digestFrequency: preferences.digestFrequency ?? existingPrefs?.digestFrequency ?? 'WEEKLY',
       profileVisibility:
         preferences.profileVisibility ?? existingPrefs?.profileVisibility ?? 'PRIVATE',
+      messagePrivacy:
+        preferences.messagePrivacy ?? existingPrefs?.messagePrivacy ?? 'EVERYONE',
       showEmail: preferences.showEmail ?? existingPrefs?.showEmail ?? false,
       showPhone: preferences.showPhone ?? existingPrefs?.showPhone ?? false,
       allowSearchEngineIndex:

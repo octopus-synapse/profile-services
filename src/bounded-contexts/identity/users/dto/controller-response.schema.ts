@@ -208,6 +208,7 @@ const FullUserPreferencesSchema = z.object({
   emailShareExpiring: z.boolean(),
   digestFrequency: z.string(),
   profileVisibility: z.enum(['PUBLIC', 'RECRUITERS_ONLY', 'PRIVATE']),
+  messagePrivacy: z.enum(['EVERYONE', 'RECRUITERS_ONLY', 'NOBODY']),
   showEmail: z.boolean(),
   showPhone: z.boolean(),
   allowSearchEngineIndex: z.boolean(),

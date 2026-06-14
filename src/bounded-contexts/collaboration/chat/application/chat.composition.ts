@@ -5,6 +5,7 @@ import type { ConversationRepository } from '../repositories/conversation.reposi
 import type { MessageRepository } from '../repositories/message.repository';
 import type { ChatCacheService } from '../services/chat-cache.service';
 import { ChatUseCases } from './ports/chat.port';
+import { MessagePrivacyPolicyPort } from './ports/message-privacy.port';
 import { GetConversationUseCase } from './use-cases/get-conversation/get-conversation.use-case';
 import { GetConversationIdUseCase } from './use-cases/get-conversation-id/get-conversation-id.use-case';
 import { GetConversationsUseCase } from './use-cases/get-conversations/get-conversations.use-case';
@@ -23,12 +24,13 @@ export function buildChatUseCases(
   eventPublisher: EventPublisherPort,
   chatCache: ChatCacheService,
   logger: LoggerPort,
+  messagePrivacy: MessagePrivacyPolicyPort,
 ): ChatUseCases {
   return {
     sendMessageUseCase: new SendMessageUseCase(
       conversationRepo,
       messageRepo,
-      blockedUserRepo,
+      messagePrivacy,
       eventPublisher,
       chatCache,
       logger,
@@ -50,6 +52,6 @@ export function buildChatUseCases(
       logger,
     ),
     getUnreadCountUseCase: new GetUnreadCountUseCase(messageRepo, chatCache, logger),
-    getConversationIdUseCase: new GetConversationIdUseCase(conversationRepo),
+    getConversationIdUseCase: new GetConversationIdUseCase(conversationRepo, messagePrivacy),
   };
 }

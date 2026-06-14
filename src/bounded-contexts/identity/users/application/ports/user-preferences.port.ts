@@ -40,6 +40,7 @@ export type FullUserPreferences = {
   emailShareExpiring: boolean;
   digestFrequency: string;
   profileVisibility: 'PUBLIC' | 'RECRUITERS_ONLY' | 'PRIVATE';
+  messagePrivacy: 'EVERYONE' | 'RECRUITERS_ONLY' | 'NOBODY';
   showEmail: boolean;
   showPhone: boolean;
   allowSearchEngineIndex: boolean;

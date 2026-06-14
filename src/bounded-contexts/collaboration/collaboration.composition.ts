@@ -48,6 +48,7 @@ import {
 } from './chat/repositories';
 import { ChatCacheService } from './chat/services';
 import { ChatPreferenceService } from './chat/services/chat-preference.service';
+import { MessagePrivacyPolicyService } from './chat/services/message-privacy-policy.service';
 import { ChatUserSearchService } from './chat/services/user-search.service';
 // sharing slice
 import {
@@ -122,6 +123,7 @@ export function buildCollaborationComposition(
   const chatCache = new ChatCacheService(cache);
   const chatPreference = new ChatPreferenceService(prisma);
   const chatUserSearch = new ChatUserSearchService(prisma);
+  const messagePrivacy = new MessagePrivacyPolicyService(prisma, blockedUserRepo);
 
   const chatUseCases = buildChatUseCases(
     conversationRepo,
@@ -130,6 +132,7 @@ export function buildCollaborationComposition(
     eventPublisher,
     chatCache,
     logger,
+    messagePrivacy,
   );
   const blockUseCases = buildBlockUseCases(blockedUserRepo);
 
