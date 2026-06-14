@@ -89,6 +89,11 @@
     "PRIVACY_POLICY",
     "TERMS_OF_SERVICE"
   ],
+  "DevicePlatform": [
+    "ANDROID",
+    "IOS",
+    "WEB"
+  ],
   "DigestFrequency": [
     "DAILY",
     "MONTHLY",
@@ -185,6 +190,11 @@
     "RUNNING",
     "SUCCESS"
   ],
+  "MessagePrivacy": [
+    "EVERYONE",
+    "NOBODY",
+    "RECRUITERS_ONLY"
+  ],
   "ModifierEffect": [
     "DENY",
     "GRANT"
@@ -206,6 +216,7 @@
     "FIT_PROFILE_EXPIRY_REMINDER",
     "FOLLOW_NEW",
     "MATCH_RECOMMENDATIONS_READY",
+    "MESSAGE_RECEIVED",
     "POST_BOOKMARKED",
     "POST_COMMENTED",
     "POST_LIKED",
@@ -219,6 +230,11 @@
     "EUR",
     "GBP",
     "USD"
+  ],
+  "ProfileVisibility": [
+    "PRIVATE",
+    "PUBLIC",
+    "RECRUITERS_ONLY"
   ],
   "RemotePolicy": [
     "HYBRID",
@@ -273,6 +289,11 @@
     "PRODUCT",
     "QA",
     "SECURITY"
+  ],
+  "VerificationPurpose": [
+    "EMAIL_CHANGE",
+    "EMAIL_VERIFY",
+    "PASSWORD_CHANGE"
   ],
   "WeeklyCuratedBatchStatus": [
     "COMPLETED",

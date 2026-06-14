@@ -164,6 +164,10 @@
       "en": "You cannot modify another user's job posting",
       "pt-BR": "Você não pode modificar a vaga de outro usuário"
     },
+    "CANNOT_REMOVE_LAST_LOGIN_METHOD": {
+      "en": "You can't disconnect your only login method. Set a password first.",
+      "pt-BR": "Você não pode desconectar seu único método de login. Defina uma senha antes."
+    },
     "CANNOT_SEND_MESSAGE_TO_USER": {
       "en": "Cannot send message to this user",
       "pt-BR": "Não é possível enviar mensagem para este usuário"
@@ -215,6 +219,10 @@
     "CONFLICT": {
       "en": "Conflict",
       "pt-BR": "Conflito"
+    },
+    "CONNECTED_ACCOUNT_NOT_FOUND": {
+      "en": "No connected account found for this provider",
+      "pt-BR": "Nenhuma conta conectada encontrada para este provedor"
     },
     "CONNECTION_NOT_ACCEPTED": {
       "en": "Connection is not accepted",
@@ -339,6 +347,10 @@
     "EMAIL_NOT_VERIFIED": {
       "en": "Email address must be verified to access this resource",
       "pt-BR": "É preciso verificar o e-mail para acessar este recurso"
+    },
+    "EMAIL_SAME_AS_CURRENT": {
+      "en": "The new email is the same as your current email",
+      "pt-BR": "O novo e-mail é igual ao atual"
     },
     "ENTITY_NOT_FOUND": {
       "en": "{entityType} not found",
@@ -572,6 +584,10 @@
       "en": "End date must be after start date",
       "pt-BR": "A data final precisa ser posterior à data inicial"
     },
+    "INVALID_EMAIL_CHANGE_CODE": {
+      "en": "The confirmation code is invalid or has expired",
+      "pt-BR": "O código de confirmação é inválido ou expirou"
+    },
     "INVALID_FILE_TYPE": {
       "en": "Invalid file type",
       "pt-BR": "Tipo de arquivo inválido"
@@ -603,6 +619,10 @@
     "INVALID_OCCURRED_AT": {
       "en": "The event date is invalid — it cannot be in the future or before the application",
       "pt-BR": "A data do evento é inválida — não pode estar no futuro nem antes da candidatura"
+    },
+    "INVALID_PASSWORD_CHANGE_CODE": {
+      "en": "The confirmation code is invalid or has expired",
+      "pt-BR": "O código de confirmação é inválido ou expirou"
     },
     "INVALID_PERSONAL_INFO": {
       "en": "Personal information is invalid",
@@ -1752,6 +1772,20 @@
         "pt-BR": "Termos de serviço"
       }
     },
+    "DevicePlatform": {
+      "ANDROID": {
+        "en": "Android",
+        "pt-BR": "Android"
+      },
+      "IOS": {
+        "en": "iOS",
+        "pt-BR": "iOS"
+      },
+      "WEB": {
+        "en": "Web",
+        "pt-BR": "Web"
+      }
+    },
     "DigestFrequency": {
       "DAILY": {
         "en": "Daily",
@@ -2064,6 +2098,20 @@
         "pt-BR": "Sucesso"
       }
     },
+    "MessagePrivacy": {
+      "EVERYONE": {
+        "en": "Everyone",
+        "pt-BR": "Todos"
+      },
+      "NOBODY": {
+        "en": "Nobody",
+        "pt-BR": "Ninguém"
+      },
+      "RECRUITERS_ONLY": {
+        "en": "Recruiters only",
+        "pt-BR": "Só recrutadores"
+      }
+    },
     "ModifierEffect": {
       "DENY": {
         "en": "Deny",
@@ -2133,6 +2181,10 @@
         "en": "New job recommendations ready",
         "pt-BR": "Novas recomendações de vagas"
       },
+      "MESSAGE_RECEIVED": {
+        "en": "New message",
+        "pt-BR": "Nova mensagem"
+      },
       "POST_BOOKMARKED": {
         "en": "Post bookmarked",
         "pt-BR": "Post salvo"
@@ -2178,6 +2230,20 @@
       "USD": {
         "en": "USD",
         "pt-BR": "USD"
+      }
+    },
+    "ProfileVisibility": {
+      "PRIVATE": {
+        "en": "Private",
+        "pt-BR": "Privado"
+      },
+      "PUBLIC": {
+        "en": "Public",
+        "pt-BR": "Público"
+      },
+      "RECRUITERS_ONLY": {
+        "en": "Recruiters only",
+        "pt-BR": "Só recrutadores"
       }
     },
     "RemotePolicy": {
@@ -2348,6 +2414,20 @@
         "pt-BR": "Segurança"
       }
     },
+    "VerificationPurpose": {
+      "EMAIL_CHANGE": {
+        "en": "Email change",
+        "pt-BR": "Alteração de e-mail"
+      },
+      "EMAIL_VERIFY": {
+        "en": "Email verification",
+        "pt-BR": "Verificação de e-mail"
+      },
+      "PASSWORD_CHANGE": {
+        "en": "Password change",
+        "pt-BR": "Alteração de senha"
+      }
+    },
     "WeeklyCuratedBatchStatus": {
       "COMPLETED": {
         "en": "Completed",
@@ -2507,6 +2587,20 @@
       "params": [
         "matchCount",
         "topMatchTitle"
+      ]
+    },
+    "MESSAGE_RECEIVED": {
+      "title": {
+        "en": "New message from {actorName}",
+        "pt-BR": "Nova mensagem de {actorName}"
+      },
+      "body": {
+        "en": "{actorName} sent you a message: \"{messageExcerpt}\"",
+        "pt-BR": "{actorName} te enviou uma mensagem: \"{messageExcerpt}\""
+      },
+      "params": [
+        "actorName",
+        "messageExcerpt"
       ]
     },
     "POST_BOOKMARKED": {

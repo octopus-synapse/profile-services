@@ -679,6 +679,42 @@
           "newPassword": "NewSecurePass456!"
         }
       },
+      "PushDeviceResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterPushDeviceRequest": {
+        "type": "object",
+        "properties": {
+          "expoPushToken": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "IOS",
+              "ANDROID",
+              "WEB"
+            ]
+          }
+        },
+        "required": [
+          "expoPushToken",
+          "platform"
+        ],
+        "example": {
+          "expoPushToken": "ExponentPushToken[xxxxxxxxxxxx]",
+          "platform": "IOS"
+        }
+      },
       "Username": {
         "type": "string",
         "minLength": 3,
@@ -909,6 +945,33 @@
             }
           ]
         }
+      },
+      "ConnectedAccountsResponse": {
+        "type": "object",
+        "properties": {
+          "accounts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string"
+                },
+                "connectedAt": {
+                  "type": "string",
+                  "description": "ISO-8601 link timestamp."
+                }
+              },
+              "required": [
+                "provider",
+                "connectedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "accounts"
+        ]
       },
       "FullName": {
         "type": "string",
@@ -51407,6 +51470,334 @@
         "x-permission": "notification:read"
       }
     },
+    "/api/v1/notifications/devices": {
+      "post": {
+        "summary": "Register an Expo push device token",
+        "description": "Notifications API",
+        "tags": [
+          "notifications"
+        ],
+        "operationId": "post_v1_notifications_devices",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPushDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
+      }
+    },
+    "/api/v1/notifications/devices/{token}": {
+      "delete": {
+        "summary": "Unregister an Expo push device token",
+        "description": "Notifications API",
+        "tags": [
+          "notifications"
+        ],
+        "operationId": "delete_v1_notifications_devices_token",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "fixture-token-replace-me"
+            },
+            "required": true,
+            "name": "token",
+            "in": "path",
+            "example": "fixture-token-replace-me"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
+      }
+    },
     "/api/v1/notifications/mark-read": {
       "post": {
         "summary": "Mark notifications as read",
@@ -51614,7 +52005,13 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "inAppEnabled": {
+                            "type": "boolean"
+                          },
                           "emailEnabled": {
+                            "type": "boolean"
+                          },
+                          "pushEnabled": {
                             "type": "boolean"
                           },
                           "emailDelivery": {
@@ -51630,7 +52027,9 @@
                         "required": [
                           "type",
                           "enabled",
+                          "inAppEnabled",
                           "emailEnabled",
+                          "pushEnabled",
                           "emailDelivery"
                         ]
                       }
@@ -51806,7 +52205,13 @@
                   "enabled": {
                     "type": "boolean"
                   },
+                  "inAppEnabled": {
+                    "type": "boolean"
+                  },
                   "emailEnabled": {
+                    "type": "boolean"
+                  },
+                  "pushEnabled": {
                     "type": "boolean"
                   },
                   "emailDelivery": {
@@ -51821,7 +52226,9 @@
                 },
                 "example": {
                   "enabled": true,
+                  "inAppEnabled": true,
                   "emailEnabled": true,
+                  "pushEnabled": false,
                   "emailDelivery": "DAILY"
                 }
               }
@@ -51860,7 +52267,13 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "inAppEnabled": {
+                      "type": "boolean"
+                    },
                     "emailEnabled": {
+                      "type": "boolean"
+                    },
+                    "pushEnabled": {
                       "type": "boolean"
                     },
                     "emailDelivery": {
@@ -51876,7 +52289,9 @@
                   "required": [
                     "type",
                     "enabled",
+                    "inAppEnabled",
                     "emailEnabled",
+                    "pushEnabled",
                     "emailDelivery"
                   ]
                 }
@@ -92250,6 +92665,334 @@
         "x-permission": "resume:update"
       }
     },
+    "/api/v1/users/connected-accounts": {
+      "get": {
+        "summary": "List the current user's linked OAuth accounts",
+        "description": "Users API",
+        "tags": [
+          "users"
+        ],
+        "operationId": "get_v1_users_connected_accounts",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectedAccountsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
+      }
+    },
+    "/api/v1/users/connected-accounts/{provider}": {
+      "delete": {
+        "summary": "Disconnect a linked OAuth account",
+        "description": "Users API. Refuses to remove the last login method when the user has no password set.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "delete_v1_users_connected_accounts_provider",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "OAuth provider id, e.g. google/github/linkedin.",
+              "example": "github"
+            },
+            "required": true,
+            "name": "provider",
+            "in": "path",
+            "example": "github"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
+      }
+    },
     "/api/v1/users/manage": {
       "get": {
         "summary": "List all users with pagination",
@@ -97688,6 +98431,14 @@
                             "PRIVATE"
                           ]
                         },
+                        "messagePrivacy": {
+                          "type": "string",
+                          "enum": [
+                            "EVERYONE",
+                            "RECRUITERS_ONLY",
+                            "NOBODY"
+                          ]
+                        },
                         "showEmail": {
                           "type": "boolean"
                         },
@@ -97805,6 +98556,7 @@
                         "emailShareExpiring",
                         "digestFrequency",
                         "profileVisibility",
+                        "messagePrivacy",
                         "showEmail",
                         "showPhone",
                         "allowSearchEngineIndex",
@@ -98013,6 +98765,14 @@
                       "PRIVATE"
                     ]
                   },
+                  "messagePrivacy": {
+                    "type": "string",
+                    "enum": [
+                      "EVERYONE",
+                      "RECRUITERS_ONLY",
+                      "NOBODY"
+                    ]
+                  },
                   "showEmail": {
                     "type": "boolean"
                   },
@@ -98173,6 +98933,14 @@
                             "PRIVATE"
                           ]
                         },
+                        "messagePrivacy": {
+                          "type": "string",
+                          "enum": [
+                            "EVERYONE",
+                            "RECRUITERS_ONLY",
+                            "NOBODY"
+                          ]
+                        },
                         "showEmail": {
                           "type": "boolean"
                         },
@@ -98290,6 +99058,7 @@
                         "emailShareExpiring",
                         "digestFrequency",
                         "profileVisibility",
+                        "messagePrivacy",
                         "showEmail",
                         "showPhone",
                         "allowSearchEngineIndex",
