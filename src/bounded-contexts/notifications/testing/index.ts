@@ -52,7 +52,13 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
   readonly notifications: InMemoryNotificationRow[] = [];
   readonly preferences = new Map<
     string,
-    { enabled: boolean; emailEnabled: boolean; emailDelivery: EmailDeliveryMode }
+    {
+      enabled: boolean;
+      inAppEnabled: boolean;
+      emailEnabled: boolean;
+      pushEnabled: boolean;
+      emailDelivery: EmailDeliveryMode;
+    }
   >();
   readonly recipients = new Map<string, NotificationRecipient>();
 
@@ -71,9 +77,21 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
   setPreferenceRow(
     userId: string,
     type: NotificationType,
-    pref: { enabled: boolean; emailEnabled: boolean; emailDelivery: EmailDeliveryMode },
+    pref: {
+      enabled: boolean;
+      inAppEnabled?: boolean;
+      emailEnabled: boolean;
+      pushEnabled?: boolean;
+      emailDelivery: EmailDeliveryMode;
+    },
   ): void {
-    this.preferences.set(this.prefKey(userId, type), pref);
+    this.preferences.set(this.prefKey(userId, type), {
+      enabled: pref.enabled,
+      inAppEnabled: pref.inAppEnabled ?? true,
+      emailEnabled: pref.emailEnabled,
+      pushEnabled: pref.pushEnabled ?? false,
+      emailDelivery: pref.emailDelivery,
+    });
   }
 
   async create(data: CreateNotificationData): Promise<NotificationView> {
@@ -169,7 +187,9 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
       out.push({
         type: t,
         enabled: pref.enabled,
+        inAppEnabled: pref.inAppEnabled,
         emailEnabled: pref.emailEnabled,
+        pushEnabled: pref.pushEnabled,
         emailDelivery: pref.emailDelivery,
       });
     }
@@ -183,12 +203,16 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
   ): Promise<NotificationPreferenceView> {
     const prev = this.preferences.get(this.prefKey(userId, type)) ?? {
       enabled: true,
+      inAppEnabled: true,
       emailEnabled: true,
+      pushEnabled: false,
       emailDelivery: 'INSTANT' as EmailDeliveryMode,
     };
     const next = {
       enabled: input.enabled ?? prev.enabled,
+      inAppEnabled: input.inAppEnabled ?? prev.inAppEnabled,
       emailEnabled: input.emailEnabled ?? prev.emailEnabled,
+      pushEnabled: input.pushEnabled ?? prev.pushEnabled,
       emailDelivery: input.emailDelivery ?? prev.emailDelivery,
     };
     this.preferences.set(this.prefKey(userId, type), next);

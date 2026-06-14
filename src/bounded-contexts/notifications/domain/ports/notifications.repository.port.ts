@@ -20,7 +20,9 @@ import type {
 
 export interface SetPreferenceInput {
   readonly enabled?: boolean;
+  readonly inAppEnabled?: boolean;
   readonly emailEnabled?: boolean;
+  readonly pushEnabled?: boolean;
   readonly emailDelivery?: EmailDeliveryMode;
 }
 

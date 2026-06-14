@@ -74,13 +74,17 @@ export const MarkReadBody = z
 export const SetPreferenceBody = z
   .object({
     enabled: z.boolean().optional(),
+    inAppEnabled: z.boolean().optional(),
     emailEnabled: z.boolean().optional(),
+    pushEnabled: z.boolean().optional(),
     emailDelivery: z.enum(['INSTANT', 'DAILY', 'WEEKLY', 'OFF']).optional(),
   })
   .openapi({
     example: {
       enabled: true,
+      inAppEnabled: true,
       emailEnabled: true,
+      pushEnabled: false,
       emailDelivery: 'DAILY',
     },
   });
@@ -126,7 +130,9 @@ export const MarkReadResponseSchema = z.object({ count: z.number().int().min(0) 
 export const NotificationPreferenceSchema = z.object({
   type: NotificationTypeSchema,
   enabled: z.boolean(),
+  inAppEnabled: z.boolean(),
   emailEnabled: z.boolean(),
+  pushEnabled: z.boolean(),
   emailDelivery: EmailDeliveryModeSchema,
 });
 

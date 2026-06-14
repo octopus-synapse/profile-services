@@ -175,12 +175,21 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
   async listUserPreferences(userId: string): Promise<NotificationPreferenceView[]> {
     const rows = await this.prisma.notificationPreference.findMany({
       where: { userId },
-      select: { type: true, enabled: true, emailEnabled: true, emailDelivery: true },
+      select: {
+        type: true,
+        enabled: true,
+        inAppEnabled: true,
+        emailEnabled: true,
+        pushEnabled: true,
+        emailDelivery: true,
+      },
     });
     return rows.map((p) => ({
       type: p.type,
       enabled: p.enabled,
+      inAppEnabled: p.inAppEnabled,
       emailEnabled: p.emailEnabled,
+      pushEnabled: p.pushEnabled,
       emailDelivery: p.emailDelivery as EmailDeliveryMode,
     }));
   }
@@ -196,20 +205,33 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
         userId,
         type,
         enabled: input.enabled ?? true,
+        inAppEnabled: input.inAppEnabled ?? true,
         emailEnabled: input.emailEnabled ?? true,
+        pushEnabled: input.pushEnabled ?? false,
         emailDelivery: input.emailDelivery ?? 'INSTANT',
       },
       update: {
         ...(input.enabled !== undefined ? { enabled: input.enabled } : {}),
+        ...(input.inAppEnabled !== undefined ? { inAppEnabled: input.inAppEnabled } : {}),
         ...(input.emailEnabled !== undefined ? { emailEnabled: input.emailEnabled } : {}),
+        ...(input.pushEnabled !== undefined ? { pushEnabled: input.pushEnabled } : {}),
         ...(input.emailDelivery !== undefined ? { emailDelivery: input.emailDelivery } : {}),
       },
-      select: { type: true, enabled: true, emailEnabled: true, emailDelivery: true },
+      select: {
+        type: true,
+        enabled: true,
+        inAppEnabled: true,
+        emailEnabled: true,
+        pushEnabled: true,
+        emailDelivery: true,
+      },
     });
     return {
       type: row.type,
       enabled: row.enabled,
+      inAppEnabled: row.inAppEnabled,
       emailEnabled: row.emailEnabled,
+      pushEnabled: row.pushEnabled,
       emailDelivery: row.emailDelivery as EmailDeliveryMode,
     };
   }

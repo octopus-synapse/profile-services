@@ -13,7 +13,9 @@ describe('GetPreferencesUseCase', () => {
     expect(liked).toEqual({
       type: 'POST_LIKED',
       enabled: true,
+      inAppEnabled: true,
       emailEnabled: true,
+      pushEnabled: false,
       emailDelivery: 'INSTANT',
     });
   });
@@ -22,7 +24,9 @@ describe('GetPreferencesUseCase', () => {
     const repo = new InMemoryNotificationsRepository();
     repo.setPreferenceRow('u-1', 'POST_LIKED', {
       enabled: false,
+      inAppEnabled: false,
       emailEnabled: false,
+      pushEnabled: false,
       emailDelivery: 'OFF',
     });
 
@@ -31,7 +35,9 @@ describe('GetPreferencesUseCase', () => {
     expect(liked).toEqual({
       type: 'POST_LIKED',
       enabled: false,
+      inAppEnabled: false,
       emailEnabled: false,
+      pushEnabled: false,
       emailDelivery: 'OFF',
     });
   });

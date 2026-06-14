@@ -50,7 +50,9 @@ export interface NotificationStreamEvent {
 export interface NotificationPreferenceView {
   readonly type: NotificationType;
   readonly enabled: boolean;
+  readonly inAppEnabled: boolean;
   readonly emailEnabled: boolean;
+  readonly pushEnabled: boolean;
   readonly emailDelivery: EmailDeliveryMode;
 }
 

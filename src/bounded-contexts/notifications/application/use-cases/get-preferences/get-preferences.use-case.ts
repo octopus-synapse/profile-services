@@ -29,6 +29,7 @@ const ALL_TYPES: readonly NotificationType[] = [
   'MATCH_RECOMMENDATIONS_READY',
   'RESUME_QUALITY_IMPROVED',
   'RESUME_QUALITY_REGRESSED',
+  'MESSAGE_RECEIVED',
 ];
 
 export class GetPreferencesUseCase {
@@ -42,7 +43,9 @@ export class GetPreferencesUseCase {
       return {
         type,
         enabled: o?.enabled ?? true,
+        inAppEnabled: o?.inAppEnabled ?? true,
         emailEnabled: o?.emailEnabled ?? true,
+        pushEnabled: o?.pushEnabled ?? false,
         emailDelivery: o?.emailDelivery ?? 'INSTANT',
       };
     });
