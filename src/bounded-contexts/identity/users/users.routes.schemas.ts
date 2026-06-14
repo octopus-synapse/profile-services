@@ -228,6 +228,22 @@ export const PublicUsersListQuery = z.object({
 
 export const UserIdParam = IdParamSchema;
 
+// ─── Connected accounts (OAuth) ──────────────────────────────────────
+export const ConnectedAccountProviderParam = z.object({
+  provider: z.string().openapi({ description: 'OAuth provider id, e.g. google/github/linkedin.' }),
+});
+
+export const ConnectedAccountsResponseSchema = z
+  .object({
+    accounts: z.array(
+      z.object({
+        provider: z.string(),
+        connectedAt: z.string().openapi({ description: 'ISO-8601 link timestamp.' }),
+      }),
+    ),
+  })
+  .openapi('ConnectedAccountsResponse');
+
 export const ListUsersQuery = z.object({
   page: z.coerce.number().int().optional(),
   limit: z.coerce.number().int().optional(),

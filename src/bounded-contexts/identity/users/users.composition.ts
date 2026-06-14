@@ -7,6 +7,10 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { AuditLogPort } from '@/shared-kernel/audit';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
+import {
+  buildConnectedAccountsUseCases,
+  type ConnectedAccountsUseCasesBundle,
+} from './application/connected-accounts.composition';
 import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import {
   buildUserManagementUseCases,
@@ -67,11 +71,12 @@ export function buildUsersUseCases(
     authorization,
     logger,
   );
+  const connectedAccounts = buildConnectedAccountsUseCases(prisma);
 
   const bundle: UsersHttpBundle = {
     profile,
     preferences,
-    useCases: { ...username, ...management },
+    useCases: { ...username, ...management, ...connectedAccounts },
     i18n,
     authorization,
   };

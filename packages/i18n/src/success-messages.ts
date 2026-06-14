@@ -97,6 +97,13 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
+  CONNECTED_ACCOUNT_DISCONNECTED: {
+    message: {
+      en: 'Account disconnected.',
+      'pt-BR': 'Conta desconectada.',
+    },
+    params: [],
+  },
   PASSWORD_RESET_LINK_SENT: {
     message: {
       en: 'If this email exists, a reset link has been sent.',

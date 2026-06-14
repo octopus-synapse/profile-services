@@ -39,6 +39,8 @@ import {
   AssignRolesSchema,
   CheckUsernameQuery,
   CheckUsernameResponseSchema,
+  ConnectedAccountProviderParam,
+  ConnectedAccountsResponseSchema,
   CreatedUserResponseSchema,
   GetBasicPreferencesResponseSchema,
   ListUsersQuery,
@@ -152,6 +154,43 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const body = ctx.body as z.infer<typeof UpdateUserSchema>;
       const result = await bundle.profile.updateProfileUseCase.execute(ctx.user!.userId, body);
       return { ...result, profile: result };
+    },
+  },
+  // ─── Connected accounts (OAuth) ───────────────────────────────────
+  {
+    method: 'GET',
+    path: '/v1/users/connected-accounts',
+    auth: { kind: 'jwt' },
+    permission: Permission.USER_PROFILE_READ,
+    response: ConnectedAccountsResponseSchema,
+    openapi: {
+      summary: 'List the current user\'s linked OAuth accounts',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      return bundle.useCases.listConnectedAccounts.execute(ctx.user!.userId);
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/v1/users/connected-accounts/:provider',
+    auth: { kind: 'jwt' },
+    permission: Permission.USER_PROFILE_UPDATE,
+    params: ConnectedAccountProviderParam,
+    response: MessageOnlyResponseSchema,
+    openapi: {
+      summary: 'Disconnect a linked OAuth account',
+      tags: ['users'],
+      description:
+        'Users API. Refuses to remove the last login method when the user has no password set.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { provider } = ctx.params as z.infer<typeof ConnectedAccountProviderParam>;
+      await bundle.useCases.disconnectConnectedAccount.execute(ctx.user!.userId, provider);
+      return { code: 'CONNECTED_ACCOUNT_DISCONNECTED' as const };
     },
   },
   // ─── Username ─────────────────────────────────────────────────────

@@ -526,6 +526,14 @@ export const ERROR_DICTIONARY = {
     en: 'The new email is the same as your current email',
     'pt-BR': 'O novo e-mail é igual ao atual',
   },
+  CANNOT_REMOVE_LAST_LOGIN_METHOD: {
+    en: "You can't disconnect your only login method. Set a password first.",
+    'pt-BR': 'Você não pode desconectar seu único método de login. Defina uma senha antes.',
+  },
+  CONNECTED_ACCOUNT_NOT_FOUND: {
+    en: 'No connected account found for this provider',
+    'pt-BR': 'Nenhuma conta conectada encontrada para este provedor',
+  },
   INVALID_DATE_RANGE: {
     en: 'End date must be after start date',
     'pt-BR': 'A data final precisa ser posterior à data inicial',
