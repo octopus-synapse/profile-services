@@ -5,7 +5,7 @@
  * (`ExternalJobListingsRepositoryPort` / `JSearchQuotaService`).
  */
 
-import type { JobType } from '@prisma/client';
+import type { JobType, RemotePolicy } from '@prisma/client';
 
 export interface ExternalJobSearchParams {
   /** Free-text search term, e.g. 'desenvolvedor'. */
@@ -28,6 +28,11 @@ export interface ExternalJobPosting {
   readonly company: string;
   readonly location: string | null;
   readonly isRemote: boolean;
+  /**
+   * REMOTE from the upstream flag; HYBRID inferred from title/description
+   * keywords (`deriveWorkMode`); ONSITE otherwise.
+   */
+  readonly workMode: RemotePolicy;
   readonly employmentType: JobType | null;
   readonly applyUrl: string;
   readonly publisher: string | null;

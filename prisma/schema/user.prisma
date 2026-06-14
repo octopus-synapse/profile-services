@@ -115,12 +115,14 @@ model User {
   // Notifications
   notifications      Notification[] @relation("UserNotifications")
   notificationActors Notification[] @relation("NotificationActors")
+  pushDevices        PushDevice[]   @relation("UserPushDevices")
 
   // Jobs
   // P0-#25/#26 — explicit FK back-relations so prisma can enforce cascade.
-  jobs            Job[]            @relation("UserJobs")
-  jobApplications JobApplication[] @relation("UserApplications")
-  jobBookmarks    JobBookmark[]    @relation("UserBookmarks")
+  jobs              Job[]              @relation("UserJobs")
+  jobApplications   JobApplication[]   @relation("UserApplications")
+  jobBookmarks      JobBookmark[]      @relation("UserBookmarks")
+  savedExternalJobs SavedExternalJob[] @relation("UserSavedExternalJobs")
 
   // Feed
   pollVotes PollVote[] @relation("UserPollVotes")
@@ -174,10 +176,13 @@ model UserPreferences {
   digestFrequency    DigestFrequency @default(WEEKLY)
 
   // Privacy
-  profileVisibility      String  @default("private")
-  showEmail              Boolean @default(false)
-  showPhone              Boolean @default(false)
-  allowSearchEngineIndex Boolean @default(false)
+  profileVisibility      ProfileVisibility @default(PRIVATE)
+  // Who may start a conversation with this user (enforced on the chat
+  // conversation-create path, alongside blocking).
+  messagePrivacy         MessagePrivacy    @default(EVERYONE)
+  showEmail              Boolean           @default(false)
+  showPhone              Boolean           @default(false)
+  allowSearchEngineIndex Boolean           @default(false)
 
   // Export defaults
   defaultExportFormat  String  @default("pdf")

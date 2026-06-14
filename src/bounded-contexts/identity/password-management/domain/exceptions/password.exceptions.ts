@@ -58,3 +58,54 @@ export class SamePasswordException extends ValidationException {
     });
   }
 }
+
+/**
+ * Invalid Password-Change Code Exception
+ *
+ * Thrown when the emailed confirmation code is wrong or expired during the
+ * two-step password change.
+ */
+export class InvalidPasswordChangeCodeException extends DomainException {
+  readonly code = 'INVALID_PASSWORD_CHANGE_CODE';
+  readonly statusHint = 400;
+
+  constructor() {
+    super('The confirmation code is invalid or has expired');
+  }
+}
+
+/**
+ * Thrown when the requested new email equals the current one.
+ */
+export class EmailSameAsCurrentException extends ValidationException {
+  override readonly code: string = 'EMAIL_SAME_AS_CURRENT';
+  constructor() {
+    super('New email must be different from your current email', {
+      newEmail: ['New email cannot be the same as the current email'],
+    });
+  }
+}
+
+/**
+ * Thrown when the requested new email already belongs to another account.
+ */
+export class EmailAlreadyInUseException extends DomainException {
+  readonly code = 'EMAIL_IN_USE';
+  readonly statusHint = 409;
+
+  constructor() {
+    super('This email is already in use');
+  }
+}
+
+/**
+ * Thrown when the emailed email-change code is wrong or expired.
+ */
+export class InvalidEmailChangeCodeException extends DomainException {
+  readonly code = 'INVALID_EMAIL_CHANGE_CODE';
+  readonly statusHint = 400;
+
+  constructor() {
+    super('The confirmation code is invalid or has expired');
+  }
+}

@@ -76,6 +76,27 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
+  PASSWORD_CHANGE_CODE_SENT: {
+    message: {
+      en: 'We sent a confirmation code to your email.',
+      'pt-BR': 'Enviamos um código de confirmação para o seu e-mail.',
+    },
+    params: [],
+  },
+  EMAIL_CHANGE_CODE_SENT: {
+    message: {
+      en: 'We sent a confirmation code to your new email.',
+      'pt-BR': 'Enviamos um código de confirmação para o seu novo e-mail.',
+    },
+    params: [],
+  },
+  EMAIL_CHANGED: {
+    message: {
+      en: 'Your email has been changed successfully.',
+      'pt-BR': 'Seu e-mail foi alterado com sucesso.',
+    },
+    params: [],
+  },
   PASSWORD_RESET_LINK_SENT: {
     message: {
       en: 'If this email exists, a reset link has been sent.',

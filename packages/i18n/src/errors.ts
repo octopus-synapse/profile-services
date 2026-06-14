@@ -514,6 +514,18 @@ export const ERROR_DICTIONARY = {
     en: 'Current password is incorrect',
     'pt-BR': 'Senha atual incorreta',
   },
+  INVALID_PASSWORD_CHANGE_CODE: {
+    en: 'The confirmation code is invalid or has expired',
+    'pt-BR': 'O código de confirmação é inválido ou expirou',
+  },
+  INVALID_EMAIL_CHANGE_CODE: {
+    en: 'The confirmation code is invalid or has expired',
+    'pt-BR': 'O código de confirmação é inválido ou expirou',
+  },
+  EMAIL_SAME_AS_CURRENT: {
+    en: 'The new email is the same as your current email',
+    'pt-BR': 'O novo e-mail é igual ao atual',
+  },
   INVALID_DATE_RANGE: {
     en: 'End date must be after start date',
     'pt-BR': 'A data final precisa ser posterior à data inicial',

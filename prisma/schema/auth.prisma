@@ -1,18 +1,21 @@
 // NextAuth Models - Authentication
 
 model Account {
-  id                String  @id @default(dbgenerated("uuidv7()"))
+  id                String   @id @default(dbgenerated("uuidv7()"))
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?  @db.Text
   session_state     String?
+  // When this OAuth account was linked. Surfaced as `connectedAt` in the
+  // settings "connected accounts" list. Existing rows backfill to migration time.
+  createdAt         DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -56,17 +59,27 @@ model PasswordResetToken {
 }
 
 model EmailVerificationToken {
-  id        String    @id @default(dbgenerated("uuidv7()"))
-  token     String    @unique
+  id        String              @id @default(dbgenerated("uuidv7()"))
+  token     String              @unique
   userId    String
+  // Address the code was sent to (current email for verify/password-change,
+  // the NEW address for an email-change request).
   email     String
+  // Which flow this code approves. Existing rows backfill to EMAIL_VERIFY.
+  purpose   VerificationPurpose @default(EMAIL_VERIFY)
+  // EMAIL_CHANGE: the new email to commit once the code is confirmed.
+  pendingEmail String?
+  // PASSWORD_CHANGE: the bcrypt hash of the validated new password, applied on
+  // confirm. Single-use, short-TTL, deleted on confirm; never returned by reads.
+  pendingPasswordHash String?
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  createdAt DateTime            @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, purpose])
   @@index([token])
   @@index([expiresAt])
 }

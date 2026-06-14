@@ -39,7 +39,7 @@ export type FullUserPreferences = {
   emailMilestones: boolean;
   emailShareExpiring: boolean;
   digestFrequency: string;
-  profileVisibility: string;
+  profileVisibility: 'PUBLIC' | 'RECRUITERS_ONLY' | 'PRIVATE';
   showEmail: boolean;
   showPhone: boolean;
   allowSearchEngineIndex: boolean;

@@ -47,4 +47,16 @@ export class PrismaPasswordRepository implements PasswordRepositoryPort {
       data: { passwordHash },
     });
   }
+
+  async emailExists(email: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({ where: { email }, select: { id: true } });
+    return user !== null;
+  }
+
+  async updateEmail(userId: string, newEmail: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { email: newEmail, emailVerified: new Date() },
+    });
+  }
 }

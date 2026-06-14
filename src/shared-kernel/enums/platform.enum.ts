@@ -100,22 +100,10 @@ export const DateFormatPatternSchema = z.enum(['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY
 export type DateFormatPattern = z.infer<typeof DateFormatPatternSchema>;
 
 // ============================================================================
-// Profile Visibility
+// Profile Visibility — see the Prisma `ProfileVisibility` enum
+// (PUBLIC / RECRUITERS_ONLY / PRIVATE). Use `z.nativeEnum(Prisma.ProfileVisibility)`
+// at the schema layer; this module no longer re-declares a divergent copy.
 // ============================================================================
-
-export const ProfileVisibilitySchema = z.enum(['PUBLIC', 'PRIVATE', 'UNLISTED']);
-export type ProfileVisibility = z.infer<typeof ProfileVisibilitySchema>;
-
-export const ProfileVisibilityKebabSchema = z.enum(['public', 'private', 'unlisted']);
-export type ProfileVisibilityKebab = z.infer<typeof ProfileVisibilityKebabSchema>;
-
-export const profileVisibilityToKebab = (value: ProfileVisibility): ProfileVisibilityKebab => {
-  return value.toLowerCase() as ProfileVisibilityKebab;
-};
-
-export const profileVisibilityFromKebab = (value: ProfileVisibilityKebab): ProfileVisibility => {
-  return value.toUpperCase() as ProfileVisibility;
-};
 
 // ============================================================================
 // Export Format

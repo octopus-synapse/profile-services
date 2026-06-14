@@ -100,6 +100,33 @@ describe('JSearchJobSearchAdapter', () => {
     expect(postings[0]?.employmentType).toBe('INTERNSHIP');
   });
 
+  it('derives workMode: remote flag wins, hybrid keywords scanned pre-truncation', async () => {
+    const base = {
+      job_id: 'a',
+      job_title: 'Dev',
+      employer_name: 'X',
+      job_apply_link: 'https://x.com',
+    };
+    // The hybrid keyword sits past the 5000-char description cut — the
+    // derivation must see the untruncated text.
+    const longTail = `${'x'.repeat(5100)} modelo híbrido`;
+    stubFetch(() =>
+      Response.json({
+        data: [
+          { ...base, job_id: 'r', job_is_remote: true, job_description: 'vaga híbrida' },
+          { ...base, job_id: 'h', job_is_remote: false, job_description: longTail },
+          { ...base, job_id: 'o', job_is_remote: false, job_description: 'presencial em SP' },
+        ],
+      }),
+    );
+
+    const { postings } = await makeAdapter().search(PARAMS);
+    const byId = new Map(postings.map((p) => [p.externalId, p.workMode]));
+    expect(byId.get('r')).toBe('REMOTE');
+    expect(byId.get('h')).toBe('HYBRID');
+    expect(byId.get('o')).toBe('ONSITE');
+  });
+
   it('parses postedAt when the UTC datetime exists and nulls it otherwise', async () => {
     stubFetch(() => Response.json(fixture));
 

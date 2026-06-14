@@ -143,6 +143,40 @@ enum NotificationType {
   MATCH_RECOMMENDATIONS_READY // Daily-recommendations cron produced top-N matches.
   RESUME_QUALITY_IMPROVED // Latest snapshot crossed a rank boundary upward.
   RESUME_QUALITY_REGRESSED // Latest snapshot crossed a rank boundary downward.
+  MESSAGE_RECEIVED // Chat: a new direct message arrived from another user.
+}
+
+// Purpose of a single-use email verification code. One token model serves
+// email verification (signup), email change, and password change — the
+// purpose discriminates the flow and gates which pending payload is applied.
+enum VerificationPurpose {
+  EMAIL_VERIFY
+  EMAIL_CHANGE
+  PASSWORD_CHANGE
+}
+
+// Who can see a user's public profile. Replaces the legacy free-string
+// `UserPreferences.profileVisibility` ("public"/"private"/"link"). The
+// legacy "link" (unlisted) state collapses into PUBLIC on migration.
+enum ProfileVisibility {
+  PUBLIC
+  RECRUITERS_ONLY
+  PRIVATE
+}
+
+// Who may start a conversation with / message a user. Enforced on the
+// chat conversation-create path (alongside blocking).
+enum MessagePrivacy {
+  EVERYONE
+  RECRUITERS_ONLY
+  NOBODY
+}
+
+// Platform a registered push device runs on (Expo push tokens).
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
 }
 
 // Jobs

@@ -963,18 +963,18 @@ export async function seedDreddFixtures(
   // on their primaryResume so the cohort/recruiting algorithms have data.
   await prisma.userPreferences.upsert({
     where: { userId: EXAMPLE_USER_ID },
-    create: { userId: EXAMPLE_USER_ID, profileVisibility: 'public' },
-    update: { profileVisibility: 'public' },
+    create: { userId: EXAMPLE_USER_ID, profileVisibility: 'PUBLIC' },
+    update: { profileVisibility: 'PUBLIC' },
   });
   await prisma.userPreferences.upsert({
     where: { userId: DREDD_GENERIC_USER_ID },
-    create: { userId: DREDD_GENERIC_USER_ID, profileVisibility: 'public' },
-    update: { profileVisibility: 'public' },
+    create: { userId: DREDD_GENERIC_USER_ID, profileVisibility: 'PUBLIC' },
+    update: { profileVisibility: 'PUBLIC' },
   });
   await prisma.userPreferences.upsert({
     where: { userId: DREDD_NOPERMS_USER_ID },
-    create: { userId: DREDD_NOPERMS_USER_ID, profileVisibility: 'link' },
-    update: { profileVisibility: 'link' },
+    create: { userId: DREDD_NOPERMS_USER_ID, profileVisibility: 'PUBLIC' },
+    update: { profileVisibility: 'PUBLIC' },
   });
 
   // Career-graph cohort peers — give the generic + no-perms users primary

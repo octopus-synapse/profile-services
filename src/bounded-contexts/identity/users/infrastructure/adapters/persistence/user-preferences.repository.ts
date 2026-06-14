@@ -151,7 +151,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         marketingEmails: data.marketingEmails ?? false,
         emailMilestones: data.emailMilestones ?? true,
         emailShareExpiring: data.emailShareExpiring ?? true,
-        profileVisibility: data.profileVisibility ?? 'private',
+        profileVisibility: data.profileVisibility ?? 'PRIVATE',
         showEmail: data.showEmail ?? false,
         showPhone: data.showPhone ?? false,
         allowSearchEngineIndex: data.allowSearchEngineIndex ?? false,

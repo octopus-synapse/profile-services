@@ -33,4 +33,16 @@ export abstract class PasswordRepositoryPort {
    * Updates user password by ID
    */
   abstract updatePassword(userId: string, passwordHash: string): Promise<void>;
+
+  /**
+   * Whether ANY user already owns this email (regardless of having a password).
+   * Used to reject an email-change request to a taken address.
+   */
+  abstract emailExists(email: string): Promise<boolean>;
+
+  /**
+   * Commit an email change: set the new address and mark it verified (the
+   * confirmation code was delivered to — and entered from — that address).
+   */
+  abstract updateEmail(userId: string, newEmail: string): Promise<void>;
 }

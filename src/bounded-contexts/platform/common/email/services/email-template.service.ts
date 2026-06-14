@@ -6,6 +6,7 @@
  */
 
 import type { ConfigPort } from '@/shared-kernel/config';
+import { getChangeCodeTemplate } from '../templates/change-code.template';
 import { getPasswordChangedTemplate } from '../templates/password-changed.template';
 import { getPasswordResetTemplate } from '../templates/password-reset.template';
 import { getVerificationEmailTemplate } from '../templates/verification.template';
@@ -95,6 +96,32 @@ export class EmailTemplateService {
     await this.senderService.sendEmail({
       to: email,
       subject: 'Sua senha foi alterada - Patch Careers',
+      html,
+    });
+  }
+
+  /**
+   * Send the 6-digit code that confirms an email-change request. The code is
+   * delivered to the NEW address (proving the user controls it).
+   */
+  async sendEmailChangeCode(email: string, name: string, code: string): Promise<void> {
+    const html = getChangeCodeTemplate({ name, code, actionLabel: 'alterar seu e-mail' });
+    await this.senderService.sendEmail({
+      to: email,
+      subject: 'Confirme seu novo e-mail - Patch Careers',
+      html,
+    });
+  }
+
+  /**
+   * Send the 6-digit code that confirms a password-change request. Delivered
+   * to the user's current address.
+   */
+  async sendPasswordChangeCode(email: string, name: string, code: string): Promise<void> {
+    const html = getChangeCodeTemplate({ name, code, actionLabel: 'alterar sua senha' });
+    await this.senderService.sendEmail({
+      to: email,
+      subject: 'Confirme a alteração de senha - Patch Careers',
       html,
     });
   }

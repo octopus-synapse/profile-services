@@ -24,7 +24,8 @@ export class PrismaCandidateDirectoryRepository implements CandidateDirectoryRep
         id: { not: params.excludeUserId },
         isActive: true,
         onboardingCompletedAt: { not: null },
-        preferences: { profileVisibility: { in: ['public', 'link'] } },
+        // Recruiters see profiles open to everyone OR recruiters-only.
+        preferences: { profileVisibility: { in: ['PUBLIC', 'RECRUITERS_ONLY'] } },
       },
       take: params.poolCap,
       select: {

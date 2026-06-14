@@ -54,7 +54,9 @@ export class PrismaCareerCohortRepository implements CareerCohortRepositoryPort 
         id: { not: input.requesterId },
         isActive: true,
         onboardingCompletedAt: { not: null },
-        preferences: { profileVisibility: { in: ['public', 'link'] } },
+        // Public benchmark cohort — only fully-public profiles (recruiters-only
+        // users opted out of general visibility).
+        preferences: { profileVisibility: { in: ['PUBLIC'] } },
         primaryResume: { isNot: null },
       },
       take: CANDIDATE_POOL_CAP,

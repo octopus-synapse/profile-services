@@ -179,6 +179,17 @@ export const NOTIFICATION_DICTIONARY = {
     },
     params: ['matchCount', 'topMatchTitle'],
   },
+  MESSAGE_RECEIVED: {
+    title: {
+      en: 'New message from {actorName}',
+      'pt-BR': 'Nova mensagem de {actorName}',
+    },
+    body: {
+      en: '{actorName} sent you a message: "{messageExcerpt}"',
+      'pt-BR': '{actorName} te enviou uma mensagem: "{messageExcerpt}"',
+    },
+    params: ['actorName', 'messageExcerpt'],
+  },
   RESUME_QUALITY_IMPROVED: {
     title: {
       en: 'Your resume score moved up to {newRank}',

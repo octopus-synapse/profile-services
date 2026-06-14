@@ -50,12 +50,22 @@ export class InMemoryExternalJobListingsRepository extends ExternalJobListingsRe
       if (q && !r.title.toLowerCase().includes(q) && !r.company.toLowerCase().includes(q)) {
         return false;
       }
-      if (filters.isRemote !== undefined && r.isRemote !== filters.isRemote) return false;
-      if (filters.employmentType && r.employmentType !== filters.employmentType) return false;
+      if (filters.workMode?.length && !filters.workMode.includes(r.workMode)) return false;
+      if (
+        filters.employmentType?.length &&
+        (!r.employmentType || !filters.employmentType.includes(r.employmentType))
+      ) {
+        return false;
+      }
+      if (filters.postedAfter && (r.postedAt ?? r.fetchedAt) < filters.postedAfter) return false;
       return true;
     });
     const start = (page - 1) * limit;
     return { items: filtered.slice(start, start + limit), total: filtered.length };
+  }
+
+  async findListingById(id: string): Promise<ExternalJobListingRecord | null> {
+    return this.rows.find((r) => r.id === id) ?? null;
   }
 
   async deleteFetchedBefore(cutoff: Date): Promise<number> {

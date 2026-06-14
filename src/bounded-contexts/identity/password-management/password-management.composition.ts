@@ -16,10 +16,15 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import { PrismaEmailVerificationRepository } from '../email-verification/infrastructure/adapters/persistence/email-verification.repository';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import {
   ChangePasswordUseCase,
+  ConfirmEmailChangeUseCase,
+  ConfirmPasswordChangeUseCase,
   ForgotPasswordUseCase,
+  RequestEmailChangeUseCase,
+  RequestPasswordChangeUseCase,
   ResetPasswordUseCase,
 } from './application/use-cases';
 import {
@@ -48,6 +53,10 @@ export function buildPasswordManagementUseCases(
   const tokenService = new PrismaPasswordResetTokenService(prisma);
   const emailSender = new EmailPasswordResetSender(emailService, config);
   const sessionInvalidation = new SessionInvalidationAdapter(cache, prisma);
+  // Reuse the shared 6-digit-code engine (same EmailVerificationToken table)
+  // as the password-change code store — structural conformance to
+  // VerificationCodeStorePort, no duplicate adapter.
+  const codeStore = new PrismaEmailVerificationRepository(prisma);
 
   return {
     changePassword: new ChangePasswordUseCase(
@@ -55,6 +64,35 @@ export function buildPasswordManagementUseCases(
       passwordHasher,
       sessionInvalidation,
       eventBus,
+      logger,
+    ),
+    requestPasswordChange: new RequestPasswordChangeUseCase(
+      passwordRepository,
+      passwordHasher,
+      codeStore,
+      emailService,
+      config.env,
+      logger,
+    ),
+    confirmPasswordChange: new ConfirmPasswordChangeUseCase(
+      passwordRepository,
+      codeStore,
+      sessionInvalidation,
+      eventBus,
+      logger,
+    ),
+    requestEmailChange: new RequestEmailChangeUseCase(
+      passwordRepository,
+      passwordHasher,
+      codeStore,
+      emailService,
+      config.env,
+      logger,
+    ),
+    confirmEmailChange: new ConfirmEmailChangeUseCase(
+      passwordRepository,
+      codeStore,
+      sessionInvalidation,
       logger,
     ),
     forgotPassword: new ForgotPasswordUseCase(

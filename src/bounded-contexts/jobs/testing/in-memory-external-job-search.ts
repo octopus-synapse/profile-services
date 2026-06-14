@@ -48,6 +48,7 @@ export function buildExternalJobPosting(
     company: 'Acme Ltda',
     location: 'São Paulo, SP',
     isRemote: false,
+    workMode: 'ONSITE',
     employmentType: 'FULL_TIME',
     applyUrl: 'https://example.com/apply',
     publisher: 'Indeed',

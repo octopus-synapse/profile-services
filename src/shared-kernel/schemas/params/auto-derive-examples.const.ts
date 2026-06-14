@@ -437,7 +437,7 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['workSchedule', 'STANDARD'],
   ['applyMode', 'ONE_CLICK'],
   ['defaultExportFormat', 'pdf'],
-  ['profileVisibility', 'public'],
+  ['profileVisibility', 'PUBLIC'],
   ['digestFrequency', 'DAILY'],
   ['notificationType', 'POST_LIKED'],
   ['eventType', 'JOB_VIEWED'],

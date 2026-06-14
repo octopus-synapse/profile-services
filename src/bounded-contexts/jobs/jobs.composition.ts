@@ -37,6 +37,7 @@ import { ImportJobFromUrlUseCase } from './application/use-cases/import-job-from
 import { ListApplicationTimelineUseCase } from './application/use-cases/list-application-timeline/list-application-timeline.use-case';
 import { ListBookmarkedJobsUseCase } from './application/use-cases/list-bookmarked-jobs/list-bookmarked-jobs.use-case';
 import { ListExternalJobsUseCase } from './application/use-cases/list-external-jobs/list-external-jobs.use-case';
+import { ListSavedExternalJobsUseCase } from './application/use-cases/list-saved-external-jobs/list-saved-external-jobs.use-case';
 import { ListJobApplicationsUseCase } from './application/use-cases/list-job-applications/list-job-applications.use-case';
 import { ListJobsUseCase } from './application/use-cases/list-jobs/list-jobs.use-case';
 import { ListJobsWithFitScoreUseCase } from './application/use-cases/list-jobs-with-fit-score/list-jobs-with-fit-score.use-case';
@@ -46,7 +47,9 @@ import { ListRecommendedJobsUseCase } from './application/use-cases/list-recomme
 import { RecordApplicationEventUseCase } from './application/use-cases/record-application-event/record-application-event.use-case';
 import { RunAntiGhostingSweepUseCase } from './application/use-cases/run-anti-ghosting-sweep/run-anti-ghosting-sweep.use-case';
 import { RunExternalJobsIngestionUseCase } from './application/use-cases/run-external-jobs-ingestion/run-external-jobs-ingestion.use-case';
+import { SaveExternalJobUseCase } from './application/use-cases/save-external-job/save-external-job.use-case';
 import { UnbookmarkJobUseCase } from './application/use-cases/unbookmark-job/unbookmark-job.use-case';
+import { UnsaveExternalJobUseCase } from './application/use-cases/unsave-external-job/unsave-external-job.use-case';
 import { UpdateJobUseCase } from './application/use-cases/update-job/update-job.use-case';
 import { WithdrawApplicationUseCase } from './application/use-cases/withdraw-application/withdraw-application.use-case';
 import { externalJobsRoutes } from './external-jobs.routes';
@@ -58,6 +61,7 @@ import { PrismaAntiGhostingRepository } from './infrastructure/adapters/persiste
 import { PrismaApplicationTrackerRepository } from './infrastructure/adapters/persistence/prisma-application-tracker.repository';
 import { PrismaExternalJobListingsRepository } from './infrastructure/adapters/persistence/prisma-external-job-listings.repository';
 import { PrismaJobsRepository } from './infrastructure/adapters/persistence/prisma-jobs.repository';
+import { PrismaSavedExternalJobsRepository } from './infrastructure/adapters/persistence/prisma-saved-external-jobs.repository';
 import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
 import { ExternalJobsIngestionWorker } from './infrastructure/workers/external-jobs-ingestion.worker';
 import { jobsRoutes } from './jobs.routes';
@@ -80,6 +84,7 @@ export function buildJobsUseCases(
   const trackerRepo = new PrismaApplicationTrackerRepository(prisma, logger);
   const antiGhostingRepo = new PrismaAntiGhostingRepository(prisma, logger);
   const externalListingsRepo = new PrismaExternalJobListingsRepository(prisma, logger);
+  const savedExternalJobsRepo = new PrismaSavedExternalJobsRepository(prisma);
 
   // External adapters
   const antiGhostingEmailer = new EmailServiceAntiGhostingEmailerAdapter(email, logger);
@@ -130,7 +135,14 @@ export function buildJobsUseCases(
     ),
 
     // External listings (JSearch daily batch)
-    listExternalJobs: new ListExternalJobsUseCase(externalListingsRepo),
+    listExternalJobs: new ListExternalJobsUseCase(
+      externalListingsRepo,
+      savedExternalJobsRepo,
+      logger,
+    ),
+    saveExternalJob: new SaveExternalJobUseCase(externalListingsRepo, savedExternalJobsRepo, logger),
+    unsaveExternalJob: new UnsaveExternalJobUseCase(savedExternalJobsRepo),
+    listSavedExternalJobs: new ListSavedExternalJobsUseCase(savedExternalJobsRepo),
     runExternalJobsIngestion: new RunExternalJobsIngestionUseCase(
       new ExternalJobsIngestionService(
         externalJobSearch,

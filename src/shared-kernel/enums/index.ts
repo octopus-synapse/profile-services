@@ -30,14 +30,8 @@ export {
   type PaletteKebab,
   PaletteKebabSchema, // Palette
   PaletteSchema,
-  type ProfileVisibility,
-  type ProfileVisibilityKebab,
-  ProfileVisibilityKebabSchema, // Profile Visibility
-  ProfileVisibilitySchema,
   paletteFromKebab,
   paletteToKebab,
-  profileVisibilityFromKebab,
-  profileVisibilityToKebab,
   type ThemeMode,
   type ThemeModeKebab,
   ThemeModeKebabSchema, // Theme Mode

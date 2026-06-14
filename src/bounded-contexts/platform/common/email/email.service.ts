@@ -49,6 +49,20 @@ export class EmailService {
   async sendPasswordChangedEmail(email: string, name: string): Promise<void> {
     return this.templateService.sendPasswordChangedEmail(email, name);
   }
+
+  /**
+   * Send the email-change confirmation code (to the new address).
+   */
+  async sendEmailChangeCode(email: string, name: string, code: string): Promise<void> {
+    return this.templateService.sendEmailChangeCode(email, name, code);
+  }
+
+  /**
+   * Send the password-change confirmation code (to the current address).
+   */
+  async sendPasswordChangeCode(email: string, name: string, code: string): Promise<void> {
+    return this.templateService.sendPasswordChangeCode(email, name, code);
+  }
 }
 
 // Re-export commonly used email types

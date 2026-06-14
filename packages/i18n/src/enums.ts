@@ -136,6 +136,11 @@ export const ENUM_DICTIONARY = {
     PRIVACY_POLICY: { en: 'Privacy policy', 'pt-BR': 'Política de privacidade' },
     TERMS_OF_SERVICE: { en: 'Terms of service', 'pt-BR': 'Termos de serviço' },
   },
+  DevicePlatform: {
+    ANDROID: { en: 'Android', 'pt-BR': 'Android' },
+    IOS: { en: 'iOS', 'pt-BR': 'iOS' },
+    WEB: { en: 'Web', 'pt-BR': 'Web' },
+  },
   DigestFrequency: {
     DAILY: { en: 'Daily', 'pt-BR': 'Diário' },
     MONTHLY: { en: 'Monthly', 'pt-BR': 'Mensal' },
@@ -227,6 +232,7 @@ export const ENUM_DICTIONARY = {
       en: 'New job recommendations ready',
       'pt-BR': 'Novas recomendações de vagas',
     },
+    MESSAGE_RECEIVED: { en: 'New message', 'pt-BR': 'Nova mensagem' },
     POST_BOOKMARKED: { en: 'Post bookmarked', 'pt-BR': 'Post salvo' },
     POST_COMMENTED: { en: 'New comment', 'pt-BR': 'Novo comentário' },
     POST_LIKED: { en: 'Post liked', 'pt-BR': 'Post curtido' },
@@ -241,11 +247,21 @@ export const ENUM_DICTIONARY = {
     },
     SKILL_DECAY: { en: 'Skill getting rusty', 'pt-BR': 'Habilidade enferrujando' },
   },
+  MessagePrivacy: {
+    EVERYONE: { en: 'Everyone', 'pt-BR': 'Todos' },
+    NOBODY: { en: 'Nobody', 'pt-BR': 'Ninguém' },
+    RECRUITERS_ONLY: { en: 'Recruiters only', 'pt-BR': 'Só recrutadores' },
+  },
   PaymentCurrency: {
     BRL: { en: 'BRL', 'pt-BR': 'BRL' },
     EUR: { en: 'EUR', 'pt-BR': 'EUR' },
     GBP: { en: 'GBP', 'pt-BR': 'GBP' },
     USD: { en: 'USD', 'pt-BR': 'USD' },
+  },
+  ProfileVisibility: {
+    PRIVATE: { en: 'Private', 'pt-BR': 'Privado' },
+    PUBLIC: { en: 'Public', 'pt-BR': 'Público' },
+    RECRUITERS_ONLY: { en: 'Recruiters only', 'pt-BR': 'Só recrutadores' },
   },
   RemotePolicy: {
     HYBRID: { en: 'Hybrid', 'pt-BR': 'Híbrido' },
@@ -351,6 +367,11 @@ export const ENUM_DICTIONARY = {
       en: 'Grant individual permission',
       'pt-BR': 'Conceder permissão individual',
     },
+  },
+  VerificationPurpose: {
+    EMAIL_CHANGE: { en: 'Email change', 'pt-BR': 'Alteração de e-mail' },
+    EMAIL_VERIFY: { en: 'Email verification', 'pt-BR': 'Verificação de e-mail' },
+    PASSWORD_CHANGE: { en: 'Password change', 'pt-BR': 'Alteração de senha' },
   },
   WeeklyCuratedBatchStatus: {
     COMPLETED: { en: 'Completed', 'pt-BR': 'Concluído' },

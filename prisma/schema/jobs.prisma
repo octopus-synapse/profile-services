@@ -143,7 +143,11 @@ model ExternalJobListing {
   title          String
   company        String
   location       String?
+  // Raw upstream `job_is_remote` flag, kept as provenance; `workMode`
+  // is the filterable signal (HYBRID is inferred — see
+  // `domain/services/derive-work-mode.ts`).
   isRemote       Boolean   @default(false)
+  workMode       RemotePolicy @default(ONSITE)
   employmentType JobType?
   applyUrl       String
   publisher      String?
@@ -160,6 +164,37 @@ model ExternalJobListing {
   @@index([dedupHash])
   @@index([fetchedAt])
   @@index([postedAt])
-  @@index([isRemote, postedAt])
+  @@index([workMode, postedAt])
   @@index([employmentType, postedAt])
+}
+
+// User-saved external listings. `ExternalJobListing` rows are swept
+// after 30 days, so the display fields are snapshotted at save time —
+// a saved job must outlive the mirror row it came from. No FK to the
+// listing on purpose; `externalId` keeps the identity for the
+// `isSaved` annotation while the listing is still around.
+model SavedExternalJob {
+  id     String @id @default(dbgenerated("uuidv7()"))
+  userId String
+  user   User   @relation("UserSavedExternalJobs", fields: [userId], references: [id], onDelete: Cascade)
+
+  externalId String
+
+  // ---- snapshot of the listing's display fields at save time
+  title          String
+  company        String
+  location       String?
+  isRemote       Boolean
+  workMode       RemotePolicy
+  employmentType JobType?
+  applyUrl       String
+  publisher      String?
+  description    String?   @db.Text
+  postedAt       DateTime?
+  fetchedAt      DateTime
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, externalId])
+  @@index([userId, createdAt])
 }

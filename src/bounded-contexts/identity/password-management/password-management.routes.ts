@@ -9,13 +9,20 @@
  * `ThrottlerGuard` from `@nestjs/throttler`) into the registry.
  */
 
+import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import { ChangePasswordSchema } from './infrastructure/controllers/change-password.schema';
 import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.schema';
 import {
+  ConfirmEmailChangeSchema,
+  ConfirmPasswordChangeSchema,
+  EmailChangeCodeSentResponseSchema,
   ForgotPasswordSchema,
+  PasswordChangeCodeSentResponseSchema,
   PasswordMessageResponseSchema,
+  RequestEmailChangeSchema,
+  RequestPasswordChangeSchema,
 } from './password-management.routes.schemas';
 
 export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUseCases>> = [
@@ -67,6 +74,126 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
         newPassword: body.newPassword,
       });
       return { code: 'PASSWORD_CHANGED' as const };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/me/password/change/request',
+    auth: { kind: 'jwt' },
+    body: RequestPasswordChangeSchema,
+    statusCode: 200,
+    response: PasswordChangeCodeSentResponseSchema,
+    guards: [
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Request password change (step 1, code-confirmed)',
+      tags: ['password-management'],
+      description:
+        'Validates the current + new password and emails a 6-digit confirmation code. The password is only changed after POST /v1/me/password/change/confirm.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { currentPassword: string; newPassword: string };
+      const result = await bc.requestPasswordChange.execute({
+        userId: ctx.user!.userId,
+        currentPassword: body.currentPassword,
+        newPassword: body.newPassword,
+      });
+      // Extra fields beyond `{ code }` make the mounter skip message rendering,
+      // so localize inline (mirrors the email-verification /send route).
+      const { message } = renderSuccessMessageForRequest(
+        { code: 'PASSWORD_CHANGE_CODE_SENT' },
+        ctx.headers['accept-language'],
+      );
+      return {
+        code: 'PASSWORD_CHANGE_CODE_SENT' as const,
+        message,
+        cooldownSeconds: result.cooldownSeconds,
+        testCode: result.testCode,
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/me/password/change/confirm',
+    auth: { kind: 'jwt' },
+    body: ConfirmPasswordChangeSchema,
+    response: PasswordMessageResponseSchema,
+    guards: [
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Confirm password change (step 2, code-confirmed)',
+      tags: ['password-management'],
+      description: 'Applies the password change after verifying the emailed 6-digit code.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { code: string };
+      await bc.confirmPasswordChange.execute({ userId: ctx.user!.userId, code: body.code });
+      return { code: 'PASSWORD_CHANGED' as const };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/me/email/change/request',
+    auth: { kind: 'jwt' },
+    body: RequestEmailChangeSchema,
+    statusCode: 200,
+    response: EmailChangeCodeSentResponseSchema,
+    guards: [
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Request email change (step 1, code-confirmed)',
+      tags: ['password-management'],
+      description:
+        'Verifies the current password and emails a 6-digit code to the new address. The email is only changed after POST /v1/me/email/change/confirm.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { currentPassword: string; newEmail: string };
+      const result = await bc.requestEmailChange.execute({
+        userId: ctx.user!.userId,
+        currentPassword: body.currentPassword,
+        newEmail: body.newEmail,
+      });
+      const { message } = renderSuccessMessageForRequest(
+        { code: 'EMAIL_CHANGE_CODE_SENT' },
+        ctx.headers['accept-language'],
+      );
+      return {
+        code: 'EMAIL_CHANGE_CODE_SENT' as const,
+        message,
+        cooldownSeconds: result.cooldownSeconds,
+        testCode: result.testCode,
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/me/email/change/confirm',
+    auth: { kind: 'jwt' },
+    body: ConfirmEmailChangeSchema,
+    response: PasswordMessageResponseSchema,
+    guards: [
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Confirm email change (step 2, code-confirmed)',
+      tags: ['password-management'],
+      description: 'Applies the email change after verifying the emailed 6-digit code.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { code: string };
+      await bc.confirmEmailChange.execute({ userId: ctx.user!.userId, code: body.code });
+      return { code: 'EMAIL_CHANGED' as const };
     },
   },
   {

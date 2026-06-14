@@ -27,7 +27,7 @@ describe('UpdateFullPreferencesUseCase', () => {
     emailMilestones: true,
     emailShareExpiring: true,
     digestFrequency: 'WEEKLY',
-    profileVisibility: 'private',
+    profileVisibility: 'PRIVATE' as const,
     showEmail: false,
     showPhone: false,
     allowSearchEngineIndex: false,

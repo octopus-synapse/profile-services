@@ -28,6 +28,18 @@ export class InMemoryPasswordRepository implements PasswordRepositoryPort {
     }
   }
 
+  async emailExists(email: string): Promise<boolean> {
+    return this.emailIndex.has(email.toLowerCase());
+  }
+
+  async updateEmail(userId: string, newEmail: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (!user) return;
+    this.emailIndex.delete(user.email.toLowerCase());
+    user.email = newEmail;
+    this.emailIndex.set(newEmail.toLowerCase(), userId);
+  }
+
   // Test helpers
   seedUser(user: UserWithPassword): void {
     this.users.set(user.id, user);

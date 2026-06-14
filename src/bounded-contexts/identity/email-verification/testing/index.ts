@@ -7,9 +7,12 @@
  */
 
 import type {
+  CreatePurposeTokenInput,
   EmailVerificationRepositoryPort,
+  PurposeTokenData,
   UserVerificationStatus,
   VerificationEmailSenderPort,
+  VerificationPurposeValue,
   VerificationTokenData,
 } from '../domain/ports';
 
@@ -25,6 +28,9 @@ export class InMemoryEmailVerificationRepository implements EmailVerificationRep
     expiresAt: Date;
     email: string;
     createdAt: Date;
+    purpose?: VerificationPurposeValue;
+    pendingEmail?: string | null;
+    pendingPasswordHash?: string | null;
   }> = [];
 
   // ───────────────────────────────────────────────────────────────
@@ -94,6 +100,64 @@ export class InMemoryEmailVerificationRepository implements EmailVerificationRep
 
   async getLastTokenCreatedAt(userId: string): Promise<Date | null> {
     const userTokens = this.tokens.filter((t) => t.userId === userId);
+    if (userTokens.length === 0) return null;
+    return userTokens.reduce((latest, t) => (t.createdAt > latest.createdAt ? t : latest))
+      .createdAt;
+  }
+
+  async createPurposeToken(input: CreatePurposeTokenInput): Promise<void> {
+    this.tokens.push({
+      userId: input.userId,
+      token: input.token,
+      expiresAt: input.expiresAt,
+      email: input.email,
+      createdAt: new Date(),
+      purpose: input.purpose,
+      pendingEmail: input.pendingEmail ?? null,
+      pendingPasswordHash: input.pendingPasswordHash ?? null,
+    });
+  }
+
+  async findPurposeToken(
+    userId: string,
+    token: string,
+    purpose: VerificationPurposeValue,
+  ): Promise<PurposeTokenData | null> {
+    const row = this.tokens.find(
+      (t) =>
+        t.userId === userId &&
+        t.token === token &&
+        (t.purpose ?? 'EMAIL_VERIFY') === purpose &&
+        t.expiresAt > new Date(),
+    );
+    if (!row) return null;
+    return {
+      userId: row.userId,
+      token: row.token,
+      email: row.email,
+      purpose,
+      pendingEmail: row.pendingEmail ?? null,
+      pendingPasswordHash: row.pendingPasswordHash ?? null,
+      expiresAt: row.expiresAt,
+    };
+  }
+
+  async deleteUserPurposeTokens(
+    userId: string,
+    purpose: VerificationPurposeValue,
+  ): Promise<void> {
+    this.tokens = this.tokens.filter(
+      (t) => !(t.userId === userId && (t.purpose ?? 'EMAIL_VERIFY') === purpose),
+    );
+  }
+
+  async getLastTokenCreatedAtForPurpose(
+    userId: string,
+    purpose: VerificationPurposeValue,
+  ): Promise<Date | null> {
+    const userTokens = this.tokens.filter(
+      (t) => t.userId === userId && (t.purpose ?? 'EMAIL_VERIFY') === purpose,
+    );
     if (userTokens.length === 0) return null;
     return userTokens.reduce((latest, t) => (t.createdAt > latest.createdAt ? t : latest))
       .createdAt;

@@ -14,3 +14,4 @@ export {
   InMemoryExternalJobSearch,
 } from './in-memory-external-job-search';
 export { InMemoryJobsRepository } from './in-memory-jobs.repository';
+export { InMemorySavedExternalJobsRepository } from './in-memory-saved-external-jobs.repository';

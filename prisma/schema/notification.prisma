@@ -38,9 +38,14 @@ model NotificationPreference {
   id            String            @id @default(dbgenerated("uuidv7()"))
   userId        String
   type          NotificationType
+  // Master switch for this type (legacy meaning + in-app presence).
   enabled       Boolean           @default(true)
+  // Per-channel toggles. `enabled` stays the master switch; the per-channel
+  // flags let a user keep, say, in-app on while turning email/push off.
+  inAppEnabled  Boolean           @default(true)
   // Per-type email delivery override. null/true = email on each event; false = never email.
   emailEnabled  Boolean           @default(true)
+  pushEnabled   Boolean           @default(false)
   // Instant vs. batched delivery — 'INSTANT' sends per-event, 'DAILY' rolls up in a digest.
   emailDelivery EmailDeliveryMode @default(INSTANT)
 
@@ -48,6 +53,20 @@ model NotificationPreference {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, type])
+  @@index([userId])
+}
+
+// A device registered to receive Expo push notifications. One row per
+// physical device (keyed by its Expo push token); a user may have many.
+model PushDevice {
+  id            String         @id @default(dbgenerated("uuidv7()"))
+  userId        String
+  user          User           @relation("UserPushDevices", fields: [userId], references: [id], onDelete: Cascade)
+  expoPushToken String         @unique
+  platform      DevicePlatform
+  createdAt     DateTime       @default(now())
+  lastSeenAt    DateTime?
+
   @@index([userId])
 }
 

@@ -11,6 +11,10 @@ import { PasswordResetEmailPort } from '../../../domain/ports';
  */
 export abstract class EmailServicePort {
   abstract sendPasswordResetEmail(email: string, name: string, token: string): Promise<void>;
+  /** Two-step password change: the 6-digit confirmation code (current address). */
+  abstract sendPasswordChangeCode(email: string, name: string, code: string): Promise<void>;
+  /** Two-step email change: the 6-digit confirmation code (new address). */
+  abstract sendEmailChangeCode(email: string, name: string, code: string): Promise<void>;
 }
 
 export class EmailPasswordResetSender extends PasswordResetEmailPort {

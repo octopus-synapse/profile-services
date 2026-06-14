@@ -88,7 +88,7 @@ export const UpdateFullPreferencesSchema = z
     emailMilestones: z.boolean().optional(),
     emailShareExpiring: z.boolean().optional(),
     digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(), // Privacy
-    profileVisibility: z.string().optional(),
+    profileVisibility: z.enum(['PUBLIC', 'RECRUITERS_ONLY', 'PRIVATE']).optional(),
     showEmail: z.boolean().optional(),
     showPhone: z.boolean().optional(),
     allowSearchEngineIndex: z.boolean().optional(), // Export defaults
@@ -105,7 +105,7 @@ export const UpdateFullPreferencesSchema = z
       timezone: 'America/Sao_Paulo',
       emailNotifications: true,
       digestFrequency: 'WEEKLY',
-      profileVisibility: 'public',
+      profileVisibility: 'PUBLIC',
       applyMode: 'ONE_CLICK',
     },
   });

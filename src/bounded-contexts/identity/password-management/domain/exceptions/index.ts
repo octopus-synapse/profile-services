@@ -3,7 +3,11 @@
  */
 
 export {
+  EmailAlreadyInUseException,
+  EmailSameAsCurrentException,
   InvalidCurrentPasswordException,
+  InvalidEmailChangeCodeException,
+  InvalidPasswordChangeCodeException,
   InvalidResetTokenException,
   SamePasswordException,
   WeakPasswordException,

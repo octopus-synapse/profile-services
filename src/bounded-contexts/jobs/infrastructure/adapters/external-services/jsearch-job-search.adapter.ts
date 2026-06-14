@@ -17,6 +17,7 @@ import type { JobType } from '@prisma/client';
 import { z } from 'zod';
 import type { LoggerPort } from '@/shared-kernel';
 import { JSearchUpstreamException } from '../../../domain/exceptions/external-jobs.exceptions';
+import { deriveWorkMode } from '../../../domain/services/derive-work-mode';
 import {
   type ExternalJobPosting,
   type ExternalJobSearchParams,
@@ -130,12 +131,16 @@ function mapEntry(entry: Record<string, unknown>): ExternalJobPosting | null {
   const description = asNonEmptyString(entry.job_description);
   const { job_description: _omitted, ...rawWithoutDescription } = entry;
 
+  const isRemote = entry.job_is_remote === true;
   return {
     externalId,
     title,
     company,
     location: location || null,
-    isRemote: entry.job_is_remote === true,
+    isRemote,
+    // Derived from the *untruncated* description — the hybrid keyword
+    // may live past the 5000-char cut below.
+    workMode: deriveWorkMode({ isRemote, title, description }),
     employmentType: mapEmploymentType(entry.job_employment_types),
     applyUrl,
     publisher: asNonEmptyString(entry.job_publisher) ?? null,

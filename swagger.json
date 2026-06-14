@@ -521,6 +521,66 @@
           "resumeId": "01900000-0000-7000-a000-000000000010"
         }
       },
+      "ConfirmEmailChangeRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "description": "Step 2: confirm the emailed 6-digit code to apply the email change.",
+        "example": {
+          "code": "123456"
+        }
+      },
+      "EmailChangeCodeSentResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "description": "Localized confirmation that a code was sent."
+          },
+          "cooldownSeconds": {
+            "type": "integer",
+            "description": "Seconds before a resend is allowed."
+          },
+          "testCode": {
+            "type": "string",
+            "description": "Non-production only (BYPASS_2FA): the issued code."
+          }
+        },
+        "required": [
+          "cooldownSeconds"
+        ]
+      },
+      "RequestEmailChangeRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "$ref": "#/components/schemas/PasswordInput"
+          },
+          "newEmail": {
+            "$ref": "#/components/schemas/Email"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newEmail"
+        ],
+        "description": "Step 1 of the code-confirmed email change. Verifies the current password and emails a 6-digit code to the NEW address; the email is not changed yet.",
+        "example": {
+          "currentPassword": "NotTheRealPassword!",
+          "newEmail": "new@example.com"
+        }
+      },
       "ChangePasswordRequest": {
         "type": "object",
         "properties": {
@@ -545,6 +605,75 @@
           "newPassword"
         ],
         "description": "Self-service password change. Requires the current password (lenient validation) and a new password meeting the strict policy.",
+        "example": {
+          "currentPassword": "NotTheRealPassword!",
+          "newPassword": "NewSecurePass456!"
+        }
+      },
+      "ConfirmPasswordChangeRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "description": "Step 2: confirm the emailed 6-digit code to apply the password change.",
+        "example": {
+          "code": "123456"
+        }
+      },
+      "PasswordChangeCodeSentResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "description": "Localized confirmation that a code was sent."
+          },
+          "cooldownSeconds": {
+            "type": "integer",
+            "description": "Seconds before a resend is allowed."
+          },
+          "testCode": {
+            "type": "string",
+            "description": "Non-production only (BYPASS_2FA): the issued code."
+          }
+        },
+        "required": [
+          "cooldownSeconds"
+        ]
+      },
+      "RequestPasswordChangeRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "$ref": "#/components/schemas/PasswordInput"
+          },
+          "newPassword": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Password"
+              },
+              {
+                "pattern": "[A-Z]"
+              }
+            ],
+            "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+            "example": "Fixture_Password_123!"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "description": "Step 1 of the code-confirmed password change. Validates current + new password and emails a 6-digit code; the password is not changed yet.",
         "example": {
           "currentPassword": "NotTheRealPassword!",
           "newPassword": "NewSecurePass456!"
@@ -39468,29 +39597,35 @@
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
+              "description": "Comma-separated list (any-of match).",
+              "example": "REMOTE,HYBRID"
             },
             "required": false,
-            "name": "isRemote",
+            "name": "workMode",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated list (any-of match).",
+              "example": "FULL_TIME,CONTRACT"
+            },
+            "required": false,
+            "name": "employmentType",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
               "enum": [
-                "INTERNSHIP",
-                "CONTRACT",
-                "FULL_TIME",
-                "PART_TIME",
-                "VOLUNTEER",
-                "FREELANCE"
+                "TODAY",
+                "LAST_3_DAYS",
+                "LAST_WEEK",
+                "LAST_MONTH"
               ]
             },
             "required": false,
-            "name": "employmentType",
+            "name": "postedWithin",
             "in": "query"
           }
         ],
@@ -39526,7 +39661,17 @@
                           },
                           "isRemote": {
                             "type": "boolean",
+                            "description": "Raw upstream remote flag. Deprecated — read `workMode` instead.",
                             "example": true
+                          },
+                          "workMode": {
+                            "type": "string",
+                            "enum": [
+                              "REMOTE",
+                              "HYBRID",
+                              "ONSITE"
+                            ],
+                            "example": "REMOTE"
                           },
                           "employmentType": {
                             "type": "string",
@@ -39564,6 +39709,14 @@
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "isSaved": {
+                            "type": "boolean"
+                          },
+                          "savedId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Id of the caller’s saved row for this listing; null when not saved."
                           }
                         },
                         "required": [
@@ -39573,6 +39726,311 @@
                           "company",
                           "location",
                           "isRemote",
+                          "workMode",
+                          "employmentType",
+                          "applyUrl",
+                          "publisher",
+                          "description",
+                          "postedAt",
+                          "fetchedAt",
+                          "isSaved",
+                          "savedId"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
+      }
+    },
+    "/api/v1/jobs/external/saved": {
+      "get": {
+        "summary": "List external jobs saved by the current user",
+        "description": "Jobs API",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "get_v1_jobs_external_saved",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Page"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Limit"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+            },
+            "required": false,
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "savedId": {
+                            "type": "string"
+                          },
+                          "savedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "externalId": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "company": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "isRemote": {
+                            "type": "boolean"
+                          },
+                          "workMode": {
+                            "type": "string",
+                            "enum": [
+                              "REMOTE",
+                              "HYBRID",
+                              "ONSITE"
+                            ]
+                          },
+                          "employmentType": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "INTERNSHIP",
+                              "CONTRACT",
+                              "FULL_TIME",
+                              "PART_TIME",
+                              "VOLUNTEER",
+                              "FREELANCE"
+                            ]
+                          },
+                          "applyUrl": {
+                            "type": "string"
+                          },
+                          "publisher": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "postedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "fetchedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          }
+                        },
+                        "required": [
+                          "savedId",
+                          "savedAt",
+                          "externalId",
+                          "title",
+                          "company",
+                          "location",
+                          "isRemote",
+                          "workMode",
                           "employmentType",
                           "applyUrl",
                           "publisher",
@@ -39694,6 +40152,409 @@
           },
           "403": {
             "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
+      }
+    },
+    "/api/v1/jobs/external/saved/{id}": {
+      "delete": {
+        "summary": "Remove a saved external job",
+        "description": "Jobs API",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "delete_v1_jobs_external_saved_id",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resource UUID (path parameter).",
+              "example": "01900000-0000-7000-a000-000000000001"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "savedId": {
+                      "type": "string"
+                    },
+                    "removed": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "savedId",
+                    "removed"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
+      }
+    },
+    "/api/v1/jobs/external/{id}/save": {
+      "post": {
+        "summary": "Save an external job (snapshots the listing for the current user)",
+        "description": "Jobs API",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "post_v1_jobs_external_id_save",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resource UUID (path parameter).",
+              "example": "01900000-0000-7000-a000-000000000001"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000001"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "savedId": {
+                      "type": "string"
+                    },
+                    "externalId": {
+                      "type": "string"
+                    },
+                    "alreadySaved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "savedId",
+                    "externalId",
+                    "alreadySaved"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -46532,6 +47393,226 @@
         "x-permission": "resume:read"
       }
     },
+    "/api/v1/me/email/change/confirm": {
+      "post": {
+        "summary": "Confirm email change (step 2, code-confirmed)",
+        "description": "Applies the email change after verifying the emailed 6-digit code.",
+        "tags": [
+          "password-management"
+        ],
+        "operationId": "post_v1_me_email_change_confirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmEmailChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
+    "/api/v1/me/email/change/request": {
+      "post": {
+        "summary": "Request email change (step 1, code-confirmed)",
+        "description": "Verifies the current password and emails a 6-digit code to the new address. The email is only changed after POST /v1/me/email/change/confirm.",
+        "tags": [
+          "password-management"
+        ],
+        "operationId": "post_v1_me_email_change_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailChangeCodeSentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
     "/api/v1/me/gdpr-export": {
       "get": {
         "summary": "Export user data (GDPR Article 20)",
@@ -47153,6 +48234,226 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PasswordMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
+    "/api/v1/me/password/change/confirm": {
+      "post": {
+        "summary": "Confirm password change (step 2, code-confirmed)",
+        "description": "Applies the password change after verifying the emailed 6-digit code.",
+        "tags": [
+          "password-management"
+        ],
+        "operationId": "post_v1_me_password_change_confirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPasswordChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
+    "/api/v1/me/password/change/request": {
+      "post": {
+        "summary": "Request password change (step 1, code-confirmed)",
+        "description": "Validates the current + new password and emails a 6-digit confirmation code. The password is only changed after POST /v1/me/password/change/confirm.",
+        "tags": [
+          "password-management"
+        ],
+        "operationId": "post_v1_me_password_change_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPasswordChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChangeCodeSentResponse"
                 }
               }
             }
@@ -96380,7 +97681,12 @@
                           "type": "string"
                         },
                         "profileVisibility": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "PUBLIC",
+                            "RECRUITERS_ONLY",
+                            "PRIVATE"
+                          ]
                         },
                         "showEmail": {
                           "type": "boolean"
@@ -96700,7 +98006,12 @@
                     ]
                   },
                   "profileVisibility": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "PUBLIC",
+                      "RECRUITERS_ONLY",
+                      "PRIVATE"
+                    ]
                   },
                   "showEmail": {
                     "type": "boolean"
@@ -96790,7 +98101,7 @@
                   "timezone": "America/Sao_Paulo",
                   "emailNotifications": true,
                   "digestFrequency": "WEEKLY",
-                  "profileVisibility": "public",
+                  "profileVisibility": "PUBLIC",
                   "applyMode": "ONE_CLICK"
                 }
               }
@@ -96855,7 +98166,12 @@
                           "type": "string"
                         },
                         "profileVisibility": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "PUBLIC",
+                            "RECRUITERS_ONLY",
+                            "PRIVATE"
+                          ]
                         },
                         "showEmail": {
                           "type": "boolean"

@@ -51,6 +51,7 @@ export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepo
       company: posting.company,
       location: posting.location,
       isRemote: posting.isRemote,
+      workMode: posting.workMode,
       employmentType: posting.employmentType,
       applyUrl: posting.applyUrl,
       publisher: posting.publisher,
@@ -73,15 +74,30 @@ export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepo
     page: number,
     limit: number,
   ): Promise<{ items: ExternalJobListingRecord[]; total: number }> {
-    const where: Prisma.ExternalJobListingWhereInput = {};
+    // `q` and `postedAfter` both expand to OR groups, so each goes into
+    // its own AND member instead of a top-level `where.OR`.
+    const and: Prisma.ExternalJobListingWhereInput[] = [];
     if (filters.q) {
-      where.OR = [
-        { title: { contains: filters.q, mode: 'insensitive' } },
-        { company: { contains: filters.q, mode: 'insensitive' } },
-      ];
+      and.push({
+        OR: [
+          { title: { contains: filters.q, mode: 'insensitive' } },
+          { company: { contains: filters.q, mode: 'insensitive' } },
+        ],
+      });
     }
-    if (filters.isRemote !== undefined) where.isRemote = filters.isRemote;
-    if (filters.employmentType) where.employmentType = filters.employmentType;
+    if (filters.postedAfter) {
+      // COALESCE(postedAt, fetchedAt) >= cutoff — same fallback the UI
+      // uses to display recency (postedAt is often null for BR rows).
+      and.push({
+        OR: [
+          { postedAt: { gte: filters.postedAfter } },
+          { postedAt: null, fetchedAt: { gte: filters.postedAfter } },
+        ],
+      });
+    }
+    const where: Prisma.ExternalJobListingWhereInput = and.length > 0 ? { AND: and } : {};
+    if (filters.workMode?.length) where.workMode = { in: [...filters.workMode] };
+    if (filters.employmentType?.length) where.employmentType = { in: [...filters.employmentType] };
 
     const [rows, total] = await Promise.all([
       this.prisma.externalJobListing.findMany({
@@ -100,6 +116,12 @@ export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepo
       })),
       total,
     };
+  }
+
+  async findListingById(id: string): Promise<ExternalJobListingRecord | null> {
+    const row = await this.prisma.externalJobListing.findUnique({ where: { id } });
+    if (!row) return null;
+    return { ...row, raw: (row.raw ?? {}) as Record<string, unknown> };
   }
 
   async deleteFetchedBefore(cutoff: Date): Promise<number> {

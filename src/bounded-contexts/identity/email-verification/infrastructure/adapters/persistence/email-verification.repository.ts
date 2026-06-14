@@ -1,7 +1,10 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
+  CreatePurposeTokenInput,
   EmailVerificationRepositoryPort,
+  PurposeTokenData,
   UserVerificationStatus,
+  VerificationPurposeValue,
   VerificationTokenData,
 } from '../../../domain/ports';
 
@@ -100,6 +103,59 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
       select: { createdAt: true },
     });
 
+    return token?.createdAt ?? null;
+  }
+
+  async createPurposeToken(input: CreatePurposeTokenInput): Promise<void> {
+    await this.prisma.emailVerificationToken.create({
+      data: {
+        userId: input.userId,
+        token: input.token,
+        email: input.email,
+        expiresAt: input.expiresAt,
+        purpose: input.purpose,
+        pendingEmail: input.pendingEmail ?? null,
+        pendingPasswordHash: input.pendingPasswordHash ?? null,
+      },
+    });
+  }
+
+  async findPurposeToken(
+    userId: string,
+    token: string,
+    purpose: VerificationPurposeValue,
+  ): Promise<PurposeTokenData | null> {
+    const row = await this.prisma.emailVerificationToken.findFirst({
+      where: { userId, token, purpose, usedAt: null, expiresAt: { gt: new Date() } },
+    });
+    if (!row) return null;
+    return {
+      userId: row.userId,
+      token: row.token,
+      email: row.email,
+      purpose: row.purpose as VerificationPurposeValue,
+      pendingEmail: row.pendingEmail,
+      pendingPasswordHash: row.pendingPasswordHash,
+      expiresAt: row.expiresAt,
+    };
+  }
+
+  async deleteUserPurposeTokens(
+    userId: string,
+    purpose: VerificationPurposeValue,
+  ): Promise<void> {
+    await this.prisma.emailVerificationToken.deleteMany({ where: { userId, purpose } });
+  }
+
+  async getLastTokenCreatedAtForPurpose(
+    userId: string,
+    purpose: VerificationPurposeValue,
+  ): Promise<Date | null> {
+    const token = await this.prisma.emailVerificationToken.findFirst({
+      where: { userId, purpose },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
     return token?.createdAt ?? null;
   }
 }
