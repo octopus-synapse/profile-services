@@ -697,6 +697,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     config as never,
     eventBus as never,
     authenticationUseCases.createSession,
+    emailService as never,
     logger,
   ) as never;
   const authorization = buildAuthorizationUseCases(prisma as never, eventBus, logger, sharedRedis);

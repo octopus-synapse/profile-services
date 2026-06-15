@@ -49,16 +49,15 @@ describe('locale-resolver', () => {
       expect(result.title).toBe('Experiência Profissional');
     });
 
-    test('falls back to English when locale missing from translations map', () => {
-      // 'pt-BR' is supported but absent from a hypothetical en-only catalog.
+    test('throws when the requested locale is missing — no English fallback', () => {
+      // 'pt-BR' is supported but absent: a translation gap is a BUG, not a
+      // silent fall-through to English.
       const enOnly: TranslationsJson = { en: translations.en };
-      const result = resolveTranslation(enOnly, 'pt-BR');
-      expect(result.title).toBe('Work Experience');
+      expect(() => resolveTranslation(enOnly, 'pt-BR')).toThrow(/no translation for locale 'pt-BR'/);
     });
 
-    test('returns empty for null translations', () => {
-      const result = resolveTranslation(null, 'en');
-      expect(result.title).toBe('');
+    test('throws for null translations — no empty fallback', () => {
+      expect(() => resolveTranslation(null, 'en')).toThrow(/no translations/);
     });
   });
 

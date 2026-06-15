@@ -2,6 +2,29 @@ import { describe, expect, it } from 'bun:test';
 import { LOCALES } from '@packages/i18n';
 import { sectionTypeTranslations } from '../../../prisma/seeds/section-type-translations';
 
+/**
+ * Values intentionally identical across locales — loanwords adopted verbatim
+ * in pt-BR tech usage. ANY other `en === pt-BR` value is treated as an
+ * untranslated copy (a BUG): translate it, or, if it is genuinely a loanword,
+ * justify it by adding the `key.field` path here.
+ */
+const IDENTICAL_ALLOWED = new Set<string>([
+  'open_source_v1.label',
+  'bug_bounty_v1.title',
+  'bug_bounty_v1.label',
+  'hackathon_v1.title',
+  'hackathon_v1.label',
+]);
+
+const USER_FACING_FIELDS = [
+  'title',
+  'description',
+  'label',
+  'noDataLabel',
+  'placeholder',
+  'addLabel',
+] as const;
+
 describe('i18n section-type translations parity (prisma/seeds/section-type-translations)', () => {
   it('every section type covers exactly LOCALES — no missing, no rogue locale', () => {
     const errors: string[] = [];
@@ -29,7 +52,14 @@ describe('i18n section-type translations parity (prisma/seeds/section-type-trans
       for (const locale of LOCALES) {
         const t = entry[locale];
         if (!t) continue;
-        for (const field of ['title', 'label', 'noDataLabel', 'placeholder', 'addLabel'] as const) {
+        for (const field of [
+          'title',
+          'description',
+          'label',
+          'noDataLabel',
+          'placeholder',
+          'addLabel',
+        ] as const) {
           if (!t[field] || t[field].trim().length === 0) {
             gaps.push(`'${key}' (${locale}): empty '${field}'`);
           }
@@ -41,5 +71,25 @@ describe('i18n section-type translations parity (prisma/seeds/section-type-trans
 
   it('sectionTypeTranslations is non-empty', () => {
     expect(Object.keys(sectionTypeTranslations).length).toBeGreaterThan(0);
+  });
+
+  it('every user-facing field is actually translated (no en === pt-BR copies)', () => {
+    const suspects: string[] = [];
+    for (const [key, entry] of Object.entries(sectionTypeTranslations)) {
+      const en = entry.en;
+      const pt = entry['pt-BR'];
+      if (!en || !pt) continue;
+      for (const field of USER_FACING_FIELDS) {
+        const path = `${key}.${field}`;
+        if (en[field] !== undefined && en[field] === pt[field] && !IDENTICAL_ALLOWED.has(path)) {
+          suspects.push(`${path} = "${en[field]}"`);
+        }
+      }
+    }
+    expect(
+      suspects,
+      `Untranslated section-type fields (en === pt-BR):\n${suspects.join('\n')}\n\n` +
+        `Translate the pt-BR value, or if it is a loanword used verbatim add the path to IDENTICAL_ALLOWED.`,
+    ).toEqual([]);
   });
 });

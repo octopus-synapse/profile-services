@@ -12,6 +12,8 @@ export interface UsernameRules {
   readonly forbiddenSubstring: string;
   readonly minLength: number;
   readonly maxLength: number;
+  /** Days a user must wait between username changes (first change is free). */
+  readonly cooldownDays: number;
 }
 
 export abstract class GetUsernameRulesUseCasePort {

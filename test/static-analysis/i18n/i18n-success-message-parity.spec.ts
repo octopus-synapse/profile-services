@@ -72,6 +72,24 @@ describe('i18n success-message parity (@packages/i18n SUCCESS_MESSAGE_DICTIONARY
     ).toEqual([]);
   });
 
+  it('every message is actually translated (no en === pt-BR copies)', () => {
+    // No legitimate identical success messages today.
+    const IDENTICAL_ALLOWED = new Set<string>([]);
+    const suspects: string[] = [];
+    for (const [code, tpl] of Object.entries(SUCCESS_MESSAGE_DICTIONARY)) {
+      if (
+        (tpl.message.en as string) === (tpl.message['pt-BR'] as string) &&
+        !IDENTICAL_ALLOWED.has(code)
+      ) {
+        suspects.push(`${code} = "${tpl.message.en}"`);
+      }
+    }
+    expect(
+      suspects,
+      `Untranslated success messages (en === pt-BR):\n${suspects.join('\n')}`,
+    ).toEqual([]);
+  });
+
   it('no rogue locale keys outside LOCALES', () => {
     const rogues: string[] = [];
     for (const [code, tpl] of Object.entries(SUCCESS_MESSAGE_DICTIONARY)) {

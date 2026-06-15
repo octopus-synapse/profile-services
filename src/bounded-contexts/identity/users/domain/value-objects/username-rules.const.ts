@@ -16,6 +16,15 @@ export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 30;
 
 /**
+ * Cooldown between username changes. The first change after account
+ * creation is free (`User.usernameUpdatedAt` is NULL until then); every
+ * subsequent change is gated to once per this many days. Single source of
+ * truth for both the write path (`UpdateUsernameUseCase`) and the public
+ * `/rules` endpoint the frontend reads to render the cooldown copy.
+ */
+export const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
+
+/**
  * Core character set: lowercase letters, digits, underscore. Used by the
  * primary regex + by the public `/rules` endpoint so the frontend can
  * compile the same RegExp.

@@ -4,7 +4,14 @@
  * Translations for field labels within section type definitions.
  * Structure: { [fieldKey]: { [locale]: { label, placeholder?, helpText? } } }
  *
- * These are merged into definition.fields[].meta.translations
+ * These are merged into definition.fields[].meta.translations.
+ *
+ * INVARIANT (no fallback): every VISIBLE field of every catalog section type
+ * (prisma/seeds/section-type.seed.ts) must have an entry here covering every
+ * LOCALE. A missing entry is a BUG — `injectFieldTranslations` throws at seed
+ * time, the runtime resolver throws, and the parity specs in
+ * `test/static-analysis/i18n/` fail. The `fieldKey`s here MUST match the
+ * catalog field keys exactly — there is no English fallback to mask drift.
  */
 
 import { LOCALES } from '@packages/i18n';
@@ -81,13 +88,17 @@ export const educationFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Institution', placeholder: 'e.g., MIT, Stanford University' },
     'pt-BR': { label: 'Instituição', placeholder: 'ex: USP, UNICAMP, PUC' },
   },
+  field: {
+    en: { label: 'Field of Study', placeholder: 'e.g., Computer Science, Engineering' },
+    'pt-BR': { label: 'Área de Estudo', placeholder: 'ex: Ciência da Computação, Engenharia' },
+  },
   degree: {
     en: { label: 'Degree', placeholder: "e.g., Bachelor's, Master's, PhD" },
     'pt-BR': { label: 'Grau', placeholder: 'ex: Bacharelado, Mestrado, Doutorado' },
   },
-  field: {
-    en: { label: 'Field of Study', placeholder: 'e.g., Computer Science, Engineering' },
-    'pt-BR': { label: 'Área de Estudo', placeholder: 'ex: Ciência da Computação, Engenharia' },
+  degreeType: {
+    en: { label: 'Degree Type' },
+    'pt-BR': { label: 'Tipo de Diploma' },
   },
   startDate: {
     en: { label: 'Start Date' },
@@ -97,13 +108,13 @@ export const educationFieldTranslations: FieldTranslationsMap = {
     en: { label: 'End Date', helpText: 'Leave empty if still studying' },
     'pt-BR': { label: 'Data de Término', helpText: 'Deixe vazio se ainda está cursando' },
   },
-  gpa: {
-    en: { label: 'GPA', placeholder: 'e.g., 3.8/4.0' },
-    'pt-BR': { label: 'Média/CR', placeholder: 'ex: 8.5/10' },
+  status: {
+    en: { label: 'Status' },
+    'pt-BR': { label: 'Situação' },
   },
-  activities: {
-    en: { label: 'Activities & Societies' },
-    'pt-BR': { label: 'Atividades e Organizações' },
+  description: {
+    en: { label: 'Description' },
+    'pt-BR': { label: 'Descrição' },
   },
 };
 
@@ -120,13 +131,16 @@ export const skillsFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Category', placeholder: 'e.g., Frontend, Backend, DevOps' },
     'pt-BR': { label: 'Categoria', placeholder: 'ex: Frontend, Backend, DevOps' },
   },
-  level: {
-    en: { label: 'Proficiency Level' },
-    'pt-BR': { label: 'Nível de Proficiência' },
-  },
-  yearsOfExperience: {
-    en: { label: 'Years of Experience' },
-    'pt-BR': { label: 'Anos de Experiência' },
+};
+
+// ============================================================================
+// Soft Skills Fields
+// ============================================================================
+
+export const softSkillsFieldTranslations: FieldTranslationsMap = {
+  name: {
+    en: { label: 'Soft Skill', placeholder: 'e.g., Communication, Leadership' },
+    'pt-BR': { label: 'Habilidade Comportamental', placeholder: 'ex: Comunicação, Liderança' },
   },
 };
 
@@ -135,17 +149,13 @@ export const skillsFieldTranslations: FieldTranslationsMap = {
 // ============================================================================
 
 export const languageFieldTranslations: FieldTranslationsMap = {
-  language: {
+  name: {
     en: { label: 'Language', placeholder: 'e.g., English, Spanish, Mandarin' },
     'pt-BR': { label: 'Idioma', placeholder: 'ex: Inglês, Espanhol, Mandarim' },
   },
-  proficiency: {
-    en: { label: 'Proficiency Level' },
-    'pt-BR': { label: 'Nível de Proficiência' },
-  },
-  certification: {
-    en: { label: 'Certification', placeholder: 'e.g., TOEFL, IELTS, DELE' },
-    'pt-BR': { label: 'Certificação', placeholder: 'ex: TOEFL, IELTS, DELE' },
+  level: {
+    en: { label: 'CEFR Level' },
+    'pt-BR': { label: 'Nível (CEFR)' },
   },
 };
 
@@ -170,14 +180,6 @@ export const certificationFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Expiry Date', helpText: 'Leave empty if no expiration' },
     'pt-BR': { label: 'Data de Expiração', helpText: 'Deixe vazio se não expira' },
   },
-  credentialId: {
-    en: { label: 'Credential ID', placeholder: 'e.g., ABC123XYZ' },
-    'pt-BR': { label: 'ID da Credencial', placeholder: 'ex: ABC123XYZ' },
-  },
-  credentialUrl: {
-    en: { label: 'Credential URL', placeholder: 'https://...' },
-    'pt-BR': { label: 'URL da Credencial', placeholder: 'https://...' },
-  },
 };
 
 // ============================================================================
@@ -197,7 +199,7 @@ export const projectFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Project URL', placeholder: 'https://...' },
     'pt-BR': { label: 'URL do Projeto', placeholder: 'https://...' },
   },
-  repository: {
+  repositoryUrl: {
     en: { label: 'Repository URL', placeholder: 'https://github.com/...' },
     'pt-BR': { label: 'URL do Repositório', placeholder: 'https://github.com/...' },
   },
@@ -212,6 +214,10 @@ export const projectFieldTranslations: FieldTranslationsMap = {
   technologies: {
     en: { label: 'Technologies Used', placeholder: 'Add a technology...' },
     'pt-BR': { label: 'Tecnologias Utilizadas', placeholder: 'Adicione uma tecnologia...' },
+  },
+  highlights: {
+    en: { label: 'Key Highlights', placeholder: 'Add a highlight...' },
+    'pt-BR': { label: 'Principais Destaques', placeholder: 'Adicione um destaque...' },
   },
 };
 
@@ -236,32 +242,9 @@ export const awardFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Description' },
     'pt-BR': { label: 'Descrição' },
   },
-};
-
-// ============================================================================
-// Volunteer Experience Fields
-// ============================================================================
-
-export const volunteerFieldTranslations: FieldTranslationsMap = {
-  organization: {
-    en: { label: 'Organization', placeholder: 'e.g., Red Cross, Local Food Bank' },
-    'pt-BR': { label: 'Organização', placeholder: 'ex: Cruz Vermelha, Banco de Alimentos' },
-  },
-  role: {
-    en: { label: 'Role', placeholder: 'e.g., Volunteer Coordinator' },
-    'pt-BR': { label: 'Cargo', placeholder: 'ex: Coordenador Voluntário' },
-  },
-  startDate: {
-    en: { label: 'Start Date' },
-    'pt-BR': { label: 'Data de Início' },
-  },
-  endDate: {
-    en: { label: 'End Date' },
-    'pt-BR': { label: 'Data de Término' },
-  },
-  description: {
-    en: { label: 'Description' },
-    'pt-BR': { label: 'Descrição' },
+  proofUrl: {
+    en: { label: 'Proof URL', placeholder: 'https://...' },
+    'pt-BR': { label: 'URL do Comprovante', placeholder: 'https://...' },
   },
 };
 
@@ -275,20 +258,77 @@ export const publicationFieldTranslations: FieldTranslationsMap = {
     'pt-BR': { label: 'Título da Publicação' },
   },
   publisher: {
-    en: { label: 'Publisher/Journal' },
-    'pt-BR': { label: 'Editora/Revista' },
+    en: { label: 'Publisher / Journal' },
+    'pt-BR': { label: 'Editora / Revista' },
   },
   date: {
     en: { label: 'Publication Date' },
     'pt-BR': { label: 'Data de Publicação' },
   },
   url: {
-    en: { label: 'URL' },
-    'pt-BR': { label: 'URL' },
+    en: { label: 'Publication URL', placeholder: 'https://...' },
+    'pt-BR': { label: 'URL da Publicação', placeholder: 'https://...' },
   },
-  summary: {
-    en: { label: 'Summary' },
-    'pt-BR': { label: 'Resumo' },
+  description: {
+    en: { label: 'Description' },
+    'pt-BR': { label: 'Descrição' },
+  },
+};
+
+// ============================================================================
+// Interest Fields
+// ============================================================================
+
+export const interestFieldTranslations: FieldTranslationsMap = {
+  name: {
+    en: { label: 'Interest', placeholder: 'e.g., Photography, Chess, Hiking' },
+    'pt-BR': { label: 'Interesse', placeholder: 'ex: Fotografia, Xadrez, Trilha' },
+  },
+  keywords: {
+    en: { label: 'Keywords', placeholder: 'Add a keyword...' },
+    'pt-BR': { label: 'Palavras-chave', placeholder: 'Adicione uma palavra-chave...' },
+  },
+};
+
+// ============================================================================
+// Recommendation Fields
+// ============================================================================
+
+export const recommendationFieldTranslations: FieldTranslationsMap = {
+  name: {
+    en: { label: 'Recommender Name', placeholder: 'e.g., Jane Smith' },
+    'pt-BR': { label: 'Nome de Quem Recomenda', placeholder: 'ex: Maria Silva' },
+  },
+  role: {
+    en: { label: 'Role / Title', placeholder: 'e.g., Engineering Manager' },
+    'pt-BR': { label: 'Cargo / Título', placeholder: 'ex: Gerente de Engenharia' },
+  },
+  company: {
+    en: { label: 'Company' },
+    'pt-BR': { label: 'Empresa' },
+  },
+  email: {
+    en: { label: 'Email', placeholder: 'name@company.com' },
+    'pt-BR': { label: 'E-mail', placeholder: 'nome@empresa.com' },
+  },
+  phone: {
+    en: { label: 'Phone' },
+    'pt-BR': { label: 'Telefone' },
+  },
+  text: {
+    en: { label: 'Recommendation Text', placeholder: 'Write the recommendation...' },
+    'pt-BR': { label: 'Texto da Recomendação', placeholder: 'Escreva a recomendação...' },
+  },
+};
+
+// ============================================================================
+// Summary Fields
+// ============================================================================
+
+export const summaryFieldTranslations: FieldTranslationsMap = {
+  text: {
+    en: { label: 'Summary', placeholder: 'Write a short professional summary...' },
+    'pt-BR': { label: 'Resumo', placeholder: 'Escreva um breve resumo profissional...' },
   },
 };
 
@@ -301,25 +341,29 @@ export const hackathonFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Hackathon Name', placeholder: 'e.g., ETHGlobal, Junction' },
     'pt-BR': { label: 'Nome do Hackathon', placeholder: 'ex: ETHGlobal, Junction' },
   },
-  project: {
-    en: { label: 'Project Name' },
-    'pt-BR': { label: 'Nome do Projeto' },
+  organizer: {
+    en: { label: 'Organizer' },
+    'pt-BR': { label: 'Organizador' },
   },
   date: {
     en: { label: 'Date' },
     'pt-BR': { label: 'Data' },
   },
-  result: {
-    en: { label: 'Result', placeholder: 'e.g., 1st Place, Finalist' },
-    'pt-BR': { label: 'Resultado', placeholder: 'ex: 1º Lugar, Finalista' },
+  projectName: {
+    en: { label: 'Project Name' },
+    'pt-BR': { label: 'Nome do Projeto' },
+  },
+  placement: {
+    en: { label: 'Placement / Award', placeholder: 'e.g., 1st Place, Finalist' },
+    'pt-BR': { label: 'Colocação / Prêmio', placeholder: 'ex: 1º Lugar, Finalista' },
   },
   description: {
     en: { label: 'Description' },
     'pt-BR': { label: 'Descrição' },
   },
   url: {
-    en: { label: 'Project URL' },
-    'pt-BR': { label: 'URL do Projeto' },
+    en: { label: 'Project URL', placeholder: 'https://...' },
+    'pt-BR': { label: 'URL do Projeto', placeholder: 'https://...' },
   },
 };
 
@@ -328,7 +372,7 @@ export const hackathonFieldTranslations: FieldTranslationsMap = {
 // ============================================================================
 
 export const openSourceFieldTranslations: FieldTranslationsMap = {
-  project: {
+  projectName: {
     en: { label: 'Project Name', placeholder: 'e.g., React, Vue, Node.js' },
     'pt-BR': { label: 'Nome do Projeto', placeholder: 'ex: React, Vue, Node.js' },
   },
@@ -341,8 +385,12 @@ export const openSourceFieldTranslations: FieldTranslationsMap = {
     'pt-BR': { label: 'Descrição' },
   },
   url: {
-    en: { label: 'Repository URL' },
-    'pt-BR': { label: 'URL do Repositório' },
+    en: { label: 'Repository URL', placeholder: 'https://github.com/...' },
+    'pt-BR': { label: 'URL do Repositório', placeholder: 'https://github.com/...' },
+  },
+  startDate: {
+    en: { label: 'Start Date' },
+    'pt-BR': { label: 'Data de Início' },
   },
 };
 
@@ -351,9 +399,9 @@ export const openSourceFieldTranslations: FieldTranslationsMap = {
 // ============================================================================
 
 export const bugBountyFieldTranslations: FieldTranslationsMap = {
-  program: {
-    en: { label: 'Program Name', placeholder: 'e.g., Google VRP, HackerOne' },
-    'pt-BR': { label: 'Nome do Programa', placeholder: 'ex: Google VRP, HackerOne' },
+  platform: {
+    en: { label: 'Platform / Company', placeholder: 'e.g., Google VRP, HackerOne' },
+    'pt-BR': { label: 'Plataforma / Empresa', placeholder: 'ex: Google VRP, HackerOne' },
   },
   severity: {
     en: { label: 'Severity' },
@@ -363,13 +411,17 @@ export const bugBountyFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Date Reported' },
     'pt-BR': { label: 'Data do Reporte' },
   },
-  cve: {
-    en: { label: 'CVE ID', placeholder: 'e.g., CVE-2023-XXXX' },
-    'pt-BR': { label: 'ID CVE', placeholder: 'ex: CVE-2023-XXXX' },
-  },
   description: {
     en: { label: 'Description' },
     'pt-BR': { label: 'Descrição' },
+  },
+  reward: {
+    en: { label: 'Reward', placeholder: 'e.g., $5,000' },
+    'pt-BR': { label: 'Recompensa', placeholder: 'ex: US$ 5.000' },
+  },
+  url: {
+    en: { label: 'Reference URL', placeholder: 'https://...' },
+    'pt-BR': { label: 'URL de Referência', placeholder: 'https://...' },
   },
 };
 
@@ -383,24 +435,24 @@ export const talkFieldTranslations: FieldTranslationsMap = {
     'pt-BR': { label: 'Título da Palestra' },
   },
   event: {
-    en: { label: 'Event/Conference', placeholder: 'e.g., JSConf, ReactConf' },
-    'pt-BR': { label: 'Evento/Conferência', placeholder: 'ex: JSConf, ReactConf' },
+    en: { label: 'Event / Conference', placeholder: 'e.g., JSConf, ReactConf' },
+    'pt-BR': { label: 'Evento / Conferência', placeholder: 'ex: JSConf, ReactConf' },
   },
   date: {
     en: { label: 'Date' },
     'pt-BR': { label: 'Data' },
   },
+  location: {
+    en: { label: 'Location', placeholder: 'e.g., São Paulo, Remote' },
+    'pt-BR': { label: 'Local', placeholder: 'ex: São Paulo, Remoto' },
+  },
   description: {
     en: { label: 'Description' },
     'pt-BR': { label: 'Descrição' },
   },
-  slidesUrl: {
-    en: { label: 'Slides URL' },
-    'pt-BR': { label: 'URL dos Slides' },
-  },
-  videoUrl: {
-    en: { label: 'Video URL' },
-    'pt-BR': { label: 'URL do Vídeo' },
+  url: {
+    en: { label: 'Recording / Slides URL', placeholder: 'https://...' },
+    'pt-BR': { label: 'URL da Gravação / Slides', placeholder: 'https://...' },
   },
 };
 
@@ -431,12 +483,15 @@ export const allFieldTranslations: Record<string, FieldTranslationsMap> = {
   work_experience_v1: workExperienceFieldTranslations,
   education_v1: educationFieldTranslations,
   skill_set_v1: skillsFieldTranslations,
+  soft_skill_set_v1: softSkillsFieldTranslations,
   language_v1: languageFieldTranslations,
   certification_v1: certificationFieldTranslations,
   project_v1: projectFieldTranslations,
   award_v1: awardFieldTranslations,
-  volunteer_v1: volunteerFieldTranslations,
   publication_v1: publicationFieldTranslations,
+  interest_v1: interestFieldTranslations,
+  recommendation_v1: recommendationFieldTranslations,
+  summary_v1: summaryFieldTranslations,
   hackathon_v1: hackathonFieldTranslations,
   open_source_v1: openSourceFieldTranslations,
   bug_bounty_v1: bugBountyFieldTranslations,
@@ -449,8 +504,12 @@ for (const [sectionKey, map] of Object.entries(allFieldTranslations)) {
 }
 
 /**
- * Helper: Inject field translations into a definition
- * Used by seed scripts to enrich field meta with translations
+ * Inject field translations into a section-type definition at seed time.
+ *
+ * No fallback: every VISIBLE field (`meta.hidden !== true`) MUST have a
+ * translation entry whose key matches the field key. A missing entry throws
+ * so the seed fails loudly instead of shipping a field that renders its raw
+ * English `meta.label`. Hidden fields are never displayed, so they are exempt.
  */
 export function injectFieldTranslations(
   sectionTypeKey: string,
@@ -464,8 +523,8 @@ export function injectFieldTranslations(
     [key: string]: unknown;
   },
 ): typeof definition {
+  if (!definition.fields) return definition;
   const translations = allFieldTranslations[sectionTypeKey];
-  if (!translations || !definition.fields) return definition;
 
   const enrichField = (field: {
     key?: string;
@@ -474,9 +533,16 @@ export function injectFieldTranslations(
     items?: unknown;
   }) => {
     if (!field.key) return field;
+    if (field.meta?.hidden === true) return field;
 
-    const fieldTranslations = translations[field.key];
-    if (!fieldTranslations) return field;
+    const fieldTranslations = translations?.[field.key];
+    if (!fieldTranslations) {
+      throw new Error(
+        `[field-translations] '${sectionTypeKey}.${field.key}' has no translation entry. ` +
+          `Every visible catalog field must be translated for all locales — no English fallback. ` +
+          `Add it to prisma/seeds/field-translations.ts.`,
+      );
+    }
 
     return {
       ...field,

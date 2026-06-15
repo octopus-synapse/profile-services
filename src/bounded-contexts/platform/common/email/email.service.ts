@@ -63,6 +63,13 @@ export class EmailService {
   async sendPasswordChangeCode(email: string, name: string, code: string): Promise<void> {
     return this.templateService.sendPasswordChangeCode(email, name, code);
   }
+
+  /**
+   * Send the account-deletion confirmation code (to the current address).
+   */
+  async sendAccountDeletionCode(email: string, name: string, code: string): Promise<void> {
+    return this.templateService.sendAccountDeletionCode(email, name, code);
+  }
 }
 
 // Re-export commonly used email types

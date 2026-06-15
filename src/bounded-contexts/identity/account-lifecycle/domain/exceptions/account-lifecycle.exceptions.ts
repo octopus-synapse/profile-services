@@ -60,6 +60,20 @@ export class AccountDeletionRequiresConfirmationException extends DomainExceptio
 }
 
 /**
+ * Invalid Account-Deletion Code Exception
+ *
+ * Thrown when the emailed 6-digit confirmation code is wrong or expired during
+ * the two-step (code-confirmed) account deletion.
+ */
+export class InvalidAccountDeletionCodeException extends DomainException {
+  readonly code = 'INVALID_ACCOUNT_DELETION_CODE';
+  readonly statusHint = 400;
+  constructor() {
+    super('The confirmation code is invalid or has expired');
+  }
+}
+
+/**
  * Consent Required Exception
  *
  * Thrown when the user has not accepted the current Terms of Service or

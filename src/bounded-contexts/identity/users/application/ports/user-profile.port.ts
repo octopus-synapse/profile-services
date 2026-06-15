@@ -50,6 +50,14 @@ export type UserProfile = {
   linkedin?: string | null;
   github?: string | null;
   twitter?: string | null;
+  /** Last time the username changed; NULL = never changed (first change free). */
+  usernameUpdatedAt?: Date | null;
+  /**
+   * When the user may next change their username, or NULL if they can change
+   * it now. Derived (not stored): `usernameUpdatedAt + cooldown`, nulled once
+   * the cooldown has elapsed so the client needs no date math of its own.
+   */
+  usernameChangeAvailableAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -7,15 +7,19 @@
  * (the item `label`), so free text is never blocked.
  */
 
-import { RoleTitleLang, RoleTitleSource } from '@prisma/client';
+import { RoleSeniority, RoleTitleLang, RoleTitleSource } from '@prisma/client';
 import { z } from 'zod';
 
-/** One autocomplete suggestion. `label` is the ready-to-store title. */
+/** One autocomplete suggestion. `label` is the ready-to-store title.
+ *  `seniority` is set only on curated level variants (Estagiário/Júnior/…)
+ *  — null for imported occupational titles; the client uses INTERN to
+ *  auto-lock the experience's employmentType to Internship. */
 export const RoleTitleItemSchema = z.object({
   label: z.string(),
   lang: z.nativeEnum(RoleTitleLang),
   source: z.nativeEnum(RoleTitleSource),
   isPreferred: z.boolean().openapi({ example: true }),
+  seniority: z.nativeEnum(RoleSeniority).nullish().openapi({ example: 'INTERN' }),
 });
 export type RoleTitleItem = z.infer<typeof RoleTitleItemSchema>;
 

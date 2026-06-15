@@ -3,21 +3,23 @@
  *
  * Prisma persistence logic for querying section type definitions.
  * Moved from application/services/section-type-definition.query.ts.
+ *
+ * i18n is mandatory — no fallback. Section labels and field labels are
+ * resolved through the shared locale resolvers, which THROW when a
+ * translation is missing for the requested locale (drift between the catalog
+ * and the seed dictionaries is a BUG, not a silently-English label). The
+ * parity specs in test/static-analysis/i18n are the first line of defence.
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { SECTION_FALLBACK_LABELS } from '@/shared-kernel/i18n/section-fallback-labels.const';
+import type { TranslationsJson } from '@/shared-kernel/utils/locale-resolver.types';
+import {
+  parseLocale,
+  resolveDefinitionFieldsForLocale,
+  resolveTranslation,
+} from '@/shared-kernel/utils/locale-resolver.util';
 import type { SectionTypeData } from '../../../domain/config/onboarding-steps.config';
 import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
-
-interface TranslationData {
-  title?: string;
-  description?: string;
-  label?: string;
-  noDataLabel?: string;
-  placeholder?: string;
-  addLabel?: string;
-}
 
 export class SectionTypeDefinitionAdapter extends SectionTypeDefinitionPort {
   constructor(private readonly prisma: PrismaService) {
@@ -26,7 +28,13 @@ export class SectionTypeDefinitionAdapter extends SectionTypeDefinitionPort {
 
   async listAll(locale = 'en'): Promise<SectionTypeData[]> {
     const types = await this.prisma.sectionType.findMany({
-      where: { isActive: true },
+      // Onboarding only ever surfaces the system catalog. Filtering on
+      // `isSystem` keeps non-system rows out — notably leaked Dredd fixtures
+      // (e.g. `fixture-slug`, isSystem:false) that carry no translations and
+      // would otherwise make `resolveTranslation` throw, 500-ing onboarding
+      // for every user (parity with the onboarding-config / generic-sections
+      // adapters, which already exclude them).
+      where: { isActive: true, isSystem: true },
       select: {
         key: true,
         title: true,
@@ -53,20 +61,22 @@ export class SectionTypeDefinitionAdapter extends SectionTypeDefinitionPort {
     },
     locale: string,
   ): SectionTypeData {
-    const translations = type.translations as Record<string, TranslationData> | null;
-    const localeData = translations?.[locale] ?? translations?.en ?? {};
+    const loc = parseLocale(locale);
+    // Throws if this section type has no translation for the locale.
+    const t = resolveTranslation(type.translations as TranslationsJson | null, loc, type.key);
 
     return {
       key: type.key,
-      title: localeData.title ?? type.title,
-      description: localeData.description ?? type.description ?? '',
-      definition: type.definition,
+      title: t.title,
+      description: t.description,
+      // Throws if any visible field lacks a translation for the locale.
+      definition: resolveDefinitionFieldsForLocale(type.definition, loc),
       icon: type.icon ?? 'list',
       iconType: type.iconType ?? 'lucide',
-      label: localeData.label ?? type.key,
-      noDataLabel: localeData.noDataLabel ?? SECTION_FALLBACK_LABELS.noDataLabel,
-      placeholder: localeData.placeholder ?? SECTION_FALLBACK_LABELS.placeholder,
-      addLabel: localeData.addLabel ?? SECTION_FALLBACK_LABELS.addLabel,
+      label: t.label,
+      noDataLabel: t.noDataLabel,
+      placeholder: t.placeholder,
+      addLabel: t.addLabel,
     };
   }
 }

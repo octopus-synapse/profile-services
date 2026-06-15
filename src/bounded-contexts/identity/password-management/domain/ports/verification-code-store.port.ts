@@ -5,7 +5,7 @@
  * (structural conformance), so the 6-digit-code engine isn't duplicated.
  */
 
-export type CodePurpose = 'EMAIL_CHANGE' | 'PASSWORD_CHANGE';
+export type CodePurpose = 'EMAIL_CHANGE' | 'PASSWORD_CHANGE' | 'ACCOUNT_DELETION';
 
 export interface PendingCode {
   userId: string;

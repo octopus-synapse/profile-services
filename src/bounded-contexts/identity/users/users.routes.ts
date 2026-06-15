@@ -16,6 +16,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { localizeDomainCodes } from '@/shared-kernel/i18n/localize-domain-code';
 import { UpdateUserSchema } from '@/shared-kernel/schemas/user/user.schema';
+import { USERNAME_UPDATE_COOLDOWN_DAYS } from './domain/value-objects/username-rules.const';
 import {
   UpdateFullPreferencesSchema,
   UpdatePreferencesSchema,
@@ -202,7 +203,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     body: UpdateUsernameSchema,
     response: UpdateUsernameResponseSchema,
     openapi: {
-      summary: 'Update username (once every 30 days)',
+      summary: `Update username (once every ${USERNAME_UPDATE_COOLDOWN_DAYS} days)`,
       tags: ['users'],
       description: 'Users API',
     },

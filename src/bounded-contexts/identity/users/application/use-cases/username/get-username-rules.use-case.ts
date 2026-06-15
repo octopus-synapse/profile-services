@@ -5,6 +5,7 @@ import {
   USERNAME_MIN_LENGTH,
   USERNAME_PATTERN_SOURCE,
   USERNAME_STARTS_OK_SOURCE,
+  USERNAME_UPDATE_COOLDOWN_DAYS,
 } from '../../../domain/value-objects/username-rules.const';
 import {
   GetUsernameRulesUseCasePort,
@@ -25,6 +26,7 @@ export class GetUsernameRulesUseCase extends GetUsernameRulesUseCasePort {
       forbiddenSubstring: USERNAME_FORBIDDEN_DOUBLE_UNDERSCORE,
       minLength: USERNAME_MIN_LENGTH,
       maxLength: USERNAME_MAX_LENGTH,
+      cooldownDays: USERNAME_UPDATE_COOLDOWN_DAYS,
     };
   }
 }

@@ -1,14 +1,14 @@
 /**
- * P1 #3 + #13 — signup rate-limit and DELETE /v1/accounts
- * re-authentication. Both protections are already wired
- * (`account-lifecycle.routes.ts` + `delete-account.use-case.ts`); this
- * spec pins the behaviour so neither regresses.
+ * P1 #3 + #13 — signup rate-limit and account-deletion re-authentication.
+ * Both protections are wired in `account-lifecycle.routes.ts`; this spec
+ * pins the behaviour so neither regresses.
  *
  *   - P1 #3: POST /v1/accounts is throttled by per-IP `points: 3,
  *     duration: 600` — exhausting the budget returns 429.
- *   - P1 #13: DELETE /v1/accounts requires both `confirmationPhrase`
- *     AND `currentPassword`. A wrong / missing password returns 401;
- *     only the matching password permits the destructive delete.
+ *   - P1 #13: the two-step deletion requires `confirmationPhrase` AND
+ *     `currentPassword` at POST /v1/accounts/delete/request (wrong/missing
+ *     password → 401, wrong phrase → 400), then a valid emailed 6-digit code
+ *     at POST /v1/accounts/delete/confirm before the account is erased.
  */
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
@@ -69,7 +69,7 @@ describe('P1 #3 — POST /v1/accounts rate-limit', () => {
   });
 });
 
-describe('P1 #13 — DELETE /v1/accounts requires currentPassword', () => {
+describe('P1 #13 — account deletion requires currentPassword + emailed code', () => {
   beforeAll(async () => {
     await getApp();
   });
@@ -111,19 +111,19 @@ describe('P1 #13 — DELETE /v1/accounts requires currentPassword', () => {
     return { userId: user.id, cookie: access };
   }
 
-  it('rejects DELETE with the wrong currentPassword', async () => {
+  it('rejects the delete request with the wrong currentPassword', async () => {
     const { cookie } = await signupAndLoginCookie();
     const res = await getRequest()
-      .delete('/api/v1/accounts')
+      .post('/api/v1/accounts/delete/request')
       .set('Cookie', cookie)
       .send({ confirmationPhrase: 'DELETE MY ACCOUNT', currentPassword: 'WrongPassword!' });
     expect(res.status).toBe(401);
   });
 
-  it('rejects DELETE without a confirmation phrase even with the right password', async () => {
+  it('rejects the delete request without a confirmation phrase even with the right password', async () => {
     const { cookie } = await signupAndLoginCookie();
     const res = await getRequest()
-      .delete('/api/v1/accounts')
+      .post('/api/v1/accounts/delete/request')
       .set('Cookie', cookie)
       .send({ confirmationPhrase: 'WRONG PHRASE', currentPassword: PASSWORD });
     // AccountDeletionRequiresConfirmationException → 400
@@ -131,18 +131,39 @@ describe('P1 #13 — DELETE /v1/accounts requires currentPassword', () => {
     expect(res.status).toBeLessThan(500);
   });
 
-  it('permits DELETE with both the confirmation phrase AND the correct password', async () => {
+  it('does not delete on request — only after confirming the emailed code', async () => {
     const { userId, cookie } = await signupAndLoginCookie();
-    const res = await getRequest()
-      .delete('/api/v1/accounts')
+    const prisma = getPrisma();
+
+    // Step 1: request (correct phrase + password) issues a code but keeps the account.
+    const request = await getRequest()
+      .post('/api/v1/accounts/delete/request')
       .set('Cookie', cookie)
       .send({ confirmationPhrase: 'DELETE MY ACCOUNT', currentPassword: PASSWORD });
-    // Successful delete renders a 200 success-message envelope today
-    // (route does not declare statusCode: 204); accept either to keep
-    // the spec resilient to that detail.
-    expect([200, 204]).toContain(res.status);
-    const prisma = getPrisma();
-    const stillExists = await prisma.user.findUnique({ where: { id: userId } });
-    expect(stillExists).toBeNull();
+    expect(request.status).toBe(200);
+    expect(await prisma.user.findUnique({ where: { id: userId } })).not.toBeNull();
+
+    // The single-use code lands in the shared verification-token table.
+    const pending = await prisma.emailVerificationToken.findFirst({
+      where: { userId, purpose: 'ACCOUNT_DELETION' },
+    });
+    expect(pending).not.toBeNull();
+
+    // A wrong code is rejected and the account survives.
+    const badConfirm = await getRequest()
+      .post('/api/v1/accounts/delete/confirm')
+      .set('Cookie', cookie)
+      .send({ code: '000000' });
+    expect(badConfirm.status).toBeGreaterThanOrEqual(400);
+    expect(badConfirm.status).toBeLessThan(500);
+    expect(await prisma.user.findUnique({ where: { id: userId } })).not.toBeNull();
+
+    // Step 2: confirming the real code erases the account.
+    const confirm = await getRequest()
+      .post('/api/v1/accounts/delete/confirm')
+      .set('Cookie', cookie)
+      .send({ code: pending!.token });
+    expect([200, 204]).toContain(confirm.status);
+    expect(await prisma.user.findUnique({ where: { id: userId } })).toBeNull();
   });
 });

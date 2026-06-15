@@ -8,13 +8,12 @@ import {
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
 import { RESERVED_USERNAMES_SET } from '../../../domain/value-objects/reserved-usernames.const';
+import { USERNAME_UPDATE_COOLDOWN_DAYS } from '../../../domain/value-objects/username-rules.const';
 import {
   type UpdatedUsername,
   UpdateUsernameUseCasePort,
 } from '../../ports/update-username.use-case.port';
 import { UsernameRepositoryPort } from '../../ports/username.port';
-
-const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 
 /**
  * Regex for valid username format:

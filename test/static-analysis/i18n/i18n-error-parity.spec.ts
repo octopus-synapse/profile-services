@@ -54,6 +54,22 @@ describe('i18n catalog parity (@packages/i18n ERROR_DICTIONARY)', () => {
     expect(gaps, `Empty translations:\n${gaps.join('\n')}`).toEqual([]);
   });
 
+  it('every message is actually translated (no en === pt-BR copies)', () => {
+    // No legitimate identical error messages today. Add a code here only with a
+    // written justification (e.g. a locale-neutral bare interpolation).
+    const IDENTICAL_ALLOWED = new Set<string>([]);
+    const suspects: string[] = [];
+    for (const [code, entry] of Object.entries(ERROR_DICTIONARY)) {
+      if ((entry.en as string) === (entry['pt-BR'] as string) && !IDENTICAL_ALLOWED.has(code)) {
+        suspects.push(`${code} = "${entry.en}"`);
+      }
+    }
+    expect(
+      suspects,
+      `Untranslated error messages (en === pt-BR):\n${suspects.join('\n')}`,
+    ).toEqual([]);
+  });
+
   it('no entry contains unresolved template-literal leakage', () => {
     const leaks: string[] = [];
     for (const [code, entry] of Object.entries(ERROR_DICTIONARY)) {

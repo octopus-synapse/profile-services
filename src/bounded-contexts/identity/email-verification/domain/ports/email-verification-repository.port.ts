@@ -19,7 +19,11 @@ export interface VerificationTokenData {
 /** Discriminates which flow a verification code approves. Mirrors the
  *  Prisma `VerificationPurpose` enum; kept as a string union here so the
  *  port stays free of a Prisma import. */
-export type VerificationPurposeValue = 'EMAIL_VERIFY' | 'EMAIL_CHANGE' | 'PASSWORD_CHANGE';
+export type VerificationPurposeValue =
+  | 'EMAIL_VERIFY'
+  | 'EMAIL_CHANGE'
+  | 'PASSWORD_CHANGE'
+  | 'ACCOUNT_DELETION';
 
 export interface CreatePurposeTokenInput {
   userId: string;

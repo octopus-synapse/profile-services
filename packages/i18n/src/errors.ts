@@ -522,6 +522,10 @@ export const ERROR_DICTIONARY = {
     en: 'The confirmation code is invalid or has expired',
     'pt-BR': 'O código de confirmação é inválido ou expirou',
   },
+  INVALID_ACCOUNT_DELETION_CODE: {
+    en: 'The confirmation code is invalid or has expired',
+    'pt-BR': 'O código de confirmação é inválido ou expirou',
+  },
   EMAIL_SAME_AS_CURRENT: {
     en: 'The new email is the same as your current email',
     'pt-BR': 'O novo e-mail é igual ao atual',
@@ -537,6 +541,10 @@ export const ERROR_DICTIONARY = {
   INVALID_DATE_RANGE: {
     en: 'End date must be after start date',
     'pt-BR': 'A data final precisa ser posterior à data inicial',
+  },
+  INVALID_EMPLOYMENT_TYPE_FOR_INTERN_ROLE: {
+    en: 'Internship roles must use the Internship employment type, not "{employmentType}"',
+    'pt-BR': 'Cargos de estágio precisam usar o tipo Estágio, não "{employmentType}"',
   },
   INVALID_FILE_TYPE: {
     en: 'Invalid file type',

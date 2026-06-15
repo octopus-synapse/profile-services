@@ -46,7 +46,7 @@ export class PrismaRoleSearchAdapter extends RoleSearchPort {
     // AND semantics: a row only qualifies when every token matched
     // something — i.e. its weakest token score is > 0.
     return this.prisma.$queryRaw<RoleTitleItem[]>`
-      SELECT label, lang, source, "isPreferred"
+      SELECT label, lang, source, "isPreferred", seniority
       FROM (
         SELECT *,
           ${Prisma.join(tokenScores, ' + ')}

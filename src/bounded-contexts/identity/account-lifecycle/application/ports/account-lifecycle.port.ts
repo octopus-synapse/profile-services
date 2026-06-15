@@ -20,15 +20,17 @@ import type {
   GetConsentHistoryUseCasePort,
   GetConsentStatusUseCasePort,
 } from '../use-cases/tokens';
+import type { ConfirmAccountDeletionPort } from './confirm-account-deletion.port';
 import type { CreateAccountPort } from './create-account.port';
 import type { DeactivateAccountPort } from './deactivate-account.port';
-import type { DeleteAccountPort } from './delete-account.port';
+import type { RequestAccountDeletionPort } from './request-account-deletion.port';
 
 export abstract class AccountLifecycleUseCases {
   abstract readonly createAccount: CreateAccountPort;
   abstract readonly createSession: CreateSessionPort;
   abstract readonly deactivateAccount: DeactivateAccountPort;
-  abstract readonly deleteAccount: DeleteAccountPort;
+  abstract readonly requestAccountDeletion: RequestAccountDeletionPort;
+  abstract readonly confirmAccountDeletion: ConfirmAccountDeletionPort;
   abstract readonly acceptConsent: AcceptConsentUseCasePort;
   abstract readonly getConsentStatus: GetConsentStatusUseCasePort;
   abstract readonly getConsentHistory: GetConsentHistoryUseCasePort;

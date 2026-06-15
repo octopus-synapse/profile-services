@@ -86,6 +86,69 @@
           "acceptedPrivacyVersion": "1.0.0"
         }
       },
+      "ConfirmAccountDeletionRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "description": "Step 2: confirm the emailed 6-digit code to permanently delete the account.",
+        "example": {
+          "code": "123456"
+        }
+      },
+      "AccountDeletionCodeSentResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "description": "Localized confirmation that a code was sent."
+          },
+          "cooldownSeconds": {
+            "type": "integer",
+            "description": "Seconds before a resend is allowed."
+          },
+          "testCode": {
+            "type": "string",
+            "description": "Non-production only (BYPASS_2FA): the issued code."
+          }
+        },
+        "required": [
+          "cooldownSeconds"
+        ]
+      },
+      "RequestAccountDeletionRequest": {
+        "type": "object",
+        "properties": {
+          "confirmationPhrase": {
+            "type": "string",
+            "minLength": 1
+          },
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "confirmationPhrase",
+          "currentPassword"
+        ],
+        "description": "Step 1 of the code-confirmed account deletion. Validates the confirmation phrase + current password and emails a 6-digit code; nothing is deleted yet.",
+        "example": {
+          "confirmationPhrase": "DELETE MY ACCOUNT",
+          "currentPassword": "NotTheRealPassword!"
+        }
+      },
       "ShortDescription": {
         "type": "string",
         "minLength": 1,
@@ -1492,137 +1555,6 @@
       }
     },
     "/api/v1/accounts": {
-      "delete": {
-        "summary": "Delete account permanently",
-        "description": "Permanently deletes the user account. Requires confirmation phrase: \"DELETE MY ACCOUNT\" AND the current password (re-authentication gate to prevent stolen-cookie deletes).",
-        "tags": [
-          "account-lifecycle"
-        ],
-        "operationId": "delete_v1_accounts",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "confirmationPhrase": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "currentPassword": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
-                  }
-                },
-                "required": [
-                  "confirmationPhrase",
-                  "currentPassword"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt",
-        "x-guards": [
-          "skip-tos-check",
-          "rate-limit"
-        ]
-      },
       "post": {
         "summary": "Create new account",
         "description": "Registers a new user account. Authentication is established via httpOnly session cookie set in parallel; no bearer tokens are returned in the body.",
@@ -1828,6 +1760,236 @@
           }
         },
         "x-auth": "jwt"
+      }
+    },
+    "/api/v1/accounts/delete/confirm": {
+      "post": {
+        "summary": "Confirm account deletion (step 2, code-confirmed)",
+        "description": "Permanently erases the account after verifying the emailed 6-digit code.",
+        "tags": [
+          "account-lifecycle"
+        ],
+        "operationId": "post_v1_accounts_delete_confirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmAccountDeletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check",
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
+    "/api/v1/accounts/delete/request": {
+      "post": {
+        "summary": "Request account deletion (step 1, code-confirmed)",
+        "description": "Validates the confirmation phrase \"DELETE MY ACCOUNT\" AND the current password (re-authentication gate to prevent stolen-cookie deletes), then emails a 6-digit code. The account is only erased after POST /v1/accounts/delete/confirm.",
+        "tags": [
+          "account-lifecycle"
+        ],
+        "operationId": "post_v1_accounts_delete_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAccountDeletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountDeletionCodeSentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check",
+          "rate-limit",
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/admin/alerts": {
@@ -53294,8 +53456,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -53398,8 +53575,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -54038,8 +54230,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -54142,8 +54349,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -54648,8 +54870,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -54752,8 +54989,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -55149,8 +55401,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -55253,8 +55520,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -55645,8 +55927,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -55749,8 +56046,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -56125,8 +56437,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -56229,8 +56556,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -56616,8 +56958,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -56720,8 +57077,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -57239,8 +57611,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -57343,8 +57730,23 @@
                                 "options": {
                                   "type": "array",
                                   "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "value",
+                                      "label"
+                                    ]
                                   }
+                                },
+                                "enumName": {
+                                  "type": "string"
                                 },
                                 "widget": {
                                   "type": "string"
@@ -82578,12 +82980,25 @@
                             "enum": [
                               "ESCO",
                               "CBO",
-                              "ONET"
+                              "ONET",
+                              "CURATED"
                             ]
                           },
                           "isPreferred": {
                             "type": "boolean",
                             "example": true
+                          },
+                          "seniority": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "INTERN",
+                              "JUNIOR",
+                              "MID",
+                              "SENIOR",
+                              "TRAINEE"
+                            ],
+                            "example": "INTERN"
                           }
                         },
                         "required": [
@@ -99261,6 +99676,13 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "usernameChangeAvailableAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -99524,6 +99946,13 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "usernameChangeAvailableAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -99589,6 +100018,13 @@
                         "twitter": {
                           "type": "string",
                           "nullable": true
+                        },
+                        "usernameChangeAvailableAt": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time",
+                          "description": "When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).",
+                          "example": "2026-05-07T00:00:00.000Z"
                         },
                         "createdAt": {
                           "type": "string",
@@ -100214,6 +100650,13 @@
                       "type": "integer",
                       "minimum": 0,
                       "exclusiveMinimum": true
+                    },
+                    "cooldownDays": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "description": "Days a user must wait between username changes. The first change after sign-up is free.",
+                      "example": 30
                     }
                   },
                   "required": [
@@ -100222,7 +100665,8 @@
                     "endsWithPattern",
                     "forbiddenSubstring",
                     "minLength",
-                    "maxLength"
+                    "maxLength",
+                    "cooldownDays"
                   ]
                 }
               }

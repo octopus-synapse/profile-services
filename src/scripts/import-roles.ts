@@ -29,9 +29,16 @@
  * wins overlapping titles.
  */
 
-import { PrismaClient, type RoleTitleLang, type RoleTitleSource } from '@prisma/client';
+import {
+  PrismaClient,
+  type RoleSeniority,
+  type RoleTitleLang,
+  type RoleTitleSource,
+} from '@prisma/client';
 import { createPrismaClientOptions } from '../bounded-contexts/platform/prisma/prisma-client-options';
 import { foldRoleText } from '../bounded-contexts/roles/domain/services/role-search-ranking';
+import { generateCuratedRoleVariants } from './role-catalog/generate-role-variants';
+import { ROLE_CATALOG } from './role-catalog/role-catalog.data';
 
 const BATCH = 5000;
 const ONET_VERSION = process.env.ONET_DB_VERSION ?? 'db_30_1';
@@ -48,6 +55,10 @@ interface RoleTitleRow {
   source: RoleTitleSource;
   sourceId: string | null;
   isPreferred: boolean;
+  /** CURATED only — null for imported occupational titles. */
+  seniority?: RoleSeniority | null;
+  /** CURATED only — catalog key grouping this occupation's variants. */
+  baseRoleKey?: string | null;
 }
 
 function parseArgs(): { source: string } {
@@ -56,8 +67,8 @@ function parseArgs(): { source: string } {
     if (arg.startsWith('--source=')) source = arg.slice('--source='.length);
     else throw new Error(`unknown argument: ${arg}`);
   }
-  if (!['all', 'esco', 'cbo', 'onet'].includes(source)) {
-    throw new Error(`--source must be all|esco|cbo|onet, got "${source}"`);
+  if (!['all', 'esco', 'cbo', 'onet', 'curated'].includes(source)) {
+    throw new Error(`--source must be all|esco|cbo|onet|curated, got "${source}"`);
   }
   return { source };
 }
@@ -284,14 +295,37 @@ async function importOnet(): Promise<void> {
   await replaceSource('ONET', collect(rows));
 }
 
+/** Curated seniority variants (Estagiário/Júnior/Pleno/Sênior/Trainee + EN)
+ *  generated from the base catalog — the levels occupational taxonomies
+ *  don't model. Runs last so it only fills titles ESCO/CBO/O*NET lack. */
+async function importCurated(): Promise<void> {
+  const variants = generateCuratedRoleVariants(ROLE_CATALOG);
+  const rows: Array<Omit<RoleTitleRow, 'normalizedLabel'>> = variants.map((variant) => ({
+    label: variant.label,
+    lang: variant.lang,
+    source: 'CURATED',
+    // sourceId mirrors baseRoleKey so EN↔PT variants of one occupation share it.
+    sourceId: variant.baseRoleKey,
+    isPreferred: variant.isPreferred,
+    seniority: variant.seniority,
+    baseRoleKey: variant.baseRoleKey,
+  }));
+  console.log(
+    `  curated: ${ROLE_CATALOG.length} base occupations → ${rows.length} variant labels generated`,
+  );
+  await replaceSource('CURATED', collect(rows));
+}
+
 async function main(): Promise<void> {
   const { source } = parseArgs();
   console.log(`💼 Role-title import — source="${source}"`);
   // `all` runs in dedup-precedence order: ESCO rows carry the conceptUri,
-  // so they should own any title that also exists in CBO/O*NET.
+  // so they should own any title that also exists in CBO/O*NET. CURATED is
+  // last so it only adds the seniority variants the taxonomies lack.
   if (source === 'all' || source === 'esco') await importEsco();
   if (source === 'all' || source === 'cbo') await importCbo();
   if (source === 'all' || source === 'onet') await importOnet();
+  if (source === 'all' || source === 'curated') await importCurated();
   const counts = await prisma.roleTitle.groupBy({ by: ['source', 'lang'], _count: { _all: true } });
   for (const c of counts) console.log(`  ${c.source}/${c.lang}: ${c._count._all} titles`);
   console.log('✅ Role-title import complete.');

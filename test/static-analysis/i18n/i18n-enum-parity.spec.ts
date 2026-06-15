@@ -72,4 +72,59 @@ describe('i18n enum parity (@packages/i18n ENUM_DICTIONARY)', () => {
     }
     expect(gaps, `Empty enum translations:\n${gaps.join('\n')}`).toEqual([]);
   });
+
+  it('every value is actually translated (no en === pt-BR copies)', () => {
+    // Loanwords, acronyms and brand names that are genuinely identical in
+    // pt-BR. Anything NOT listed here that matches en === pt-BR is an
+    // untranslated copy — translate it, or justify it by adding the path here.
+    const IDENTICAL_ALLOWED = new Set<string>([
+      'AnalyticsEvent.DOWNLOAD',
+      'BadgeKind.ATS_90_PLUS',
+      'CollaboratorRole.EDITOR',
+      'DevicePlatform.ANDROID',
+      'DevicePlatform.IOS',
+      'DevicePlatform.WEB',
+      'ImportSource.DOCX',
+      'ImportSource.GITHUB',
+      'ImportSource.JSON',
+      'ImportSource.LINKEDIN',
+      'ImportSource.PDF',
+      'JobType.FREELANCE',
+      'PaymentCurrency.BRL',
+      'PaymentCurrency.EUR',
+      'PaymentCurrency.GBP',
+      'DegreeType.BOOTCAMP',
+      'LanguageLevel.A1',
+      'LanguageLevel.A2',
+      'LanguageLevel.B1',
+      'LanguageLevel.B2',
+      'LanguageLevel.C1',
+      'LanguageLevel.C2',
+      'PaymentCurrency.USD',
+      'RoleSeniority.TRAINEE',
+      'RoleTitleSource.CBO',
+      'RoleTitleSource.ESCO',
+      'RoleTitleSource.ONET',
+      'SkillType.FRAMEWORK',
+      'SkillType.SOFT_SKILL',
+      'TechAreaType.DESIGN',
+      'TechAreaType.DEVOPS',
+      'TechAreaType.QA',
+    ]);
+    const suspects: string[] = [];
+    for (const [name, entry] of Object.entries(ENUM_DICTIONARY)) {
+      for (const [value, msgs] of Object.entries(entry)) {
+        const m = msgs as Record<string, string>;
+        const path = `${name}.${value}`;
+        if (m.en === m['pt-BR'] && !IDENTICAL_ALLOWED.has(path)) {
+          suspects.push(`${path} = "${m.en}"`);
+        }
+      }
+    }
+    expect(
+      suspects,
+      `Untranslated enum values (en === pt-BR):\n${suspects.join('\n')}\n\n` +
+        `Translate the pt-BR value, or if it is a loanword/acronym/brand add the path to IDENTICAL_ALLOWED.`,
+    ).toEqual([]);
+  });
 });

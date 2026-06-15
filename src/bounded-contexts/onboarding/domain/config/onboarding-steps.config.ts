@@ -10,9 +10,8 @@
  * Section defaults: ./onboarding-section-defaults.config
  */
 
-import { SECTION_FALLBACK_LABELS } from '@/shared-kernel/i18n/section-fallback-labels.const';
 import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
-import { DEFAULT_SECTION_LABELS, SECTION_ORDER_KEYS } from './onboarding-section-defaults.config';
+import { SECTION_ORDER_KEYS } from './onboarding-section-defaults.config';
 import {
   buildStaticSteps,
   STATIC_STEPS_AFTER,
@@ -48,6 +47,13 @@ function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
       }
 
       const meta = (f.meta ?? {}) as Record<string, unknown>;
+      // Label comes from the locale-resolved definition: resolveFieldsForLocale
+      // flattens the translated label to the field root. No English meta.label
+      // fallback — a missing label means the resolver should have thrown.
+      const label = (f as { label?: unknown }).label;
+      if (typeof label !== 'string' || label.trim().length === 0) {
+        throw new Error(`[onboarding] field '${fieldKey}' has no resolved label for this locale`);
+      }
       let uiType: string;
       if (f.type === 'enum') uiType = 'select';
       else if (f.type === 'date') uiType = 'date';
@@ -60,7 +66,7 @@ function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
       return {
         key: fieldKey,
         type: uiType,
-        label: typeof meta.label === 'string' ? meta.label : fieldKey,
+        label,
         required: f.required ?? false,
         options: f.enum,
         widget: typeof meta.widget === 'string' ? meta.widget : undefined,
@@ -77,39 +83,33 @@ export function buildOnboardingSteps(
 
   const sectionSteps: StepMeta[] = SECTION_ORDER_KEYS.map((key) => {
     const dbData = sectionMap.get(key);
-    const fallback = DEFAULT_SECTION_LABELS[key];
-
-    const label = dbData?.label || fallback?.label || key;
-    const icon = dbData?.icon || fallback?.icon || '📄';
-    const noDataLabel =
-      dbData?.noDataLabel || fallback?.noDataLabel || SECTION_FALLBACK_LABELS.noDataLabel;
-    const placeholder =
-      dbData?.placeholder || fallback?.placeholder || SECTION_FALLBACK_LABELS.placeholder;
-    const addLabel = dbData?.addLabel || fallback?.addLabel || SECTION_FALLBACK_LABELS.addLabel;
-    const title = dbData?.title || key.replace(/_/g, ' ').replace('v1', '').trim();
-    const required = fallback?.required ?? false;
+    // No fallback: an onboarding section must exist in the catalog (and thus
+    // carry translations). A missing one is a BUG, not a key-as-label patch.
+    if (!dbData) {
+      throw new Error(
+        `[onboarding] section '${key}' is not in the section-type catalog. ` +
+          `Every SECTION_ORDER_KEY must be a seeded, translated section type.`,
+      );
+    }
 
     let fields: StepField[] | undefined;
-    if (dbData?.definition) {
-      try {
-        const def = dbData.definition as SectionDefinition;
-        if (def.fields && Array.isArray(def.fields)) fields = mapDefinitionToFields(def);
-      } catch {
-        // Fallback: no fields if definition is invalid
-      }
+    const def = dbData.definition as SectionDefinition | undefined;
+    if (def?.fields && Array.isArray(def.fields)) {
+      // Throws if a field has no resolved label — never swallowed.
+      fields = mapDefinitionToFields(def);
     }
 
     return {
       id: `section:${key}`,
-      label,
-      description: title,
-      required,
+      label: dbData.label,
+      description: dbData.title,
+      required: false,
       component: 'generic-section',
-      icon,
+      icon: dbData.icon,
       fields,
-      noDataLabel,
-      placeholder,
-      addLabel,
+      noDataLabel: dbData.noDataLabel,
+      placeholder: dbData.placeholder,
+      addLabel: dbData.addLabel,
     };
   });
 

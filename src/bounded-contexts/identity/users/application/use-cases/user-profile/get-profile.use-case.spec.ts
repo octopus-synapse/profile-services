@@ -41,8 +41,34 @@ describe('GetProfileUseCase', () => {
   it('returns the user profile for a valid userId', async () => {
     const result = await useCase.execute('user-1');
 
-    expect(result).toEqual(mockProfile);
+    // Never-changed username (no usernameUpdatedAt) → no cooldown applies.
+    expect(result).toEqual({ ...mockProfile, usernameChangeAvailableAt: null });
     expect(repository.findUserProfileById).toHaveBeenCalledWith('user-1');
+  });
+
+  it('derives a future usernameChangeAvailableAt while the cooldown is active', async () => {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    repository.findUserProfileById = mock(async () => ({
+      ...mockProfile,
+      usernameUpdatedAt: oneDayAgo,
+    }));
+
+    const result = await useCase.execute('user-1');
+
+    expect(result.usernameChangeAvailableAt).toBeInstanceOf(Date);
+    expect(result.usernameChangeAvailableAt!.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it('nulls usernameChangeAvailableAt once the cooldown has elapsed', async () => {
+    const longAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    repository.findUserProfileById = mock(async () => ({
+      ...mockProfile,
+      usernameUpdatedAt: longAgo,
+    }));
+
+    const result = await useCase.execute('user-1');
+
+    expect(result.usernameChangeAvailableAt).toBeNull();
   });
 
   it('throws EntityNotFoundException when user does not exist', async () => {

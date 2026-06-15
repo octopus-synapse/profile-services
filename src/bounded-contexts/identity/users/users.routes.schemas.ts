@@ -36,6 +36,10 @@ export const UserProfileResponseSchema = z.object({
   linkedin: z.string().nullable().optional(),
   github: z.string().nullable().optional(),
   twitter: z.string().nullable().optional(),
+  usernameChangeAvailableAt: IsoDateTimeSchema.nullable().optional().openapi({
+    description:
+      'When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).',
+  }),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });
@@ -73,6 +77,11 @@ export const UsernameRulesResponseSchema = z.object({
   forbiddenSubstring: z.string().openapi({ example: '__' }),
   minLength: z.number().int().positive(),
   maxLength: z.number().int().positive(),
+  cooldownDays: z.number().int().positive().openapi({
+    example: 30,
+    description:
+      'Days a user must wait between username changes. The first change after sign-up is free.',
+  }),
 });
 
 // POST /v1/users/username/validate — multi-error validation for client

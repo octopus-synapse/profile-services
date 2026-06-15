@@ -10,7 +10,11 @@ const StepFieldSchema = z.object({
   type: z.string(),
   label: z.string(),
   required: z.boolean(),
-  options: z.array(z.string()).optional(),
+  // Locale-resolved {value,label} pairs for enum fields (identical to the
+  // Profile sections endpoint) — the editor renders label, stores value.
+  options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+  // ENUM_DICTIONARY key, so the client can localize the saved value in cards.
+  enumName: z.string().optional(),
   widget: z.string().optional(),
   minLength: z.number().int().nonnegative().optional(),
   maxLength: z.number().int().positive().optional(),

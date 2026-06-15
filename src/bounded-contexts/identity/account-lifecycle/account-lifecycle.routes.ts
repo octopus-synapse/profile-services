@@ -18,11 +18,13 @@
  */
 
 import { z } from 'zod';
+import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ctxCookieWriter } from '../authentication/application/services/ctx-cookie-bridge';
 import {
   AcceptConsentRequestSchema,
   AcceptConsentResponseSchema,
+  AccountDeletionCodeSentResponseSchema,
   ConsentHistoryResponseSchema,
   ConsentStatusResponseSchema,
   CreateAccountResponseSchema,
@@ -30,9 +32,10 @@ import {
   MessageResponseSchema,
 } from './account-lifecycle.routes.schemas';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
+import { ConfirmAccountDeletionSchema } from './application/use-cases/confirm-account-deletion/confirm-account-deletion.schema';
 import { CreateAccountSchema } from './application/use-cases/create-account/create-account.schema';
 import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.schema';
-import { DeleteAccountSchema } from './application/use-cases/delete-account/delete-account.schema';
+import { RequestAccountDeletionSchema } from './application/use-cases/request-account-deletion/request-account-deletion.schema';
 import { toConsentHistoryResponseDto } from './infrastructure/presenters/get-consent-history.presenter';
 
 export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCases>> = [
@@ -110,33 +113,70 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     },
   },
   {
-    method: 'DELETE',
-    path: '/v1/accounts',
+    method: 'POST',
+    path: '/v1/accounts/delete/request',
     auth: { kind: 'jwt' },
-    body: DeleteAccountSchema,
+    body: RequestAccountDeletionSchema,
+    statusCode: 200,
     // SkipTosCheck — the user can't be forced to accept new TOS before
     // deleting their account (LGPD parity).
     guards: [
       { id: 'skip-tos-check' },
       // P0-#8 follow-up: rate-limit re-auth attempts.
       { id: 'rate-limit', metadata: { points: 3, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
     ],
-    response: MessageResponseSchema,
+    response: AccountDeletionCodeSentResponseSchema,
     openapi: {
-      summary: 'Delete account permanently',
+      summary: 'Request account deletion (step 1, code-confirmed)',
       tags: ['account-lifecycle'],
       description:
-        'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT" ' +
-        'AND the current password (re-authentication gate to prevent stolen-cookie deletes).',
+        'Validates the confirmation phrase "DELETE MY ACCOUNT" AND the current password ' +
+        '(re-authentication gate to prevent stolen-cookie deletes), then emails a 6-digit ' +
+        'code. The account is only erased after POST /v1/accounts/delete/confirm.',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const body = ctx.body as { confirmationPhrase: string; currentPassword: string };
-      await bc.deleteAccount.execute({
+      const result = await bc.requestAccountDeletion.execute({
         userId: ctx.user!.userId,
         confirmationPhrase: body.confirmationPhrase,
         currentPassword: body.currentPassword,
       });
+      // Extra fields beyond `{ code }` make the mounter skip message rendering,
+      // so localize inline (mirrors the password-change /request route).
+      const { message } = renderSuccessMessageForRequest(
+        { code: 'ACCOUNT_DELETION_CODE_SENT' },
+        ctx.headers['accept-language'],
+      );
+      return {
+        code: 'ACCOUNT_DELETION_CODE_SENT' as const,
+        message,
+        cooldownSeconds: result.cooldownSeconds,
+        testCode: result.testCode,
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/accounts/delete/confirm',
+    auth: { kind: 'jwt' },
+    body: ConfirmAccountDeletionSchema,
+    guards: [
+      { id: 'skip-tos-check' },
+      { id: 'rate-limit', metadata: { points: 3, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
+    response: MessageResponseSchema,
+    openapi: {
+      summary: 'Confirm account deletion (step 2, code-confirmed)',
+      tags: ['account-lifecycle'],
+      description: 'Permanently erases the account after verifying the emailed 6-digit code.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { code: string };
+      await bc.confirmAccountDeletion.execute({ userId: ctx.user!.userId, code: body.code });
       return { code: 'ACCOUNT_DELETED' as const };
     },
   },

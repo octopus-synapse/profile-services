@@ -568,6 +568,10 @@
       "en": "Invalid two-factor authentication code",
       "pt-BR": "Código de autenticação de dois fatores inválido"
     },
+    "INVALID_ACCOUNT_DELETION_CODE": {
+      "en": "The confirmation code is invalid or has expired",
+      "pt-BR": "O código de confirmação é inválido ou expirou"
+    },
     "INVALID_APPLICATION_STATE": {
       "en": "Application state does not allow this transition",
       "pt-BR": "O estado da candidatura não permite essa transição"
@@ -587,6 +591,10 @@
     "INVALID_EMAIL_CHANGE_CODE": {
       "en": "The confirmation code is invalid or has expired",
       "pt-BR": "O código de confirmação é inválido ou expirou"
+    },
+    "INVALID_EMPLOYMENT_TYPE_FOR_INTERN_ROLE": {
+      "en": "Internship roles must use the Internship employment type, not \"{employmentType}\"",
+      "pt-BR": "Cargos de estágio precisam usar o tipo Estágio, não \"{employmentType}\""
     },
     "INVALID_FILE_TYPE": {
       "en": "Invalid file type",
@@ -1772,6 +1780,36 @@
         "pt-BR": "Termos de serviço"
       }
     },
+    "DegreeType": {
+      "HIGH_SCHOOL": {
+        "en": "High School",
+        "pt-BR": "Ensino Médio"
+      },
+      "TECHNICAL": {
+        "en": "Technical",
+        "pt-BR": "Técnico"
+      },
+      "BACHELOR": {
+        "en": "Bachelor's",
+        "pt-BR": "Bacharelado"
+      },
+      "MASTER": {
+        "en": "Master's",
+        "pt-BR": "Mestrado"
+      },
+      "DOCTORATE": {
+        "en": "Doctorate",
+        "pt-BR": "Doutorado"
+      },
+      "BOOTCAMP": {
+        "en": "Bootcamp",
+        "pt-BR": "Bootcamp"
+      },
+      "SELF_TAUGHT": {
+        "en": "Self-taught",
+        "pt-BR": "Autodidata"
+      }
+    },
     "DevicePlatform": {
       "ANDROID": {
         "en": "Android",
@@ -1802,6 +1840,24 @@
       "WEEKLY": {
         "en": "Weekly",
         "pt-BR": "Semanal"
+      }
+    },
+    "EducationStatus": {
+      "IN_PROGRESS": {
+        "en": "In Progress",
+        "pt-BR": "Em andamento"
+      },
+      "COMPLETED": {
+        "en": "Completed",
+        "pt-BR": "Concluído"
+      },
+      "PAUSED": {
+        "en": "Paused",
+        "pt-BR": "Pausado"
+      },
+      "DROPPED": {
+        "en": "Dropped",
+        "pt-BR": "Trancado"
       }
     },
     "EmailDeliveryMode": {
@@ -2070,6 +2126,36 @@
         "pt-BR": "Voluntário"
       }
     },
+    "LanguageLevel": {
+      "A1": {
+        "en": "A1",
+        "pt-BR": "A1"
+      },
+      "A2": {
+        "en": "A2",
+        "pt-BR": "A2"
+      },
+      "B1": {
+        "en": "B1",
+        "pt-BR": "B1"
+      },
+      "B2": {
+        "en": "B2",
+        "pt-BR": "B2"
+      },
+      "C1": {
+        "en": "C1",
+        "pt-BR": "C1"
+      },
+      "C2": {
+        "en": "C2",
+        "pt-BR": "C2"
+      },
+      "NATIVE": {
+        "en": "Native",
+        "pt-BR": "Nativo"
+      }
+    },
     "LayoutKind": {
       "SINGLE_COLUMN": {
         "en": "Single column",
@@ -2214,6 +2300,20 @@
         "pt-BR": "Habilidade enferrujando"
       }
     },
+    "OpenSourceRole": {
+      "MAINTAINER": {
+        "en": "Maintainer",
+        "pt-BR": "Mantenedor"
+      },
+      "CONTRIBUTOR": {
+        "en": "Contributor",
+        "pt-BR": "Contribuidor"
+      },
+      "CREATOR": {
+        "en": "Creator",
+        "pt-BR": "Criador"
+      }
+    },
     "PaymentCurrency": {
       "BRL": {
         "en": "BRL",
@@ -2274,6 +2374,28 @@
         "pt-BR": "Revisada"
       }
     },
+    "RoleSeniority": {
+      "INTERN": {
+        "en": "Intern",
+        "pt-BR": "Estagiário"
+      },
+      "JUNIOR": {
+        "en": "Junior",
+        "pt-BR": "Júnior"
+      },
+      "MID": {
+        "en": "Mid-level",
+        "pt-BR": "Pleno"
+      },
+      "SENIOR": {
+        "en": "Senior",
+        "pt-BR": "Sênior"
+      },
+      "TRAINEE": {
+        "en": "Trainee",
+        "pt-BR": "Trainee"
+      }
+    },
     "RoleTitleLang": {
       "EN": {
         "en": "English",
@@ -2296,6 +2418,28 @@
       "ONET": {
         "en": "O*NET",
         "pt-BR": "O*NET"
+      },
+      "CURATED": {
+        "en": "Curated",
+        "pt-BR": "Curado"
+      }
+    },
+    "Severity": {
+      "LOW": {
+        "en": "Low",
+        "pt-BR": "Baixa"
+      },
+      "MEDIUM": {
+        "en": "Medium",
+        "pt-BR": "Média"
+      },
+      "HIGH": {
+        "en": "High",
+        "pt-BR": "Alta"
+      },
+      "CRITICAL": {
+        "en": "Critical",
+        "pt-BR": "Crítica"
       }
     },
     "SkillProficiency": {
@@ -2415,6 +2559,10 @@
       }
     },
     "VerificationPurpose": {
+      "ACCOUNT_DELETION": {
+        "en": "Account deletion",
+        "pt-BR": "Exclusão de conta"
+      },
       "EMAIL_CHANGE": {
         "en": "Email change",
         "pt-BR": "Alteração de e-mail"

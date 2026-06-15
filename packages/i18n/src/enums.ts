@@ -207,6 +207,43 @@ export const ENUM_DICTIONARY = {
     PART_TIME: { en: 'Part-time', 'pt-BR': 'Meio período' },
     VOLUNTEER: { en: 'Volunteer', 'pt-BR': 'Voluntário' },
   },
+  // Resume-section content enums (stored in SectionItem.content JSON; see
+  // prisma/schema/section-enums.prisma). Labels render the editor pills.
+  LanguageLevel: {
+    A1: { en: 'A1', 'pt-BR': 'A1' },
+    A2: { en: 'A2', 'pt-BR': 'A2' },
+    B1: { en: 'B1', 'pt-BR': 'B1' },
+    B2: { en: 'B2', 'pt-BR': 'B2' },
+    C1: { en: 'C1', 'pt-BR': 'C1' },
+    C2: { en: 'C2', 'pt-BR': 'C2' },
+    NATIVE: { en: 'Native', 'pt-BR': 'Nativo' },
+  },
+  DegreeType: {
+    HIGH_SCHOOL: { en: 'High School', 'pt-BR': 'Ensino Médio' },
+    TECHNICAL: { en: 'Technical', 'pt-BR': 'Técnico' },
+    BACHELOR: { en: "Bachelor's", 'pt-BR': 'Bacharelado' },
+    MASTER: { en: "Master's", 'pt-BR': 'Mestrado' },
+    DOCTORATE: { en: 'Doctorate', 'pt-BR': 'Doutorado' },
+    BOOTCAMP: { en: 'Bootcamp', 'pt-BR': 'Bootcamp' },
+    SELF_TAUGHT: { en: 'Self-taught', 'pt-BR': 'Autodidata' },
+  },
+  EducationStatus: {
+    IN_PROGRESS: { en: 'In Progress', 'pt-BR': 'Em andamento' },
+    COMPLETED: { en: 'Completed', 'pt-BR': 'Concluído' },
+    PAUSED: { en: 'Paused', 'pt-BR': 'Pausado' },
+    DROPPED: { en: 'Dropped', 'pt-BR': 'Trancado' },
+  },
+  OpenSourceRole: {
+    MAINTAINER: { en: 'Maintainer', 'pt-BR': 'Mantenedor' },
+    CONTRIBUTOR: { en: 'Contributor', 'pt-BR': 'Contribuidor' },
+    CREATOR: { en: 'Creator', 'pt-BR': 'Criador' },
+  },
+  Severity: {
+    LOW: { en: 'Low', 'pt-BR': 'Baixa' },
+    MEDIUM: { en: 'Medium', 'pt-BR': 'Média' },
+    HIGH: { en: 'High', 'pt-BR': 'Alta' },
+    CRITICAL: { en: 'Critical', 'pt-BR': 'Crítica' },
+  },
   MecSyncStatus: {
     FAILED: { en: 'Failed', 'pt-BR': 'Falhou' },
     PARTIAL: { en: 'Partial', 'pt-BR': 'Parcial' },
@@ -273,6 +310,13 @@ export const ENUM_DICTIONARY = {
     PENDING: { en: 'Pending', 'pt-BR': 'Pendente' },
     REVIEWED: { en: 'Reviewed', 'pt-BR': 'Revisada' },
   },
+  RoleSeniority: {
+    INTERN: { en: 'Intern', 'pt-BR': 'Estagiário' },
+    JUNIOR: { en: 'Junior', 'pt-BR': 'Júnior' },
+    MID: { en: 'Mid-level', 'pt-BR': 'Pleno' },
+    SENIOR: { en: 'Senior', 'pt-BR': 'Sênior' },
+    TRAINEE: { en: 'Trainee', 'pt-BR': 'Trainee' },
+  },
   RoleTitleLang: {
     EN: { en: 'English', 'pt-BR': 'Inglês' },
     PT: { en: 'Portuguese', 'pt-BR': 'Português' },
@@ -282,6 +326,7 @@ export const ENUM_DICTIONARY = {
     CBO: { en: 'CBO', 'pt-BR': 'CBO' },
     ESCO: { en: 'ESCO', 'pt-BR': 'ESCO' },
     ONET: { en: 'O*NET', 'pt-BR': 'O*NET' },
+    CURATED: { en: 'Curated', 'pt-BR': 'Curado' },
   },
   LayoutKind: {
     SINGLE_COLUMN: { en: 'Single column', 'pt-BR': 'Coluna única' },
@@ -369,6 +414,7 @@ export const ENUM_DICTIONARY = {
     },
   },
   VerificationPurpose: {
+    ACCOUNT_DELETION: { en: 'Account deletion', 'pt-BR': 'Exclusão de conta' },
     EMAIL_CHANGE: { en: 'Email change', 'pt-BR': 'Alteração de e-mail' },
     EMAIL_VERIFY: { en: 'Email verification', 'pt-BR': 'Verificação de e-mail' },
     PASSWORD_CHANGE: { en: 'Password change', 'pt-BR': 'Alteração de senha' },

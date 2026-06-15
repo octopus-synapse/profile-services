@@ -5,4 +5,5 @@ export {
   AccountDeletionRequiresConfirmationException,
   ConsentRequiredException,
   ConsentVersionMismatchException,
+  InvalidAccountDeletionCodeException,
 } from './account-lifecycle.exceptions';

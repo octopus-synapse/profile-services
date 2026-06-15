@@ -1,0 +1,51 @@
+// Canonical enums for resume-section content fields (stored as SCREAMING_CASE
+// strings inside SectionItem.content JSON, not as table columns). They exist
+// here so they're the single source of truth for the values AND so the i18n
+// ENUM_DICTIONARY parity (discoverPrismaEnums) can require pt-BR/en labels for
+// each value. The section-definition seed lists the same values per field and
+// tags the field with `meta.enumName`; the locale resolver renders the labels.
+
+/// CEFR proficiency for language_v1.level.
+enum LanguageLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+  NATIVE
+}
+
+/// education_v1.degreeType.
+enum DegreeType {
+  HIGH_SCHOOL
+  TECHNICAL
+  BACHELOR
+  MASTER
+  DOCTORATE
+  BOOTCAMP
+  SELF_TAUGHT
+}
+
+/// education_v1.status.
+enum EducationStatus {
+  IN_PROGRESS
+  COMPLETED
+  PAUSED
+  DROPPED
+}
+
+/// open_source_v1.role.
+enum OpenSourceRole {
+  MAINTAINER
+  CONTRIBUTOR
+  CREATOR
+}
+
+/// bug_bounty_v1.severity.
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

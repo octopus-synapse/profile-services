@@ -39,6 +39,24 @@ export const AcceptConsentRequestSchema = z
 // ─── Response schemas ────────────────────────────────────────────────
 export const MessageResponseSchema = z.object({ message: z.string() });
 
+// Step 1 of the code-confirmed account deletion returns the resend cooldown
+// (and, in non-prod BYPASS_2FA, the issued code) — mirrors the credential-change
+// code-sent responses.
+export const AccountDeletionCodeSentResponseSchema = z
+  .object({
+    code: z.string().optional(),
+    message: z
+      .string()
+      .optional()
+      .openapi({ description: 'Localized confirmation that a code was sent.' }),
+    cooldownSeconds: z.number().int().openapi({ description: 'Seconds before a resend is allowed.' }),
+    testCode: z
+      .string()
+      .optional()
+      .openapi({ description: 'Non-production only (BYPASS_2FA): the issued code.' }),
+  })
+  .openapi('AccountDeletionCodeSentResponse');
+
 // POST /v1/accounts handler returns userId/email. The httpOnly session
 // cookie carries auth — tokens are intentionally NOT exposed in the body
 // (P2 hardening: prevents XSS exfiltration of bearer tokens).

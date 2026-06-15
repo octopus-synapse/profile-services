@@ -63,6 +63,11 @@ export interface ResolvedSectionType {
 export interface FieldDefinition {
   key?: string;
   type: string;
+  /** Canonical SCREAMING_CASE values for an enum field (Zod validates these). */
+  enum?: string[];
+  /** Locale-resolved {value,label} pairs the resolver injects for enum fields
+   *  carrying `meta.enumName` — the editor renders the label, stores the value. */
+  options?: Array<{ value: string; label: string }>;
   meta?: {
     label?: string;
     placeholder?: string;

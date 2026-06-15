@@ -396,14 +396,28 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should delete user account', async () => {
-      // DELETE /v1/accounts requer re-auth com currentPassword (DeleteAccountSchema).
-      await app.request
-        .delete('/api/v1/accounts')
+      // Two-step, code-confirmed deletion: request (re-auth with phrase +
+      // currentPassword) issues a 6-digit code, then confirm erases the account.
+      const request = await app.request
+        .post('/api/v1/accounts/delete/request')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           confirmationPhrase: 'DELETE MY ACCOUNT',
           currentPassword: testUser.password,
         })
+        .expect(200);
+      expect(request.status).toBe(200);
+
+      const pending = await prisma.emailVerificationToken.findFirst({
+        where: { email: testUser.email, purpose: 'ACCOUNT_DELETION' },
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(pending).not.toBeNull();
+
+      await app.request
+        .post('/api/v1/accounts/delete/confirm')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ code: pending!.token })
         .expect(200);
 
       // Verify user can't login (accepts 401 Unauthorized or 500 if user lookup fails)

@@ -312,8 +312,9 @@ export async function clearAuthRateLimits(): Promise<void> {
     // in the codebase historically; we clear both to be safe.
     clearRateLimitState('*:POST:/v1/auth/reset-password'),
     clearRateLimitState('*:POST:/v1/auth/forgot-password'),
-    // DELETE /v1/accounts re-auth gate: 3/60s per userId.
-    clearRateLimitState('*:DELETE:/v1/accounts'),
+    // Account-deletion re-auth gate: 3/60s per userId (two-step flow).
+    clearRateLimitState('*:POST:/v1/accounts/delete/request'),
+    clearRateLimitState('*:POST:/v1/accounts/delete/confirm'),
   ]);
 }
 

@@ -55,6 +55,7 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
         portfolio: true,
         linkedin: true,
         github: true,
+        usernameUpdatedAt: true,
         createdAt: true,
         updatedAt: true,
       },

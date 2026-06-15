@@ -220,25 +220,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     },
   },
 
-  volunteer_v1: {
-    en: {
-      title: 'Volunteer Experience',
-      description: 'Volunteer work and community service',
-      label: 'volunteer',
-      noDataLabel: "I don't have volunteer experience to add",
-      placeholder: 'Add your volunteer experience...',
-      addLabel: 'Add Volunteer Experience',
-    },
-    'pt-BR': {
-      title: 'Trabalho Voluntário',
-      description: 'Trabalho voluntário e serviço comunitário',
-      label: 'voluntariado',
-      noDataLabel: 'Não tenho experiência voluntária para adicionar',
-      placeholder: 'Adicione seu trabalho voluntário...',
-      addLabel: 'Adicionar Voluntariado',
-    },
-  },
-
   open_source_v1: {
     en: {
       title: 'Open Source Contributions',
@@ -422,7 +403,6 @@ export const sectionTypeIcons: Record<string, { iconType: 'emoji' | 'lucide'; ic
   project_v1: { iconType: 'lucide', icon: 'rocket' },
   publication_v1: { iconType: 'lucide', icon: 'book-open' },
   award_v1: { iconType: 'lucide', icon: 'trophy' },
-  volunteer_v1: { iconType: 'lucide', icon: 'heart-handshake' },
   open_source_v1: { iconType: 'lucide', icon: 'git-branch' },
   bug_bounty_v1: { iconType: 'lucide', icon: 'bug' },
   hackathon_v1: { iconType: 'lucide', icon: 'medal' },

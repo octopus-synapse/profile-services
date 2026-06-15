@@ -96,4 +96,28 @@ describe('i18n notification parity (@packages/i18n NOTIFICATION_DICTIONARY)', ()
     }
     expect(drifts, `Locale placeholder drift:\n${drifts.join('\n')}`).toEqual([]);
   });
+
+  it('every title/body is actually translated (no en === pt-BR copies)', () => {
+    // No legitimate identical notification copy today.
+    const IDENTICAL_ALLOWED = new Set<string>([]);
+    const suspects: string[] = [];
+    for (const [code, tpl] of Object.entries(NOTIFICATION_DICTIONARY)) {
+      if (
+        (tpl.title.en as string) === (tpl.title['pt-BR'] as string) &&
+        !IDENTICAL_ALLOWED.has(`${code}.title`)
+      ) {
+        suspects.push(`${code}.title = "${tpl.title.en}"`);
+      }
+      if (
+        (tpl.body.en as string) === (tpl.body['pt-BR'] as string) &&
+        !IDENTICAL_ALLOWED.has(`${code}.body`)
+      ) {
+        suspects.push(`${code}.body = "${tpl.body.en}"`);
+      }
+    }
+    expect(
+      suspects,
+      `Untranslated notification copy (en === pt-BR):\n${suspects.join('\n')}`,
+    ).toEqual([]);
+  });
 });

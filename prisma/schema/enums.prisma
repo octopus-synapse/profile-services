@@ -147,12 +147,14 @@ enum NotificationType {
 }
 
 // Purpose of a single-use email verification code. One token model serves
-// email verification (signup), email change, and password change — the
-// purpose discriminates the flow and gates which pending payload is applied.
+// email verification (signup), email change, password change, and account
+// deletion — the purpose discriminates the flow and gates which pending
+// payload is applied.
 enum VerificationPurpose {
   EMAIL_VERIFY
   EMAIL_CHANGE
   PASSWORD_CHANGE
+  ACCOUNT_DELETION
 }
 
 // Who can see a user's public profile. Replaces the legacy free-string

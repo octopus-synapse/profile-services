@@ -89,6 +89,15 @@
     "PRIVACY_POLICY",
     "TERMS_OF_SERVICE"
   ],
+  "DegreeType": [
+    "BACHELOR",
+    "BOOTCAMP",
+    "DOCTORATE",
+    "HIGH_SCHOOL",
+    "MASTER",
+    "SELF_TAUGHT",
+    "TECHNICAL"
+  ],
   "DevicePlatform": [
     "ANDROID",
     "IOS",
@@ -99,6 +108,12 @@
     "MONTHLY",
     "NEVER",
     "WEEKLY"
+  ],
+  "EducationStatus": [
+    "COMPLETED",
+    "DROPPED",
+    "IN_PROGRESS",
+    "PAUSED"
   ],
   "EmailDeliveryMode": [
     "DAILY",
@@ -180,6 +195,15 @@
     "PART_TIME",
     "VOLUNTEER"
   ],
+  "LanguageLevel": [
+    "A1",
+    "A2",
+    "B1",
+    "B2",
+    "C1",
+    "C2",
+    "NATIVE"
+  ],
   "LayoutKind": [
     "DOUBLE_COLUMN",
     "SINGLE_COLUMN"
@@ -225,6 +249,11 @@
     "RESUME_QUALITY_REGRESSED",
     "SKILL_DECAY"
   ],
+  "OpenSourceRole": [
+    "CONTRIBUTOR",
+    "CREATOR",
+    "MAINTAINER"
+  ],
   "PaymentCurrency": [
     "BRL",
     "EUR",
@@ -246,14 +275,28 @@
     "PENDING",
     "REVIEWED"
   ],
+  "RoleSeniority": [
+    "INTERN",
+    "JUNIOR",
+    "MID",
+    "SENIOR",
+    "TRAINEE"
+  ],
   "RoleTitleLang": [
     "EN",
     "PT"
   ],
   "RoleTitleSource": [
     "CBO",
+    "CURATED",
     "ESCO",
     "ONET"
+  ],
+  "Severity": [
+    "CRITICAL",
+    "HIGH",
+    "LOW",
+    "MEDIUM"
   ],
   "SkillProficiency": [
     "ADVANCED",
@@ -291,6 +334,7 @@
     "SECURITY"
   ],
   "VerificationPurpose": [
+    "ACCOUNT_DELETION",
     "EMAIL_CHANGE",
     "EMAIL_VERIFY",
     "PASSWORD_CHANGE"

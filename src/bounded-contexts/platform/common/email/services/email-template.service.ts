@@ -125,4 +125,17 @@ export class EmailTemplateService {
       html,
     });
   }
+
+  /**
+   * Send the 6-digit code that confirms an account-deletion request. Delivered
+   * to the user's current address (re-proving control before erasure).
+   */
+  async sendAccountDeletionCode(email: string, name: string, code: string): Promise<void> {
+    const html = getChangeCodeTemplate({ name, code, actionLabel: 'excluir sua conta' });
+    await this.senderService.sendEmail({
+      to: email,
+      subject: 'Confirme a exclusão da conta - Patch Careers',
+      html,
+    });
+  }
 }

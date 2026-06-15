@@ -39,4 +39,25 @@ describe('i18n static-step parity (@packages/i18n STATIC_STEP_DICTIONARY)', () =
   it('STATIC_STEP_DICTIONARY is non-empty', () => {
     expect(Object.keys(STATIC_STEP_DICTIONARY).length).toBeGreaterThan(0);
   });
+
+  it('every label/description is actually translated (no en === pt-BR copies)', () => {
+    // No legitimate identical step copy today.
+    const IDENTICAL_ALLOWED = new Set<string>([]);
+    const suspects: string[] = [];
+    for (const [id, localeMap] of Object.entries(STATIC_STEP_DICTIONARY)) {
+      const en = localeMap.en;
+      const pt = localeMap['pt-BR'];
+      if (!en || !pt) continue;
+      for (const field of ['label', 'description'] as const) {
+        const path = `${id}.${field}`;
+        if (en[field] === pt[field] && !IDENTICAL_ALLOWED.has(path)) {
+          suspects.push(`${path} = "${en[field]}"`);
+        }
+      }
+    }
+    expect(
+      suspects,
+      `Untranslated step copy (en === pt-BR):\n${suspects.join('\n')}`,
+    ).toEqual([]);
+  });
 });

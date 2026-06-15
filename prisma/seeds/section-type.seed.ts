@@ -115,7 +115,7 @@ export const sectionTypes: SectionTypeSeedData[] = [
           required: true,
           semanticRole: 'PROFICIENCY',
           enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'NATIVE'],
-          meta: { label: 'CEFR Level' },
+          meta: { label: 'CEFR Level', enumName: 'LanguageLevel' },
         },
       ],
       ats: {
@@ -191,13 +191,28 @@ export const sectionTypes: SectionTypeSeedData[] = [
           semanticRole: 'JOB_TITLE',
           meta: { label: 'Role' },
         },
+        // Set by the role autocomplete when a curated seniority title is
+        // picked (RoleTitle.seniority). Hidden: never an input field. The
+        // client uses INTERN to auto-lock employmentType to Internship, and
+        // the GenericSectionValidationService enforces the same invariant.
+        {
+          key: 'roleSeniority',
+          type: 'enum',
+          required: false,
+          nullable: true,
+          semanticRole: 'SENIORITY_LEVEL',
+          // Raw RoleSeniority values (RoleTitle.seniority / SDK) — this is a
+          // machine-set hidden field, so no display mapping is needed.
+          enum: ['INTERN', 'JUNIOR', 'MID', 'SENIOR', 'TRAINEE'],
+          meta: { label: 'Seniority Level', hidden: true, enumName: 'RoleSeniority' },
+        },
         {
           key: 'employmentType',
           type: 'enum',
           required: false,
           semanticRole: 'EMPLOYMENT_TYPE',
-          enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Volunteer'],
-          meta: { label: 'Employment Type' },
+          enum: ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE', 'VOLUNTEER'],
+          meta: { label: 'Employment Type', enumName: 'JobType' },
         },
         {
           key: 'startDate',
@@ -413,15 +428,15 @@ export const sectionTypes: SectionTypeSeedData[] = [
           required: false,
           semanticRole: 'DEGREE_TYPE',
           enum: [
-            'High School',
-            'Technical',
-            'Bachelor',
-            'Master',
-            'Doctorate',
-            'Bootcamp',
-            'Self-taught',
+            'HIGH_SCHOOL',
+            'TECHNICAL',
+            'BACHELOR',
+            'MASTER',
+            'DOCTORATE',
+            'BOOTCAMP',
+            'SELF_TAUGHT',
           ],
-          meta: { label: 'Degree Type' },
+          meta: { label: 'Degree Type', enumName: 'DegreeType' },
         },
         {
           key: 'startDate',
@@ -443,8 +458,8 @@ export const sectionTypes: SectionTypeSeedData[] = [
           type: 'enum',
           required: false,
           semanticRole: 'STATUS',
-          enum: ['In Progress', 'Completed', 'Paused', 'Dropped'],
-          meta: { label: 'Status' },
+          enum: ['IN_PROGRESS', 'COMPLETED', 'PAUSED', 'DROPPED'],
+          meta: { label: 'Status', enumName: 'EducationStatus' },
         },
         {
           key: 'description',
@@ -1040,8 +1055,8 @@ export const sectionTypes: SectionTypeSeedData[] = [
           type: 'enum',
           required: true,
           semanticRole: 'CONTRIBUTION_TYPE',
-          enum: ['Maintainer', 'Contributor', 'Creator'],
-          meta: { label: 'Role' },
+          enum: ['MAINTAINER', 'CONTRIBUTOR', 'CREATOR'],
+          meta: { label: 'Role', enumName: 'OpenSourceRole' },
         },
         {
           key: 'description',
@@ -1112,8 +1127,8 @@ export const sectionTypes: SectionTypeSeedData[] = [
           type: 'enum',
           required: false,
           semanticRole: 'SEVERITY',
-          enum: ['Low', 'Medium', 'High', 'Critical'],
-          meta: { label: 'Severity' },
+          enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+          meta: { label: 'Severity', enumName: 'Severity' },
         },
         {
           key: 'date',
@@ -1361,9 +1376,18 @@ export async function seedSectionTypes(prisma: PrismaClient) {
   for (const sectionType of sectionTypes) {
     const { key, renderHints, fieldStyles, ...restData } = sectionType;
 
-    // Get icon and translations from the translation file
+    // Get icon and translations from the translation file. Icons have a
+    // generic default (not i18n), but translations must NOT fall back — a
+    // catalog section type without a translation entry is a BUG.
     const iconData = sectionTypeIcons[key] ?? { iconType: 'emoji', icon: '📄' };
-    const translations = sectionTypeTranslations[key] ?? {};
+    const translations = sectionTypeTranslations[key];
+    if (!translations) {
+      throw new Error(
+        `[section-type-translations] '${key}' has no translation entry. ` +
+          `Every catalog section type must be translated for all locales — no fallback. ` +
+          `Add it to prisma/seeds/section-type-translations.ts.`,
+      );
+    }
 
     // Inject field-level translations into definition
     const enrichedDefinition = injectFieldTranslations(

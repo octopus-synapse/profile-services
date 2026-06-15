@@ -21,13 +21,16 @@ import { accountLifecycleRoutes } from './account-lifecycle.routes';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
 import {
   AcceptConsentUseCase,
+  type AccountDeletionCodeEmailPort,
+  ConfirmAccountDeletionUseCase,
   CreateAccountUseCase,
   DeactivateAccountUseCase,
-  DeleteAccountUseCase,
   GetConsentHistoryUseCase,
   GetConsentStatusUseCase,
+  RequestAccountDeletionUseCase,
 } from './application/use-cases';
 import { ExportDataUseCase } from './application/use-cases/export-data/export-data.use-case';
+import { PrismaEmailVerificationRepository } from '../email-verification/infrastructure/adapters/persistence/email-verification.repository';
 import {
   AuditLoggerAdapter,
   BcryptPasswordHasher,
@@ -45,6 +48,9 @@ export function buildAccountLifecycleUseCases(
   config: ConfigPort,
   eventBus: EventBusPort,
   createSession: CreateSessionPort,
+  // Real platform EmailService satisfies this structurally — used to deliver
+  // the account-deletion confirmation code (two-step flow).
+  emailService: AccountDeletionCodeEmailPort,
   logger: LoggerPort,
 ): AccountLifecycleUseCases {
   const repository = new PrismaAccountLifecycleRepository(prisma);
@@ -55,6 +61,9 @@ export function buildAccountLifecycleUseCases(
   const auditLogger = new AuditLoggerAdapter(auditLog, logger);
   const consentRepo = new PrismaConsentRepository(prisma, logger);
   const versionConfig = new ConfigVersionAdapter(config);
+  // Reuse the shared 6-digit-code engine (same EmailVerificationToken table) as
+  // the deletion code store — structural conformance, no duplicate adapter.
+  const codeStore = new PrismaEmailVerificationRepository(prisma);
 
   const acceptConsent = new AcceptConsentUseCase(consentRepo, versionConfig, auditLogger, logger);
   const getConsentStatus = new GetConsentStatusUseCase(consentRepo, versionConfig, logger);
@@ -68,14 +77,28 @@ export function buildAccountLifecycleUseCases(
     logger,
   );
   const deactivateAccount = new DeactivateAccountUseCase(repository, eventBus, logger);
-  const deleteAccount = new DeleteAccountUseCase(repository, passwordHasher, eventBus, logger);
+  const requestAccountDeletion = new RequestAccountDeletionUseCase(
+    repository,
+    passwordHasher,
+    codeStore,
+    emailService,
+    config.env,
+    logger,
+  );
+  const confirmAccountDeletion = new ConfirmAccountDeletionUseCase(
+    repository,
+    codeStore,
+    eventBus,
+    logger,
+  );
   const exportData = new ExportDataUseCase(dataExportRepo, auditLogger, logger);
 
   return {
     createAccount,
     createSession,
     deactivateAccount,
-    deleteAccount,
+    requestAccountDeletion,
+    confirmAccountDeletion,
     acceptConsent,
     getConsentStatus,
     getConsentHistory,
@@ -89,6 +112,7 @@ export function buildAccountLifecycleComposition(
   config: ConfigPort,
   eventBus: EventBusPort,
   createSession: CreateSessionPort,
+  emailService: AccountDeletionCodeEmailPort,
   logger: LoggerPort,
 ): BoundedContextComposition<AccountLifecycleUseCases> {
   const useCases = buildAccountLifecycleUseCases(
@@ -97,6 +121,7 @@ export function buildAccountLifecycleComposition(
     config,
     eventBus,
     createSession,
+    emailService,
     logger,
   );
 

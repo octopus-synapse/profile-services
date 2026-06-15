@@ -90,6 +90,13 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
+  ACCOUNT_DELETION_CODE_SENT: {
+    message: {
+      en: 'We sent a confirmation code to your email.',
+      'pt-BR': 'Enviamos um código de confirmação para o seu e-mail.',
+    },
+    params: [],
+  },
   EMAIL_CHANGED: {
     message: {
       en: 'Your email has been changed successfully.',

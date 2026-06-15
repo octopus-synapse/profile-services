@@ -1,5 +1,6 @@
 export * from './duplicated-section-field-key.exception';
 export * from './export-engine-unavailable.exception';
+export * from './invalid-employment-type-for-intern-role.exception';
 export * from './invalid-section-type-definition.exception';
 export * from './primary-resume-required.exception';
 export * from './resume-access-denied.exception';

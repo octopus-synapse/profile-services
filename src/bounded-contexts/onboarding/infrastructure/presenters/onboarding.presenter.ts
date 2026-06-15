@@ -83,32 +83,51 @@ function inferUiType(fieldType: string, widget: unknown): string {
   return 'text';
 }
 
-function buildFieldsFromSectionDefinition(def: SectionDefinition) {
-  const out: Array<{
-    key: string;
-    type: string;
-    label: string;
-    required: boolean;
-    widget: string | undefined;
-    options: string[] | undefined;
-    examples: string[] | undefined;
-    minLength: number | undefined;
-    maxLength: number | undefined;
-  }> = [];
-  for (const f of def.fields ?? []) {
+interface FieldOut {
+  key: string;
+  type: string;
+  label: string;
+  required: boolean;
+  widget: string | undefined;
+  options: Array<{ value: string; label: string }> | undefined;
+  enumName: string | undefined;
+  examples: string[] | undefined;
+  minLength: number | undefined;
+  maxLength: number | undefined;
+}
+
+/** Shape the resolver emits per field (label flattened, options localized). */
+interface ResolvedField {
+  key?: string;
+  type: string;
+  label?: string;
+  required?: boolean;
+  options?: Array<{ value: string; label: string }>;
+  meta?: { widget?: unknown; hidden?: unknown; enumName?: unknown };
+}
+
+/**
+ * Build the editor fields for a section-backed step. The definition arrives
+ * ALREADY locale-resolved from SectionTypeDefinitionAdapter (the same shared
+ * resolver the Profile sections endpoint uses) — translated labels flattened
+ * to the field root + localized enum {value,label} pairs — so onboarding and
+ * Profile render identically. We only flatten that into the editor field shape.
+ */
+function buildFieldsFromSectionDefinition(def: SectionDefinition): FieldOut[] {
+  const out: FieldOut[] = [];
+  for (const f of (def.fields ?? []) as ResolvedField[]) {
     if (!f.key) continue;
     if (f.type === 'array' || f.type === 'object') continue;
-    const meta = (f.meta ?? {}) as Record<string, unknown>;
-    // Derived-only fields (e.g. companyDomain) carry data but never render.
-    if (meta.hidden === true) continue;
-    const uiType = inferUiType(f.type, meta.widget);
+    // Derived-only fields (e.g. companyDomain, roleSeniority) never render.
+    if (f.meta?.hidden === true) continue;
     out.push({
       key: f.key,
-      type: uiType,
-      label: typeof meta.label === 'string' ? meta.label : f.key,
+      type: inferUiType(f.type, f.meta?.widget),
+      label: f.label ?? f.key,
       required: f.required ?? false,
-      widget: typeof meta.widget === 'string' ? meta.widget : undefined,
-      options: f.enum,
+      widget: typeof f.meta?.widget === 'string' ? f.meta.widget : undefined,
+      options: f.options,
+      enumName: typeof f.meta?.enumName === 'string' ? f.meta.enumName : undefined,
       examples: undefined,
       minLength: undefined,
       maxLength: undefined,
@@ -120,18 +139,8 @@ function buildFieldsFromSectionDefinition(def: SectionDefinition) {
 function buildFieldsFromStep(
   step: OnboardingStepConfig,
   translations: { fieldLabels?: Record<string, string> },
-) {
-  const out: Array<{
-    key: string;
-    type: string;
-    label: string;
-    required: boolean;
-    widget: string | undefined;
-    options: string[] | undefined;
-    examples: string[] | undefined;
-    minLength: number | undefined;
-    maxLength: number | undefined;
-  }> = [];
+): FieldOut[] {
+  const out: FieldOut[] = [];
   for (const f of step.fields) {
     out.push({
       key: f.key,
@@ -140,6 +149,7 @@ function buildFieldsFromStep(
       required: f.required,
       widget: f.widget,
       options: undefined,
+      enumName: undefined,
       examples: f.examples,
       minLength: step.validation.minLength?.[f.key],
       maxLength: step.validation.maxLength?.[f.key],

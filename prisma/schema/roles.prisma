@@ -14,11 +14,26 @@ enum RoleTitleSource {
   ESCO
   CBO
   ONET
+  /// Hand-curated seniority variants generated from the role catalog
+  /// (Estagiário/Júnior/Pleno/Sênior/Trainee · Intern/Junior/Senior…).
+  CURATED
 }
 
 enum RoleTitleLang {
   EN
   PT
+}
+
+/// Seniority level a CURATED title encodes. Null for imported
+/// occupational titles (ESCO/CBO/O*NET model the occupation, not the
+/// vínculo). INTERN is the only level the employment-type invariant
+/// pins to INTERNSHIP; TRAINEE is CLT and does NOT pin.
+enum RoleSeniority {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+  TRAINEE
 }
 
 model RoleTitle {
@@ -32,7 +47,15 @@ model RoleTitle {
   sourceId        String?
   /// true = preferredLabel / título oficial; false = altLabel / sinônimo.
   isPreferred     Boolean         @default(false)
+  /// CURATED only: the seniority level this title encodes (null for
+  /// imported occupational titles).
+  seniority       RoleSeniority?
+  /// CURATED only: catalog key of the base occupation this variant was
+  /// generated from — groups every PT/EN variant of one occupation and
+  /// carries the EN↔PT mapping without a join table.
+  baseRoleKey     String?
 
   @@unique([lang, normalizedLabel])
   @@index([lang])
+  @@index([baseRoleKey])
 }

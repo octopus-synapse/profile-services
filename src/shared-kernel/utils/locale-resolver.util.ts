@@ -8,7 +8,6 @@
  * Types: ./locale-resolver.types
  */
 
-import { SECTION_FALLBACK_LABELS } from '../i18n/section-fallback-labels.const';
 import { resolveFieldsForLocale } from './field-translation.helpers';
 import {
   DEFAULT_LOCALE,
@@ -53,24 +52,30 @@ export function parseLocale(locale: string | undefined): Locale {
  * Resolve translation for a specific locale with fallback chain:
  * 1. Requested locale, 2. English ('en'), 3. First available, 4. Empty.
  */
+/**
+ * Resolve a section type's translation for a locale. No fallback: a section
+ * type served without a translation for the requested locale is a BUG (drift
+ * between the catalog and prisma/seeds/section-type-translations.ts), so this
+ * throws instead of returning empty strings or the English copy. The seed-time
+ * validation and the i18n parity specs are the first lines of defence.
+ */
 export function resolveTranslation(
   translations: TranslationsJson | null | undefined,
   locale: Locale,
+  sectionKeyHint = '(unknown section)',
 ): SectionTypeTranslation {
-  const empty: SectionTypeTranslation = {
-    title: '',
-    description: '',
-    label: '',
-    noDataLabel: '',
-    placeholder: '',
-    addLabel: '',
-  };
-  if (!translations || typeof translations !== 'object') return empty;
-  if (translations[locale]) return translations[locale];
-  if (translations.en) return translations.en;
-  const firstKey = Object.keys(translations)[0];
-  if (firstKey && translations[firstKey]) return translations[firstKey];
-  return empty;
+  if (!translations || typeof translations !== 'object') {
+    throw new Error(
+      `[i18n] Section type '${sectionKeyHint}' has no translations. No fallback.`,
+    );
+  }
+  const entry = translations[locale];
+  if (!entry) {
+    throw new Error(
+      `[i18n] Section type '${sectionKeyHint}' has no translation for locale '${locale}'. No fallback.`,
+    );
+  }
+  return entry;
 }
 
 /** Resolve a SectionType from DB to frontend-ready format. */
@@ -99,7 +104,19 @@ export function resolveSectionTypeForLocale(
   locale: Locale,
 ): ResolvedSectionType {
   const translations = sectionType.translations as TranslationsJson | null;
-  const resolved = resolveTranslation(translations, locale);
+  const resolved = resolveTranslation(translations, locale, sectionType.key);
+
+  // No fallback: every user-facing string comes straight from the translation.
+  // A missing/empty one is a BUG caught by the i18n parity specs + seed
+  // validation, not patched over with English or a hardcoded default.
+  const requireField = (value: string | undefined, field: string): string => {
+    if (!value || value.trim().length === 0) {
+      throw new Error(
+        `[i18n] Section type '${sectionType.key}' is missing '${field}' for locale '${locale}'. No fallback.`,
+      );
+    }
+    return value;
+  };
 
   return {
     id: sectionType.id,
@@ -107,12 +124,12 @@ export function resolveSectionTypeForLocale(
     slug: sectionType.slug,
     semanticKind: sectionType.semanticKind,
     version: sectionType.version,
-    title: resolved.title || sectionType.title,
-    description: resolved.description || sectionType.description || '',
-    label: resolved.label || sectionType.key,
-    noDataLabel: resolved.noDataLabel || SECTION_FALLBACK_LABELS.noDataLabel,
-    placeholder: resolved.placeholder || SECTION_FALLBACK_LABELS.placeholder,
-    addLabel: resolved.addLabel || SECTION_FALLBACK_LABELS.addLabel,
+    title: requireField(resolved.title, 'title'),
+    description: requireField(resolved.description, 'description'),
+    label: requireField(resolved.label, 'label'),
+    noDataLabel: requireField(resolved.noDataLabel, 'noDataLabel'),
+    placeholder: requireField(resolved.placeholder, 'placeholder'),
+    addLabel: requireField(resolved.addLabel, 'addLabel'),
     iconType: sectionType.iconType,
     icon: sectionType.icon,
     isActive: sectionType.isActive,
