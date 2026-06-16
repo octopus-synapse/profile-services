@@ -19,7 +19,7 @@ jobs:
       service-name: "profile-backend"
       deploy-path: "/opt/profile-services"
       has-database: true
-      required-env-vars: "DATABASE_URL,JWT_SECRET,SENDGRID_API_KEY,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"
+      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"
     secrets:
       NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
@@ -38,8 +38,13 @@ jobs:
         REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
         JWT_SECRET="${{ secrets.JWT_SECRET }}"
         JWT_EXPIRATION=7d
-        SENDGRID_API_KEY="${{ secrets.SENDGRID_API_KEY }}"
-        SENDGRID_EMAIL_FROM="${{ secrets.SENDGRID_EMAIL_FROM }}"
+        SMTP_HOST=smtp.resend.com
+        SMTP_PORT=465
+        SMTP_SECURE=true
+        SMTP_USER=resend
+        SMTP_PASS="${{ secrets.RESEND_API_KEY }}"
+        EMAIL_FROM=noreply@patchcareers.org
+        EMAIL_FROM_NAME="Patch Careers"
         MINIO_ENDPOINT="${{ secrets.MINIO_ENDPOINT }}"
         MINIO_ACCESS_KEY="${{ secrets.MINIO_ACCESS_KEY }}"
         MINIO_SECRET_KEY="${{ secrets.MINIO_SECRET_KEY }}"

@@ -9337,11 +9337,60 @@
                         "nullable": true
                       }
                     },
-                    "atsSafetyBreakdown": {
+                    "styleScoreBreakdown": {
                       "type": "object",
-                      "additionalProperties": {
-                        "type": "number"
-                      }
+                      "properties": {
+                        "buckets": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "number"
+                          }
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "severity": {
+                                "type": "string",
+                                "enum": [
+                                  "low",
+                                  "medium",
+                                  "high"
+                                ]
+                              },
+                              "bucket": {
+                                "type": "string"
+                              },
+                              "messageArgs": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "severity",
+                              "bucket"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "buckets",
+                        "issues"
+                      ]
                     },
                     "previewImages": {
                       "type": "array",
@@ -9368,7 +9417,7 @@
                     "version",
                     "styleConfig",
                     "sectionStyles",
-                    "atsSafetyBreakdown",
+                    "styleScoreBreakdown",
                     "previewImages",
                     "authorId"
                   ]
@@ -9809,11 +9858,60 @@
                         "nullable": true
                       }
                     },
-                    "atsSafetyBreakdown": {
+                    "styleScoreBreakdown": {
                       "type": "object",
-                      "additionalProperties": {
-                        "type": "number"
-                      }
+                      "properties": {
+                        "buckets": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "number"
+                          }
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "severity": {
+                                "type": "string",
+                                "enum": [
+                                  "low",
+                                  "medium",
+                                  "high"
+                                ]
+                              },
+                              "bucket": {
+                                "type": "string"
+                              },
+                              "messageArgs": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "severity",
+                              "bucket"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "buckets",
+                        "issues"
+                      ]
                     },
                     "previewImages": {
                       "type": "array",
@@ -9840,7 +9938,7 @@
                     "version",
                     "styleConfig",
                     "sectionStyles",
-                    "atsSafetyBreakdown",
+                    "styleScoreBreakdown",
                     "previewImages",
                     "authorId"
                   ]
@@ -18252,188 +18350,10 @@
         "x-permission": "user:manage"
       }
     },
-    "/api/v1/analytics/{resumeId}/ats-score": {
-      "get": {
-        "summary": "Subscribe to live ATS stream",
-        "description": "Streams only ATS-score updates for a resume.",
-        "tags": [
-          "resume-analytics"
-        ],
-        "operationId": "get_v1_analytics_resumeId_ats_score",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "example": "01900000-0000-7000-a000-000000000010"
-            },
-            "required": true,
-            "name": "resumeId",
-            "in": "path",
-            "example": "01900000-0000-7000-a000-000000000010"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt",
-        "x-permission": "analytics:read_own"
-      }
-    },
     "/api/v1/analytics/{resumeId}/live": {
       "get": {
         "summary": "Subscribe to live analytics stream",
-        "description": "Streams view and ATS score updates for a resume in real time.",
+        "description": "Streams view updates for a resume in real time.",
         "tags": [
           "resume-analytics"
         ],
@@ -65396,11 +65316,60 @@
                         "nullable": true
                       }
                     },
-                    "atsSafetyBreakdown": {
+                    "styleScoreBreakdown": {
                       "type": "object",
-                      "additionalProperties": {
-                        "type": "number"
-                      }
+                      "properties": {
+                        "buckets": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "number"
+                          }
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "severity": {
+                                "type": "string",
+                                "enum": [
+                                  "low",
+                                  "medium",
+                                  "high"
+                                ]
+                              },
+                              "bucket": {
+                                "type": "string"
+                              },
+                              "messageArgs": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "severity",
+                              "bucket"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "buckets",
+                        "issues"
+                      ]
                     },
                     "previewImages": {
                       "type": "array",
@@ -65427,7 +65396,7 @@
                     "version",
                     "styleConfig",
                     "sectionStyles",
-                    "atsSafetyBreakdown",
+                    "styleScoreBreakdown",
                     "previewImages",
                     "authorId"
                   ]
@@ -65797,11 +65766,19 @@
                               "name": {
                                 "type": "string",
                                 "example": "Swiss Minimal"
+                              },
+                              "styleScore": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "description": "The template's Style Score (0-100, ATS-safety of the visual design).",
+                                "example": 100
                               }
                             },
                             "required": [
                               "id",
-                              "name"
+                              "name",
+                              "styleScore"
                             ],
                             "description": "Active visual style (template) of the resume."
                           }
@@ -72852,11 +72829,19 @@
                         },
                         "description": {
                           "type": "string"
+                        },
+                        "styleScore": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "description": "The template's Style Score (0-100, ATS-safety of the visual design).",
+                          "example": 100
                         }
                       },
                       "required": [
                         "id",
-                        "name"
+                        "name",
+                        "styleScore"
                       ]
                     },
                     "fullName": {
@@ -73270,273 +73255,6 @@
         },
         "x-auth": "jwt",
         "x-permission": "resume:update"
-      }
-    },
-    "/api/v1/resumes/{resumeId}/analytics/ats-score": {
-      "get": {
-        "summary": "Calculate ATS compatibility score",
-        "description": "Resume Analytics API",
-        "tags": [
-          "resume-analytics"
-        ],
-        "operationId": "get_v1_resumes_resumeId_analytics_ats_score",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "example": "01900000-0000-7000-a000-000000000010"
-            },
-            "required": true,
-            "name": "resumeId",
-            "in": "path",
-            "example": "01900000-0000-7000-a000-000000000010"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "score": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 100
-                    },
-                    "sectionBreakdown": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "sectionKind": {
-                            "type": "string"
-                          },
-                          "sectionTypeKey": {
-                            "type": "string"
-                          },
-                          "score": {
-                            "type": "integer"
-                          }
-                        },
-                        "required": [
-                          "sectionKind",
-                          "sectionTypeKey",
-                          "score"
-                        ]
-                      }
-                    },
-                    "issues": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "code": {
-                            "type": "string"
-                          },
-                          "severity": {
-                            "type": "string",
-                            "enum": [
-                              "low",
-                              "medium",
-                              "high"
-                            ]
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "context": {
-                            "type": "object",
-                            "properties": {
-                              "sectionKind": {
-                                "type": "string"
-                              },
-                              "missingFields": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              }
-                            }
-                          }
-                        },
-                        "required": [
-                          "code",
-                          "severity",
-                          "message"
-                        ]
-                      }
-                    },
-                    "recommendations": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": [
-                    "score",
-                    "sectionBreakdown",
-                    "issues",
-                    "recommendations"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt",
-        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/benchmark": {
@@ -78237,11 +77955,19 @@
                         },
                         "description": {
                           "type": "string"
+                        },
+                        "styleScore": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "description": "The template's Style Score (0-100, ATS-safety of the visual design).",
+                          "example": 100
                         }
                       },
                       "required": [
                         "id",
-                        "name"
+                        "name",
+                        "styleScore"
                       ]
                     },
                     "fullName": {
@@ -78494,6 +78220,9 @@
                               "high"
                             ]
                           },
+                          "message": {
+                            "type": "string"
+                          },
                           "messageArgs": {
                             "type": "object",
                             "additionalProperties": {
@@ -78536,7 +78265,8 @@
                         },
                         "required": [
                           "code",
-                          "severity"
+                          "severity",
+                          "message"
                         ]
                       }
                     },
@@ -78791,6 +78521,9 @@
                               "high"
                             ]
                           },
+                          "message": {
+                            "type": "string"
+                          },
                           "messageArgs": {
                             "type": "object",
                             "additionalProperties": {
@@ -78833,7 +78566,8 @@
                         },
                         "required": [
                           "code",
-                          "severity"
+                          "severity",
+                          "message"
                         ]
                       }
                     },

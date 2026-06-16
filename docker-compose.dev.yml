@@ -162,7 +162,6 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       APP_URL: ${APP_URL:-http://localhost:13001}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:13001}
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       # Hardcode the mailpit service hostname — the host's `.env` may have
       # `SMTP_HOST=localhost` for the non-docker dev run, and compose's
       # `${VAR:-default}` picks that up, but inside the docker network the

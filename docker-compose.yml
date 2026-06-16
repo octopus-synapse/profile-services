@@ -56,8 +56,17 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      SENDGRID_EMAIL_FROM: ${SENDGRID_EMAIL_FROM}
+      # Email — transactional SENDING via Resend over SMTP (nodemailer).
+      # Inbound mail (mail@/support@/noreply@patchcareers.org) is a separate
+      # self-hosted docker-mailserver on the VPS; the app only sends.
+      # SMTP_PASS carries the Resend API key (SMTP_USER is the literal "resend").
+      SMTP_HOST: ${SMTP_HOST:-smtp.resend.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-resend}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@patchcareers.org}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Patch Careers}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
