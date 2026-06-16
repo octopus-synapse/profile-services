@@ -18,7 +18,10 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { SnapshotRepositoryPort } from '../../../application/ports/resume-analytics.port';
+import {
+  type LatestResumeScore,
+  SnapshotRepositoryPort,
+} from '../../../application/ports/resume-analytics.port';
 import type { AnalyticsSnapshot } from '../../../interfaces';
 
 interface QualityHistoryRow {
@@ -92,5 +95,16 @@ export class PrismaSnapshotRepository implements SnapshotRepositoryPort {
       select: { computedAt: true, overallScore: true },
     });
     return rows.map((r) => ({ date: r.computedAt.toISOString(), score: r.overallScore }));
+  }
+
+  async getLatest(resumeId: string): Promise<LatestResumeScore | null> {
+    const row = await this.prisma.resumeQualityScoreHistory.findFirst({
+      where: { resumeId },
+      orderBy: { computedAt: 'desc' },
+      select: { overallScore: true, completenessScore: true },
+    });
+    return row
+      ? { overallScore: row.overallScore, completenessScore: row.completenessScore }
+      : null;
   }
 }

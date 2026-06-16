@@ -220,6 +220,10 @@ export const EnvConfigSchema = z
     OPENAI_MAX_TOKENS: PositiveIntString.optional(),
     OPENAI_SCORING_MODEL: z.string().optional(),
     OPENAI_SCORING_MAX_TOKENS: PositiveIntString.optional(),
+    // Price (USD-micros per 1k tokens) for the scoring model, used to
+    // populate ResumeQualityScoreHistory.costUsdMicros. Optional — unset
+    // leaves cost tracking at 0.
+    OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
     OPENAI_EMBEDDING_MODEL: z.string().optional(),
     // Translation reuses OPENAI_MODEL but caps output tokens separately —
     // single-call resume translations need more headroom than tailor/extract.

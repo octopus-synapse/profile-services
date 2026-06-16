@@ -4,6 +4,8 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 const IssueSchema = z.object({
   code: z.string(),
   severity: z.enum(['low', 'medium', 'high']),
+  /** Localised candidate-facing label rendered from `code`. */
+  message: z.string(),
   messageArgs: z.record(z.unknown()).optional(),
   freeformMessage: z.string().optional(),
   context: z

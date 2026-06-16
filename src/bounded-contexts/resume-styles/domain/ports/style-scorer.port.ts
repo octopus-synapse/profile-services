@@ -1,20 +1,16 @@
 /**
  * Style Scorer Port — abstraction for computing a ResumeStyle's
- * ATS-safety score. In the MVP the implementation is deterministic
- * (layout / typography / file-level rules); see docs/scoring/README.md
- * for the rubric.
+ * ATS-safety Style Score (0-100) from its design config.
  *
- * The real implementation is wired in the resume-styles/ infrastructure
- * layer. No cross-bounded-context coupling.
+ * The real implementation (data-driven, catalog-backed) lives in the
+ * resume-styles/ infrastructure layer. No cross-bounded-context coupling.
  */
 
-export interface StyleScoreBreakdown {
-  layout: number;
-  typography: number;
-  fileLevel: number;
-}
+import type { StyleScoreInput, StyleScoreResult } from '../types';
 
 export abstract class StyleScorerPort {
-  abstract score(styleConfig: Record<string, unknown>): StyleScoreBreakdown;
-  abstract calculateOverallScore(breakdown: StyleScoreBreakdown): number;
+  /** Compute the overall score, per-bucket breakdown and the actionable
+   * issues for every failed criterion. Async because the rubric criteria
+   * are loaded from the tunable catalog. */
+  abstract score(input: StyleScoreInput): Promise<StyleScoreResult>;
 }

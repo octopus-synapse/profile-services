@@ -7,9 +7,9 @@ import {
   ResumeStyleRepositoryPort,
 } from '../../../domain/ports/resume-style.repository.port';
 import type {
-  AtsSafetyBreakdown,
   CreateStyleInput,
   StyleDetail,
+  StyleScoreBreakdownData,
   StyleSummary,
   UpdateStylePatch,
 } from '../../../domain/types';
@@ -21,7 +21,7 @@ type StyleRow = {
   authorId: string;
   version: number;
   styleScore: number;
-  atsSafetyBreakdown: Prisma.JsonValue;
+  styleScoreBreakdown: Prisma.JsonValue;
   layoutKind: LayoutKind;
   typstTemplate: string;
   styleConfig: Prisma.JsonValue;
@@ -77,7 +77,7 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
   }
 
   async create(
-    input: CreateStyleInput & { styleScore: number; atsSafetyBreakdown: Record<string, number> },
+    input: CreateStyleInput & { styleScore: number; styleScoreBreakdown: StyleScoreBreakdownData },
   ): Promise<StyleDetail> {
     const row = await this.prisma.resumeStyle.create({
       data: {
@@ -89,7 +89,7 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
         styleConfig: input.styleConfig as Prisma.InputJsonValue,
         sectionStyles: (input.sectionStyles ?? {}) as Prisma.InputJsonValue,
         styleScore: input.styleScore,
-        atsSafetyBreakdown: input.atsSafetyBreakdown as Prisma.InputJsonValue,
+        styleScoreBreakdown: input.styleScoreBreakdown as unknown as Prisma.InputJsonValue,
         isSystem: false,
       },
     });
@@ -98,7 +98,10 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
 
   async update(
     id: string,
-    patch: UpdateStylePatch & { styleScore?: number; atsSafetyBreakdown?: Record<string, number> },
+    patch: UpdateStylePatch & {
+      styleScore?: number;
+      styleScoreBreakdown?: StyleScoreBreakdownData;
+    },
   ): Promise<StyleDetail> {
     const data: Prisma.ResumeStyleUpdateInput = {};
     if (patch.name !== undefined) data.name = patch.name;
@@ -112,8 +115,8 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
       data.sectionStyles = patch.sectionStyles as Prisma.InputJsonValue;
     }
     if (patch.styleScore !== undefined) data.styleScore = patch.styleScore;
-    if (patch.atsSafetyBreakdown !== undefined) {
-      data.atsSafetyBreakdown = patch.atsSafetyBreakdown as Prisma.InputJsonValue;
+    if (patch.styleScoreBreakdown !== undefined) {
+      data.styleScoreBreakdown = patch.styleScoreBreakdown as unknown as Prisma.InputJsonValue;
     }
     // Bump version on every admin update so the historyJson timeline
     // stays consistent with the row's mutation count.
@@ -154,12 +157,16 @@ function toSummary(row: StyleRow): StyleSummary {
 }
 
 function toDetail(row: StyleRow): StyleDetail {
+  const breakdown = (row.styleScoreBreakdown ?? {}) as Partial<StyleScoreBreakdownData>;
   return {
     ...toSummary(row),
     version: row.version,
     styleConfig: (row.styleConfig ?? {}) as Record<string, unknown>,
     sectionStyles: (row.sectionStyles ?? {}) as Record<string, unknown>,
-    atsSafetyBreakdown: (row.atsSafetyBreakdown ?? {}) as AtsSafetyBreakdown,
+    styleScoreBreakdown: {
+      buckets: breakdown.buckets ?? {},
+      issues: breakdown.issues ?? [],
+    },
     previewImages: row.previewImages,
     authorId: row.authorId,
   };

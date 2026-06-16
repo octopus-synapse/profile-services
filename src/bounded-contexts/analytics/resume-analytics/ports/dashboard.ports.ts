@@ -22,4 +22,8 @@ export abstract class ViewTrackingPort {
  */
 export abstract class SnapshotPort {
   abstract getScoreProgression(resumeId: string, days: number): Promise<ScoreProgressionPoint[]>;
+  /** Latest persisted Resume Quality score for the resume (null if none). */
+  abstract getLatest(
+    resumeId: string,
+  ): Promise<{ overallScore: number; completenessScore: number } | null>;
 }

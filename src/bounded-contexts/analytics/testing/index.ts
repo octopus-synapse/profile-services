@@ -14,7 +14,6 @@
 export * from '../resume-analytics/testing/in-memory-dashboard';
 export * from '../search/testing/in-memory-search.service';
 export * from '../share-analytics/testing/in-memory-share-analytics.repository';
-export * from './in-memory-ats-score.repository';
 export * from './in-memory-benchmark.repository';
 export * from './in-memory-snapshot.repository';
 export * from './in-memory-view-tracking.repository';
@@ -25,7 +24,6 @@ import {
 } from '../resume-analytics/testing/in-memory-dashboard';
 import { InMemorySearchService } from '../search/testing/in-memory-search.service';
 import { InMemoryShareAnalyticsRepository } from '../share-analytics/testing/in-memory-share-analytics.repository';
-import { InMemoryATSScoreRepository } from './in-memory-ats-score.repository';
 import { InMemoryBenchmarkRepository } from './in-memory-benchmark.repository';
 import { InMemorySnapshotRepository } from './in-memory-snapshot.repository';
 import { InMemoryViewTrackingRepository } from './in-memory-view-tracking.repository';
@@ -35,7 +33,6 @@ import { InMemoryViewTrackingRepository } from './in-memory-view-tracking.reposi
  */
 export function createAnalyticsTestingModule() {
   return {
-    atsScoreRepo: new InMemoryATSScoreRepository(),
     benchmarkRepo: new InMemoryBenchmarkRepository(),
     snapshotRepo: new InMemorySnapshotRepository(),
     viewTrackingRepo: new InMemoryViewTrackingRepository(),

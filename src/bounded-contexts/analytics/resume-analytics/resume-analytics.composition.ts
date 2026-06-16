@@ -17,7 +17,7 @@
  * the BC is added to the POC.
  */
 
-import { map, merge } from 'rxjs';
+import { map } from 'rxjs';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
@@ -37,7 +37,6 @@ import {
 import { AnalyticsRecorder } from '../application/handlers/resume-created.handler';
 import { ViewTracker } from '../application/handlers/resume-updated.handler';
 import type { AnalyticsProjectionPort } from '../application/ports/analytics-projection.port';
-import { PrismaAtsScoreCatalogRepository } from './infrastructure/adapters/persistence/ats-score-catalog.repository';
 import { PrismaBenchmarkRepository } from './infrastructure/adapters/persistence/benchmark.repository';
 import { EventEmitterAnalyticsEventBusAdapter } from './infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
 import { PrismaSnapshotRepository } from './infrastructure/adapters/persistence/snapshot.repository';
@@ -47,7 +46,6 @@ import {
   type AnalyticsUpdateEvent,
   resumeAnalyticsRoutes,
 } from './resume-analytics.routes';
-import { ATSScoreService } from './services/ats-score.service';
 import { BenchmarkService } from './services/benchmark.service';
 import { DashboardService } from './services/dashboard.service';
 import { KeywordAnalysisService } from './services/keyword-analysis.service';
@@ -85,35 +83,21 @@ export interface ResumeAnalyticsComposition
  */
 export function buildAnalyticsSseBundle(sseStream: SseStreamPort): AnalyticsSseBundle {
   return {
-    subscribeToResumeAnalytics: (resumeId) => {
-      const viewEvents = sseStream.subscribe<AnalyticsUpdateEvent>(`analytics:${resumeId}:view`);
-      const atsScoreEvents = sseStream.subscribe<AnalyticsUpdateEvent>(
-        `analytics:${resumeId}:ats_score`,
-      );
-      return merge(viewEvents, atsScoreEvents).pipe(
+    subscribeToResumeAnalytics: (resumeId) =>
+      sseStream.subscribe<AnalyticsUpdateEvent>(`analytics:${resumeId}:view`).pipe(
         map(({ data: event }) => ({
           data: event,
           id: `${resumeId}-${Date.now()}`,
           type: event.type,
           retry: 10000,
         })),
-      );
-    },
+      ),
     subscribeToViews: (resumeId) =>
       sseStream.subscribe<AnalyticsUpdateEvent>(`analytics:${resumeId}:view`).pipe(
         map(({ data: event }) => ({
           data: event,
           id: `${resumeId}-view-${Date.now()}`,
           type: 'view',
-          retry: 10000,
-        })),
-      ),
-    subscribeToAtsScore: (resumeId) =>
-      sseStream.subscribe<AnalyticsUpdateEvent>(`analytics:${resumeId}:ats_score`).pipe(
-        map(({ data: event }) => ({
-          data: event,
-          id: `${resumeId}-ats-${Date.now()}`,
-          type: 'ats_score',
           retry: 10000,
         })),
       ),
@@ -132,26 +116,23 @@ export function buildResumeAnalyticsFacade(
   config: ConfigPort,
 ): ResumeAnalyticsFacade {
   const analyticsEventBus = new EventEmitterAnalyticsEventBusAdapter(sseStream);
-  const catalogRepo = new PrismaAtsScoreCatalogRepository(prisma);
   const benchmarkRepo = new PrismaBenchmarkRepository(prisma);
   const snapshotRepo = new PrismaSnapshotRepository(prisma);
   const viewTrackingRepo = new PrismaViewTrackingRepository(prisma);
 
   const viewTracking = new ViewTrackingService(viewTrackingRepo, analyticsEventBus, config);
-  const atsScore = new ATSScoreService(catalogRepo, analyticsEventBus);
   const keywordAnalysis = new KeywordAnalysisService();
   const benchmark = new BenchmarkService(benchmarkRepo);
   const snapshot = new SnapshotService(snapshotRepo);
-  // Dashboard uses ViewTrackingPort/AtsScoringPort/SnapshotPort which the
-  // *Service classes structurally satisfy (the legacy Nest module wired
-  // these via `useExisting`; structural typing keeps that contract here).
-  const dashboard = new DashboardService(viewTracking, atsScore, snapshot);
+  // Dashboard uses ViewTrackingPort/SnapshotPort which the *Service classes
+  // structurally satisfy. The resume score it surfaces is read from the
+  // persisted Resume Quality history via the snapshot repo (no on-demand
+  // ATS computation anymore).
+  const dashboard = new DashboardService(viewTracking, snapshot);
 
   return new ResumeAnalyticsFacade(
     prisma,
-    eventPublisher,
     viewTracking,
-    atsScore,
     keywordAnalysis,
     benchmark,
     snapshot,

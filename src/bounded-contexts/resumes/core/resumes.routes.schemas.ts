@@ -197,6 +197,10 @@ export const ResumeListItemSchema = ResumeBaseSchema.extend({
     .object({
       id: z.string().openapi({ example: '01900000-0000-7000-a000-000000000042' }),
       name: z.string().openapi({ example: 'Swiss Minimal' }),
+      styleScore: z.number().int().min(0).max(100).openapi({
+        description: "The template's Style Score (0-100, ATS-safety of the visual design).",
+        example: 100,
+      }),
     })
     .optional()
     .openapi({ description: 'Active visual style (template) of the resume.' }),
@@ -244,6 +248,10 @@ export const ResumeStyleRefSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
+  styleScore: z.number().int().min(0).max(100).openapi({
+    description: "The template's Style Score (0-100, ATS-safety of the visual design).",
+    example: 100,
+  }),
 });
 
 export const ResumeFullResponseSchema = ResumeBaseSchema.extend({

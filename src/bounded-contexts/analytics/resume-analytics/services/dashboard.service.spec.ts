@@ -4,10 +4,8 @@
  * Pure tests using in-memory implementations (no mocks).
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { AtsScoringPort } from '../application/ports/facade.ports';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import type { ResumeForAnalytics } from '../domain/types';
-import type { ATSScoreResult } from '../interfaces';
 import { InMemorySnapshot, InMemoryViewTracking } from '../testing';
 import { DashboardService } from './dashboard.service';
 
@@ -16,52 +14,18 @@ describe('DashboardService', () => {
   let viewTracking: InMemoryViewTracking;
   let snapshot: InMemorySnapshot;
 
-  const mockAtsScoreResult: ATSScoreResult = {
-    score: 85,
-    sectionBreakdown: [
-      { sectionKind: 'SKILLS', sectionTypeKey: 'skill_v1', score: 80 },
-      { sectionKind: 'WORK_EXPERIENCE', sectionTypeKey: 'work_experience_v1', score: 90 },
-    ],
-    issues: [],
-    recommendations: ['Add more keywords'],
-  };
-
-  const mockAtsScore: AtsScoringPort = { calculate: mock(async () => mockAtsScoreResult) };
-
   const mockResume: ResumeForAnalytics = {
     summary: 'Experienced developer',
     phone: '+1234567890',
-    sections: [
-      {
-        id: 'section-skills',
-        semanticKind: 'SKILLS',
-        items: [
-          { id: '1', content: { name: 'JavaScript' } },
-          { id: '2', content: { name: 'React' } },
-        ],
-      },
-      {
-        id: 'section-experience',
-        semanticKind: 'WORK_EXPERIENCE',
-        items: [
-          {
-            id: '3',
-            content: {
-              description: 'Developed web applications',
-              startDate: '2020-01-01',
-              endDate: '2023-01-01',
-            },
-          },
-        ],
-      },
-    ],
+    jobTitle: 'Engineer',
+    sections: [],
   };
 
   beforeEach(() => {
     viewTracking = new InMemoryViewTracking();
     snapshot = new InMemorySnapshot();
 
-    service = new DashboardService(viewTracking, mockAtsScore, snapshot);
+    service = new DashboardService(viewTracking, snapshot);
 
     // Seed default data
     viewTracking.seedViewStats('resume-1', {
@@ -73,6 +37,9 @@ describe('DashboardService', () => {
         { source: 'direct', count: 100, percentage: 67 },
       ],
     });
+
+    // The dashboard surfaces the latest persisted Resume Quality score.
+    snapshot.seedLatest('resume-1', { overallScore: 85, completenessScore: 85 });
 
     snapshot.seedProgression('resume-1', [
       { date: '2026-01-01', score: 70 },
@@ -89,11 +56,18 @@ describe('DashboardService', () => {
       expect(result.overview.uniqueVisitors).toBe(100);
     });
 
-    it('should include ATS score', async () => {
+    it('should surface the latest resume quality score', async () => {
       const result = await service.build('resume-1', mockResume);
 
       expect(result.overview.atsScore).toBe(85);
       expect(result.overview.keywordScore).toBe(85);
+    });
+
+    it('should default scores to zero when no quality score exists', async () => {
+      const result = await service.build('resume-unknown', mockResume);
+
+      expect(result.overview.atsScore).toBe(0);
+      expect(result.overview.keywordScore).toBe(0);
     });
 
     it('should calculate improving trend', async () => {
@@ -131,13 +105,6 @@ describe('DashboardService', () => {
       const result = await service.build('resume-1', mockResume);
 
       expect(result.industryPosition.trend).toBe('stable');
-    });
-
-    it('should include recommendations', async () => {
-      const result = await service.build('resume-1', mockResume);
-
-      expect(result.recommendations).toHaveLength(1);
-      expect(result.recommendations[0].message).toBe('Add more keywords');
     });
 
     it('should include resumeId in result', async () => {

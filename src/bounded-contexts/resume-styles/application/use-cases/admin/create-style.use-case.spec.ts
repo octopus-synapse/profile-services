@@ -7,21 +7,29 @@ import {
   type PaginatedStyles,
   ResumeStyleRepositoryPort,
 } from '../../../domain/ports/resume-style.repository.port';
-import { type StyleScoreBreakdown, StyleScorerPort } from '../../../domain/ports/style-scorer.port';
-import type { CreateStyleInput, StyleDetail } from '../../../domain/types';
+import { StyleScorerPort } from '../../../domain/ports/style-scorer.port';
+import type {
+  CreateStyleInput,
+  StyleDetail,
+  StyleScoreBreakdownData,
+  StyleScoreResult,
+} from '../../../domain/types';
 import { CreateStyleUseCase } from './create-style.use-case';
 
 class StubScorer extends StyleScorerPort {
-  constructor(private readonly result: StyleScoreBreakdown) {
+  constructor(private readonly result: StyleScoreResult) {
     super();
   }
-  score(): StyleScoreBreakdown {
+  async score(): Promise<StyleScoreResult> {
     return this.result;
   }
-  calculateOverallScore(b: StyleScoreBreakdown): number {
-    return Math.round((b.layout + b.typography + b.fileLevel) / 3);
-  }
 }
+
+const stubResult = (overall: number): StyleScoreResult => ({
+  overall,
+  breakdown: { structure: overall },
+  issues: [],
+});
 
 class FakeRepo extends ResumeStyleRepositoryPort {
   public created: StyleDetail[] = [];
@@ -40,7 +48,7 @@ class FakeRepo extends ResumeStyleRepositoryPort {
     return null;
   }
   async create(
-    input: CreateStyleInput & { styleScore: number; atsSafetyBreakdown: Record<string, number> },
+    input: CreateStyleInput & { styleScore: number; styleScoreBreakdown: StyleScoreBreakdownData },
   ): Promise<StyleDetail> {
     const detail: StyleDetail = {
       id: `style-${this.created.length + 1}`,
@@ -56,12 +64,7 @@ class FakeRepo extends ResumeStyleRepositoryPort {
       version: 1,
       styleConfig: input.styleConfig,
       sectionStyles: input.sectionStyles ?? {},
-      atsSafetyBreakdown: {
-        layout: input.atsSafetyBreakdown.layout ?? 0,
-        typography: input.atsSafetyBreakdown.typography ?? 0,
-        fileLevel: input.atsSafetyBreakdown.fileLevel ?? 0,
-        ...input.atsSafetyBreakdown,
-      },
+      styleScoreBreakdown: input.styleScoreBreakdown,
       previewImages: [],
       authorId: input.authorId,
     };
@@ -93,22 +96,14 @@ describe('CreateStyleUseCase', () => {
   });
 
   it('creates the style when scorer returns a score above the threshold', async () => {
-    const useCase = new CreateStyleUseCase(
-      repo,
-      new StubScorer({ layout: 90, typography: 85, fileLevel: 80 }),
-      stubLogger,
-    );
+    const useCase = new CreateStyleUseCase(repo, new StubScorer(stubResult(85)), stubLogger);
     const created = await useCase.execute(baseInput);
-    expect(created.styleScore).toBe(85); // Math.round((90+85+80)/3)
+    expect(created.styleScore).toBe(85);
     expect(repo.created).toHaveLength(1);
   });
 
   it('rejects with StyleBelowAtsThresholdError when score is below the threshold', async () => {
-    const useCase = new CreateStyleUseCase(
-      repo,
-      new StubScorer({ layout: 60, typography: 60, fileLevel: 60 }),
-      stubLogger,
-    );
+    const useCase = new CreateStyleUseCase(repo, new StubScorer(stubResult(60)), stubLogger);
     await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(StyleBelowAtsThresholdError);
     expect(repo.created).toHaveLength(0);
   });

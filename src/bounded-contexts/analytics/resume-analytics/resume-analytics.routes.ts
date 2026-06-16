@@ -15,7 +15,6 @@ import {
   AnalyticsHistoryResponseSchema,
   AnalyticsSnapshotResponseSchema,
   AnalyticsSseBundle,
-  ATSScoreResponseSchema,
   AtsSimulationResponseSchema,
   BenchmarkOptionsQuery,
   HistoryQuery,
@@ -90,25 +89,6 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         endDate: q.endDate ? new Date(q.endDate) : undefined,
       });
       return stats;
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/resumes/:resumeId/analytics/ats-score',
-    auth: { kind: 'jwt' },
-    permission: Permission.ANALYTICS_READ_OWN,
-    params: ResumeIdParam,
-    response: ATSScoreResponseSchema,
-    openapi: {
-      summary: 'Calculate ATS compatibility score',
-      tags: ['resume-analytics'],
-      description: 'Resume Analytics API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, facade) => {
-      const { resumeId } = ctx.params as { resumeId: string };
-      const score = await facade.calculateATSScore(resumeId, ctx.user!.userId);
-      return score;
     },
   },
   {
@@ -297,7 +277,7 @@ export const resumeAnalyticsSseRoutes: ReadonlyArray<Route<AnalyticsSseBundle>> 
     openapi: {
       summary: 'Subscribe to live analytics stream',
       tags: ['resume-analytics'],
-      description: 'Streams view and ATS score updates for a resume in real time.',
+      description: 'Streams view updates for a resume in real time.',
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => {
@@ -322,25 +302,6 @@ export const resumeAnalyticsSseRoutes: ReadonlyArray<Route<AnalyticsSseBundle>> 
     handler: async (ctx, bundle) => {
       const { resumeId } = ctx.params as { resumeId: string };
       return bundle.subscribeToViews(resumeId);
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/analytics/:resumeId/ats-score',
-    auth: { kind: 'jwt' },
-    permission: Permission.ANALYTICS_READ_OWN,
-    kind: 'sse',
-    skip: ['responseWrapper'],
-    params: ResumeIdParam,
-    openapi: {
-      summary: 'Subscribe to live ATS stream',
-      tags: ['resume-analytics'],
-      description: 'Streams only ATS-score updates for a resume.',
-    },
-    sdk: { exported: false },
-    handler: async (ctx, bundle) => {
-      const { resumeId } = ctx.params as { resumeId: string };
-      return bundle.subscribeToAtsScore(resumeId);
     },
   },
 ];

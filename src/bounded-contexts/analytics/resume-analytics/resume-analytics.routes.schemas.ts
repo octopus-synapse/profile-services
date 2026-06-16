@@ -12,9 +12,9 @@ import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export interface AnalyticsUpdateEvent {
-  readonly type: 'view' | 'ats_score';
+  readonly type: 'view';
   readonly resumeId: string;
-  readonly data: { views?: number; atsScore?: number; timestamp: Date };
+  readonly data: { views?: number; timestamp: Date };
 }
 
 export interface AnalyticsSseEvent {
@@ -27,7 +27,6 @@ export interface AnalyticsSseEvent {
 export abstract class AnalyticsSseBundle {
   abstract subscribeToResumeAnalytics(resumeId: string): Observable<AnalyticsSseEvent>;
   abstract subscribeToViews(resumeId: string): Observable<AnalyticsSseEvent>;
-  abstract subscribeToAtsScore(resumeId: string): Observable<AnalyticsSseEvent>;
 }
 
 export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
@@ -144,31 +143,6 @@ export const ViewStatsResponseSchema = z.object({
       percentage: z.number(),
     }),
   ),
-});
-
-export const SectionScoreBreakdownSchema = z.object({
-  sectionKind: z.string(),
-  sectionTypeKey: z.string(),
-  score: z.number().int(),
-});
-
-export const ATSIssueSchema = z.object({
-  code: z.string(),
-  severity: z.enum(['low', 'medium', 'high']),
-  message: z.string(),
-  context: z
-    .object({
-      sectionKind: z.string().optional(),
-      missingFields: z.array(z.string()).optional(),
-    })
-    .optional(),
-});
-
-export const ATSScoreResponseSchema = z.object({
-  score: z.number().int().min(0).max(100),
-  sectionBreakdown: z.array(SectionScoreBreakdownSchema),
-  issues: z.array(ATSIssueSchema),
-  recommendations: z.array(z.string()),
 });
 
 export const KeywordWarningSchema = z.object({

@@ -1,63 +1,56 @@
-import { AtsScoringPort } from '../application/ports/facade.ports';
 import type { ResumeForAnalytics } from '../domain/types';
-import type {
-  AnalyticsDashboard,
-  ATSScoreResult,
-  ScoreProgressionPoint,
-  ViewStats,
-} from '../interfaces';
+import type { AnalyticsDashboard, ScoreProgressionPoint, ViewStats } from '../interfaces';
 import { SnapshotPort, ViewTrackingPort } from '../ports';
 
+/**
+ * Builds the analytics dashboard. The resume score surfaced as `atsScore`
+ * is the latest persisted Resume Quality `overallScore` (the content-based
+ * ATS score was retired); `keywordScore` mirrors the completeness score.
+ */
 export class DashboardService {
   constructor(
     private readonly viewTracking: ViewTrackingPort,
-    private readonly atsScore: AtsScoringPort,
     private readonly snapshot: SnapshotPort,
   ) {}
 
-  async build(resumeId: string, resume: ResumeForAnalytics): Promise<AnalyticsDashboard> {
-    const [viewStats, progression] = await Promise.all([
+  async build(resumeId: string, _resume: ResumeForAnalytics): Promise<AnalyticsDashboard> {
+    const [viewStats, progression, latest] = await Promise.all([
       this.viewTracking.getViewStats(resumeId, { period: 'month' }),
       this.snapshot.getScoreProgression(resumeId, 30),
+      this.snapshot.getLatest(resumeId),
     ]);
-    const atsResult = await this.atsScore.calculate(resume);
     const trend = this.calculateTrend(progression);
 
-    return this.assembleDashboard(resumeId, viewStats, atsResult, trend);
+    return this.assembleDashboard(
+      resumeId,
+      viewStats,
+      latest?.overallScore ?? 0,
+      latest?.completenessScore ?? 0,
+      trend,
+    );
   }
 
   private assembleDashboard(
     resumeId: string,
     viewStats: ViewStats,
-    atsResult: ATSScoreResult,
+    overallScore: number,
+    completenessScore: number,
     trend: 'improving' | 'stable' | 'declining',
   ): AnalyticsDashboard {
-    const avgSectionScore =
-      atsResult.sectionBreakdown.length > 0
-        ? Math.round(
-            atsResult.sectionBreakdown.reduce((s, b) => s + b.score, 0) /
-              atsResult.sectionBreakdown.length,
-          )
-        : 0;
-
     return {
       resumeId,
       overview: {
         totalViews: viewStats.totalViews,
         uniqueVisitors: viewStats.uniqueVisitors,
-        atsScore: atsResult.score,
-        keywordScore: avgSectionScore,
+        atsScore: overallScore,
+        keywordScore: completenessScore,
         industryPercentile: 0,
       },
       viewTrend: viewStats.viewsByDay,
       topSources: viewStats.topSources,
-      keywordHealth: { score: avgSectionScore, topKeywords: [], missingCritical: [] },
+      keywordHealth: { score: completenessScore, topKeywords: [], missingCritical: [] },
       industryPosition: { percentile: 0, trend },
-      recommendations: atsResult.recommendations.map((msg) => ({
-        type: 'improve_content' as const,
-        priority: 'medium' as const,
-        message: msg,
-      })),
+      recommendations: [],
     };
   }
 

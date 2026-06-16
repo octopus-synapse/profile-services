@@ -2,13 +2,13 @@ import { LoggerPort } from '@/shared-kernel';
 import { StyleBelowAtsThresholdError } from '../../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../../domain/ports/resume-style.repository.port';
 import { StyleScorerPort } from '../../../domain/ports/style-scorer.port';
-import { ATS_SAFE_THRESHOLD, type CreateStyleInput, type StyleDetail } from '../../../domain/types';
+import { type CreateStyleInput, STYLE_SCORE_MIN, type StyleDetail } from '../../../domain/types';
 
 /**
- * Admin-only style creation with the plan's invariant 3 enforced:
- * the scorer computes a styleScore from the submitted styleConfig,
- * and creation is rejected (`422 style_below_ats_threshold`) when
- * the score is below the configured threshold (default 70).
+ * Admin-only style creation. The scorer computes a real Style Score from
+ * the submitted styleConfig (data-driven rubric), and creation is rejected
+ * (`422 STYLE_BELOW_ATS_THRESHOLD`) when the score is below the configured
+ * minimum (`STYLE_SCORE_MIN`).
  */
 export class CreateStyleUseCase {
   constructor(
@@ -18,15 +18,17 @@ export class CreateStyleUseCase {
   ) {}
 
   async execute(input: CreateStyleInput): Promise<StyleDetail> {
-    const breakdown = this.scorer.score(input.styleConfig);
-    const styleScore = this.scorer.calculateOverallScore(breakdown);
-    if (styleScore < ATS_SAFE_THRESHOLD) {
-      throw new StyleBelowAtsThresholdError(styleScore, ATS_SAFE_THRESHOLD);
+    const result = await this.scorer.score({
+      styleConfig: input.styleConfig,
+      layoutKind: input.layoutKind,
+    });
+    if (result.overall < STYLE_SCORE_MIN) {
+      throw new StyleBelowAtsThresholdError(result.overall, STYLE_SCORE_MIN);
     }
     return this.repo.create({
       ...input,
-      styleScore,
-      atsSafetyBreakdown: { ...breakdown },
+      styleScore: result.overall,
+      styleScoreBreakdown: { buckets: result.breakdown, issues: result.issues },
     });
   }
 }

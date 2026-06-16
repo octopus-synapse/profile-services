@@ -5,7 +5,6 @@
  */
 
 import type { AwardBadgeUseCase } from '../use-cases/award-badge/award-badge.use-case';
-import type { HandleAtsScoreCalculatedUseCase } from '../use-cases/handle-ats-score-calculated/handle-ats-score-calculated.use-case';
 import type { HandleInterviewScheduledUseCase } from '../use-cases/handle-interview-scheduled/handle-interview-scheduled.use-case';
 import type { HandlePostCreatedUseCase } from '../use-cases/handle-post-created/handle-post-created.use-case';
 import type { ListManyUsersBadgesUseCase } from '../use-cases/list-many-users-badges/list-many-users-badges.use-case';
@@ -16,6 +15,5 @@ export abstract class BadgesUseCases {
   abstract readonly listManyUsersBadges: ListManyUsersBadgesUseCase;
   abstract readonly awardBadge: AwardBadgeUseCase;
   abstract readonly handlePostCreated: HandlePostCreatedUseCase;
-  abstract readonly handleAtsScoreCalculated: HandleAtsScoreCalculatedUseCase;
   abstract readonly handleInterviewScheduled: HandleInterviewScheduledUseCase;
 }

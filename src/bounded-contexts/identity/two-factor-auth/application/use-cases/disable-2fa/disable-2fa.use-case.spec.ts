@@ -57,6 +57,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(true),
         stubValidate2fa(true),
+        stubLogger,
       );
 
       await expect(useCase.execute('nonexistent-user', PASSWORD_OK_INPUT)).rejects.toBeInstanceOf(
@@ -70,6 +71,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(true),
         stubValidate2fa(true),
+        stubLogger,
       );
 
       await expect(useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, {})).rejects.toBeInstanceOf(
@@ -83,6 +85,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(false),
         stubValidate2fa(false),
+        stubLogger,
       );
 
       await expect(
@@ -96,6 +99,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(false),
         stubValidate2fa(false),
+        stubLogger,
       );
 
       await expect(
@@ -109,6 +113,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(true),
         stubValidate2fa(false),
+        stubLogger,
       );
 
       await useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT);
@@ -122,6 +127,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(false),
         stubValidate2fa(true),
+        stubLogger,
       );
 
       await useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, TOTP_OK_INPUT);
@@ -138,6 +144,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(true),
         stubValidate2fa(false),
+        stubLogger,
       );
 
       await useCase.execute(DEFAULT_ENABLED_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT);
@@ -163,6 +170,7 @@ describe('Disable2faUseCase', () => {
         repository,
         new StubPasswordVerifier(true),
         stubValidate2fa(false),
+        stubLogger,
       );
 
       await useCase.execute(DEFAULT_ENABLED_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT);

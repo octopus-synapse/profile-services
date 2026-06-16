@@ -4,12 +4,19 @@
  * `ResumeQualityUseCases`.
  */
 
+import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeQualityUseCases } from './application/ports/resume-quality.port';
 import { ResumeQualitySnapshotMissingException } from './domain/exceptions/resume-quality.exceptions';
 import { toQualitySnapshotResponseDto } from './infrastructure/presenters/resume-quality.presenter';
 import { ResumeIdParams, ResumeQualityResponseSchema } from './resume-quality.routes.schemas';
+
+/** Resolve the response locale from the request's Accept-Language. */
+function localeOf(ctx: { headers: Record<string, string | string[] | undefined> }) {
+  const header = ctx.headers['accept-language'];
+  return negotiateLocale(Array.isArray(header) ? header[0] : header).locale;
+}
 
 export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = [
   {
@@ -29,7 +36,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.getLatestQuality.execute(resumeId);
       if (!snapshot) throw new ResumeQualitySnapshotMissingException();
-      return toQualitySnapshotResponseDto(snapshot);
+      return toQualitySnapshotResponseDto(snapshot, localeOf(ctx));
     },
   },
   {
@@ -48,7 +55,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.computeQuality.execute(resumeId);
-      return toQualitySnapshotResponseDto(snapshot);
+      return toQualitySnapshotResponseDto(snapshot, localeOf(ctx));
     },
   },
 ];

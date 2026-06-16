@@ -26,7 +26,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
       },
     },
     style: {
-      select: { id: true, name: true, description: true },
+      select: { id: true, name: true, description: true, styleScore: true },
     },
   };
 
@@ -40,7 +40,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   /** List projection: style ref + owner's primaryResumeId so the
    *  presenter can mark the master resume (`isPrimary`). */
   private readonly listInclude = {
-    style: { select: { id: true, name: true, description: true } },
+    style: { select: { id: true, name: true, description: true, styleScore: true } },
     user: { select: { primaryResumeId: true } },
   };
 

@@ -52,6 +52,10 @@ export function buildChatUseCases(
       logger,
     ),
     getUnreadCountUseCase: new GetUnreadCountUseCase(messageRepo, chatCache, logger),
-    getConversationIdUseCase: new GetConversationIdUseCase(conversationRepo, messagePrivacy),
+    getConversationIdUseCase: new GetConversationIdUseCase(
+      conversationRepo,
+      messagePrivacy,
+      logger,
+    ),
   };
 }

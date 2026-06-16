@@ -129,6 +129,25 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
     );
   }
 
+  /** Sliding-debounce primitive: remove a delayed/waiting job by id so a
+   *  subsequent `enqueue` with the same jobId restarts the delay timer
+   *  (BullMQ would otherwise drop the duplicate add and keep the original
+   *  fire time). Best-effort — a missing or already-running job is a no-op. */
+  override async remove(name: string, jobId: string): Promise<void> {
+    const queue = this.getOrCreateQueue(name);
+    try {
+      const job = await (
+        queue as unknown as { getJob: (id: string) => Promise<{ remove: () => Promise<void> } | undefined> }
+      ).getJob(jobId);
+      await job?.remove();
+    } catch (err) {
+      this.logger?.warn?.(
+        `BullMQ remove("${name}", "${jobId}") failed: ${(err as Error).message}`,
+        'BullMQJobQueueAdapter',
+      );
+    }
+  }
+
   async dispose(): Promise<void> {
     await Promise.all([...this.workers.values()].map((w) => w.close()));
     await Promise.all([...this.queues.values()].map((q) => q.close()));

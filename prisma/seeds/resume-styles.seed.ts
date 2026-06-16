@@ -5,9 +5,9 @@
  *   - "ats-classic"  → templates/        (paired typst path: 'default')
  *   - "ats-compact"  → templates-ats/    (paired typst path: 'ats')
  *
- * `styleScore` is hardcoded conservatively (88 / 92) above the default
- * ATS-safety threshold (70). The monotonic trigger only blocks decreases
- * on UPDATE; equal values during re-seeds are allowed.
+ * Both styles satisfy every criterion of the data-driven Style Score rubric
+ * (see style-scoring-criteria.seed.ts), so their `styleScore` is 100 with an
+ * empty issue list. The breakdown mirrors the rubric's bucket weights.
  *
  * Plan reference: scoring refactor — Style Score taxonomy + 2-style MVP.
  */
@@ -22,17 +22,23 @@ type SystemStyleSeed = {
   styleScore: number;
   layoutKind: LayoutKind;
   styleConfig: Prisma.InputJsonValue;
-  atsSafetyBreakdown: Prisma.InputJsonValue;
+  styleScoreBreakdown: Prisma.InputJsonValue;
 };
 
-const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
+// Both system styles pass every rubric criterion → full points per bucket.
+const PERFECT_BREAKDOWN: Prisma.InputJsonValue = {
+  buckets: { structure: 35, typography: 30, contrast: 20, decorations: 15 },
+  issues: [],
+};
+
+export const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   {
     id: '01900000-0000-7000-8000-000000000001',
     name: 'ATS Classic',
     description:
       'Single-column, neutral palette, Calibri body. Optimised for ATS parsers — safe default for most online portals.',
     typstTemplate: 'default',
-    styleScore: 88,
+    styleScore: 100,
     layoutKind: LayoutKind.SINGLE_COLUMN,
     // ResumeDslSchema-compliant styleConfig. The DSL schema requires:
     // layout.{type,paperSize,margins,pageBreakBehavior}, tokens.colors.{colors,borderRadius,shadows},
@@ -74,7 +80,7 @@ const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
       },
       sections: [],
     },
-    atsSafetyBreakdown: { layout: 30, typography: 28, fileLevel: 30 },
+    styleScoreBreakdown: PERFECT_BREAKDOWN,
   },
   {
     id: '01900000-0000-7000-8000-000000000002',
@@ -82,7 +88,7 @@ const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
     description:
       'Single-column, dense spacing, Helvetica body. Same ATS guarantees as Classic but fits more content per page.',
     typstTemplate: 'ats',
-    styleScore: 92,
+    styleScore: 100,
     layoutKind: LayoutKind.SINGLE_COLUMN,
     styleConfig: {
       version: '1.0.0',
@@ -126,7 +132,7 @@ const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
       },
       sections: [],
     },
-    atsSafetyBreakdown: { layout: 32, typography: 30, fileLevel: 30 },
+    styleScoreBreakdown: PERFECT_BREAKDOWN,
   },
 ];
 
@@ -149,7 +155,7 @@ export async function seedResumeStyles(prisma: PrismaClient, adminId: string): P
         typstTemplate: style.typstTemplate,
         layoutKind: style.layoutKind,
         styleConfig: style.styleConfig,
-        atsSafetyBreakdown: style.atsSafetyBreakdown,
+        styleScoreBreakdown: style.styleScoreBreakdown,
         styleScore: style.styleScore,
         authorId: adminId,
         isSystem: true,
@@ -161,7 +167,7 @@ export async function seedResumeStyles(prisma: PrismaClient, adminId: string): P
         typstTemplate: style.typstTemplate,
         layoutKind: style.layoutKind,
         styleConfig: style.styleConfig,
-        atsSafetyBreakdown: style.atsSafetyBreakdown,
+        styleScoreBreakdown: style.styleScoreBreakdown,
         styleScore: style.styleScore,
         authorId: adminId,
         isSystem: true,

@@ -34,4 +34,12 @@ export abstract class JobQueuePort {
     data: T,
     opts: JobOpts & { repeat: { pattern: string; tz?: string } },
   ): Promise<void>;
+
+  /** Remove a (possibly delayed) job by id. Enables a *sliding* debounce:
+   *  drop the in-flight delayed job before re-enqueuing so the timer
+   *  restarts on each new save. Best-effort — adapters without removal
+   *  support no-op (default). */
+  remove(_queue: string, _jobId: string): Promise<void> {
+    return Promise.resolve();
+  }
 }

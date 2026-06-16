@@ -19,6 +19,9 @@ export const QualityIssueContextSchema = z.object({
 export const QualityIssueSchema = z.object({
   code: z.string(),
   severity: z.enum(['low', 'medium', 'high']),
+  /** Localised candidate-facing label rendered from `code` via the
+   * QUALITY_ISSUE_DICTIONARY (request's Accept-Language). */
+  message: z.string(),
   messageArgs: z
     .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
     .optional(),

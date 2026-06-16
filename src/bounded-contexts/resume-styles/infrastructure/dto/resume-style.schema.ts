@@ -17,11 +17,23 @@ const StyleSummarySchema = z.object({
   updatedAt: IsoDateTimeSchema,
 });
 
+const StyleIssueSchema = z.object({
+  code: z.string(),
+  severity: z.enum(['low', 'medium', 'high']),
+  bucket: z.string(),
+  messageArgs: z.record(z.union([z.string(), z.number()])).optional(),
+});
+
+const StyleScoreBreakdownSchema = z.object({
+  buckets: z.record(z.number()),
+  issues: z.array(StyleIssueSchema),
+});
+
 const StyleDetailSchema = StyleSummarySchema.extend({
   version: z.number().int(),
   styleConfig: z.record(z.unknown()),
   sectionStyles: z.record(z.unknown()),
-  atsSafetyBreakdown: z.record(z.number()),
+  styleScoreBreakdown: StyleScoreBreakdownSchema,
   previewImages: z.array(z.string()),
   authorId: z.string(),
 });

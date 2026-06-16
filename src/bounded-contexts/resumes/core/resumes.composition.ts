@@ -100,6 +100,7 @@ export function buildResumesCoreComposition(
     prisma,
     sectionSchemaFactory,
     logger,
+    eventPublisher,
   );
   const genericSectionsService = new GenericResumeSectionsService(genericSectionsUseCases);
 

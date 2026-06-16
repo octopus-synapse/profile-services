@@ -392,18 +392,59 @@ between handlers is deliberately avoided.
 Posts served via presigned GET MUST set `Cache-Control: private, max-age=300`
 on the response so CDNs don't share a leaked URL across users.
 
-## `ResumeStyle.styleScore` monotonic invariant (NEW-3)
+## `ResumeStyle.styleScore` — data-driven Style Score (NEW-3)
 
-Migration `20260423221242_scoring_refactor` installs a `BEFORE UPDATE`
-trigger on `ResumeStyle` that **rejects any UPDATE that decrements
-`styleScore`** with a `RAISE EXCEPTION`. This is intentional — the
-score is a one-way counter that only ever rises. Code that "resets"
-or "rolls back" a style score will see a Postgres `check_violation`
-at runtime, not a silent overwrite.
+`styleScore` (0-100) is recomputed from `styleConfig` on every
+create/update by the data-driven rubric (`StyleScoringCriterion`
+catalog + the evaluators in
+`resume-styles/domain/rules/style-criteria/`). It is **not** monotonic:
+a worse template legitimately scores lower (migration
+`20261107000000_style_score_rubric` dropped the old `BEFORE UPDATE`
+trigger). Creation/update below `STYLE_SCORE_MIN` (80) is rejected with
+`422 STYLE_BELOW_ATS_THRESHOLD`. Tune the rubric by editing the
+`StyleScoringCriterion` rows (weights/thresholds/allowlists) — no deploy
+needed; only a new criterion `key` requires a code evaluator.
 
-If you legitimately need to reset (e.g. ops rescue), do it via raw SQL
-(`ALTER TABLE … DISABLE TRIGGER … / UPDATE / ENABLE TRIGGER`) and
-audit it.
+## Resume Quality Score (3.2) — `resume-quality` BC
+
+Per-resume score of how good the CV is, independent of any job. Composed of
+two sub-scores, persisted append-only in `ResumeQualityScoreHistory`
+(`overallScore` / `completenessScore` / `contentQualityScore`); the read API
+serves the latest row.
+
+- **Completeness (3.2.2)** — deterministic, `domain/rules/completeness.rules.ts`.
+  `COMPLETENESS_WEIGHTS` sum to 100; bump `COMPLETENESS_RULES_VERSION` (in
+  `domain/types.ts`) on any weight/rule change. `phone` and `dates`
+  (start date on experience/education) score; `temporalConsistency` /
+  `uniqueSkills` already score; the structural-ATS checks stay advisory.
+  The loader (`prisma-resume-loader.adapter.ts`) projects the generic section
+  graph into typed `experiences/educations/skills` + real `bullets` + the
+  resume `language` — keep it the single projection point.
+- **Content Quality (3.2.1)** — AI, `ai-content-quality.adapter.ts` →
+  `ScoringLlmPort.analyzeContentQuality` (OpenAI, default `gpt-4.1-mini` via
+  `OPENAI_SCORING_MODEL`). It grades the **real bullet text** (experience
+  descriptions + achievements, summary, project highlights) for action verbs /
+  metrics / XYZ-STAR / specificity, and answers in the resume's `language`.
+  Kill-switch flag `scoring.content-quality.enabled`; on failure/off the
+  sub-score is `null` and the overall degrades to completeness alone. Cost goes
+  to `costUsdMicros` via `OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS`.
+- **Overall** = `0.4·completeness + 0.6·content` (completeness-only when content
+  is null). Informational only — **never** gate publish/apply on it.
+- **Lifecycle**: computed **inline** on create + duplicate
+  (`resume-quality-on-resume-created.handler.ts`, bound to
+  `ResumeCreatedEvent`/`ResumeDuplicatedEvent`, **swallows** errors so it never
+  blocks creation — a deliberate exception to the rethrow rule). On update the
+  recompute is **selective**: `resume-quality-on-resume-updated.handler.ts`
+  reads `changedFields`, runs completeness always but only spends an AI call
+  when content changed (`summary` scalar or a `sections:WORK_EXPERIENCE|SUMMARY|
+  PROJECT|VOLUNTEER` token), with a sliding ~15s debounce (`JobQueuePort.remove`
+  + delayed enqueue). Section-item use-cases emit `ResumeUpdatedEvent`
+  (`sections:<semanticKind>`) so bullet edits trigger recompute.
+- **i18n**: issue codes resolve via `QUALITY_ISSUE_DICTIONARY`
+  (`@packages/i18n`, parity spec `i18n-quality-issue-parity`); the route
+  localises `message` by `Accept-Language`. `AI_*` codes carry a fixed category
+  label while the per-bullet detail rides in `freeformMessage` (resume
+  language). New `IssueCode` → add to `ALL_ISSUE_CODES` + the dictionary.
 
 ## Scripts
 

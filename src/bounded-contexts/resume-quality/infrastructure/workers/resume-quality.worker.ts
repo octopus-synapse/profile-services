@@ -9,6 +9,11 @@ export type ResumeQualityJobData = {
   readonly resumeId: string;
   /** Correlates the job back to the originating domain event for audit. */
   readonly sourceEventId?: string;
+  /** When `false`, the recompute runs the cheap deterministic Completeness
+   * rules only and reuses the previous snapshot's AI sub-score — set by the
+   * listener when the change didn't touch gradeable content (e.g. style /
+   * title edits). Defaults to `true` for backward-compatible jobs. */
+  readonly runAi?: boolean;
 };
 
 /**
@@ -39,9 +44,10 @@ export class ResumeQualityWorker {
 
   async process(job: { data: ResumeQualityJobData; id?: string }): Promise<void> {
     if (job.data.kind !== 'recompute') return;
-    this.logger.debug(`Recomputing quality for resumeId=${job.data.resumeId}`, CTX);
+    const runAi = job.data.runAi ?? true;
+    this.logger.debug(`Recomputing quality for resumeId=${job.data.resumeId} (runAi=${runAi})`, CTX);
     await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
-      await this.compute.execute(job.data.resumeId);
+      await this.compute.execute(job.data.resumeId, { runAi });
     });
   }
 }

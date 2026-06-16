@@ -5,28 +5,35 @@ import {
   StyleBelowAtsThresholdError,
   StyleNotEditableError,
   StyleNotFoundError,
-  StyleScoreRegressionError,
 } from '../../../domain/exceptions/resume-styles.exceptions';
 import {
   type ListStylesArgs,
   type PaginatedStyles,
   ResumeStyleRepositoryPort,
 } from '../../../domain/ports/resume-style.repository.port';
-import { type StyleScoreBreakdown, StyleScorerPort } from '../../../domain/ports/style-scorer.port';
-import type { StyleDetail, UpdateStylePatch } from '../../../domain/types';
+import { StyleScorerPort } from '../../../domain/ports/style-scorer.port';
+import type {
+  StyleDetail,
+  StyleScoreBreakdownData,
+  StyleScoreResult,
+  UpdateStylePatch,
+} from '../../../domain/types';
 import { UpdateStyleUseCase } from './update-style.use-case';
 
 class StubScorer extends StyleScorerPort {
-  constructor(private readonly result: StyleScoreBreakdown) {
+  constructor(private readonly result: StyleScoreResult) {
     super();
   }
-  score(): StyleScoreBreakdown {
+  async score(): Promise<StyleScoreResult> {
     return this.result;
   }
-  calculateOverallScore(b: StyleScoreBreakdown): number {
-    return Math.round((b.layout + b.typography + b.fileLevel) / 3);
-  }
 }
+
+const stubResult = (overall: number): StyleScoreResult => ({
+  overall,
+  breakdown: { structure: overall },
+  issues: [],
+});
 
 class FakeRepo extends ResumeStyleRepositoryPort {
   constructor(private readonly seed: StyleDetail | null) {
@@ -51,7 +58,10 @@ class FakeRepo extends ResumeStyleRepositoryPort {
   }
   async update(
     _id: string,
-    patch: UpdateStylePatch & { styleScore?: number },
+    patch: UpdateStylePatch & {
+      styleScore?: number;
+      styleScoreBreakdown?: StyleScoreBreakdownData;
+    },
   ): Promise<StyleDetail> {
     if (!this.seed) throw new Error('seed required');
     return {
@@ -70,7 +80,7 @@ const baseStyle: StyleDetail = {
   id: 'style-1',
   name: 'Custom',
   description: null,
-  styleScore: 80,
+  styleScore: 90,
   layoutKind: LayoutKind.SINGLE_COLUMN,
   typstTemplate: 'default',
   isSystem: false,
@@ -80,7 +90,10 @@ const baseStyle: StyleDetail = {
   version: 1,
   styleConfig: {},
   sectionStyles: {},
-  atsSafetyBreakdown: { layout: 80, typography: 80, fileLevel: 80 },
+  styleScoreBreakdown: {
+    buckets: { structure: 35, typography: 30, contrast: 20, decorations: 15 },
+    issues: [],
+  },
   previewImages: [],
   authorId: 'admin-1',
 };
@@ -89,7 +102,7 @@ describe('UpdateStyleUseCase', () => {
   let scorerHigh: StyleScorerPort;
 
   beforeEach(() => {
-    scorerHigh = new StubScorer({ layout: 90, typography: 90, fileLevel: 90 });
+    scorerHigh = new StubScorer(stubResult(95));
   });
 
   it('throws StyleNotFoundError when the style is missing', async () => {
@@ -111,7 +124,7 @@ describe('UpdateStyleUseCase', () => {
   it('throws StyleBelowAtsThresholdError when new styleConfig scores below the threshold', async () => {
     const useCase = new UpdateStyleUseCase(
       new FakeRepo(baseStyle),
-      new StubScorer({ layout: 50, typography: 50, fileLevel: 50 }),
+      new StubScorer(stubResult(50)),
       stubLogger,
     );
     await expect(useCase.execute('style-1', { styleConfig: {} })).rejects.toBeInstanceOf(
@@ -119,21 +132,22 @@ describe('UpdateStyleUseCase', () => {
     );
   });
 
-  it('throws StyleScoreRegressionError when the new score is below the current one', async () => {
+  it('allows the score to decrease as long as it stays above the threshold', async () => {
+    // No monotonic invariant anymore: 90 → 82 is a valid edit.
     const useCase = new UpdateStyleUseCase(
       new FakeRepo(baseStyle),
-      new StubScorer({ layout: 75, typography: 75, fileLevel: 75 }),
+      new StubScorer(stubResult(82)),
       stubLogger,
     );
-    await expect(useCase.execute('style-1', { styleConfig: {} })).rejects.toBeInstanceOf(
-      StyleScoreRegressionError,
-    );
+    const updated = await useCase.execute('style-1', { styleConfig: {} });
+    expect(updated.styleScore).toBe(82);
+    expect(updated.version).toBe(2);
   });
 
-  it('updates and bumps the version when styleConfig score is monotonic and above threshold', async () => {
+  it('updates and bumps the version when styleConfig scores above threshold', async () => {
     const useCase = new UpdateStyleUseCase(new FakeRepo(baseStyle), scorerHigh, stubLogger);
     const updated = await useCase.execute('style-1', { styleConfig: {} });
-    expect(updated.styleScore).toBe(90);
+    expect(updated.styleScore).toBe(95);
     expect(updated.version).toBe(2);
   });
 });

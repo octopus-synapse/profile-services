@@ -27,19 +27,6 @@ export class StyleBelowAtsThresholdError extends BusinessRuleViolationException 
   }
 }
 
-export class StyleScoreRegressionError extends BusinessRuleViolationException {
-  override readonly code: string = 'STYLE_SCORE_REGRESSION';
-  constructor(
-    public readonly id: string,
-    public readonly currentScore: number,
-    public readonly attemptedScore: number,
-  ) {
-    super(
-      `ResumeStyle ${id} styleScore is monotonic: cannot move ${currentScore} → ${attemptedScore}`,
-    );
-  }
-}
-
 export class StyleNotEditableError extends BusinessRuleViolationException {
   override readonly code: string = 'STYLE_NOT_EDITABLE';
   constructor(public readonly id: string) {

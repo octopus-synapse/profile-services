@@ -32,6 +32,10 @@ export class AiContentQualityAdapter extends ContentQualityPort {
     private readonly scoringLlm: ScoringLlmPort,
     private readonly flags: FeatureFlagService,
     private readonly logger: LoggerPort,
+    /** Price in USD-micros per 1k tokens for the scoring model. `0`
+     * (default) leaves `costUsdMicros` at 0 — cost tracking is opt-in
+     * via the `OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS` env. */
+    private readonly priceUsdMicrosPer1kTokens: number = 0,
   ) {
     super();
   }
@@ -51,16 +55,14 @@ export class AiContentQualityAdapter extends ContentQualityPort {
         summary: resume.summary,
         jobTitle: resume.jobTitle,
         bullets,
+        language: resume.language ?? null,
       });
       return {
         score: result.score,
         issues: result.issues.map(mapAiIssueToQualityIssue),
         promptVersion: `${ANALYZE_CONTENT_QUALITY_PROMPT_ID}@${ANALYZE_CONTENT_QUALITY_PROMPT_SEMVER}#${ANALYZE_CONTENT_QUALITY_PROMPT_SHA}`,
         callsCount: 1,
-        // Token counts are tracked; per-token cost USD translation is a
-        // follow-up (config value × tokens). Metrics use tokensUsed
-        // directly until then.
-        costUsdMicros: 0n,
+        costUsdMicros: this.toCostUsdMicros(result.tokensUsed),
       };
     } catch (err) {
       this.logger.warn(
@@ -72,12 +74,17 @@ export class AiContentQualityAdapter extends ContentQualityPort {
   }
 
   /**
-   * Map the rule layer's minimal resume shape into bullets the prompt
-   * understands. The full resume body lives in a richer Prisma graph —
-   * that's next-iteration territory; for MVP the summary + experiences
-   * list is the signal that moves the content-quality needle most.
+   * Feed the AI the candidate's real writing: experience descriptions +
+   * achievements, the summary text and project highlights — projected by
+   * the loader into `resume.bullets`. Falls back to the thin
+   * `role · company` signal only when no free-text bullets exist (e.g. a
+   * resume that lists jobs without descriptions), so the score still
+   * degrades gracefully rather than returning null.
    */
   private collectBullets(resume: ResumeForCompleteness): Array<{ id: string; text: string }> {
+    const bullets = (resume.bullets ?? []).map((b) => ({ id: b.id, text: b.text }));
+    if (bullets.length > 0) return bullets;
+
     const out: Array<{ id: string; text: string }> = [];
     for (let i = 0; i < resume.experiences.length; i++) {
       const exp = resume.experiences[i];
@@ -86,6 +93,12 @@ export class AiContentQualityAdapter extends ContentQualityPort {
       if (parts) out.push({ id: `exp:${i}`, text: parts });
     }
     return out;
+  }
+
+  /** tokens × price-per-1k, rounded to whole USD-micros. */
+  private toCostUsdMicros(tokensUsed: number): bigint {
+    if (this.priceUsdMicrosPer1kTokens <= 0 || tokensUsed <= 0) return 0n;
+    return BigInt(Math.round((tokensUsed / 1000) * this.priceUsdMicrosPer1kTokens));
   }
 
   private empty(): ContentQualityResult {

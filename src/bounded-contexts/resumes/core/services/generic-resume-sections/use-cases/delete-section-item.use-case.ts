@@ -1,13 +1,16 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import type { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumeOwnershipPolicy } from '../policies/resume-ownership.policy';
 import { SectionTypePolicy } from '../policies/section-type.policy';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
+import { publishSectionContentChange } from './publish-section-content-change';
 
 export class DeleteSectionItemUseCase {
   constructor(
     private readonly repository: GenericResumeSectionsRepositoryPort,
     private readonly ownershipPolicy: ResumeOwnershipPolicy,
     private readonly sectionTypePolicy: SectionTypePolicy,
+    private readonly eventPublisher?: ResumeEventPublisher,
   ) {}
 
   async execute(
@@ -30,5 +33,6 @@ export class DeleteSectionItemUseCase {
     }
 
     await this.repository.deleteSectionItem(itemId);
+    publishSectionContentChange(this.eventPublisher, resumeId, userId, sectionType.semanticKind);
   }
 }

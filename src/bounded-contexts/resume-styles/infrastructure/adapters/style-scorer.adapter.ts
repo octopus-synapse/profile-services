@@ -1,21 +1,22 @@
-import { type StyleScoreBreakdown, StyleScorerPort } from '../../domain/ports/style-scorer.port';
+import { StyleScorerPort } from '../../domain/ports/style-scorer.port';
+import { StyleScoringCatalogPort } from '../../domain/ports/style-scoring-catalog.port';
+import { scoreStyle } from '../../domain/rules/style-criteria/score-style';
+import type { StyleScoreInput, StyleScoreResult } from '../../domain/types';
 
 /**
- * MVP implementation of the Style Scorer.
+ * Data-driven Style Scorer.
  *
- * Placeholder: returns conservative defaults so a newly created or
- * updated style always passes the monotonic invariant. The full rubric
- * (layout / typography / file-level) lands in a follow-up — see
- * docs/scoring/README.md for the target fields and weights.
- *
- * Framework-free POJO. Wired by `resume-styles.composition.ts`.
+ * Loads the active rubric criteria from the catalog and delegates the
+ * actual scoring to the pure `scoreStyle` rule. Framework-free POJO;
+ * wired by `resume-styles.composition.ts`.
  */
 export class StyleScorerAdapter extends StyleScorerPort {
-  score(_styleConfig: Record<string, unknown>): StyleScoreBreakdown {
-    return { layout: 85, typography: 85, fileLevel: 85 };
+  constructor(private readonly catalog: StyleScoringCatalogPort) {
+    super();
   }
 
-  calculateOverallScore(breakdown: StyleScoreBreakdown): number {
-    return Math.round((breakdown.layout + breakdown.typography + breakdown.fileLevel) / 3);
+  async score(input: StyleScoreInput): Promise<StyleScoreResult> {
+    const criteria = await this.catalog.loadCriteria();
+    return scoreStyle(input, criteria);
   }
 }

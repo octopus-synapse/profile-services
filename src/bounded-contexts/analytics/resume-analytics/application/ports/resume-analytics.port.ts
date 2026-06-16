@@ -8,7 +8,6 @@ import type { ResumeForAnalytics } from '../../domain/types';
 import type {
   AnalyticsDashboard,
   AnalyticsSnapshot,
-  ATSScoreResult,
   IndustryBenchmark,
   IndustryBenchmarkOptions,
   JobMatchResult,
@@ -24,23 +23,16 @@ import type {
 // Repository Ports
 // ============================================================================
 
-export abstract class AtsScoreCatalogPort {
-  abstract loadCatalog(): Promise<SectionTypeAtsConfig[]>;
-}
-
-export interface SectionTypeAtsConfig {
-  key: string;
-  kind: string;
-  ats: {
-    isMandatory: boolean;
-    recommendedPosition: number;
-    scoring: { baseScore: number; fieldWeights: Record<string, number> };
-  };
-  roleToFieldKey: Record<string, string>;
-}
-
 export abstract class BenchmarkRepositoryPort {
   abstract getAllAtsScores(): Promise<number[]>;
+}
+
+/** The latest persisted Resume Quality scores for a resume, read from
+ * `ResumeQualityScoreHistory`. Replaces on-demand ATS computation as the
+ * score source for benchmark / dashboard / snapshot. */
+export interface LatestResumeScore {
+  readonly overallScore: number;
+  readonly completenessScore: number;
 }
 
 export abstract class SnapshotRepositoryPort {
@@ -57,6 +49,8 @@ export abstract class SnapshotRepositoryPort {
     resumeId: string,
     days?: number,
   ): Promise<Array<{ date: string; score: number }>>;
+  /** Latest persisted Resume Quality score for the resume (null if none). */
+  abstract getLatest(resumeId: string): Promise<LatestResumeScore | null>;
 }
 
 export abstract class ViewTrackingRepositoryPort {
@@ -84,9 +78,6 @@ export abstract class ResumeOwnershipPort {
 // ============================================================================
 
 export abstract class ResumeAnalyticsUseCases {
-  abstract readonly calculateAtsScoreUseCase: {
-    execute: (resumeId: string, userId: string) => Promise<ATSScoreResult>;
-  };
   abstract readonly getIndustryBenchmarkUseCase: {
     execute: (
       resumeId: string,

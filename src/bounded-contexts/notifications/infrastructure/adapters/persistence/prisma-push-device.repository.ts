@@ -1,10 +1,14 @@
 import { DevicePlatform } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
 /** Stores the Expo push tokens a user's devices register, used to fan out
  *  push notifications. One row per token (re-registering refreshes ownership). */
 export class PrismaPushDeviceRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async upsert(userId: string, expoPushToken: string, platform: DevicePlatform): Promise<void> {
     await this.prisma.pushDevice.upsert({
@@ -16,6 +20,11 @@ export class PrismaPushDeviceRepository {
 
   async deleteByToken(userId: string, expoPushToken: string): Promise<number> {
     const result = await this.prisma.pushDevice.deleteMany({ where: { userId, expoPushToken } });
+    if (result.count === 0) {
+      this.logger.debug('No push device row matched for delete', 'PrismaPushDeviceRepository', {
+        userId,
+      });
+    }
     return result.count;
   }
 

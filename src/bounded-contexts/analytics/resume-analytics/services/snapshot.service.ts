@@ -24,4 +24,10 @@ export class SnapshotService {
   async getScoreProgression(resumeId: string, days: number = 30): Promise<ScoreProgressionPoint[]> {
     return this.repository.getScoreProgression(resumeId, days);
   }
+
+  async getLatest(
+    resumeId: string,
+  ): Promise<{ overallScore: number; completenessScore: number } | null> {
+    return this.repository.getLatest(resumeId);
+  }
 }

@@ -16,6 +16,7 @@ import {
   type SavedQualityScore,
 } from '../../domain/ports/quality-score.repository.port';
 import { ResumeLoaderPort } from '../../domain/ports/resume-loader.port';
+import { SectionAtsCatalogPort } from '../../domain/ports/section-ats-catalog.port';
 import type { ResumeForCompleteness } from '../../domain/rules/completeness.rules';
 import type { QualityBreakdown } from '../../domain/types';
 import { ComputeQualityUseCase, ResumeNotFoundForQualityError } from './compute-quality.use-case';
@@ -69,11 +70,21 @@ function fullResume(): ResumeForCompleteness {
     summary:
       'Senior backend engineer with 8 years shipping reliable services in Go and Rust for fintech.',
     jobTitle: 'Senior Backend Engineer',
+    phone: '+55 11 99999-0000',
     experiences: [{ startedAt: new Date('2022-01-01'), endedAt: new Date('2024-01-01') }],
-    educations: [{ institution: 'UFSCar' }],
+    educations: [
+      { institution: 'UFSCar', startedAt: new Date('2016-01-01'), endedAt: new Date('2020-12-01') },
+    ],
     skills: [{ name: 'Go' }, { name: 'Rust' }],
   };
 }
+
+class StubSectionCatalog extends SectionAtsCatalogPort {
+  async loadCatalog() {
+    return [];
+  }
+}
+const stubCatalog = new StubSectionCatalog();
 
 describe('ComputeQualityUseCase', () => {
   let loader: InMemoryResumeLoader;
@@ -98,6 +109,7 @@ describe('ComputeQualityUseCase', () => {
       repo,
       stubEventPublisher,
       stubLogger,
+      stubCatalog,
     );
     await expect(useCase.execute('missing')).rejects.toBeInstanceOf(ResumeNotFoundForQualityError);
   });
@@ -117,6 +129,7 @@ describe('ComputeQualityUseCase', () => {
       repo,
       stubEventPublisher,
       stubLogger,
+      stubCatalog,
     );
 
     const snapshot = await useCase.execute('r1');
@@ -130,6 +143,35 @@ describe('ComputeQualityUseCase', () => {
     expect(repo.saved).toHaveLength(1);
   });
 
+  it('reuses the previous AI sub-score when runAi is false (selective recompute)', async () => {
+    loader.seed('r1', fullResume());
+    const contentQuality = new StubContentQuality({
+      score: 70,
+      issues: [{ code: 'AI_NO_METRIC', severity: 'medium' }],
+      promptVersion: 'content-quality@1.1.0#deadbeef',
+      callsCount: 1,
+      costUsdMicros: 123n,
+    });
+    const useCase = new ComputeQualityUseCase(
+      loader,
+      contentQuality,
+      repo,
+      stubEventPublisher,
+      stubLogger,
+      stubCatalog,
+    );
+
+    // First full compute populates the snapshot with an AI score.
+    await useCase.execute('r1');
+    // Second compute skips AI; the prior AI score + AI issue carry forward.
+    const second = await useCase.execute('r1', { runAi: false });
+
+    expect(second.contentQualityScore).toBe(70);
+    expect(second.aiPromptVersion).toBe('content-quality@1.1.0#deadbeef');
+    expect(second.issues.some((i) => i.code === 'AI_NO_METRIC')).toBe(true);
+    expect(repo.saved).toHaveLength(2);
+  });
+
   it('falls back to completeness alone when the AI port fails', async () => {
     loader.seed('r1', fullResume());
     const contentQuality = new StubContentQuality(new Error('openai down'));
@@ -139,6 +181,7 @@ describe('ComputeQualityUseCase', () => {
       repo,
       stubEventPublisher,
       stubLogger,
+      stubCatalog,
     );
 
     const snapshot = await useCase.execute('r1');

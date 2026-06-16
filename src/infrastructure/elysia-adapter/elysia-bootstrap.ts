@@ -804,6 +804,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus,
     logger,
     queue,
+    Number(config.getOrDefault<string>('OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS', '0')),
   ) as never;
   for (const binding of (
     resumeQuality as {

@@ -59,6 +59,17 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
       .map((s) => ({ date: s.createdAt.toISOString().split('T')[0], score: s.atsScore }));
   }
 
+  async getLatest(
+    resumeId: string,
+  ): Promise<{ overallScore: number; completenessScore: number } | null> {
+    const latest = Array.from(this.snapshots.values())
+      .filter((s) => s.resumeId === resumeId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+    return latest
+      ? { overallScore: latest.atsScore, completenessScore: latest.completenessScore }
+      : null;
+  }
+
   seedSnapshot(snapshot: Partial<AnalyticsSnapshot>): void {
     const id = snapshot.id ?? `snapshot-${++this.idCounter}`;
     this.snapshots.set(id, {

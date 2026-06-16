@@ -12,11 +12,11 @@ describe('ListManyUsersBadgesUseCase', () => {
   it('groups awarded kinds by userId', async () => {
     const repo = new InMemoryBadgesRepository();
     await repo.award('u-1', 'FIRST_BUILD');
-    await repo.award('u-1', 'ATS_90_PLUS');
+    await repo.award('u-1', 'MENTORED_10');
     await repo.award('u-2', 'FIRST_BUILD');
 
     const result = await new ListManyUsersBadgesUseCase(repo).execute(['u-1', 'u-2']);
-    expect(result.get('u-1')).toEqual(['FIRST_BUILD', 'ATS_90_PLUS']);
+    expect(result.get('u-1')).toEqual(['FIRST_BUILD', 'MENTORED_10']);
     expect(result.get('u-2')).toEqual(['FIRST_BUILD']);
   });
 });

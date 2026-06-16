@@ -36,7 +36,9 @@ export function toResumeListItemDto(resume: ResumeResult): ResumeListItemDto {
     jobTitle: resume.jobTitle ?? undefined,
     summary: resume.summary ?? undefined,
     isPrimary: resume.user ? resume.user.primaryResumeId === resume.id : false,
-    style: resume.style ? { id: resume.style.id, name: resume.style.name } : undefined,
+    style: resume.style
+      ? { id: resume.style.id, name: resume.style.name, styleScore: resume.style.styleScore }
+      : undefined,
   };
 }
 
@@ -69,6 +71,7 @@ export function toResumeFullResponseDto(resume: ResumeResult): ResumeFullRespons
           id: resume.style.id,
           name: resume.style.name,
           description: resume.style.description ?? undefined,
+          styleScore: resume.style.styleScore,
         }
       : undefined,
     resumeSections,

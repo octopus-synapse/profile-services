@@ -9,6 +9,7 @@
  * 2FA exists to provide.
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import { TwoFactorNotSetupException } from '../../../domain/exceptions';
 import { TwoFactorInvalidReauthException } from '../../../domain/exceptions/two-factor-invalid-reauth.exception';
 import { TwoFactorReauthRequiredException } from '../../../domain/exceptions/two-factor-reauth-required.exception';
@@ -26,6 +27,7 @@ export class Disable2faUseCase {
     private readonly repository: TwoFactorRepositoryPort,
     private readonly passwords: UserPasswordVerifierPort,
     private readonly validate2fa: Validate2faUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, input: Disable2faInput): Promise<void> {
@@ -59,5 +61,8 @@ export class Disable2faUseCase {
 
     // Delete 2FA record
     await this.repository.delete(userId);
+
+    // Security-relevant lifecycle event — second factor removed.
+    this.logger.log('2FA disabled', 'Disable2faUseCase', { userId });
   }
 }

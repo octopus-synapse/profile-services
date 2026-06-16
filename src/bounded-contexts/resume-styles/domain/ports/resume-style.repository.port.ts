@@ -1,4 +1,10 @@
-import type { CreateStyleInput, StyleDetail, StyleSummary, UpdateStylePatch } from '../types';
+import type {
+  CreateStyleInput,
+  StyleDetail,
+  StyleScoreBreakdownData,
+  StyleSummary,
+  UpdateStylePatch,
+} from '../types';
 
 export interface ListStylesArgs {
   readonly page?: number;
@@ -20,11 +26,14 @@ export abstract class ResumeStyleRepositoryPort {
   abstract list(args?: ListStylesArgs): Promise<PaginatedStyles>;
   abstract findById(id: string): Promise<StyleDetail | null>;
   abstract create(
-    input: CreateStyleInput & { styleScore: number; atsSafetyBreakdown: Record<string, number> },
+    input: CreateStyleInput & { styleScore: number; styleScoreBreakdown: StyleScoreBreakdownData },
   ): Promise<StyleDetail>;
   abstract update(
     id: string,
-    patch: UpdateStylePatch & { styleScore?: number; atsSafetyBreakdown?: Record<string, number> },
+    patch: UpdateStylePatch & {
+      styleScore?: number;
+      styleScoreBreakdown?: StyleScoreBreakdownData;
+    },
   ): Promise<StyleDetail>;
   abstract delete(id: string): Promise<void>;
   /**

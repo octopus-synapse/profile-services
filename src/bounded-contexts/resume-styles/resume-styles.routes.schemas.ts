@@ -100,11 +100,23 @@ export const StyleSummaryResponseSchema = z.object({
   updatedAt: IsoDateTimeSchema,
 });
 
+export const StyleScoreIssueSchema = z.object({
+  code: z.string(),
+  severity: z.enum(['low', 'medium', 'high']),
+  bucket: z.string(),
+  messageArgs: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+});
+
+export const StyleScoreBreakdownSchema = z.object({
+  buckets: z.record(z.string(), z.number()),
+  issues: z.array(StyleScoreIssueSchema),
+});
+
 export const StyleDetailResponseSchema = StyleSummaryResponseSchema.extend({
   version: z.number().int(),
   styleConfig: StyleConfigSchema,
   sectionStyles: StyleConfigSchema,
-  atsSafetyBreakdown: z.record(z.string(), z.number()),
+  styleScoreBreakdown: StyleScoreBreakdownSchema,
   previewImages: z.array(z.string()),
   authorId: z.string().uuid(),
 });

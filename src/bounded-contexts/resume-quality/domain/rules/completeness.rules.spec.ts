@@ -7,6 +7,7 @@ function makeResume(overrides: Partial<ResumeForCompleteness> = {}): ResumeForCo
     summary:
       'Senior backend engineer with 8 years experience shipping reliable services in Go and Rust for fintech.',
     jobTitle: 'Senior Backend Engineer',
+    phone: '+55 11 99999-0000',
     experiences: [
       {
         startedAt: new Date('2022-01-01'),
@@ -15,7 +16,13 @@ function makeResume(overrides: Partial<ResumeForCompleteness> = {}): ResumeForCo
         role: 'Senior Engineer',
       },
     ],
-    educations: [{ institution: 'UFSCar' }],
+    educations: [
+      {
+        institution: 'UFSCar',
+        startedAt: new Date('2016-01-01'),
+        endedAt: new Date('2020-12-01'),
+      },
+    ],
     skills: [{ name: 'Go' }, { name: 'Rust' }],
     ...overrides,
   };
@@ -79,11 +86,48 @@ describe('scoreCompleteness', () => {
     expect(dupes[0]?.messageArgs).toMatchObject({ skill: 'go' });
   });
 
+  it('scores phone when loaded and flags it when blank', () => {
+    const withPhone = scoreCompleteness(makeResume());
+    const withoutPhone = scoreCompleteness(makeResume({ phone: null }));
+    expect(withoutPhone.score).toBe(withPhone.score - 4);
+    expect(withoutPhone.issues).toContainEqual(
+      expect.objectContaining({ code: 'CODE_MISSING_PHONE', severity: 'medium' }),
+    );
+  });
+
+  it('skips the phone rule entirely when phone is not loaded', () => {
+    const result = scoreCompleteness(makeResume({ phone: undefined }));
+    expect(result.issues.some((i) => i.code === 'CODE_MISSING_PHONE')).toBe(false);
+    // phone weight (4) is not awarded when the field is absent
+    expect(result.score).toBe(96);
+  });
+
+  it('flags entries missing a start date with the count', () => {
+    const result = scoreCompleteness(
+      makeResume({
+        experiences: [{ company: 'Acme', role: 'Engineer' }],
+        educations: [{ institution: 'UFSCar' }],
+      }),
+    );
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ code: 'CODE_MISSING_DATES', messageArgs: { count: 2 } }),
+    );
+  });
+
+  it('awards the dates weight when every entry has a start date', () => {
+    const withDates = scoreCompleteness(makeResume());
+    const noStart = scoreCompleteness(
+      makeResume({ experiences: [{ company: 'Acme', role: 'Engineer' }] }),
+    );
+    expect(noStart.score).toBe(withDates.score - 4);
+  });
+
   it('stays within 0..100 even when every rule fails', () => {
     const empty: ResumeForCompleteness = {
       fullName: null,
       summary: null,
       jobTitle: null,
+      phone: null,
       experiences: [],
       educations: [],
       skills: [],

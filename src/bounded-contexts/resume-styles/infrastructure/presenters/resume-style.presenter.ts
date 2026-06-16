@@ -39,7 +39,15 @@ export function toDetailResponseDto(s: StyleDetail): StyleDetailDto {
     version: s.version,
     styleConfig: asJsonObject(s.styleConfig),
     sectionStyles: asJsonObject(s.sectionStyles),
-    atsSafetyBreakdown: asJsonObject<Record<string, number>>(s.atsSafetyBreakdown),
+    styleScoreBreakdown: {
+      buckets: { ...s.styleScoreBreakdown.buckets },
+      issues: s.styleScoreBreakdown.issues.map((i) => ({
+        code: i.code,
+        severity: i.severity,
+        bucket: i.bucket,
+        ...(i.messageArgs ? { messageArgs: i.messageArgs } : {}),
+      })),
+    },
     previewImages: [...s.previewImages],
     authorId: s.authorId,
   };

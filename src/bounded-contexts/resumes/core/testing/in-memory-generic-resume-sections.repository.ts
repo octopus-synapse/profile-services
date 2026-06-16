@@ -56,9 +56,13 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
       .sort((a, b) => a.order - b.order);
   }
 
-  async findActiveSectionTypeByKey(
-    sectionTypeKey: string,
-  ): Promise<{ id: string; key: string; maxItems: number | null; definition: unknown } | null> {
+  async findActiveSectionTypeByKey(sectionTypeKey: string): Promise<{
+    id: string;
+    key: string;
+    semanticKind: string;
+    maxItems: number | null;
+    definition: unknown;
+  } | null> {
     const sectionType = Array.from(this.sectionTypes.values()).find(
       (st) => st.key === sectionTypeKey && st.isActive,
     );
@@ -68,6 +72,7 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
     return {
       id: sectionType.id,
       key: sectionType.key,
+      semanticKind: sectionType.semanticKind,
       maxItems: sectionType.maxItems,
       definition: sectionType.definition,
     };

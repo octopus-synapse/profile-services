@@ -3,11 +3,15 @@ import {
   StyleBelowAtsThresholdError,
   StyleNotEditableError,
   StyleNotFoundError,
-  StyleScoreRegressionError,
 } from '../../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../../domain/ports/resume-style.repository.port';
 import { StyleScorerPort } from '../../../domain/ports/style-scorer.port';
-import { ATS_SAFE_THRESHOLD, type StyleDetail, type UpdateStylePatch } from '../../../domain/types';
+import {
+  STYLE_SCORE_MIN,
+  type StyleDetail,
+  type StyleScoreBreakdownData,
+  type UpdateStylePatch,
+} from '../../../domain/types';
 
 /**
  * Admin-only style update.
@@ -15,9 +19,8 @@ import { ATS_SAFE_THRESHOLD, type StyleDetail, type UpdateStylePatch } from '../
  * - System-managed styles (`isSystem: true`) are never editable from
  *   the API; ops mutate them via the seed file + a fresh deploy.
  * - When `styleConfig` changes we rerun the scorer and enforce the
- *   ATS-safety threshold (invariant 3).
- * - Monotonic styleScore (invariant 1) is double-enforced: a clean
- *   422 here, a Postgres trigger as the last line of defence.
+ *   ATS-safety threshold (`STYLE_SCORE_MIN`). The score is free to move
+ *   in either direction — a worse template legitimately scores lower.
  */
 export class UpdateStyleUseCase {
   constructor(
@@ -32,19 +35,19 @@ export class UpdateStyleUseCase {
     if (current.isSystem) throw new StyleNotEditableError(id);
 
     let styleScore: number | undefined;
-    let atsSafetyBreakdown: Record<string, number> | undefined;
+    let styleScoreBreakdown: StyleScoreBreakdownData | undefined;
     if (patch.styleConfig) {
-      const breakdown = this.scorer.score(patch.styleConfig);
-      styleScore = this.scorer.calculateOverallScore(breakdown);
-      if (styleScore < ATS_SAFE_THRESHOLD) {
-        throw new StyleBelowAtsThresholdError(styleScore, ATS_SAFE_THRESHOLD);
+      const result = await this.scorer.score({
+        styleConfig: patch.styleConfig,
+        layoutKind: patch.layoutKind ?? current.layoutKind,
+      });
+      if (result.overall < STYLE_SCORE_MIN) {
+        throw new StyleBelowAtsThresholdError(result.overall, STYLE_SCORE_MIN);
       }
-      if (styleScore < current.styleScore) {
-        throw new StyleScoreRegressionError(id, current.styleScore, styleScore);
-      }
-      atsSafetyBreakdown = { ...breakdown };
+      styleScore = result.overall;
+      styleScoreBreakdown = { buckets: result.breakdown, issues: result.issues };
     }
 
-    return this.repo.update(id, { ...patch, styleScore, atsSafetyBreakdown });
+    return this.repo.update(id, { ...patch, styleScore, styleScoreBreakdown });
   }
 }

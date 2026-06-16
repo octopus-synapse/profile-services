@@ -14,6 +14,9 @@ export interface ContentQualityInput {
   readonly summary: string | null;
   readonly jobTitle: string | null;
   readonly bullets: ReadonlyArray<{ readonly id: string; readonly text: string }>;
+  /** Resume language (`pt-br` / `en`); the analyzer writes issue text in
+   * this language instead of guessing from the bullet content. */
+  readonly language?: string | null;
 }
 
 export interface ContentQualityIssue {

@@ -10,6 +10,7 @@ import {
   type SavedQualityScore,
 } from '../../../domain/ports/quality-score.repository.port';
 import { ResumeLoaderPort } from '../../../domain/ports/resume-loader.port';
+import type { SectionAtsCatalogPort } from '../../../domain/ports/section-ats-catalog.port';
 import type { ResumeForCompleteness } from '../../../domain/rules/completeness.rules';
 import type { QualityBreakdown } from '../../../domain/types';
 import { ComputeQualityUseCase } from '../compute-quality.use-case';
@@ -67,11 +68,14 @@ const FULL: ResumeForCompleteness = {
   summary:
     'Backend engineer with 7 years building reliable services in TypeScript and Go for fintech.',
   jobTitle: 'Senior Backend Engineer',
+  phone: '+55 11 90000-0000',
   experiences: [
     { startedAt: new Date('2020-01-01'), endedAt: new Date('2023-01-01') },
     { startedAt: new Date('2023-02-01'), endedAt: new Date('2025-06-01') },
   ],
-  educations: [{ institution: 'UFSCar' }],
+  educations: [
+    { institution: 'UFSCar', startedAt: new Date('2014-01-01'), endedAt: new Date('2018-12-01') },
+  ],
   skills: [{ name: 'TypeScript' }, { name: 'Go' }, { name: 'PostgreSQL' }],
 };
 
@@ -109,6 +113,10 @@ const NULL_AI: ContentQualityResult = {
   costUsdMicros: 0n,
 };
 
+const stubSectionCatalog: SectionAtsCatalogPort = {
+  loadCatalog: async () => [],
+} as SectionAtsCatalogPort;
+
 async function run(resume: ResumeForCompleteness, ai: ContentQualityResult) {
   const repo = new CapturingRepo();
   const useCase = new ComputeQualityUseCase(
@@ -117,6 +125,7 @@ async function run(resume: ResumeForCompleteness, ai: ContentQualityResult) {
     repo,
     stubEventPublisher,
     stubLogger,
+    stubSectionCatalog,
   );
   return useCase.execute('r1');
 }

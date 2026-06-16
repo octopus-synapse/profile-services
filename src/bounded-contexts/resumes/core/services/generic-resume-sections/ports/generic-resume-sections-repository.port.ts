@@ -21,9 +21,17 @@ export abstract class GenericResumeSectionsRepositoryPort {
 
   abstract findResumeSections(resumeId: string): Promise<ResumeSectionDto[]>;
 
+  // `semanticKind` is surfaced so the section-item use-cases can tag the
+  // `ResumeUpdatedEvent` they publish (resume-quality selective recompute).
   abstract findActiveSectionTypeByKey(
     sectionTypeKey: string,
-  ): Promise<{ id: string; key: string; maxItems: number | null; definition: unknown } | null>;
+  ): Promise<{
+    id: string;
+    key: string;
+    semanticKind: string;
+    maxItems: number | null;
+    definition: unknown;
+  } | null>;
 
   abstract findResumeSection(
     resumeId: string,

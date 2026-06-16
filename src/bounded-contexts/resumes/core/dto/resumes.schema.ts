@@ -39,6 +39,7 @@ const ThemeSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
+  styleScore: z.number().int().min(0).max(100),
 });
 
 // ============================================================================
@@ -83,7 +84,9 @@ const ResumeListItemSchema = ResumeResponseSchema.extend({
   jobTitle: z.string().nullable().optional(),
   summary: z.string().nullable().optional(),
   isPrimary: z.boolean(),
-  style: z.object({ id: z.string(), name: z.string() }).optional(),
+  style: z
+    .object({ id: z.string(), name: z.string(), styleScore: z.number().int().min(0).max(100) })
+    .optional(),
 });
 
 const ResumeSlotsResponseSchema = z.object({

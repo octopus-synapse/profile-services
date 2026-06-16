@@ -44,7 +44,7 @@ export function buildTwoFactorAuthUseCases(
   return {
     setup2fa: new Setup2faUseCase(repository, totp, qr, logger),
     verifyAndEnable2fa: new VerifyAndEnable2faUseCase(repository, totp, hash, logger),
-    disable2fa: new Disable2faUseCase(repository, userPasswordVerifier, validate2fa),
+    disable2fa: new Disable2faUseCase(repository, userPasswordVerifier, validate2fa, logger),
     get2faStatus: new Get2faStatusUseCase(repository),
     regenerateBackupCodes: new RegenerateBackupCodesUseCase(repository, hash, logger),
     validate2fa,

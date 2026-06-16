@@ -10,6 +10,7 @@ import { seedJobs } from './seeds/job.seed';
 import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
 import { seedResumeStyles } from './seeds/resume-styles.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
+import { seedStyleScoringCriteria } from './seeds/style-scoring-criteria.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 import { seedTechSkills } from './seeds/tech-skill.seed';
 import { seedUsernames } from './seeds/username.seed';
@@ -93,6 +94,9 @@ async function main() {
     });
     console.log('✅ Admin role assigned to admin user');
   }
+
+  // Seed the data-driven Style Score rubric before the styles themselves.
+  await seedStyleScoringCriteria(prisma);
 
   // Seed system resume styles (2 ATS-safe)
   await seedResumeStyles(prisma, admin.id);

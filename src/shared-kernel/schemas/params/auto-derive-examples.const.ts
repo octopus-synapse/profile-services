@@ -716,7 +716,10 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['backgroundColor', '#FFFFFF'],
   ['background', '#FFFFFF'],
   ['available', 'true'],
-  ['atsSafetyBreakdown', '{"layout":30,"typography":30,"fileLevel":30}'],
+  [
+    'styleScoreBreakdown',
+    '{"buckets":{"structure":35,"typography":30,"contrast":20,"decorations":15},"issues":[]}',
+  ],
   ['accent', '#0066cc'],
   ['visible', 'true'],
   ['valid', 'true'],

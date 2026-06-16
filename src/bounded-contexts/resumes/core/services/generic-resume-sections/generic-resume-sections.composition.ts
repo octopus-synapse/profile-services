@@ -1,5 +1,6 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { ResumeEventPublisher } from '../../../domain/ports';
 import { SectionDefinitionZodFactory } from '../section-definition-zod.factory';
 import { ItemContentValidatorPolicy } from './policies/item-content-validator.policy';
 import { ResumeOwnershipPolicy } from './policies/resume-ownership.policy';
@@ -18,6 +19,7 @@ export function buildGenericResumeSectionsUseCases(
   prisma: PrismaService,
   sectionSchemaFactory: SectionDefinitionZodFactory,
   logger: LoggerPort,
+  eventPublisher?: ResumeEventPublisher,
 ): GenericResumeSectionsUseCases {
   const repository = new GenericResumeSectionsRepository(prisma, logger);
   const ownershipPolicy = new ResumeOwnershipPolicy(repository);
@@ -31,17 +33,20 @@ export function buildGenericResumeSectionsUseCases(
       repository,
       ownershipPolicy,
       contentValidatorPolicy,
+      eventPublisher,
     ),
     updateSectionItemUseCase: new UpdateSectionItemUseCase(
       repository,
       ownershipPolicy,
       sectionTypePolicy,
       contentValidatorPolicy,
+      eventPublisher,
     ),
     deleteSectionItemUseCase: new DeleteSectionItemUseCase(
       repository,
       ownershipPolicy,
       sectionTypePolicy,
+      eventPublisher,
     ),
   };
 }

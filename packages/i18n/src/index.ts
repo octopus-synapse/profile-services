@@ -17,6 +17,12 @@ export type {
   NotificationTemplate,
 } from './notifications';
 export { NOTIFICATION_DICTIONARY, renderNotification } from './notifications';
+export type {
+  QualityIssueCode,
+  QualityIssueDictionary,
+  QualityIssueTemplate,
+} from './quality-issues';
+export { QUALITY_ISSUE_DICTIONARY, renderQualityIssue } from './quality-issues';
 export type { StepTranslation, WelcomeFeature } from './static-steps';
 export { renderStaticStep, STATIC_STEP_DICTIONARY } from './static-steps';
 export type {

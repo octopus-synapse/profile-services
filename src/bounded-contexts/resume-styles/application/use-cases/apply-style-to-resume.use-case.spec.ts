@@ -33,7 +33,7 @@ const styleFixture: StyleDetail = {
   version: 1,
   styleConfig: {},
   sectionStyles: {},
-  atsSafetyBreakdown: { layout: 80, typography: 80, fileLevel: 80 },
+  styleScoreBreakdown: { buckets: { structure: 35, typography: 30, contrast: 20, decorations: 15 }, issues: [] },
   previewImages: [],
   authorId: 'admin',
 };

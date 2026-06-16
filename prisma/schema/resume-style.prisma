@@ -1,8 +1,9 @@
 // Resume Style System - ATS-safe visual styles for resumes (formerly ResumeTheme).
 //
-// Every ResumeStyle is ATS-safe by invariant: creation below the configured
-// threshold is rejected (422), and a DB trigger enforces that `styleScore`
-// can only move forward (monotonic).
+// Every ResumeStyle is ATS-safe by invariant: creation/update below the
+// configured Style Score threshold is rejected (422). The score is computed
+// from the design config by the data-driven rubric (StyleScoringCriterion)
+// and is free to move in either direction as a template is edited.
 
 model ResumeStyle {
   id String @id @default(dbgenerated("uuidv7()"))
@@ -17,9 +18,9 @@ model ResumeStyle {
   version     Int  @default(1)
   historyJson Json @default("[]") // [{ version, styleScore, changedAt, changedBy }]
 
-  // ATS-safety and Style Score
-  styleScore         Int  @default(0) // 0-100, monotonic (trigger enforces)
-  atsSafetyBreakdown Json @default("{}") // { layout, typography, fileLevel } breakdown
+  // Style Score (0-100) + breakdown computed by the data-driven rubric.
+  styleScore          Int  @default(0) // 0-100, recomputed from styleConfig
+  styleScoreBreakdown Json @default("{}") // { buckets: { ...bucket: points }, issues: StyleIssue[] }
 
   // Layout & template
   layoutKind    LayoutKind @default(SINGLE_COLUMN)
@@ -51,4 +52,27 @@ model ResumeStyle {
   @@index([authorId])
   @@index([isSystem])
   @@index([createdAt])
+}
+
+// Data-driven Style Score rubric. Each row is one tunable criterion: the
+// evaluator function is code (keyed by `key`), while weight / severity /
+// thresholds / allowlists live here so the rubric can be tuned without a
+// deploy. Mirrors the `SectionType.definition.ats.scoring` catalog pattern.
+//
+// `bucket` and `severity` are plain strings (not Prisma enums) on purpose —
+// they're internal scoring metadata, not user-facing enums, so they stay out
+// of the i18n ENUM_DICTIONARY parity surface.
+model StyleScoringCriterion {
+  id       String  @id @default(dbgenerated("uuidv7()"))
+  key      String  @unique // stable id matched to a code evaluator, e.g. "structure.single_column_layout"
+  bucket   String // score bucket: structure | typography | contrast | decorations
+  weight   Int // points awarded when the criterion passes
+  severity String // high | medium | low — severity of the emitted issue on failure
+  params   Json    @default("{}") // allowlists / thresholds the evaluator reads
+  active   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
 }

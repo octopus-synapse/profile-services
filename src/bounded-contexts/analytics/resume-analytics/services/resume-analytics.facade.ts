@@ -1,12 +1,9 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { AtsScoreCalculatedEvent } from '../../domain/events';
 import type { ResumeForAnalytics } from '../domain/types';
 import type {
   AnalyticsDashboard,
   AnalyticsSnapshot,
-  ATSScoreResult,
   IndustryBenchmark,
   IndustryBenchmarkOptions,
   JobMatchResult,
@@ -18,7 +15,6 @@ import type {
   ViewStats,
   ViewStatsOptions,
 } from '../interfaces';
-import { ATSScoreService } from './ats-score.service';
 import { BenchmarkService } from './benchmark.service';
 import { DashboardService } from './dashboard.service';
 import { KeywordAnalysisService } from './keyword-analysis.service';
@@ -28,9 +24,7 @@ import { ViewTrackingService } from './view-tracking.service';
 export class ResumeAnalyticsFacade {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly eventPublisher: EventPublisher,
     private readonly viewTracking: ViewTrackingService,
-    private readonly atsScore: ATSScoreService,
     private readonly keywordAnalysis: KeywordAnalysisService,
     private readonly benchmark: BenchmarkService,
     private readonly snapshot: SnapshotService,
@@ -111,21 +105,6 @@ export class ResumeAnalyticsFacade {
     return { extractedText, sections, warnings: Array.from(new Set(warnings)) };
   }
 
-  async calculateATSScore(resumeId: string, userId: string): Promise<ATSScoreResult> {
-    await this.verifyOwnership(resumeId, userId);
-    const resume = await this.getResumeWithDetails(resumeId);
-    const result = await this.atsScore.calculate(resume);
-
-    this.eventPublisher.publish(
-      new AtsScoreCalculatedEvent(resumeId, {
-        score: result.score,
-        issues: result.issues.map((i) => i.code),
-      }),
-    );
-
-    return result;
-  }
-
   async getKeywordSuggestions(
     resumeId: string,
     userId: string,
@@ -152,9 +131,8 @@ export class ResumeAnalyticsFacade {
     options: IndustryBenchmarkOptions,
   ): Promise<IndustryBenchmark> {
     await this.verifyOwnership(resumeId, userId);
-    const resume = await this.getResumeWithDetails(resumeId);
-    const atsResult = await this.atsScore.calculate(resume);
-    return this.benchmark.getIndustryBenchmark(atsResult.score, options);
+    const latest = await this.snapshot.getLatest(resumeId);
+    return this.benchmark.getIndustryBenchmark(latest?.overallScore ?? 0, options);
   }
 
   async getDashboard(resumeId: string, userId: string): Promise<AnalyticsDashboard> {
@@ -165,20 +143,15 @@ export class ResumeAnalyticsFacade {
 
   async saveSnapshot(resumeId: string, userId: string): Promise<AnalyticsSnapshot> {
     await this.verifyOwnership(resumeId, userId);
-    const resume = await this.getResumeWithDetails(resumeId);
-    const atsResult = await this.atsScore.calculate(resume);
-    const avgSectionScore =
-      atsResult.sectionBreakdown.length > 0
-        ? Math.round(
-            atsResult.sectionBreakdown.reduce((s, b) => s + b.score, 0) /
-              atsResult.sectionBreakdown.length,
-          )
-        : 0;
+    // Snapshot the latest persisted Resume Quality score (the content-based
+    // ATS score was retired). `atsScore` keeps its DTO field name for
+    // response stability but is sourced from the quality overall score.
+    const latest = await this.snapshot.getLatest(resumeId);
     return this.snapshot.save({
       resumeId,
-      atsScore: atsResult.score,
-      keywordScore: avgSectionScore,
-      completenessScore: avgSectionScore,
+      atsScore: latest?.overallScore ?? 0,
+      keywordScore: latest?.completenessScore ?? 0,
+      completenessScore: latest?.completenessScore ?? 0,
     });
   }
 

@@ -149,7 +149,11 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(typeof style.sectionStyles).toBe('object');
       // Detail-only fields surface.
       expect(typeof style.version).toBe('number');
-      expect(typeof style.atsSafetyBreakdown).toBe('object');
+      expect(typeof style.styleScoreBreakdown).toBe('object');
+      expect(typeof style.styleScoreBreakdown.buckets).toBe('object');
+      expect(Array.isArray(style.styleScoreBreakdown.issues)).toBe(true);
+      // System styles satisfy every rubric criterion → perfect score.
+      expect(style.styleScore).toBe(100);
     });
 
     it.serial('should reject unauthenticated catalog reads', async () => {

@@ -46,9 +46,16 @@ export class InMemoryViewTracking implements ViewTrackingPort {
  */
 export class InMemorySnapshot implements SnapshotPort {
   private progressions = new Map<string, ScoreProgressionPoint[]>();
+  private latest = new Map<string, { overallScore: number; completenessScore: number }>();
 
   async getScoreProgression(resumeId: string, _days: number): Promise<ScoreProgressionPoint[]> {
     return this.progressions.get(resumeId) ?? [];
+  }
+
+  async getLatest(
+    resumeId: string,
+  ): Promise<{ overallScore: number; completenessScore: number } | null> {
+    return this.latest.get(resumeId) ?? null;
   }
 
   /**
@@ -58,7 +65,16 @@ export class InMemorySnapshot implements SnapshotPort {
     this.progressions.set(resumeId, points);
   }
 
+  /** Seeds the latest persisted quality score for a resume (for testing). */
+  seedLatest(
+    resumeId: string,
+    score: { overallScore: number; completenessScore: number },
+  ): void {
+    this.latest.set(resumeId, score);
+  }
+
   clear(): void {
     this.progressions.clear();
+    this.latest.clear();
   }
 }

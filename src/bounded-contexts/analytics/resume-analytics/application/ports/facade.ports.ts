@@ -6,12 +6,7 @@
  * depend on contracts, not on sibling use-case classes (DIP on the application layer).
  */
 
-import type { ResumeForAnalytics } from '../../domain/types';
-import type { ATSScoreResult, ViewStats, ViewStatsOptions } from '../../interfaces';
-
-export abstract class AtsScoringPort {
-  abstract calculate(resume: ResumeForAnalytics, resumeId?: string): Promise<ATSScoreResult>;
-}
+import type { ViewStats, ViewStatsOptions } from '../../interfaces';
 
 export abstract class ViewStatsProviderPort {
   abstract getViewStats(resumeId: string, options: ViewStatsOptions): Promise<ViewStats>;

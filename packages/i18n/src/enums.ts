@@ -114,7 +114,6 @@ export const ENUM_DICTIONARY = {
     },
   },
   BadgeKind: {
-    ATS_90_PLUS: { en: 'ATS 90+', 'pt-BR': 'ATS 90+' },
     CONTRIBUTOR: { en: 'Contributor', 'pt-BR': 'Contribuidor' },
     EVENT_SPEAKER: { en: 'Event speaker', 'pt-BR': 'Palestrante em evento' },
     FIRST_BUILD: { en: 'First build', 'pt-BR': 'Primeiro build' },

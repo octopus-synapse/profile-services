@@ -22,6 +22,7 @@ import type { ResumeStyleRepositoryPort } from './domain/ports/resume-style.repo
 import type { StylePreviewPort } from './domain/ports/style-preview.port';
 import type { StyleScorerPort } from './domain/ports/style-scorer.port';
 import { PrismaResumeStyleRepository } from './infrastructure/adapters/persistence/prisma-resume-style.repository';
+import { PrismaStyleScoringCatalogRepository } from './infrastructure/adapters/persistence/prisma-style-scoring-catalog.repository';
 import { StylePreviewAdapter } from './infrastructure/adapters/style-preview.adapter';
 import { StyleScorerAdapter } from './infrastructure/adapters/style-scorer.adapter';
 import { resumeStylesRoutes } from './resume-styles.routes';
@@ -59,7 +60,7 @@ export function buildResumeStylesComposition(
   logger: LoggerPort,
 ): BoundedContextComposition<ResumeStylesUseCases> {
   const repo = new PrismaResumeStyleRepository(prisma, logger);
-  const scorer = new StyleScorerAdapter();
+  const scorer = new StyleScorerAdapter(new PrismaStyleScoringCatalogRepository(prisma));
   const preview = new StylePreviewAdapter(exports);
 
   const useCases = buildResumeStylesUseCases(repo, scorer, preview, events, logger);

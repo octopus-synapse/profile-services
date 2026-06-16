@@ -115,7 +115,7 @@ export function buildNotificationsUseCases(
   const stream: NotificationStreamPort = new EventEmitterNotificationStreamAdapter(sse);
 
   const repository = new PrismaNotificationsRepository(prisma);
-  const pushDeviceRepository = new PrismaPushDeviceRepository(prisma);
+  const pushDeviceRepository = new PrismaPushDeviceRepository(prisma, logger);
   const stats = new PrismaWeeklyDigestStatsAdapter(prisma);
   const digestLog = new PrismaWeeklyDigestLogAdapter(prisma);
   const fitProfileExpiry = new PrismaFitProfileExpiryAdapter(prisma);

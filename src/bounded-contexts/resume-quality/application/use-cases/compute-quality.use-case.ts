@@ -6,6 +6,7 @@ import {
   type SavedQualityScore,
 } from '../../domain/ports/quality-score.repository.port';
 import { ResumeLoaderPort } from '../../domain/ports/resume-loader.port';
+import { SectionAtsCatalogPort } from '../../domain/ports/section-ats-catalog.port';
 import { scoreCompleteness } from '../../domain/rules/completeness.rules';
 import {
   COMPLETENESS_RULES_VERSION,
@@ -39,33 +40,32 @@ export class ComputeQualityUseCase {
     private readonly repository: QualityScoreRepositoryPort,
     private readonly events: EventPublisher,
     private readonly logger: LoggerPort,
+    private readonly sectionCatalog: SectionAtsCatalogPort,
   ) {}
 
-  async execute(resumeId: string): Promise<SavedQualityScore> {
+  async execute(resumeId: string, opts: { runAi?: boolean } = {}): Promise<SavedQualityScore> {
+    const runAi = opts.runAi ?? true;
     const startedAt = Date.now();
     const resume = await this.resumeLoader.load(resumeId);
     if (!resume) throw new ResumeNotFoundForQualityError(resumeId);
 
-    const completeness = scoreCompleteness(resume);
-
-    let contentQuality: Awaited<ReturnType<typeof this.contentQuality.analyze>> | null = null;
+    // Structural ATS rules (mandatory section + weighted fields) — loaded
+    // best-effort so a catalog hiccup never blocks the quality score.
+    let catalog: Awaited<ReturnType<typeof this.sectionCatalog.loadCatalog>> | undefined;
     try {
-      contentQuality = await this.contentQuality.analyze(resume);
+      catalog = await this.sectionCatalog.loadCatalog();
     } catch (err) {
-      // Graceful degradation — the Port returning null or throwing both
-      // land here; we keep going with Completeness alone.
       this.logger.warn(
-        `Content Quality failed for resume ${resumeId}: ${(err as Error).message}`,
+        `Section ATS catalog failed for resume ${resumeId}: ${(err as Error).message}`,
         'ComputeQualityUseCase',
       );
-      contentQuality = {
-        score: null,
-        issues: [] as readonly QualityIssue[],
-        promptVersion: null,
-        callsCount: 0,
-        costUsdMicros: 0n,
-      };
     }
+
+    const completeness = scoreCompleteness(resume, catalog);
+
+    const contentQuality = runAi
+      ? await this.analyzeContent(resumeId, resume)
+      : await this.reusePreviousContent(resumeId);
 
     const overall = this.blend(completeness.score, contentQuality.score);
 
@@ -100,6 +100,52 @@ export class ComputeQualityUseCase {
     );
 
     return saved;
+  }
+
+  /** Runs the AI Content Quality port, degrading to a null sub-score on
+   * any failure so the blend falls back to Completeness alone. */
+  private async analyzeContent(
+    resumeId: string,
+    resume: Awaited<ReturnType<typeof this.resumeLoader.load>>,
+  ): Promise<Awaited<ReturnType<typeof this.contentQuality.analyze>>> {
+    if (!resume) return this.emptyContent();
+    try {
+      return await this.contentQuality.analyze(resume);
+    } catch (err) {
+      this.logger.warn(
+        `Content Quality failed for resume ${resumeId}: ${(err as Error).message}`,
+        'ComputeQualityUseCase',
+      );
+      return this.emptyContent();
+    }
+  }
+
+  /** Selective-recompute path: the change didn't touch gradeable content,
+   * so skip the AI call and carry the previous snapshot's AI sub-score +
+   * its AI issues forward. Falls back to an empty sub-score when there is
+   * no prior snapshot (e.g. first compute). */
+  private async reusePreviousContent(
+    resumeId: string,
+  ): Promise<Awaited<ReturnType<typeof this.contentQuality.analyze>>> {
+    const previous = await this.repository.findLatest(resumeId);
+    if (!previous || previous.contentQualityScore === null) return this.emptyContent();
+    return {
+      score: previous.contentQualityScore,
+      issues: previous.issues.filter((i) => i.code.startsWith('AI_')),
+      promptVersion: previous.aiPromptVersion,
+      callsCount: 0,
+      costUsdMicros: 0n,
+    };
+  }
+
+  private emptyContent(): Awaited<ReturnType<typeof this.contentQuality.analyze>> {
+    return {
+      score: null,
+      issues: [] as readonly QualityIssue[],
+      promptVersion: null,
+      callsCount: 0,
+      costUsdMicros: 0n,
+    };
   }
 
   private blend(completeness: number, contentQuality: number | null): number {
