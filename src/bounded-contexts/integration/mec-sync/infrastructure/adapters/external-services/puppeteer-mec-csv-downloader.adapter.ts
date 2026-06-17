@@ -16,16 +16,21 @@ import { PUPPETEER_ARGS, PUPPETEER_CONFIG } from '../../../constants';
 import { MecCsvDownloaderPort } from '../../../domain/ports/mec-csv-downloader.port';
 import { CloudflareBypassAdapter } from './cloudflare-bypass.adapter';
 
-const puppeteerExtra: {
+type PuppeteerExtra = {
   use: (plugin: unknown) => void;
   launch: (options: Record<string, unknown>) => Promise<Browser>;
-} = require('puppeteer-extra');
-const StealthPlugin: () => unknown = require('puppeteer-extra-plugin-stealth');
-
-puppeteerExtra.use(StealthPlugin());
+};
 
 export class PuppeteerMecCsvDownloaderAdapter extends MecCsvDownloaderPort {
   private readonly context = 'PuppeteerMecCsvDownloader';
+
+  // Lazily-loaded puppeteer-extra (with the stealth plugin registered).
+  // Constructing `StealthPlugin()` at module import time crashes the whole
+  // app boot under the bundled runtime (`utils2.forOwn is not a function`),
+  // and this adapter is only exercised by the MEC sync cron — never on the
+  // request path. So we defer the require + plugin registration to the first
+  // browser launch instead of doing it at module scope.
+  private puppeteer: PuppeteerExtra | null = null;
 
   constructor(
     private readonly logger: LoggerPort,
@@ -49,7 +54,21 @@ export class PuppeteerMecCsvDownloaderAdapter extends MecCsvDownloaderPort {
   }
 
   private async launchBrowser(): Promise<Browser> {
-    return puppeteerExtra.launch({ headless: true, args: [...PUPPETEER_ARGS] });
+    return this.getPuppeteer().launch({ headless: true, args: [...PUPPETEER_ARGS] });
+  }
+
+  /**
+   * Resolve the puppeteer-extra singleton, registering the stealth plugin on
+   * first use. Memoised on the instance so the plugin is registered once.
+   */
+  private getPuppeteer(): PuppeteerExtra {
+    if (!this.puppeteer) {
+      const puppeteerExtra = require('puppeteer-extra') as PuppeteerExtra;
+      const StealthPlugin = require('puppeteer-extra-plugin-stealth') as () => unknown;
+      puppeteerExtra.use(StealthPlugin());
+      this.puppeteer = puppeteerExtra;
+    }
+    return this.puppeteer;
   }
 
   private async createPage(browser: Browser): Promise<Page> {
