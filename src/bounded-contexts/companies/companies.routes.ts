@@ -17,6 +17,10 @@ export const companiesRoutes: ReadonlyArray<Route<CompaniesBundle>> = [
     method: 'GET',
     path: '/v1/companies/search',
     auth: { kind: 'jwt' },
+    // Hit during onboarding (Add Experience company), before onboarding completes —
+    // opt out of the onboarding-completed gate (email-verified still applies),
+    // else a mid-onboarding user gets 403 ONBOARDING_NOT_COMPLETED.
+    guards: [{ id: 'skip-tos-check' }],
     query: CompaniesSearchQuerySchema,
     response: CompaniesSearchResponseSchema,
     openapi: {

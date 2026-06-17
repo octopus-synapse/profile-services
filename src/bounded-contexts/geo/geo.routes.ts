@@ -14,6 +14,10 @@ export const geoRoutes: ReadonlyArray<Route<GeoBundle>> = [
     method: 'GET',
     path: '/v1/geo/locations',
     auth: { kind: 'jwt' },
+    // Hit during onboarding (location step), before onboarding completes —
+    // opt out of the onboarding-completed gate (email-verified still applies),
+    // else a mid-onboarding user gets 403 ONBOARDING_NOT_COMPLETED.
+    guards: [{ id: 'skip-tos-check' }],
     query: GeoLocationsQuerySchema,
     response: GeoLocationsResponseSchema,
     openapi: {
