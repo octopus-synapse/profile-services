@@ -23,12 +23,18 @@ jobs:
 
   rollback:
     needs: validate
-    uses: octopus-synapse/octopus-workflows/.github/workflows/rollback.yml@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
+    # Rollback reuses _deploy.yml with an explicit prior image tag. No ENV_VARS
+    # (keep the existing .env on the box) and has-database=false (rolling the
+    # image back must never run a forward migration).
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_deploy.yml@v1
     with:
-      image-tag: ${{ inputs.image_tag }}
-      service-port: "3001"
+      service-name: "backend"
+      container-name: "profile-backend"
       deploy-path: "/opt/profile-services"
+      image-tag: ${{ inputs.image_tag }}
+      has-database: false
     secrets:
+      NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       OCTOPUS_SSH_PRIVATE_KEY: ${{ secrets.OCTOPUS_SSH_PRIVATE_KEY }}
       OCTOPUS_VM_HOST: ${{ secrets.OCTOPUS_VM_HOST }}
       OCTOPUS_VM_USER: ${{ secrets.OCTOPUS_VM_USER }}

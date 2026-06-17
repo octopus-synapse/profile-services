@@ -14,9 +14,10 @@ concurrency:
 
 jobs:
   deploy:
-    uses: octopus-synapse/octopus-workflows/.github/workflows/cd.yml@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_deploy.yml@v1
     with:
-      service-name: "profile-backend"
+      service-name: "backend"
+      container-name: "profile-backend"
       deploy-path: "/opt/profile-services"
       has-database: true
       required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"

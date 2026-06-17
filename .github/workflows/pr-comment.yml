@@ -43,7 +43,7 @@ jobs:
               }]')
           echo "json=$CHECKS" >> $GITHUB_OUTPUT
 
-      - uses: octopus-synapse/octopus-workflows/.github/actions/post-ci-comment@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
+      - uses: octopus-synapse/octopus-workflows/.github/actions/post-ci-comment@v1
         if: steps.pr.outputs.number
         with:
           github-token: ${{ github.token }}
