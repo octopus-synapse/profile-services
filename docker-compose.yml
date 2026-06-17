@@ -33,6 +33,13 @@ services:
     image: ${DOCKER_IMAGE:-ghcr.io/octopus-synapse/profile-services:${IMAGE_TAG:-latest}}
     container_name: profile-backend
     restart: unless-stopped
+    # Pass every var the deploy writes to .env (CD writes it from ENV_VARS).
+    # The `environment:` block below still overrides computed/in-cluster values
+    # (DATABASE_URL, REDIS_HOST, …). Without this the container only sees the
+    # explicitly-mapped subset and the prod config validation fail-fasts on
+    # anything new (CORS_ORIGIN, JWT_ISSUER/AUDIENCE, IP_HASH_SALT, …).
+    env_file:
+      - .env
     healthcheck:
       # Explicit healthcheck in compose so `docker compose ps` shows the
       # backend's state correctly even though the Dockerfile also declares
@@ -54,6 +61,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+      # BullMQ is required in production (the no-op queue silently drops jobs).
+      ENABLE_BULLMQ: ${ENABLE_BULLMQ:-true}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       # Email — transactional SENDING via Resend over SMTP (nodemailer).

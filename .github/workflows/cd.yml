@@ -39,6 +39,10 @@ jobs:
         REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
         JWT_SECRET="${{ secrets.JWT_SECRET }}"
         JWT_EXPIRATION=7d
+        JWT_ISSUER=patch-careers
+        JWT_AUDIENCE=patch-clients
+        IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
+        ENABLE_BULLMQ=true
         SMTP_HOST=smtp.resend.com
         SMTP_PORT=465
         SMTP_SECURE=true
