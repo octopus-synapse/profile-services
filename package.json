@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "bun build src/main.ts --target=bun --outdir=dist",
+    "build": "bun build src/main.ts --target=bun --outdir=dist --external puppeteer --external puppeteer-extra --external puppeteer-extra-plugin-stealth",
     "format": "biome format --write .",
     "start": "bun --bun src/main.ts",
     "start:dev": "bun --bun --watch src/main.ts",
