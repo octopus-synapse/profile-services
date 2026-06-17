@@ -54,6 +54,12 @@ COPY fonts ./fonts
 
 RUN bun run build
 
+# Bundle the deploy-time seed alongside the app. The runtime image ships
+# only dist/ (no src/), and the seed imports from src/, so it must be
+# self-contained. Mirror main.ts's externals.
+RUN bun build prisma/seed.deploy.ts --target=bun --outdir=dist \
+    --external puppeteer --external puppeteer-extra --external puppeteer-extra-plugin-stealth
+
 RUN mkdir -p dist/templates/typst && \
     cp -r src/bounded-contexts/export/infrastructure/typst/templates/* dist/templates/typst/
 
@@ -82,6 +88,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/prisma.config.ts ./prisma.config.
 RUN mkdir -p /app/generated /app/logs /app/data && chown -R nestjs:nodejs /app/generated /app/logs /app/data
 COPY --from=builder --chown=nestjs:nodejs /app/fonts /usr/share/fonts/resume-fonts
 
+COPY --chown=nestjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
+
 RUN bun install -g prisma@7
 
 USER nestjs
@@ -101,4 +110,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 
 ENTRYPOINT ["/sbin/tini", "--"]
 
-CMD ["bun", "--bun", "dist/main.js"]
+# Apply migrations + idempotent reference seeds, then start the API.
+CMD ["./docker-entrypoint.sh"]
