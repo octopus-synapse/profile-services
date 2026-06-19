@@ -16,8 +16,8 @@ import type {
 } from '@/shared-kernel/schemas/sections';
 import {
   type Locale,
-  resolveTranslation,
   type TranslationsJson,
+  tryResolveTranslation,
 } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeDslRepositoryPort } from '../../../domain/ports/resume-dsl.repository.port';
 import { RESUME_RELATIONS_INCLUDE } from '../../queries/resume-query';
@@ -92,8 +92,11 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
     const map = new Map<string, string>();
     for (const st of sectionTypes) {
       const translations = st.translations as TranslationsJson | null;
-      const resolved = resolveTranslation(translations, locale);
-      map.set(st.key, resolved.title || st.title);
+      // Render path degrades gracefully: a drifted/custom section type with no
+      // translation for `locale` falls back to its base `title` column (NOT
+      // NULL) instead of throwing and 500-ing every resume's preview.
+      const resolved = tryResolveTranslation(translations, locale);
+      map.set(st.key, resolved?.title || st.title);
     }
     return map;
   }
@@ -105,8 +108,11 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
       .sort((a, b) => a.order - b.order)
       .map((section) => {
         const translations = section.sectionType.translations as TranslationsJson | null;
-        const resolved = resolveTranslation(translations, locale);
-        const resolvedTitle = resolved.title || section.sectionType.title;
+        // Same render-path resilience as getSectionTypeTitles: a section whose
+        // type lacks a translation for `locale` falls back to the base title
+        // rather than crashing the render of an otherwise-valid resume.
+        const resolved = tryResolveTranslation(translations, locale);
+        const resolvedTitle = resolved?.title || section.sectionType.title;
 
         return {
           id: section.id,

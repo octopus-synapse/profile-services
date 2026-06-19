@@ -43,5 +43,7 @@ export function toSavedExternalJobResponseDto(record: SavedExternalJobRecord) {
     description: record.description,
     postedAt: record.postedAt ? record.postedAt.toISOString() : null,
     fetchedAt: record.fetchedAt.toISOString(),
+    hasApplied: record.hasApplied,
+    appliedAt: record.appliedAt ? record.appliedAt.toISOString() : null,
   };
 }

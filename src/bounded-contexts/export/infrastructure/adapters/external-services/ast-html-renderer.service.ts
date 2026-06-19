@@ -278,9 +278,12 @@ ${FIT_SCRIPT}
 
   private renderEntry(content: Content): string {
     const rawTitle = extractField(content, TITLE_KEYS);
-    const field = content.field;
+    const field = typeof content.field === 'string' ? content.field.trim() : '';
+    // Only append " em {field}" when the title doesn't already contain it —
+    // education degrees often store the full "Bacharelado em X" in `degree`,
+    // so the naive concat produced "...X em X".
     const title =
-      rawTitle && typeof field === 'string' && field.trim() !== ''
+      rawTitle && field !== '' && !rawTitle.toLowerCase().includes(field.toLowerCase())
         ? `${rawTitle} em ${field}`
         : rawTitle;
 
@@ -314,26 +317,38 @@ ${FIT_SCRIPT}
       rows.push(`<div class="entry-sub">${esc(subtitle)}${etStr}${linkHtml}</div>`);
     }
 
+    // Bullets = description lines + achievements. Achievements are
+    // accomplishments ("Reduzi o build em 40%"), not a tech stack — they
+    // belong as bullet points, NOT under a "Tecnologias:" label.
+    const bulletLines: string[] = [];
     if (description) {
-      const lines = String(description)
-        .split('\n')
-        .map((l) => l.trim())
-        .filter((l) => l !== '')
-        .map((l) => (l.startsWith('- ') || l.startsWith('• ') ? l.slice(2) : l));
-      if (lines.length > 0) {
-        rows.push(`<ul class="bullets">${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`);
-      }
+      bulletLines.push(
+        ...String(description)
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l !== '')
+          .map((l) => (l.startsWith('- ') || l.startsWith('• ') ? l.slice(2).trim() : l)),
+      );
+    }
+    const achievements = content.achievements;
+    if (Array.isArray(achievements)) {
+      bulletLines.push(
+        ...achievements
+          .filter((a): a is string => typeof a === 'string')
+          .map((a) => a.trim())
+          .filter((a) => a !== ''),
+      );
+    }
+    if (bulletLines.length > 0) {
+      rows.push(
+        `<ul class="bullets">${bulletLines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`,
+      );
     }
 
-    const achievements = content.achievements;
+    // "Tecnologias:" only labels an actual technologies/skills list.
     const technologies = content.technologies;
-    const techs = Array.isArray(achievements)
-      ? achievements
-      : Array.isArray(technologies)
-        ? technologies
-        : undefined;
-    if (techs && techs.length > 0) {
-      const list = techs
+    if (Array.isArray(technologies)) {
+      const list = technologies
         .filter((t): t is string => typeof t === 'string')
         .map(esc)
         .join(', ');
@@ -461,9 +476,21 @@ ${FIT_SCRIPT}
       }
     }
 
-    const achievements = content.achievements; // ATS uses achievements only
-    if (Array.isArray(achievements) && achievements.length > 0) {
-      const list = achievements
+    // Achievements are accomplishments → bullet lines, same as the default
+    // template. They are NOT a tech stack and must not wear a "Tecnologias:"
+    // label.
+    const achievements = content.achievements;
+    if (Array.isArray(achievements)) {
+      for (const a of achievements) {
+        if (typeof a !== 'string' || a.trim() === '') continue;
+        lines.push(`<div class="bullet-ats">- ${esc(a.trim())}</div>`);
+      }
+    }
+
+    // "Tecnologias:" only labels an actual technologies/skills list.
+    const technologies = content.technologies;
+    if (Array.isArray(technologies)) {
+      const list = technologies
         .filter((t): t is string => typeof t === 'string')
         .map(esc)
         .join(', ');
@@ -488,31 +515,31 @@ body{background:#e5e7eb;-webkit-font-smoothing:antialiased;text-rendering:optimi
   box-shadow:0 1px 6px rgba(0,0,0,.18);
 }
 .header{margin-bottom:2pt;}
-.name{text-align:center;font-size:22pt;font-weight:700;color:#0f0f0f;letter-spacing:.6pt;line-height:1.1;}
-.job-title{text-align:center;font-size:9.5pt;color:#555;letter-spacing:.2pt;margin-top:1.5pt;}
-.contact{text-align:center;font-size:8pt;color:#555;margin-top:4pt;}
+.name{text-align:center;font-size:21pt;font-weight:700;color:#0f0f0f;letter-spacing:.5pt;line-height:1.1;}
+.job-title{text-align:center;font-size:11pt;font-weight:500;color:#444;letter-spacing:.2pt;margin-top:2pt;}
+.contact{text-align:center;font-size:8.5pt;color:#555;margin-top:4pt;}
 .contact .sep{color:#ccc;padding:0 .28em;}
 .header-rule{border:none;border-top:.8pt solid #1a1a1a;margin:5pt 0 2pt;}
-.block{margin-top:24pt;}
+.block{margin-top:18pt;}
 .block:first-of-type{margin-top:12pt;}
-.section-header{display:flex;align-items:center;gap:7pt;margin-bottom:6pt;border-bottom:.4pt solid #ddd;padding-bottom:2pt;}
-.section-bar{display:inline-block;width:3pt;height:12pt;background:#1a1a1a;border-radius:1pt;flex:0 0 auto;}
-.section-title{font-size:10pt;font-weight:700;color:#0f0f0f;letter-spacing:.5pt;text-transform:uppercase;}
-.text-section{margin:0;font-size:8.5pt;color:#2a2a2a;}
+.section-header{display:flex;align-items:center;gap:7pt;margin-bottom:7pt;border-bottom:.4pt solid #ddd;padding-bottom:2.5pt;}
+.section-bar{display:inline-block;width:3pt;height:11pt;background:#1a1a1a;border-radius:1pt;flex:0 0 auto;}
+.section-title{font-size:11pt;font-weight:700;color:#0f0f0f;letter-spacing:.6pt;text-transform:uppercase;}
+.text-section{margin:0;font-size:9pt;color:#2a2a2a;}
 .simple-list{margin:0;font-size:9pt;color:#222;}
 .simple-list .sep-soft{color:#bbb;padding:0 .28em;}
-.entry{margin-bottom:14pt;}
+.entry{margin-bottom:12pt;}
 .entry-head{display:flex;justify-content:space-between;align-items:baseline;gap:10pt;text-align:left;}
-.entry-title{font-size:9.5pt;font-weight:600;color:#111;}
-.entry-date{font-size:8.5pt;color:#666;white-space:nowrap;flex:0 0 auto;text-align:right;}
-.entry-sub{font-size:8.5pt;font-weight:500;color:#444;margin-top:.5pt;text-align:left;}
-.entry-sub .entry-sep{color:#444;}
+.entry-title{font-size:10.5pt;font-weight:700;color:#111;line-height:1.25;}
+.entry-date{font-size:8.5pt;font-weight:400;color:#777;white-space:nowrap;flex:0 0 auto;text-align:right;}
+.entry-sub{font-size:9.5pt;font-weight:500;color:#555;margin-top:1pt;text-align:left;}
+.entry-sub .entry-sep{color:#999;}
 .entry-link{color:#2563eb;font-weight:500;text-decoration:none;}
-.bullets{margin:1.5pt 0 0;padding:0;list-style:none;}
-.bullets li{position:relative;padding-left:10pt;margin-bottom:4pt;font-size:8.5pt;color:#222;}
-.bullets li::before{content:"--";position:absolute;left:0;color:#222;}
-.techs{margin-top:1pt;font-size:7.5pt;color:#777;text-align:left;}
-.techs b{font-weight:600;}
+.bullets{margin:3pt 0 0;padding:0;list-style:none;}
+.bullets li{position:relative;padding-left:11pt;margin-bottom:3pt;font-size:9pt;line-height:1.4;color:#222;text-align:left;}
+.bullets li::before{content:"•";position:absolute;left:1pt;color:#888;}
+.techs{margin-top:3pt;font-size:8.5pt;color:#666;text-align:left;}
+.techs b{font-weight:600;color:#444;}
 @media print{body{background:#fff;}.page{box-shadow:none;margin:0;}}
 `;
 
@@ -536,7 +563,7 @@ body{background:#e5e7eb;-webkit-font-smoothing:antialiased;text-rendering:optimi
 .rule-ats{border:none;border-top:.4pt solid #000;margin:2pt 0 0;}
 .block-ats{margin-top:6pt;}
 .block-ats:first-of-type{margin-top:4pt;}
-.sh-ats{font-size:10.5pt;font-weight:700;color:#000;text-transform:uppercase;margin-bottom:1.5pt;}
+.sh-ats{font-size:11.5pt;font-weight:700;color:#000;letter-spacing:.4pt;text-transform:uppercase;margin-bottom:2pt;}
 .text-ats{margin:0 0 8pt;font-size:10pt;color:#000;}
 .simple-ats{margin:0;font-size:10pt;color:#000;}
 .entry-ats{margin-bottom:2pt;}

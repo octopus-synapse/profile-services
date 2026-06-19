@@ -37,13 +37,14 @@ import { ImportJobFromUrlUseCase } from './application/use-cases/import-job-from
 import { ListApplicationTimelineUseCase } from './application/use-cases/list-application-timeline/list-application-timeline.use-case';
 import { ListBookmarkedJobsUseCase } from './application/use-cases/list-bookmarked-jobs/list-bookmarked-jobs.use-case';
 import { ListExternalJobsUseCase } from './application/use-cases/list-external-jobs/list-external-jobs.use-case';
-import { ListSavedExternalJobsUseCase } from './application/use-cases/list-saved-external-jobs/list-saved-external-jobs.use-case';
 import { ListJobApplicationsUseCase } from './application/use-cases/list-job-applications/list-job-applications.use-case';
 import { ListJobsUseCase } from './application/use-cases/list-jobs/list-jobs.use-case';
 import { ListJobsWithFitScoreUseCase } from './application/use-cases/list-jobs-with-fit-score/list-jobs-with-fit-score.use-case';
 import { ListMyApplicationsUseCase } from './application/use-cases/list-my-applications/list-my-applications.use-case';
 import { ListMyJobsUseCase } from './application/use-cases/list-my-jobs/list-my-jobs.use-case';
 import { ListRecommendedJobsUseCase } from './application/use-cases/list-recommended-jobs/list-recommended-jobs.use-case';
+import { ListSavedExternalJobsUseCase } from './application/use-cases/list-saved-external-jobs/list-saved-external-jobs.use-case';
+import { MarkExternalJobAppliedUseCase } from './application/use-cases/mark-external-job-applied/mark-external-job-applied.use-case';
 import { RecordApplicationEventUseCase } from './application/use-cases/record-application-event/record-application-event.use-case';
 import { RunAntiGhostingSweepUseCase } from './application/use-cases/run-anti-ghosting-sweep/run-anti-ghosting-sweep.use-case';
 import { RunExternalJobsIngestionUseCase } from './application/use-cases/run-external-jobs-ingestion/run-external-jobs-ingestion.use-case';
@@ -140,8 +141,13 @@ export function buildJobsUseCases(
       savedExternalJobsRepo,
       logger,
     ),
-    saveExternalJob: new SaveExternalJobUseCase(externalListingsRepo, savedExternalJobsRepo, logger),
+    saveExternalJob: new SaveExternalJobUseCase(
+      externalListingsRepo,
+      savedExternalJobsRepo,
+      logger,
+    ),
     unsaveExternalJob: new UnsaveExternalJobUseCase(savedExternalJobsRepo),
+    markExternalJobApplied: new MarkExternalJobAppliedUseCase(savedExternalJobsRepo),
     listSavedExternalJobs: new ListSavedExternalJobsUseCase(savedExternalJobsRepo),
     runExternalJobsIngestion: new RunExternalJobsIngestionUseCase(
       new ExternalJobsIngestionService(

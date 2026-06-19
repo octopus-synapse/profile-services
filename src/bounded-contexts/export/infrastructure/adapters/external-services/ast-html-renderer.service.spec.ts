@@ -163,6 +163,53 @@ describe('AstHtmlRendererService — entries', () => {
     expect(html).toContain('USP');
   });
 
+  test('achievements render as bullets, NOT under a "Tecnologias:" label', () => {
+    const html = renderer.render(
+      ast({
+        sections: [
+          itemSection('work_experience_v1', 'Experiência', [
+            {
+              id: 'a',
+              content: {
+                role: 'Engenheira de Software Plena',
+                company: 'Patch Tech',
+                description: 'Liderei a migração do app.',
+                achievements: ['Reduzi o tempo de build em 40%', 'Migrei 30 telas'],
+              },
+            },
+          ]),
+        ],
+      }),
+    );
+    // accomplishments become bullet points...
+    expect(html).toContain('<li>Reduzi o tempo de build em 40%</li>');
+    expect(html).toContain('<li>Migrei 30 telas</li>');
+    expect(html).toContain('<li>Liderei a migração do app.</li>');
+    // ...and are NOT mislabeled as technologies
+    expect(html).not.toContain('Tecnologias:');
+  });
+
+  test('education degree already containing the field is not duplicated ("X em X")', () => {
+    const html = renderer.render(
+      ast({
+        sections: [
+          itemSection('education_v1', 'Formação', [
+            {
+              id: 'e',
+              content: {
+                degree: 'Bacharelado em Ciência da Computação',
+                field: 'Ciência da Computação',
+                institution: 'USP',
+              },
+            },
+          ]),
+        ],
+      }),
+    );
+    expect(html).toContain('Bacharelado em Ciência da Computação');
+    expect(html).not.toContain('Computação em Ciência da Computação');
+  });
+
   test('short YYYY-MM-01 dates pass through unchanged (mirrors Typst len<=10 rule)', () => {
     const html = renderer.render(
       ast({
@@ -265,7 +312,7 @@ describe('AstHtmlRendererService — ATS template', () => {
     expect(html).not.toContain('section-bar');
   });
 
-  test('entry: inline "title | date" (hyphen), location in subtitle, no "em field", plain bullets, achievements-only techs', () => {
+  test('entry: inline "title | date" (hyphen), location in subtitle, no "em field", plain bullets, achievements as bullets', () => {
     const html = renderer.render(
       ast({
         sections: [
@@ -281,7 +328,8 @@ describe('AstHtmlRendererService — ATS template', () => {
                 startDate: '2022-03-01T00:00:00.000Z',
                 isCurrent: true,
                 description: '- a\n- b',
-                achievements: ['TS'],
+                achievements: ['Dobrei a cobertura de testes'],
+                technologies: ['TypeScript'],
               },
             },
           ]),
@@ -294,7 +342,11 @@ describe('AstHtmlRendererService — ATS template', () => {
     expect(html).not.toContain('em Backend');
     expect(html).toContain('bullet-ats');
     expect(html).not.toContain('<ul');
+    // achievements render as bullets, not under "Tecnologias:"
+    expect(html).toContain('- Dobrei a cobertura de testes');
+    // "Tecnologias:" reserved for the real technologies list
     expect(html).toContain('Tecnologias:');
+    expect(html).toContain('TypeScript');
   });
 
   test('simple list uses the raw level and comma join (no pt-BR translation)', () => {

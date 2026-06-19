@@ -88,11 +88,31 @@ export const SavedExternalJobItemSchema = z.object({
   description: z.string().nullable(),
   postedAt: IsoDateTimeSchema.nullable(),
   fetchedAt: IsoDateTimeSchema,
+  // Self-reported application state. null = never answered the
+  // "você se candidatou?" prompt; true/false = the recorded answer.
+  hasApplied: z.boolean().nullable().openapi({
+    description: 'Self-reported "did you apply?" answer; null when never asked.',
+  }),
+  appliedAt: IsoDateTimeSchema.nullable().openapi({
+    description: 'When the user confirmed they applied; null otherwise.',
+  }),
 });
 
 export const SavedExternalJobsListResponseSchema = PaginatedResponseSchema(
   SavedExternalJobItemSchema,
 );
+
+// Body for POST /v1/jobs/external/saved/:id/did-apply — the client's answer
+// to the "você se candidatou?" prompt shown on return from the apply site.
+export const DidApplyExternalJobSchema = z.object({
+  didApply: z.boolean().openapi({ example: true }),
+});
+
+export const DidApplyExternalJobResponseSchema = z.object({
+  savedId: z.string(),
+  hasApplied: z.boolean(),
+  appliedAt: IsoDateTimeSchema.nullable(),
+});
 
 export const SaveExternalJobResponseSchema = z.object({
   savedId: z.string(),

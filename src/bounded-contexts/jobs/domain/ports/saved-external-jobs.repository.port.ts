@@ -23,6 +23,10 @@ export interface SavedExternalJobRecord {
   readonly description: string | null;
   readonly postedAt: Date | null;
   readonly fetchedAt: Date;
+  // Self-reported application state (external listings apply off-app, so the
+  // client prompts on return). null = never answered, true/false = the answer.
+  readonly hasApplied: boolean | null;
+  readonly appliedAt: Date | null;
   readonly createdAt: Date;
 }
 
@@ -39,6 +43,13 @@ export abstract class SavedExternalJobsRepositoryPort {
   ): Promise<SavedExternalJobRecord | null>;
 
   abstract findById(id: string): Promise<SavedExternalJobRecord | null>;
+
+  /**
+   * Records the user's self-reported answer to "você se candidatou?".
+   * `didApply === true` stamps `appliedAt`; `false` clears it. Returns the
+   * updated row.
+   */
+  abstract setApplied(id: string, didApply: boolean): Promise<SavedExternalJobRecord>;
 
   abstract deleteById(id: string): Promise<void>;
 
