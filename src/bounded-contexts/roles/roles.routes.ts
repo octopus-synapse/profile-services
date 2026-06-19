@@ -14,6 +14,10 @@ export const rolesRoutes: ReadonlyArray<Route<RolesBundle>> = [
     method: 'GET',
     path: '/v1/roles/search',
     auth: { kind: 'jwt' },
+    // Hit during onboarding (Add Experience role), before onboarding completes —
+    // opt out of the onboarding-completed gate (email-verified still applies),
+    // else a mid-onboarding user gets 403 ONBOARDING_NOT_COMPLETED.
+    guards: [{ id: 'skip-tos-check' }],
     query: RolesSearchQuerySchema,
     response: RolesSearchResponseSchema,
     openapi: {

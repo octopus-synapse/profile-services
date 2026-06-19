@@ -78,6 +78,26 @@ export function resolveTranslation(
   return entry;
 }
 
+/**
+ * Non-throwing counterpart of {@link resolveTranslation} for DISPLAY-TITLE
+ * lookups while RENDERING a resume (the catalog title map + per-section
+ * heading). Returns `null` when the locale entry is missing so the caller
+ * can fall back to the base `title` column instead of 500-ing the whole
+ * render. A single drifted or custom (non-system) section type must not
+ * take down a resume preview that may not even use it.
+ *
+ * The strict {@link resolveTranslation} / {@link resolveSectionTypeForLocale}
+ * stay in force on the catalog/editor paths, where a missing translation is
+ * a real catalog-drift bug that must surface loudly.
+ */
+export function tryResolveTranslation(
+  translations: TranslationsJson | null | undefined,
+  locale: Locale,
+): SectionTypeTranslation | null {
+  if (!translations || typeof translations !== 'object') return null;
+  return translations[locale] ?? null;
+}
+
 /** Resolve a SectionType from DB to frontend-ready format. */
 export function resolveSectionTypeForLocale(
   sectionType: {

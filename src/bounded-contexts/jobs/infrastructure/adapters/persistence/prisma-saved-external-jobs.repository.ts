@@ -51,6 +51,13 @@ export class PrismaSavedExternalJobsRepository extends SavedExternalJobsReposito
     return this.prisma.savedExternalJob.findUnique({ where: { id } });
   }
 
+  async setApplied(id: string, didApply: boolean): Promise<SavedExternalJobRecord> {
+    return this.prisma.savedExternalJob.update({
+      where: { id },
+      data: { hasApplied: didApply, appliedAt: didApply ? new Date() : null },
+    });
+  }
+
   async deleteById(id: string): Promise<void> {
     await this.prisma.savedExternalJob.delete({ where: { id } });
   }

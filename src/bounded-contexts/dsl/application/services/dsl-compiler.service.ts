@@ -115,7 +115,26 @@ export class DslCompilerService {
     resumeData?: GenericResume,
     sectionTypeTitles?: Map<string, string>,
   ): ResumeAst['sections'] {
-    return dsl.sections
+    // The résumé — not the style — is the source of truth for WHICH sections
+    // exist. The style's `sections` array is an optional layout overlay: when
+    // it lists a section it controls that section's column / order / visibility
+    // (incl. hiding it); when it stays silent the section still renders, in
+    // résumé order, in the main column. This is why a style shipping
+    // `sections: []` (the seeded ATS styles do) must not erase real content.
+    //
+    // `consumed` tracks every résumé section the style already references —
+    // visible OR hidden — so an intentionally style-hidden section isn't
+    // re-added below as a leftover.
+    const consumed = new Set<string>();
+    if (resumeData) {
+      for (const s of dsl.sections) {
+        if (s.id === 'header') continue;
+        const match = this.findSectionForDslId(s.id, resumeData.sections);
+        if (match) consumed.add(match.id);
+      }
+    }
+
+    const placed: ResumeAst['sections'] = dsl.sections
       .filter((s) => s.visible && s.id !== 'header')
       .sort((a, b) => a.order - b.order)
       .map((section) => {
@@ -132,6 +151,26 @@ export class DslCompilerService {
           styles: buildSectionStyles(tokens),
         };
       });
+
+    if (!resumeData) return placed;
+
+    // Content-first fallback: render every visible résumé section the style
+    // didn't enumerate, after the style-placed ones, in résumé order.
+    const baseOrder = placed.reduce((max, p) => Math.max(max, p.order), 0);
+    resumeData.sections
+      .filter((s) => s.isVisible && !consumed.has(s.id))
+      .sort((a, b) => a.order - b.order)
+      .forEach((section, i) => {
+        placed.push({
+          sectionId: section.sectionTypeKey,
+          columnId: 'main',
+          order: baseOrder + 1 + i,
+          data: this.compileSectionData(section.sectionTypeKey, resumeData, [], sectionTypeTitles),
+          styles: buildSectionStyles(tokens),
+        });
+      });
+
+    return placed;
   }
 
   /**

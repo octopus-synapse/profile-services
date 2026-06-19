@@ -197,4 +197,108 @@ describe('DslCompilerService', () => {
       expect(skillContent.name).toBe('TypeScript');
     });
   });
+
+  describe('content-first section placement', () => {
+    const buildResume = (
+      sections: Array<Record<string, unknown>>,
+    ): GenericResume =>
+      ({
+        id: 'resume-1',
+        userId: 'user-1',
+        title: 'Resume',
+        fullName: 'Maria Souza',
+        jobTitle: 'Software Engineer',
+        summary: null,
+        phone: null,
+        location: null,
+        linkedin: null,
+        github: null,
+        website: null,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+        style: null,
+        customTheme: null,
+        sections,
+      }) as unknown as GenericResume;
+
+    const experienceSection = {
+      id: 'section-exp-1',
+      semanticKind: 'WORK_EXPERIENCE',
+      sectionTypeKey: 'work_experience_v1',
+      title: 'Experiência',
+      order: 0,
+      isVisible: true,
+      titleOverride: null,
+      items: [
+        {
+          id: 'exp-1',
+          order: 0,
+          isVisible: true,
+          content: { position: 'Engenheira', company: 'Patch Tech' },
+        },
+      ],
+    };
+    const educationSection = {
+      id: 'section-edu-1',
+      semanticKind: 'EDUCATION',
+      sectionTypeKey: 'education_v1',
+      title: 'Formação',
+      order: 1,
+      isVisible: true,
+      titleOverride: null,
+      items: [
+        {
+          id: 'edu-1',
+          order: 0,
+          isVisible: true,
+          content: { institution: 'USP', degree: 'CS' },
+        },
+      ],
+    };
+
+    // The real-world bug: the seeded ATS styles ship with `sections: []`, which
+    // used to erase every content section from the preview/PDF. The résumé must
+    // remain the source of truth for which sections render.
+    it('renders résumé sections even when the style enumerates none (sections: [])', () => {
+      const emptyStyleDsl: ResumeDsl = { ...validDsl, sections: [] };
+      const ast = service.compileForHtml(
+        emptyStyleDsl,
+        buildResume([experienceSection, educationSection]),
+      );
+
+      const ids = ast.sections.map((s) => s.sectionId);
+      expect(ids).toContain('work_experience_v1');
+      expect(ids).toContain('education_v1');
+      // Preserved in résumé order.
+      expect(ids.indexOf('work_experience_v1')).toBeLessThan(ids.indexOf('education_v1'));
+      expect(extractSectionItems(ast.sections.find((s) => s.sectionId === 'education_v1'))).toHaveLength(1);
+    });
+
+    it('does not duplicate a section the style already places', () => {
+      const dsl: ResumeDsl = {
+        ...validDsl,
+        sections: [{ id: 'work_experience_v1', visible: true, order: 1, column: 'main' }],
+      };
+      const ast = service.compileForHtml(dsl, buildResume([experienceSection, educationSection]));
+
+      const expCount = ast.sections.filter((s) => s.sectionId === 'work_experience_v1').length;
+      expect(expCount).toBe(1);
+      // Education, unlisted by the style, still appears via the fallback.
+      expect(ast.sections.map((s) => s.sectionId)).toContain('education_v1');
+    });
+
+    it('respects a section the style intentionally hides (visible: false)', () => {
+      const dsl: ResumeDsl = {
+        ...validDsl,
+        sections: [{ id: 'education_v1', visible: false, order: 1, column: 'main' }],
+      };
+      const ast = service.compileForHtml(dsl, buildResume([experienceSection, educationSection]));
+
+      const ids = ast.sections.map((s) => s.sectionId);
+      // Hidden by the style → not re-added as a leftover.
+      expect(ids).not.toContain('education_v1');
+      // Experience, unlisted, still renders.
+      expect(ids).toContain('work_experience_v1');
+    });
+  });
 });

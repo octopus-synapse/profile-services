@@ -34,6 +34,8 @@ export class InMemorySavedExternalJobsRepository extends SavedExternalJobsReposi
       description: listing.description,
       postedAt: listing.postedAt,
       fetchedAt: listing.fetchedAt,
+      hasApplied: null,
+      appliedAt: null,
       createdAt: new Date(Date.now() + this.sequence),
     };
     this.rows.push(row);
@@ -49,6 +51,19 @@ export class InMemorySavedExternalJobsRepository extends SavedExternalJobsReposi
 
   async findById(id: string): Promise<SavedExternalJobRecord | null> {
     return this.rows.find((r) => r.id === id) ?? null;
+  }
+
+  async setApplied(id: string, didApply: boolean): Promise<SavedExternalJobRecord> {
+    const row = this.rows.find((r) => r.id === id);
+    if (!row) throw new Error(`SavedExternalJob ${id} not found`);
+    const updated: SavedExternalJobRecord = {
+      ...row,
+      hasApplied: didApply,
+      appliedAt: didApply ? new Date() : null,
+    };
+    const index = this.rows.indexOf(row);
+    this.rows[index] = updated;
+    return updated;
   }
 
   async deleteById(id: string): Promise<void> {

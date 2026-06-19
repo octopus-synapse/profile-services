@@ -13,13 +13,15 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import type { JobsUseCases } from './application/ports/jobs.port';
 import {
+  DidApplyExternalJobResponseSchema,
+  DidApplyExternalJobSchema,
   ExternalJobListQuerySchema,
   ExternalJobsListResponseSchema,
   SavedExternalJobsListResponseSchema,
   SaveExternalJobResponseSchema,
   UnsaveExternalJobResponseSchema,
 } from './external-jobs.routes.schemas';
-import { pageOnly, PageOnlyQuerySchema } from './jobs.routes.schemas';
+import { PageOnlyQuerySchema, pageOnly } from './jobs.routes.schemas';
 import {
   toExternalJobResponseDto,
   toSavedExternalJobResponseDto,
@@ -108,6 +110,26 @@ export const externalJobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       return bc.unsaveExternalJob.execute(id, ctx.user!.userId);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/jobs/external/saved/:id/did-apply',
+    auth: { kind: 'jwt' },
+    permission: Permission.FEED_USE,
+    params: IdParamSchema,
+    body: DidApplyExternalJobSchema,
+    response: DidApplyExternalJobResponseSchema,
+    openapi: {
+      summary: 'Record the self-reported "did you apply?" answer for a saved external job',
+      tags: ['jobs'],
+      description: 'Jobs API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { id } = ctx.params as { id: string };
+      const { didApply } = DidApplyExternalJobSchema.parse(ctx.body);
+      return bc.markExternalJobApplied.execute(id, ctx.user!.userId, didApply);
     },
   },
 ];

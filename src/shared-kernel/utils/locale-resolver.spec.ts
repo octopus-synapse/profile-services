@@ -4,6 +4,7 @@ import {
   resolveDefinitionFieldsForLocale,
   resolveTranslation,
   type TranslationsJson,
+  tryResolveTranslation,
 } from './locale-resolver.util';
 
 describe('locale-resolver', () => {
@@ -58,6 +59,35 @@ describe('locale-resolver', () => {
 
     test('throws for null translations — no empty fallback', () => {
       expect(() => resolveTranslation(null, 'en')).toThrow(/no translations/);
+    });
+  });
+
+  describe('tryResolveTranslation', () => {
+    const enOnly: TranslationsJson = {
+      en: {
+        title: 'Work Experience',
+        description: 'Professional work',
+        label: 'work',
+        noDataLabel: 'No work experience',
+        placeholder: 'Add work...',
+        addLabel: 'Add Experience',
+      },
+    };
+
+    test('returns the locale entry when present', () => {
+      expect(tryResolveTranslation(enOnly, 'en')?.title).toBe('Work Experience');
+    });
+
+    // The render path relies on this: a drifted/custom section type missing the
+    // requested locale must return null (→ caller falls back to base title),
+    // NOT throw and 500 the whole resume preview.
+    test('returns null instead of throwing when the locale is missing', () => {
+      expect(tryResolveTranslation(enOnly, 'pt-BR')).toBeNull();
+    });
+
+    test('returns null for null/invalid translations', () => {
+      expect(tryResolveTranslation(null, 'en')).toBeNull();
+      expect(tryResolveTranslation(undefined, 'en')).toBeNull();
     });
   });
 

@@ -193,8 +193,20 @@ model SavedExternalJob {
   postedAt       DateTime?
   fetchedAt      DateTime
 
+  // Self-reported application state for external listings. Applying to an
+  // external job leaves the app (the `applyUrl` opens the publisher's site),
+  // so we cannot observe the outcome — instead the client prompts "você se
+  // candidatou?" on return and records the answer here. `null` = never asked
+  // / dismissed, `true` = user confirmed they applied, `false` = user said no.
+  // `appliedAt` stamps the moment of a `true` answer so the Candidaturas view
+  // can order and group self-reported applications alongside internal ones.
+  hasApplied Boolean?
+  appliedAt  DateTime?
+
   createdAt DateTime @default(now())
 
   @@unique([userId, externalId])
   @@index([userId, createdAt])
+  // Serves the Candidaturas feed: "my self-reported external applications".
+  @@index([userId, hasApplied, appliedAt])
 }

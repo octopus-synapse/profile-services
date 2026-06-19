@@ -9,6 +9,10 @@ export interface SectionTypeSeedData {
   description?: string;
   semanticKind: string;
   version: number;
+  /** Defaults to true. Set false to keep a type in the catalog (translations,
+   *  export title) while hiding it from the editor (the catalog query filters
+   *  `isActive: true`). */
+  isActive?: boolean;
   isRepeatable: boolean;
   minItems: number;
   maxItems?: number;
@@ -582,6 +586,12 @@ export const sectionTypes: SectionTypeSeedData[] = [
     description: 'Professional summary section',
     semanticKind: 'SUMMARY',
     version: 1,
+    // Retired as an editable section: the professional summary now lives on the
+    // profile (`User.bio`) and the per-resume `Resume.summary` scalar (still
+    // rendered in exports via the DSL "summary from root" path). Kept in the
+    // catalog (translations + export title) but inactive, so it no longer shows
+    // in the editor. See migration 20261109000000_deactivate_summary_section.
+    isActive: false,
     isRepeatable: false,
     minItems: 1,
     maxItems: 1,
