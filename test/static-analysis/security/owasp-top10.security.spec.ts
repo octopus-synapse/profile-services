@@ -23,8 +23,10 @@ import {
   fileExists,
   grepCodebase,
   grepCodebaseFixed,
+  grepLineContent,
   readAllTsFiles,
   SRC_DIR,
+  stripStringLiterals,
 } from './security-utils';
 
 describe('OWASP Top 10 Security Tests', () => {
@@ -169,9 +171,12 @@ describe('OWASP Top 10 Security Tests', () => {
       for (const pattern of secretPatterns) {
         const matches = grepCodebase(pattern, ['node_modules', 'dist', 'test', '.env']);
         for (const match of matches) {
-          // Exclude type definitions and config templates
+          // Exclude type definitions, config templates, and co-located test
+          // files (fixtures legitimately hold fake credentials).
           if (
             !match.includes('.d.ts') &&
+            !match.includes('.spec.ts') &&
+            !match.includes('.test.ts') &&
             !match.includes('.example') &&
             !match.includes('.template') &&
             !match.includes('process.env') &&
@@ -627,40 +632,26 @@ describe('OWASP Top 10 Security Tests', () => {
       const sensitiveDataLogging: string[] = [];
 
       for (const match of logStatements) {
+        // Inspect only the source-line *code* — drop grep's `path:lineno:`
+        // prefix (filenames like `request-password-change.use-case.ts` carry
+        // the word) and string-literal message content (keeping `${...}`
+        // interpolations), so we flag logging a secret *value*, not a message
+        // that merely names one.
+        const code = stripStringLiterals(grepLineContent(match));
+
         // Check for actual sensitive data values being logged
-        if (
-          match.includes('password') ||
-          match.includes('secret') ||
-          match.includes('creditCard')
-        ) {
-          // Exclude messages that just mention tokens/passwords without logging values
-          if (
-            !match.includes('***') &&
-            !match.includes('[REDACTED]') &&
-            !match.includes('password:') &&
-            !match.includes('no password') &&
-            !match.includes('invalid password')
-          ) {
+        if (/password|secret|creditCard/i.test(code)) {
+          if (!code.includes('***') && !match.includes('[REDACTED]')) {
             sensitiveDataLogging.push(match);
           }
         }
 
-        // Token logging should be checked more carefully
-        if (match.includes('token')) {
-          // Exclude informational messages about token state
-          const isInfoMessage =
-            match.includes('no token') ||
-            match.includes('invalid token') ||
-            match.includes('token expired') ||
-            match.includes('token provided') ||
-            match.includes('token:') ||
-            match.includes('tokenType');
-
-          if (!isInfoMessage && !match.includes('[REDACTED]')) {
-            // Check if it's logging the actual token value
-            if (match.match(/token\s*[=:]\s*\$\{|token\s*[=:]\s*\w+\./)) {
-              sensitiveDataLogging.push(match);
-            }
+        // Token logging should be checked more carefully — flag only when the
+        // line actually interpolates/assigns a token value, on the stripped
+        // code so `${tokens.length}` (a count) and message text don't trip it.
+        if (/token/i.test(code) && !match.includes('[REDACTED]')) {
+          if (/token\s*[=:]\s*\$\{|token\s*[=:]\s*\w+\./i.test(code)) {
+            sensitiveDataLogging.push(match);
           }
         }
       }

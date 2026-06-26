@@ -142,10 +142,7 @@ export class InMemoryEmailVerificationRepository implements EmailVerificationRep
     };
   }
 
-  async deleteUserPurposeTokens(
-    userId: string,
-    purpose: VerificationPurposeValue,
-  ): Promise<void> {
+  async deleteUserPurposeTokens(userId: string, purpose: VerificationPurposeValue): Promise<void> {
     this.tokens = this.tokens.filter(
       (t) => !(t.userId === userId && (t.purpose ?? 'EMAIL_VERIFY') === purpose),
     );

@@ -163,7 +163,7 @@ describe('P1 #13 — account deletion requires currentPassword + emailed code', 
       .post('/api/v1/accounts/delete/confirm')
       .set('Cookie', cookie)
       .send({ code: pending!.token });
-    expect([200, 204]).toContain(confirm.status);
+    expect(confirm.status).toBe(200);
     expect(await prisma.user.findUnique({ where: { id: userId } })).toBeNull();
   });
 });

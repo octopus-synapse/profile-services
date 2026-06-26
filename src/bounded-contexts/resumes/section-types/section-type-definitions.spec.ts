@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { SectionDefinitionSchema } from '@/shared-kernel/schemas/sections';
-import { sectionTypes } from '../../../../prisma/seeds/section-type.seed';
+import { sectionTypes } from '../../../../prisma/seeds/shared/section-type.seed';
 
 describe('SectionType Definitions Validation', () => {
   describe('Schema Compliance', () => {

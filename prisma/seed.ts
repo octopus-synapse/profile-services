@@ -1,202 +1,25 @@
+/**
+ * DEV database seed. Runs the shared reference catalogs + all dev fixtures.
+ * Invoked by `make dev` (the dev compose runs this on startup), `prisma db seed`
+ * and `migrate reset`. The shared set is reused verbatim by the deploy seed
+ * (prisma/seed.deploy.ts) — see prisma/seeds/README.md.
+ */
 import { PrismaClient } from '@prisma/client';
-import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
-import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
-import { seedDreddFixtures } from './seeds/dredd-fixtures.seed';
-import { seedE2EOnboardingUser } from './seeds/e2e-onboarding-user.seed';
-import { seedEnzoferracini } from './seeds/enzoferracini.seed';
-import { seedFitQuestions } from './seeds/fit-questions.seed';
-import { seedJobs } from './seeds/job.seed';
-import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
-import { seedResumeStyles } from './seeds/resume-styles.seed';
-import { seedSectionTypes } from './seeds/section-type.seed';
-import { seedStyleScoringCriteria } from './seeds/style-scoring-criteria.seed';
-import { seedSpokenLanguages } from './seeds/spoken-language.seed';
-import { seedTechSkills } from './seeds/tech-skill.seed';
-import { seedUsernames } from './seeds/username.seed';
+import { runDevSeeds } from './seeds/dev';
+import { seedAdminUser } from './seeds/dev/admin.seed';
+import { runSharedSeeds } from './seeds/shared';
 
 const prisma = new PrismaClient(createPrismaClientOptions());
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('🌱 Starting database seed (shared + dev)…');
 
-  // Check if admin already exists
-  let admin = await prisma.user.findFirst({
-    where: { email: process.env.ADMIN_EMAIL || 'admin@example.com' },
-  });
+  await runSharedSeeds(prisma);
+  const admin = await seedAdminUser(prisma);
+  await runDevSeeds(prisma, { adminId: admin.id });
 
-  if (!admin) {
-    // Create first admin user
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123!@#';
-    const adminName = process.env.ADMIN_NAME || 'Admin User';
-
-    const hashedPassword = await Bun.password.hash(adminPassword, {
-      algorithm: 'bcrypt',
-      cost: 10,
-    });
-
-    admin = await prisma.user.create({
-      data: {
-        email: adminEmail,
-        passwordHash: hashedPassword,
-        name: adminName,
-        emailVerified: new Date(),
-        roles: ['role_user', 'role_admin'],
-        onboardingCompletedAt: new Date(),
-      },
-    });
-
-    console.log('✅ Admin user created successfully!');
-    console.log(`📧 Email: ${admin.email}`);
-    console.log(`🔑 Password: ${adminPassword}`);
-    console.log('\n⚠️  IMPORTANT: Change admin password after first login!');
-  } else {
-    // Ensure admin has role_admin in the roles array
-    if (!admin.roles.includes('role_admin')) {
-      await prisma.user.update({
-        where: { id: admin.id },
-        data: { roles: ['role_user', 'role_admin'] },
-      });
-      console.log('✅ Admin user roles updated to include role_admin');
-    }
-    if (admin.onboardingCompletedAt === null) {
-      await prisma.user.update({
-        where: { id: admin.id },
-        data: { onboardingCompletedAt: new Date() },
-      });
-      console.log('✅ Admin user onboarding timestamp set');
-    }
-    console.log('✅ Admin user already exists');
-  }
-
-  // Seed authorization (roles, permissions, groups)
-  await seedAuthorization();
-
-  // Assign admin role to admin user
-  const adminRole = await prisma.role.findUnique({
-    where: { name: 'admin' },
-  });
-
-  if (adminRole) {
-    await prisma.userRoleAssignment.upsert({
-      where: {
-        userId_roleId: {
-          userId: admin.id,
-          roleId: adminRole.id,
-        },
-      },
-      create: {
-        userId: admin.id,
-        roleId: adminRole.id,
-      },
-      update: {},
-    });
-    console.log('✅ Admin role assigned to admin user');
-  }
-
-  // Seed the data-driven Style Score rubric before the styles themselves.
-  await seedStyleScoringCriteria(prisma);
-
-  // Seed system resume styles (2 ATS-safe)
-  await seedResumeStyles(prisma, admin.id);
-
-  // Seed psychometric fit-question pool (100 stratified)
-  await seedFitQuestions(prisma);
-
-  // Seed spoken languages catalog
-  await seedSpokenLanguages(prisma);
-
-  // Seed semantic section types catalog
-  await seedSectionTypes(prisma);
-
-  // Seed onboarding flow config (steps, strength, examples)
-  await seedOnboardingSteps(prisma);
-
-  // Seed tech skills catalog (areas, niches, skills, programming languages)
-  await seedTechSkills(prisma);
-
-  // Seed jobs catalog
-  await seedJobs(prisma, admin.id);
-
-  // Seed usernames for existing users without one
-  await seedUsernames(prisma);
-
-  // ──────────────────────────────────────────────────────────────
-  // Dev-only fixtures.
-  //
-  // Reference data above (roles, permissions, resume styles, catalogs)
-  // is needed in production. Test users are NOT — accidentally seeding
-  // them in prod would install real account rows with known passwords.
-  // Gate everything below behind `NODE_ENV !== 'production'`.
-  // ──────────────────────────────────────────────────────────────
-  if (process.env.NODE_ENV !== 'production') {
-    // Seed E2E test user for performance testing (verified + onboarded)
-    const e2eTestEmail = 'e2e-test@profile.local';
-    let e2eUser = await prisma.user.findFirst({
-      where: { email: e2eTestEmail },
-    });
-
-    if (!e2eUser) {
-      const e2ePassword = 'E2E_Test_Password_123!';
-      const hashedE2ePassword = await Bun.password.hash(e2ePassword, {
-        algorithm: 'bcrypt',
-        cost: 10,
-      });
-
-      e2eUser = await prisma.user.create({
-        data: {
-          email: e2eTestEmail,
-          passwordHash: hashedE2ePassword,
-          name: 'E2E Test User',
-          username: 'e2e-test-user',
-          emailVerified: new Date(),
-          isActive: true,
-          onboardingCompletedAt: new Date(),
-        },
-      });
-
-      console.log('✅ E2E test user created successfully!');
-      console.log(`📧 E2E Email: ${e2eTestEmail}`);
-      console.log(`🔑 E2E Password: ${e2ePassword}`);
-    } else {
-      console.log('✅ E2E test user already exists');
-    }
-
-    // Assign the `user` role to the e2e fixture so domain permissions
-    // (feed:use, social:use, resume:create, …) are available. The
-    // onboarding-completion use case usually grants this, but the seed
-    // shortcuts onboarding via `onboardingCompletedAt`. Idempotent.
-    const userRoleForE2e = await prisma.role.findUnique({ where: { name: 'user' } });
-    if (userRoleForE2e) {
-      await prisma.userRoleAssignment.upsert({
-        where: { userId_roleId: { userId: e2eUser.id, roleId: userRoleForE2e.id } },
-        create: { userId: e2eUser.id, roleId: userRoleForE2e.id, assignedBy: 'seed' },
-        update: {},
-      });
-    }
-
-    // Seed enzoferracini fixture user (verified + onboarded + resume)
-    await seedEnzoferracini(prisma);
-
-    // Seed e2e-onboarding user (verified + NOT onboarded). Used by
-    // `loginAsUnonboardedUser` in patch-careers-ui's e2e helper to
-    // drive onboarding stepper specs without staging through the
-    // email-verification gate.
-    await seedE2EOnboardingUser(prisma);
-
-    if (process.env.NODE_ENV === 'test' || process.env.SEED_DREDD_FIXTURES === '1') {
-      await seedDreddFixtures(prisma, admin.id);
-    }
-  } else {
-    console.log('⏭️  Skipping dev fixtures (NODE_ENV=production)');
-  }
-
-  // Seed analytics projections from existing resumes (runs LAST so it
-  // picks up the dredd fixture resumes — otherwise the contract probes
-  // for /v1/resumes/:resumeId/analytics/* would 404 on missing
-  // AnalyticsResumeProjection rows).
-  await seedAnalyticsProjections(prisma);
+  console.log('✅ Database seed complete');
 }
 
 main()

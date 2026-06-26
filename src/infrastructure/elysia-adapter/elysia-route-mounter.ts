@@ -164,6 +164,7 @@ export function mountRoutes<TBundle>(
           ec.set.status = result.status;
           ec.set.redirect = result.url;
           ctx.state.responseBody = undefined;
+          ctx.state.responseStatus = result.status;
           return;
         }
         if (isResponseWithHeaders(result)) {
@@ -172,9 +173,19 @@ export function mountRoutes<TBundle>(
             ...result.headers,
           };
           ctx.state.responseBody = result.body;
-          return;
+        } else {
+          ctx.state.responseBody = result;
         }
-        ctx.state.responseBody = result;
+        // Fase C — resolve the success status HERE, inside the terminal,
+        // so the request-logging stage's `finally` (which runs during the
+        // pipeline unwind, before the post-pipeline block below) observes
+        // the final status instead of defaulting to 200. A short-circuiting
+        // stage (401/403/429) sets `responseStatus` before calling next()
+        // and never reaches the terminal, so this only covers the
+        // handler-ran success path.
+        if (ctx.state.responseStatus === undefined) {
+          ctx.state.responseStatus = route.statusCode ?? (route.method === 'POST' ? 201 : 200);
+        }
       };
 
       // SSE branch: the handler returns an Observable<SseEvent<T>>; the
@@ -194,15 +205,12 @@ export function mountRoutes<TBundle>(
 
       await runPipeline(ctx, route, pipeline, terminal);
 
+      // The success status is resolved in `terminal` (auto-201 for POST,
+      // declared `statusCode`, else 200) and short-circuit stages set it
+      // directly, so `responseStatus` is always defined here on a
+      // non-SSE response. Mirror it onto Elysia's response object.
       if (ctx.state.responseStatus !== undefined) {
         ec.set.status = ctx.state.responseStatus as number;
-      } else if (route.statusCode !== undefined) {
-        ec.set.status = route.statusCode;
-      } else if (route.method === 'POST') {
-        // Honour the documented contract on `Route.statusCode`
-        // (route.types.ts:43-45): POST defaults to 201 Created. Any
-        // route that wants 200 must declare `statusCode: 200` explicitly.
-        ec.set.status = 201;
       }
       if (route.headers) {
         for (const [k, v] of Object.entries(route.headers)) ec.set.headers[k] = v;
@@ -242,10 +250,20 @@ export function mountRoutes<TBundle>(
       return ctx.state.responseBody;
     };
     const verb = route.method.toLowerCase() as Lowercase<HttpMethod>;
-    (app as unknown as Record<string, (p: string, h: typeof handler) => unknown>)[verb](
-      path,
-      handler,
-    );
+    // Elysia exposes one method per HTTP verb; dispatch dynamically by name.
+    // A named verb-keyed view overlaps Elysia structurally (shared method
+    // names), so this is a single assertion rather than a double-cast.
+    type VerbFn = (p: string, h: typeof handler) => unknown;
+    const verbDispatch = app as {
+      get: VerbFn;
+      post: VerbFn;
+      put: VerbFn;
+      patch: VerbFn;
+      delete: VerbFn;
+      head: VerbFn;
+      options: VerbFn;
+    };
+    verbDispatch[verb](path, handler);
   }
   return app;
 }

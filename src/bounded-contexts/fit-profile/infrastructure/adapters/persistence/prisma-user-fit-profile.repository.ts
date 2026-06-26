@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { readJsonColumn, toPrismaJson } from '@/shared-kernel/persistence/json-column';
 import {
   type SavedUserFitProfile,
   UserFitProfileRepositoryPort,
@@ -34,7 +35,7 @@ export class PrismaUserFitProfileRepository extends UserFitProfileRepositoryPort
     // `{ increment: 1 }` makes the version bump a single SQL UPDATE
     // statement that the database serialises per-row; concurrent
     // upserts now land on distinct, monotonic version numbers.
-    const vectorJson = input.vector as unknown as Prisma.InputJsonValue;
+    const vectorJson = toPrismaJson(input.vector);
     const row = await this.prisma.userFitProfile.upsert({
       where: { userId: input.userId },
       create: {
@@ -70,7 +71,7 @@ export class PrismaUserFitProfileRepository extends UserFitProfileRepositoryPort
     computedAt: Date;
     expiresAt: Date;
   }): SavedUserFitProfile {
-    const vector = row.vectorJson as unknown as FitVector | null;
+    const vector = readJsonColumn<FitVector | null>(row.vectorJson);
     const isAnonymized =
       !vector || (isEmpty(vector.bigFive) && isEmpty(vector.schwartz) && isEmpty(vector.sdt));
     return {

@@ -64,7 +64,7 @@ export class SessionPool {
         process.env.DREDD_USER_PASSWORD ??
         'Dredd_Fixture_Password_123!',
       noPermsEmail: process.env.DREDD_NOPERMS_EMAIL ?? 'dredd-noperms@profile.local',
-      // Fixture users share one password — see prisma/seeds/dredd-fixtures.seed.ts
+      // Fixture users share one password — see prisma/seeds/dev/dredd-fixtures.seed.ts
       noPermsPassword: process.env.DREDD_NOPERMS_PASSWORD ?? 'Dredd_Fixture_Password_123!',
     });
   }

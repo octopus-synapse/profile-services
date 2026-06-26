@@ -112,7 +112,7 @@ export function buildAnalyticsSseBundle(sseStream: SseStreamPort): AnalyticsSseB
 export function buildResumeAnalyticsFacade(
   prisma: PrismaService,
   sseStream: SseStreamPort,
-  eventPublisher: EventPublisher,
+  _eventPublisher: EventPublisher,
   config: ConfigPort,
 ): ResumeAnalyticsFacade {
   const analyticsEventBus = new EventEmitterAnalyticsEventBusAdapter(sseStream);

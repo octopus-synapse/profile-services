@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import { allFieldTranslations } from '../../../prisma/seeds/field-translations';
-import { sectionTypeTranslations } from '../../../prisma/seeds/section-type-translations';
-import { sectionTypes } from '../../../prisma/seeds/section-type.seed';
+import { allFieldTranslations } from '../../../prisma/seeds/shared/field-translations';
+import { sectionTypes } from '../../../prisma/seeds/shared/section-type.seed';
+import { sectionTypeTranslations } from '../../../prisma/seeds/shared/section-type-translations';
 
 /**
  * Catalog ↔ translations completeness. The section-type catalog
- * (prisma/seeds/section-type.seed.ts) is the source of truth: every catalog
+ * (prisma/seeds/shared/section-type.seed.ts) is the source of truth: every catalog
  * section type and every VISIBLE field MUST have a matching translation entry,
  * and there must be NO orphan translations (keyed to a type/field that no
  * longer exists). Drift here is the exact bug that makes a label render in raw
@@ -54,7 +54,9 @@ describe('i18n section catalog ↔ translations parity', () => {
       }
       for (const fieldKey of transKeys) {
         if (!visible.includes(fieldKey)) {
-          errors.push(`'${key}.${fieldKey}' field translation is ORPHAN (not a visible catalog field)`);
+          errors.push(
+            `'${key}.${fieldKey}' field translation is ORPHAN (not a visible catalog field)`,
+          );
         }
       }
     }

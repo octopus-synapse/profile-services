@@ -12,9 +12,11 @@ import {
   fileExists,
   grepCodebase,
   grepCodebaseFixed,
+  grepLineContent,
   ROOT_DIR,
   readAllTsFiles,
   SRC_DIR,
+  stripStringLiterals,
 } from './security-utils';
 
 describe('Sensitive Data Exposure Prevention', () => {
@@ -150,9 +152,14 @@ describe('Sensitive Data Exposure Prevention', () => {
 
     it('should not log passwords', () => {
       const logStatements = grepCodebase('logger\\.|console\\.', ['node_modules', 'dist']);
-      const passwordLogs = logStatements.filter(
-        (l) => l.includes('password') && !l.includes('[REDACTED]'),
-      );
+      // Only flag a log that references a password *value* (interpolation or
+      // variable) — not one whose message string merely contains the word
+      // (e.g. `logger.log('Password-change code issued')`). `stripStringLiterals`
+      // blanks string-literal content while keeping `${...}` interpolations.
+      const passwordLogs = logStatements.filter((l) => {
+        const code = stripStringLiterals(grepLineContent(l));
+        return /password/i.test(code) && !l.includes('[REDACTED]');
+      });
       expect(passwordLogs).toEqual([]);
     });
   });
@@ -209,21 +216,24 @@ describe('Sensitive Data Exposure Prevention', () => {
     it('should not log tokens', () => {
       const logStatements = grepCodebase('logger\\.|console\\.', ['node_modules', 'dist']);
       const tokenLogs = logStatements.filter((l) => {
-        // Must mention token
-        if (!l.includes('token') && !l.includes('Token')) return false;
+        // Look only at the *code* (drop grep's path prefix + string-literal
+        // content) so a filename or class name like
+        // `ExchangeSessionForTokensUseCase` doesn't trip it.
+        const code = stripStringLiterals(grepLineContent(l));
+        if (!/token/i.test(code)) return false;
 
-        // Exclude safe patterns
+        // Exclude non-secret token references that survive in interpolations:
+        // a count (`${tokens.length}`), a type/state flag, or an id.
         const safePatterns = [
           '[REDACTED]',
           'tokenExpired',
           'tokenType',
-          'no token',
-          'invalid token',
-          'token provided',
-          'token rejected',
+          'tokens.length',
+          '.length',
+          'tokenId',
         ];
 
-        return !safePatterns.some((pattern) => l.toLowerCase().includes(pattern.toLowerCase()));
+        return !safePatterns.some((pattern) => code.toLowerCase().includes(pattern.toLowerCase()));
       });
       expect(tokenLogs).toEqual([]);
     });

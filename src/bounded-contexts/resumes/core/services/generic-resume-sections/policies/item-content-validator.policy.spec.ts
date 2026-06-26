@@ -33,7 +33,11 @@ describe('ItemContentValidatorPolicy — intern employment-type invariant', () =
 
   it('rejects an INTERN role paired with a non-Internship employment type', () => {
     expect(() =>
-      validate({ role: 'Estagiário de Marketing', roleSeniority: 'INTERN', employmentType: 'FULL_TIME' }),
+      validate({
+        role: 'Estagiário de Marketing',
+        roleSeniority: 'INTERN',
+        employmentType: 'FULL_TIME',
+      }),
     ).toThrow(InvalidEmploymentTypeForInternRoleException);
   });
 
@@ -47,7 +51,9 @@ describe('ItemContentValidatorPolicy — intern employment-type invariant', () =
   });
 
   it('does not block an INTERN role with no employment type (app auto-sets it)', () => {
-    expect(() => validate({ role: 'Estagiário de Marketing', roleSeniority: 'INTERN' })).not.toThrow();
+    expect(() =>
+      validate({ role: 'Estagiário de Marketing', roleSeniority: 'INTERN' }),
+    ).not.toThrow();
   });
 
   it('leaves non-INTERN seniorities unconstrained (JUNIOR + Full-time)', () => {
@@ -58,7 +64,11 @@ describe('ItemContentValidatorPolicy — intern employment-type invariant', () =
 
   it('does not constrain TRAINEE (CLT, not an internship)', () => {
     expect(() =>
-      validate({ role: 'Trainee de Vendas', roleSeniority: 'TRAINEE', employmentType: 'FULL_TIME' }),
+      validate({
+        role: 'Trainee de Vendas',
+        roleSeniority: 'TRAINEE',
+        employmentType: 'FULL_TIME',
+      }),
     ).not.toThrow();
   });
 });

@@ -55,9 +55,6 @@ describe('i18n static-step parity (@packages/i18n STATIC_STEP_DICTIONARY)', () =
         }
       }
     }
-    expect(
-      suspects,
-      `Untranslated step copy (en === pt-BR):\n${suspects.join('\n')}`,
-    ).toEqual([]);
+    expect(suspects, `Untranslated step copy (en === pt-BR):\n${suspects.join('\n')}`).toEqual([]);
   });
 });

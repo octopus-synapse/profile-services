@@ -33,11 +33,7 @@ export class ResumeTranslationService {
     source: TranslationLanguage,
     target: TranslationLanguage,
   ): Promise<Record<string, unknown>> {
-    const result = await this.translationLlm.translateObject(
-      data as unknown as JsonValue,
-      source,
-      target,
-    );
+    const result = await this.translationLlm.translateObject(data as JsonValue, source, target);
     return result.translated as Record<string, unknown>;
   }
 }

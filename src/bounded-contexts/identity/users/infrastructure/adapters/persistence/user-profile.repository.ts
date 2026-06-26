@@ -70,9 +70,13 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
   }
 
   async updateUserProfile(userId: string, data: UpdateProfileData): Promise<UserProfile> {
+    // The avatar lives in two columns historically (`image` for NextAuth,
+    // `photoURL` for the profile read). Keep them in sync on this path so a
+    // set/clear via the profile actually reflects on the next read.
+    const { image, ...rest } = data;
     return this.prisma.user.update({
       where: { id: userId },
-      data,
+      data: { ...rest, ...(image !== undefined ? { image, photoURL: image } : {}) },
     });
   }
 

@@ -149,11 +149,19 @@ export async function seedStyleScoringCriteria(prisma: PrismaClient): Promise<vo
   for (const c of STYLE_SCORING_CRITERIA_V1) {
     await prisma.styleScoringCriterion.upsert({
       where: { key: c.key },
-      update: { bucket: c.bucket, weight: c.weight, severity: c.severity, params: c.params, active: true },
+      update: {
+        bucket: c.bucket,
+        weight: c.weight,
+        severity: c.severity,
+        params: c.params,
+        active: true,
+      },
       create: { ...c, active: true },
     });
   }
 
   const total = STYLE_SCORING_CRITERIA_V1.reduce((sum, c) => sum + c.weight, 0);
-  console.log(`✅ Seeded ${STYLE_SCORING_CRITERIA_V1.length} style-scoring criteria (weights sum to ${total})`);
+  console.log(
+    `✅ Seeded ${STYLE_SCORING_CRITERIA_V1.length} style-scoring criteria (weights sum to ${total})`,
+  );
 }

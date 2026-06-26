@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { LOCALES } from '@packages/i18n';
-import { sectionTypeTranslations } from '../../../prisma/seeds/section-type-translations';
+import { sectionTypeTranslations } from '../../../prisma/seeds/shared/section-type-translations';
 
 /**
  * Values intentionally identical across locales — loanwords adopted verbatim
@@ -9,6 +9,8 @@ import { sectionTypeTranslations } from '../../../prisma/seeds/section-type-tran
  * justify it by adding the `key.field` path here.
  */
 const IDENTICAL_ALLOWED = new Set<string>([
+  'links_v1.title',
+  'links_v1.label',
   'open_source_v1.label',
   'bug_bounty_v1.title',
   'bug_bounty_v1.label',
@@ -25,7 +27,7 @@ const USER_FACING_FIELDS = [
   'addLabel',
 ] as const;
 
-describe('i18n section-type translations parity (prisma/seeds/section-type-translations)', () => {
+describe('i18n section-type translations parity (prisma/seeds/shared/section-type-translations)', () => {
   it('every section type covers exactly LOCALES — no missing, no rogue locale', () => {
     const errors: string[] = [];
     for (const [key, entry] of Object.entries(sectionTypeTranslations)) {

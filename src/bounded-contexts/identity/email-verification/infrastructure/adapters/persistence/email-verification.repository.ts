@@ -140,10 +140,7 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
     };
   }
 
-  async deleteUserPurposeTokens(
-    userId: string,
-    purpose: VerificationPurposeValue,
-  ): Promise<void> {
+  async deleteUserPurposeTokens(userId: string, purpose: VerificationPurposeValue): Promise<void> {
     await this.prisma.emailVerificationToken.deleteMany({ where: { userId, purpose } });
   }
 

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import { LOCALES } from '@packages/i18n';
-import { allFieldTranslations } from '../../../prisma/seeds/field-translations';
+import { allFieldTranslations } from '../../../prisma/seeds/shared/field-translations';
 
-describe('i18n field translations parity (prisma/seeds/field-translations)', () => {
+describe('i18n field translations parity (prisma/seeds/shared/field-translations)', () => {
   it('every field covers exactly LOCALES — no missing, no rogue locale', () => {
     const errors: string[] = [];
     for (const [sectionKey, map] of Object.entries(allFieldTranslations)) {
@@ -32,7 +32,7 @@ describe('i18n field translations parity (prisma/seeds/field-translations)', () 
       for (const [fieldKey, entry] of Object.entries(map)) {
         for (const locale of LOCALES) {
           const t = entry[locale];
-          if (!t || !t.label || t.label.trim().length === 0) {
+          if (!t?.label || t.label.trim().length === 0) {
             gaps.push(`${sectionKey}['${fieldKey}'] (${locale}): empty label`);
           }
           // Optional sub-fields, if present, must not be empty strings.
@@ -59,9 +59,8 @@ describe('i18n field translations parity (prisma/seeds/field-translations)', () 
         }
       }
     }
-    expect(
-      suspects,
-      `Untranslated field labels (en === pt-BR):\n${suspects.join('\n')}`,
-    ).toEqual([]);
+    expect(suspects, `Untranslated field labels (en === pt-BR):\n${suspects.join('\n')}`).toEqual(
+      [],
+    );
   });
 });

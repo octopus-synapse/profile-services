@@ -35,7 +35,7 @@ import {
   EXAMPLE_RESUME_ID,
   EXAMPLE_SLUG,
   EXAMPLE_USER_ID,
-} from '../../src/shared-kernel/schemas/params/example-values.const';
+} from '../../../src/shared-kernel/schemas/params/example-values.const';
 
 const FIXTURE_USER_EMAIL = 'dredd-fixture@profile.local';
 const FIXTURE_USER_NAME = 'Dredd Fixture User';

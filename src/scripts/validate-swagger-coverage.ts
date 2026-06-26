@@ -71,7 +71,7 @@ function isRouteArray(value: unknown): value is ReadonlyArray<Route> {
 }
 
 function zodTypeName(schema: ZodSchema<unknown>): string | undefined {
-  return (schema as unknown as { _def?: { typeName?: string } })._def?.typeName;
+  return (schema as { _def?: { typeName?: string } })._def?.typeName;
 }
 
 function isAllowlistedPath(path: string): boolean {

@@ -10,6 +10,7 @@ import { GenericResumeSectionsRepository } from './repository/generic-resume-sec
 import { CreateSectionItemUseCase } from './use-cases/create-section-item.use-case';
 import { DeleteSectionItemUseCase } from './use-cases/delete-section-item.use-case';
 import { ListResumeSectionsUseCase } from './use-cases/list-resume-sections.use-case';
+import { ListSectionGroupsUseCase } from './use-cases/list-section-groups.use-case';
 import { ListSectionTypesUseCase } from './use-cases/list-section-types.use-case';
 import { UpdateSectionItemUseCase } from './use-cases/update-section-item.use-case';
 
@@ -28,6 +29,7 @@ export function buildGenericResumeSectionsUseCases(
 
   return {
     listSectionTypesUseCase: new ListSectionTypesUseCase(repository),
+    listSectionGroupsUseCase: new ListSectionGroupsUseCase(repository),
     listResumeSectionsUseCase: new ListResumeSectionsUseCase(repository, ownershipPolicy),
     createSectionItemUseCase: new CreateSectionItemUseCase(
       repository,

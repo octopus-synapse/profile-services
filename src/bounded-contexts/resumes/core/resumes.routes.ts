@@ -157,7 +157,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const body = ctx.body as unknown as CreateResume;
+      const body = ctx.body as CreateResume;
       const result = await bc.createResumeForUserUseCase.execute(ctx.user!.userId, body);
       return toResumeResponseDto(result);
     },
@@ -210,7 +210,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
-      const body = ctx.body as unknown as UpdateResume;
+      const body = ctx.body as UpdateResume;
       const result = await bc.updateResumeForUserUseCase.execute(id, ctx.user!.userId, body);
       return toResumeResponseDto(result);
     },
@@ -351,10 +351,14 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     handler: async (ctx, bc) => {
       const { locale: localeParam } = ctx.query as z.infer<typeof LocaleQuery>;
       const locale = parseLocale(localeParam);
-      const rawSectionTypes = await bc.listSectionTypesUseCase.execute();
+      const [rawSectionTypes, rawGroups] = await Promise.all([
+        bc.listSectionTypesUseCase.execute(),
+        bc.listSectionGroupsUseCase.execute(),
+      ]);
       return toResumeSectionTypesData(
         rawSectionTypes as Parameters<typeof toResumeSectionTypesData>[0],
         locale,
+        rawGroups as Parameters<typeof toResumeSectionTypesData>[2],
       );
     },
   },

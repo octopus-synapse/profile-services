@@ -8,6 +8,7 @@ import type { Prisma } from '@prisma/client';
 import {
   GenericResumeSectionsRepositoryPort,
   type ResumeSectionDto,
+  type SectionGroupDto,
   type SectionItemDto,
   type SectionTypeDto,
 } from '../services/generic-resume-sections/ports/generic-resume-sections-repository.port';
@@ -16,6 +17,7 @@ type ResumeEntity = { id: string; userId: string };
 
 export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectionsRepositoryPort {
   private sectionTypes = new Map<string, SectionTypeDto>();
+  private sectionGroups = new Map<string, SectionGroupDto>();
   private resumes = new Map<string, ResumeEntity>();
   private resumeSections = new Map<string, ResumeSectionDto>();
   private sectionItems = new Map<string, SectionItemDto>();
@@ -37,6 +39,12 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
         if (titleCompare !== 0) return titleCompare;
         return b.version - a.version;
       });
+  }
+
+  async findActiveSectionGroups(): Promise<SectionGroupDto[]> {
+    return Array.from(this.sectionGroups.values())
+      .filter((g) => g.isActive)
+      .sort((a, b) => a.order - b.order || a.key.localeCompare(b.key));
   }
 
   async findResumeOwner(resumeId: string): Promise<{ id: string; userId: string } | null> {
@@ -206,6 +214,7 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
       description: input.description ?? null,
       semanticKind: input.semanticKind ?? 'CUSTOM',
       version: input.version ?? 1,
+      groupKey: input.groupKey ?? null,
       isActive: input.isActive ?? true,
       isSystem: input.isSystem ?? false,
       isRepeatable: input.isRepeatable ?? true,

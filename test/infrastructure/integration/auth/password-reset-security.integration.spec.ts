@@ -10,51 +10,25 @@
  * - Token enumeration vulnerability
  * - Concurrent reset requests
  * - Old token validity after new request
+ *
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * out-of-declaration-order and runs spec files concurrently. The prior
+ * version shared `testUserId`/`testUserEmail` (set in `beforeEach`,
+ * read by BUG-PWD-006) and an `afterAll` cleanup. Each test now
+ * provisions its OWN user via `freshInDbUser` (unique email + token)
+ * and clears the IP-keyed reset/forgot buckets before running — a 429
+ * from bucket bleed across a concurrent run is a setup artifact, not a
+ * product bug.
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
-import {
-  clearAuthRateLimits,
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getPrisma,
-  getRequest,
-  uniqueTestId,
-} from '../setup';
+import { freshInDbUser } from '../../shared';
+import { clearAuthRateLimits, getApp } from '../setup';
 
 describe('Password Reset Security - Bug Discovery Tests', () => {
-  let testUserId: string;
-  let _testUserEmail: string;
-
-  beforeAll(async () => {
-    await getApp();
-  });
-
   beforeEach(async () => {
     await clearAuthRateLimits();
-    const auth = await createTestUserAndLogin({
-      email: `reset-test-${uniqueTestId()}@example.com`,
-    });
-    testUserId = auth.userId;
-
-    const prisma = getPrisma();
-    const user = await prisma.user.findUnique({ where: { id: testUserId } });
-    if (!user?.email) {
-      throw new Error('Test user not found or has no email');
-    }
-    _testUserEmail = user.email;
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    if (testUserId) {
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUserId } });
-      await prisma.resume.deleteMany({ where: { userId: testUserId } });
-      await prisma.user.deleteMany({ where: { id: testUserId } });
-    }
-    await closeApp();
   });
 
   describe('BUG-PWD-001: Rate Limiting on Forgot Password', () => {
@@ -63,18 +37,14 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * ACTUAL BUG: No rate limiting allows email bombing / account lockout
      */
     it('should rate limit forgot-password requests', async () => {
-      const testUser = await createTestUserAndLogin({
-        email: `rate-limit-test-${uniqueTestId()}@example.com`,
-      });
-
-      const prisma = getPrisma();
-      const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
       // Send 15 password reset requests rapidly
       const results: number[] = [];
       for (let i = 0; i < 15; i++) {
-        const response = await getRequest().post('/api/v1/auth/forgot-password').send({
-          email: user?.email,
+        const response = await app.request.post('/api/v1/auth/forgot-password').send({
+          email: testUser.email,
         });
         results.push(response.status);
       }
@@ -85,10 +55,6 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       // This assertion should FAIL if there's no rate limiting
       // No rate limit = email bombing vulnerability + potential account lockout
       expect(hasRateLimit).toBe(true);
-
-      // Cleanup
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -98,15 +64,12 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * POTENTIAL BUG: Race condition allows token reuse before invalidation
      */
     it('should reject parallel token usage - EXPECTED TO FAIL IF RACE CONDITION EXISTS', async () => {
-      const testUser = await createTestUserAndLogin({
-        email: `token-race-${uniqueTestId()}@example.com`,
-      });
-
-      const prisma = getPrisma();
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
       // Create a reset token directly in DB for testing
       const token = randomUUID();
-      await prisma.passwordResetToken.create({
+      await app.prisma.passwordResetToken.create({
         data: {
           token,
           userId: testUser.userId,
@@ -116,14 +79,20 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Send TWO parallel reset requests with the same token
       const [result1, result2] = await Promise.all([
-        getRequest().post('/api/v1/auth/reset-password').send({
-          token,
-          newPassword: 'NewPassword123!',
-        }),
-        getRequest().post('/api/v1/auth/reset-password').send({
-          token,
-          newPassword: 'DifferentPassword456!',
-        }),
+        app.request
+          .post('/api/v1/auth/reset-password')
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .send({
+            token,
+            newPassword: 'NewPassword123!',
+          }),
+        app.request
+          .post('/api/v1/auth/reset-password')
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .send({
+            token,
+            newPassword: 'DifferentPassword456!',
+          }),
       ]);
 
       // One should succeed (200), one should fail (400/401)
@@ -136,10 +105,6 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // This should FAIL if race condition exists
       expect(bothSucceeded).toBe(false);
-
-      // Cleanup
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -149,37 +114,33 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * ACTUAL BUG: Multiple valid tokens can coexist
      */
     it('should invalidate old token when new one is requested - EXPECTED TO FAIL IF TOKENS ACCUMULATE', async () => {
-      const testUser = await createTestUserAndLogin({
-        email: `multi-token-${uniqueTestId()}@example.com`,
-      });
-
-      const prisma = getPrisma();
-      const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
       // Request first password reset (bypass rate limit for non-rate-limit tests)
-      await getRequest()
+      await app.request
         .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          email: user?.email,
+          email: testUser.email,
         });
 
       // Get the first token
-      const firstToken = await prisma.passwordResetToken.findFirst({
+      const firstToken = await app.prisma.passwordResetToken.findFirst({
         where: { userId: testUser.userId },
         orderBy: { createdAt: 'desc' },
       });
 
       // Request second password reset (bypass rate limit)
-      await getRequest()
+      await app.request
         .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          email: user?.email,
+          email: testUser.email,
         });
 
       // Count total valid tokens for this user
-      const validTokens = await prisma.passwordResetToken.count({
+      const validTokens = await app.prisma.passwordResetToken.count({
         where: {
           userId: testUser.userId,
           expiresAt: { gt: new Date() },
@@ -194,18 +155,17 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Try to use the old token (if it still exists)
       if (firstToken) {
-        const oldTokenResponse = await getRequest().post('/api/v1/auth/reset-password').send({
-          token: firstToken.token,
-          newPassword: 'TestPassword123!',
-        });
+        const oldTokenResponse = await app.request
+          .post('/api/v1/auth/reset-password')
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .send({
+            token: firstToken.token,
+            newPassword: 'TestPassword123!',
+          });
 
         // Old token should be rejected
         expect(oldTokenResponse.status).toBe(400);
       }
-
-      // Cleanup
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -215,6 +175,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * ACTUAL BUG: Different response times reveal token existence
      */
     it('should have consistent response times - INFORMATIONAL', async () => {
+      const app = await getApp();
       const _validToken = randomUUID();
       const invalidToken = randomUUID();
 
@@ -222,10 +183,13 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const invalidTimes: number[] = [];
       for (let i = 0; i < 5; i++) {
         const start = performance.now();
-        await getRequest().post('/api/v1/auth/reset-password').send({
-          token: invalidToken,
-          newPassword: 'TestPassword123!',
-        });
+        await app.request
+          .post('/api/v1/auth/reset-password')
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .send({
+            token: invalidToken,
+            newPassword: 'TestPassword123!',
+          });
         invalidTimes.push(performance.now() - start);
       }
 
@@ -233,10 +197,13 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const malformedTimes: number[] = [];
       for (let i = 0; i < 5; i++) {
         const start = performance.now();
-        await getRequest().post('/api/v1/auth/reset-password').send({
-          token: 'short',
-          newPassword: 'TestPassword123!',
-        });
+        await app.request
+          .post('/api/v1/auth/reset-password')
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .send({
+            token: 'short',
+            newPassword: 'TestPassword123!',
+          });
         malformedTimes.push(performance.now() - start);
       }
 
@@ -265,15 +232,12 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * Verify the 24-hour expiration is enforced
      */
     it('should reject expired token with clear error message', async () => {
-      const testUser = await createTestUserAndLogin({
-        email: `expired-token-${uniqueTestId()}@example.com`,
-      });
-
-      const prisma = getPrisma();
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
       // Create an expired token (25 hours in the past)
       const expiredToken = randomUUID();
-      await prisma.passwordResetToken.create({
+      await app.prisma.passwordResetToken.create({
         data: {
           token: expiredToken,
           userId: testUser.userId,
@@ -282,16 +246,16 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       });
 
       // Try to use expired token
-      const response = await getRequest().post('/api/v1/auth/reset-password').send({
-        token: expiredToken,
-        newPassword: 'NewPassword123!',
-      });
+      const response = await app.request
+        .post('/api/v1/auth/reset-password')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          token: expiredToken,
+          newPassword: 'NewPassword123!',
+        });
 
       // Should be rejected
       expect(response.status).toBe(400);
-      // Cleanup
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -301,23 +265,23 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * ACTUAL BUG: Different response reveals user existence
      */
     it('should return same response for existing and non-existing users - EXPECTED TO FAIL IF ENUMERATION POSSIBLE', async () => {
-      const prisma = getPrisma();
-      const user = await prisma.user.findUnique({ where: { id: testUserId } });
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
       // Request for existing user (bypass rate limit)
-      const existingUserResponse = await getRequest()
+      const existingUserResponse = await app.request
         .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          email: user?.email,
+          email: testUser.email,
         });
 
       // Request for non-existing user (bypass rate limit)
-      const nonExistingUserResponse = await getRequest()
+      const nonExistingUserResponse = await app.request
         .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          email: `nonexistent-user-${uniqueTestId()}@example.com`,
+          email: `nonexistent-user-${randomUUID()}@example.com`,
         });
 
       console.log(
@@ -345,21 +309,8 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * Test various weak password patterns
      */
     it('should reject weak passwords during reset', async () => {
-      const testUser = await createTestUserAndLogin({
-        email: `weak-pwd-${uniqueTestId()}@example.com`,
-      });
-
-      const prisma = getPrisma();
-
-      // Create a valid token
-      const token = randomUUID();
-      await prisma.passwordResetToken.create({
-        data: {
-          token,
-          userId: testUser.userId,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
-      });
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
       // Test weak passwords
       const weakPasswords = [
@@ -377,7 +328,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       for (const weakPwd of weakPasswords) {
         // Create new token for each test (old one gets invalidated)
         const newToken = randomUUID();
-        await prisma.passwordResetToken.create({
+        await app.prisma.passwordResetToken.create({
           data: {
             token: newToken,
             userId: testUser.userId,
@@ -385,15 +336,15 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
           },
         });
 
-        const pwd =
-          typeof weakPwd === 'function'
-            ? weakPwd({ email: `weak-pwd-${uniqueTestId()}@example.com` })
-            : weakPwd;
+        const pwd = typeof weakPwd === 'function' ? weakPwd({ email: testUser.email }) : weakPwd;
 
-        const response = await getRequest().post('/api/v1/auth/reset-password').send({
-          token: newToken,
-          newPassword: pwd,
-        });
+        const response = await app.request
+          .post('/api/v1/auth/reset-password')
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .send({
+            token: newToken,
+            newPassword: pwd,
+          });
 
         results.push({
           password: pwd,
@@ -409,10 +360,6 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       // All weak passwords should be rejected
       const acceptedWeak = results.filter((r) => r.accepted);
       expect(acceptedWeak.length).toBe(0);
-
-      // Cleanup
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -424,16 +371,13 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * No timing dependencies - when API returns, sessions are already invalidated.
      */
     it('should invalidate all sessions after password reset', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const testUser = await freshInDbUser(app);
 
-      const testUser = await createTestUserAndLogin({
-        email: `session-invalidation-${uniqueTestId()}@example.com`,
-      });
-
-      const oldAccessToken = testUser.accessToken;
+      const oldAccessToken = testUser.token;
 
       // Old token works BEFORE reset
-      const beforeReset = await getRequest()
+      const beforeReset = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${oldAccessToken}`);
       expect(beforeReset.status).toBe(200);
@@ -450,7 +394,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const { createHash } = await import('node:crypto');
       const plainToken = randomUUID();
       const tokenHash = createHash('sha256').update(plainToken).digest('hex');
-      await prisma.passwordResetToken.create({
+      await app.prisma.passwordResetToken.create({
         data: {
           token: tokenHash,
           userId: testUser.userId,
@@ -458,20 +402,19 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
         },
       });
 
-      const resetResponse = await getRequest().post('/api/v1/auth/reset-password').send({
-        token: plainToken,
-        newPassword: 'CompletelyNewPassword123!',
-      });
+      const resetResponse = await app.request
+        .post('/api/v1/auth/reset-password')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          token: plainToken,
+          newPassword: 'CompletelyNewPassword123!',
+        });
       expect(resetResponse.status).toBe(201);
 
-      const afterReset = await getRequest()
+      const afterReset = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${oldAccessToken}`);
       expect(afterReset.status).toBe(401);
-
-      await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.resume.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 });

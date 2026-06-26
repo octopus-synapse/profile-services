@@ -32,7 +32,7 @@ export class InMemoryAdminSpokenLanguagesRepository extends AdminSpokenLanguages
   }
   async create(input: Record<string, unknown>) {
     this.created.push(input);
-    const row = { ...(input as object) } as unknown as SpokenLanguage;
+    const row = { ...(input as object) } as SpokenLanguage;
     this.rows.set(row.code, row);
     return row;
   }

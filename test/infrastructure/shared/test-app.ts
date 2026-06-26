@@ -29,12 +29,12 @@ import type { PrismaClient } from '@prisma/client';
 import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
 import type { CachePort } from '@/shared-kernel/cache';
-import { seedDreddFixtures } from '../../../prisma/seeds/dredd-fixtures.seed';
-import { seedOnboardingSteps } from '../../../prisma/seeds/onboarding-step.seed';
-import { seedResumeStyles } from '../../../prisma/seeds/resume-styles.seed';
-import { seedSectionTypes } from '../../../prisma/seeds/section-type.seed';
-import { seedSpokenLanguages } from '../../../prisma/seeds/spoken-language.seed';
-import { seedTechSkills } from '../../../prisma/seeds/tech-skill.seed';
+import { seedDreddFixtures } from '../../../prisma/seeds/dev/dredd-fixtures.seed';
+import { seedResumeStyles } from '../../../prisma/seeds/dev/resume-styles.seed';
+import { seedTechSkills } from '../../../prisma/seeds/dev/tech-skill.seed';
+import { seedOnboardingSteps } from '../../../prisma/seeds/shared/onboarding-step.seed';
+import { seedSectionTypes } from '../../../prisma/seeds/shared/section-type.seed';
+import { seedSpokenLanguages } from '../../../prisma/seeds/shared/spoken-language.seed';
 import { createTestRequest, type TestRequest } from './test-request';
 
 export interface TestApp {

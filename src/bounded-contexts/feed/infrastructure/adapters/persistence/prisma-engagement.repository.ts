@@ -14,6 +14,7 @@ import type {
   PostWithAuthor,
 } from '../../../domain/entities';
 import { EngagementRepositoryPort } from '../../../domain/ports/engagement.repository.port';
+import { POST_WITH_AUTHOR_INCLUDE, toPostWithAuthor } from './post-row.mappers';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -77,7 +78,7 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
-    })) as unknown as LikeWithPost[];
+    })) as LikeWithPost[];
   }
 
   // ---------- Bookmarks ----------
@@ -119,16 +120,18 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
     content: string;
     hashtags: string[];
   }): Promise<PostWithAuthor> {
-    return (await this.prisma.post.create({
-      data: {
-        authorId: input.authorId,
-        isRepost: true,
-        content: input.content,
-        hashtags: input.hashtags,
-        originalPostId: input.originalPostId,
-      },
-      include: { author: { select: AUTHOR_SELECT } },
-    })) as unknown as PostWithAuthor;
+    return toPostWithAuthor(
+      await this.prisma.post.create({
+        data: {
+          authorId: input.authorId,
+          isRepost: true,
+          content: input.content,
+          hashtags: input.hashtags,
+          originalPostId: input.originalPostId,
+        },
+        include: POST_WITH_AUTHOR_INCLUDE,
+      }),
+    );
   }
 
   async incrementRepostsCount(postId: string, by: number): Promise<void> {

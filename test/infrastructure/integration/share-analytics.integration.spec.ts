@@ -1,100 +1,79 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import {
-  authHeader,
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getPrisma,
-  getRequest,
-  uniqueTestSlug,
-} from './setup';
+import { describe, expect, it } from 'bun:test';
+import type { FreshUser } from '../shared/fresh-context';
+import { freshInDbUser } from '../shared/fresh-context';
+import type { TestApp } from '../shared/test-app';
+import { getApp, uniqueTestSlug } from './setup';
+
+/**
+ * Order-independent share-analytics suite. Each test provisions its own
+ * user + resume + share and generates its OWN analytics events, so it
+ * owns its fixtures for its lifetime — Bun runs tests inside a `describe`
+ * concurrently (1.3+), so any shared `let shareId/shareSlug` would race.
+ */
+
+interface ShareFixture {
+  readonly user: FreshUser;
+  readonly resumeId: string;
+  readonly shareId: string;
+  readonly shareSlug: string;
+}
+
+/** Create a brand-new user + resume + share owned by the test. */
+async function seedShare(app: TestApp): Promise<ShareFixture> {
+  const user = await freshInDbUser(app);
+  const resume = await app.prisma.resume.create({
+    data: {
+      userId: user.userId,
+      title: 'Analytics Test Resume',
+      contentPtBr: { sections: [] },
+    },
+  });
+  const share = await app.prisma.resumeShare.create({
+    data: { resumeId: resume.id, slug: uniqueTestSlug('analytics') },
+  });
+  return { user, resumeId: resume.id, shareId: share.id, shareSlug: share.slug };
+}
+
+/**
+ * Polling helper: handlers de share-event não estão no tracker
+ * (registerHandler.ts faz `eventBus.on` direto). Aguarda até a row
+ * aparecer ou timeout.
+ */
+interface ShareAnalyticsRow {
+  userAgent: string | null;
+  ipHash: string;
+  [k: string]: unknown;
+}
+async function waitForAnalyticsEvent(
+  app: TestApp,
+  shareIdArg: string,
+  event: 'VIEW' | 'DOWNLOAD',
+  timeoutMs = 2000,
+): Promise<ShareAnalyticsRow> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const row = await app.prisma.shareAnalytics.findFirst({
+      where: { shareId: shareIdArg, event },
+    });
+    if (row) return row as unknown as ShareAnalyticsRow;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  throw new Error(`Timeout waiting for shareAnalytics row (shareId=${shareIdArg}, event=${event})`);
+}
 
 describe('Share Analytics Integration', () => {
-  let userId: string;
-  let accessToken: string;
-  let resumeId: string;
-  let shareId: string;
-  let shareSlug: string;
-
-  beforeAll(async () => {
-    await getApp();
-    const result = await createTestUserAndLogin();
-    userId = result.userId;
-    accessToken = result.accessToken;
-
-    const prisma = getPrisma();
-    const resume = await prisma.resume.create({
-      data: {
-        userId,
-        title: 'Analytics Test Resume',
-        contentPtBr: { sections: [] },
-      },
-    });
-    resumeId = resume.id;
-
-    const share = await prisma.resumeShare.create({
-      data: {
-        resumeId,
-        slug: uniqueTestSlug('analytics'),
-      },
-    });
-    shareId = share.id;
-    shareSlug = share.slug;
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    await prisma.shareAnalytics.deleteMany({
-      where: { shareId },
-    });
-    await prisma.resumeShare.delete({
-      where: { id: shareId },
-    });
-    await prisma.resume.delete({
-      where: { id: resumeId },
-    });
-    await prisma.user.delete({
-      where: { id: userId },
-    });
-    await closeApp();
-  });
-
-  /**
-   * Polling helper: handlers de share-event não estão no tracker
-   * (registerHandler.ts faz `eventBus.on` direto). Aguarda até a row
-   * aparecer ou timeout.
-   */
-  interface ShareAnalyticsRow {
-    userAgent: string | null;
-    ipHash: string;
-    [k: string]: unknown;
-  }
-  async function waitForAnalyticsEvent(
-    shareIdArg: string,
-    event: 'VIEW' | 'DOWNLOAD',
-    timeoutMs = 2000,
-  ): Promise<ShareAnalyticsRow> {
-    const prisma = getPrisma();
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      const row = await prisma.shareAnalytics.findFirst({ where: { shareId: shareIdArg, event } });
-      if (row) return row as unknown as ShareAnalyticsRow;
-      await new Promise((r) => setTimeout(r, 50));
-    }
-    throw new Error(
-      `Timeout waiting for shareAnalytics row (shareId=${shareIdArg}, event=${event})`,
-    );
-  }
-
   describe('Event Tracking', () => {
     it('should track VIEW event when accessing public resume', async () => {
-      await getRequest()
+      const app = await getApp();
+      const { shareId, shareSlug } = await seedShare(app);
+
+      await app.request
         .get(`/api/v1/public/resumes/${shareSlug}`)
         .set('User-Agent', 'Mozilla/5.0 (Test Browser)')
         .set('X-Forwarded-For', '203.0.113.42');
 
       // ShareViewedEvent é publishAsync com handler async; aguardar persist.
-      const analytics = await waitForAnalyticsEvent(shareId, 'VIEW');
+      const analytics = await waitForAnalyticsEvent(app, shareId, 'VIEW');
 
       expect(analytics.userAgent).toContain('Test Browser');
       expect(analytics.ipHash).toBeDefined();
@@ -102,24 +81,30 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should track DOWNLOAD event', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { shareId, shareSlug } = await seedShare(app);
+
+      const response = await app.request
         .get(`/api/v1/public/resumes/${shareSlug}/download`)
         .set('User-Agent', 'DownloadBot/1.0')
         .set('X-Forwarded-For', '198.51.100.23');
 
       expect(response.status).toBe(200);
 
-      const analytics = await waitForAnalyticsEvent(shareId, 'DOWNLOAD');
+      const analytics = await waitForAnalyticsEvent(app, shareId, 'DOWNLOAD');
       expect(analytics.userAgent).toContain('DownloadBot');
     });
 
     it('should anonymize IP addresses (GDPR compliance)', async () => {
+      const app = await getApp();
+      const { shareId, shareSlug } = await seedShare(app);
       const testIp = '192.0.2.146';
 
-      await getRequest().get(`/api/v1/public/resumes/${shareSlug}`).set('X-Forwarded-For', testIp);
+      await app.request.get(`/api/v1/public/resumes/${shareSlug}`).set('X-Forwarded-For', testIp);
 
-      const prisma = getPrisma();
-      const analytics = await prisma.shareAnalytics.findFirst({
+      // ShareViewedEvent is async; wait for the row to persist.
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+      const analytics = await app.prisma.shareAnalytics.findFirst({
         where: { shareId },
         orderBy: { createdAt: 'desc' },
       });
@@ -133,12 +118,16 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should track referrer information', async () => {
-      await getRequest()
+      const app = await getApp();
+      const { shareId, shareSlug } = await seedShare(app);
+
+      await app.request
         .get(`/api/v1/public/resumes/${shareSlug}`)
         .set('Referer', 'https://linkedin.com/in/johndoe');
 
-      const prisma = getPrisma();
-      const analytics = await prisma.shareAnalytics.findFirst({
+      // ShareViewedEvent is async; wait for the row to persist.
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+      const analytics = await app.prisma.shareAnalytics.findFirst({
         where: { shareId },
         orderBy: { createdAt: 'desc' },
       });
@@ -157,9 +146,14 @@ describe('Share Analytics Integration', () => {
 
   describe('Analytics Retrieval', () => {
     it('should get analytics summary for a share', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/analytics/${shareId}`)
-        .set(authHeader(accessToken));
+      const app = await getApp();
+      const { user, shareId, shareSlug } = await seedShare(app);
+
+      // Generate a view so the summary has data.
+      await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+
+      const response = await app.request.get(`/api/v1/analytics/${shareId}`).set(user.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.analytics).toMatchObject({
@@ -171,9 +165,15 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should get detailed analytics events', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { user, shareId, shareSlug } = await seedShare(app);
+
+      await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+
+      const response = await app.request
         .get(`/api/v1/analytics/${shareId}/events`)
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       expect(response.status).toBe(200);
       const events = response.body.events as Array<Record<string, unknown>>;
@@ -184,16 +184,22 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should filter analytics by date range', async () => {
+      const app = await getApp();
+      const { user, shareId, shareSlug } = await seedShare(app);
+
+      await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      const response = await getRequest()
+      const response = await app.request
         .get(`/api/v1/analytics/${shareId}/events`)
         .query({
           startDate: yesterday.toISOString(),
           endDate: tomorrow.toISOString(),
         })
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       expect(response.status).toBe(200);
       const events = response.body.events as Array<Record<string, unknown>>;
@@ -201,10 +207,16 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should filter analytics by event type', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { user, shareId, shareSlug } = await seedShare(app);
+
+      await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+
+      const response = await app.request
         .get(`/api/v1/analytics/${shareId}/events`)
         .query({ eventType: 'VIEW' })
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       expect(response.status).toBe(200);
       const events = response.body.events as Array<{ eventType: string }>;
@@ -212,7 +224,10 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should not allow unauthorized access to analytics', async () => {
-      const response = await getRequest().get(`/api/v1/analytics/${shareId}`);
+      const app = await getApp();
+      const { shareId } = await seedShare(app);
+
+      const response = await app.request.get(`/api/v1/analytics/${shareId}`);
 
       expect(response.status).toBe(401);
     });
@@ -220,9 +235,17 @@ describe('Share Analytics Integration', () => {
 
   describe('Privacy & Security', () => {
     it('should not expose raw IP addresses in responses', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { user, shareId, shareSlug } = await seedShare(app);
+
+      await app.request
+        .get(`/api/v1/public/resumes/${shareSlug}`)
+        .set('X-Forwarded-For', '192.0.2.5');
+      await waitForAnalyticsEvent(app, shareId, 'VIEW');
+
+      const response = await app.request
         .get(`/api/v1/analytics/${shareId}/events`)
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       expect(response.status).toBe(200);
       const events = response.body.events as Array<Record<string, unknown>>;
@@ -232,8 +255,9 @@ describe('Share Analytics Integration', () => {
     });
 
     it('should track events for expired shares', async () => {
-      const prisma = getPrisma();
-      const expiredShare = await prisma.resumeShare.create({
+      const app = await getApp();
+      const { resumeId } = await seedShare(app);
+      const expiredShare = await app.prisma.resumeShare.create({
         data: {
           resumeId,
           slug: uniqueTestSlug('expired-analytics'),
@@ -241,14 +265,14 @@ describe('Share Analytics Integration', () => {
         },
       });
 
-      const response = await getRequest().get(`/api/v1/public/resumes/${expiredShare.slug}`);
+      const response = await app.request.get(`/api/v1/public/resumes/${expiredShare.slug}`);
 
       // ShareLinkExpiredException emite 410 GONE (canonical para recurso expirado).
       expect(response.status).toBe(410);
 
       // Tracking de tentativa em recurso expirado é opcional; valida que
       // a query não throw mas aceita ausência de evento.
-      const analytics = await prisma.shareAnalytics.findFirst({
+      const analytics = await app.prisma.shareAnalytics.findFirst({
         where: { shareId: expiredShare.id },
       });
 

@@ -45,7 +45,10 @@ export class ResumeQualityWorker {
   async process(job: { data: ResumeQualityJobData; id?: string }): Promise<void> {
     if (job.data.kind !== 'recompute') return;
     const runAi = job.data.runAi ?? true;
-    this.logger.debug(`Recomputing quality for resumeId=${job.data.resumeId} (runAi=${runAi})`, CTX);
+    this.logger.debug(
+      `Recomputing quality for resumeId=${job.data.resumeId} (runAi=${runAi})`,
+      CTX,
+    );
     await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       await this.compute.execute(job.data.resumeId, { runAi });
     });

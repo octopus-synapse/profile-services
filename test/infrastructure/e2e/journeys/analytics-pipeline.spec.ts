@@ -177,26 +177,19 @@ describe('E2E Journey: Analytics Pipeline', () => {
     });
   });
 
-  describe('Step 5: Check ATS Score', () => {
-    it.serial('should calculate and return ATS score', async () => {
+  describe('Step 5: ATS Simulation', () => {
+    it.serial('should simulate how an ATS parses the resume', async () => {
+      // The ATS endpoint is a *parse simulation* (extracted text + detected
+      // sections + warnings), not a numeric score — `GET /v1/ats/simulate/:id`.
       const response = await app.request
-        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
+        .get(`/api/v1/ats/simulate/${resumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      const atsData = response.body;
-      expect(atsData.score).toBeDefined();
-      expect(typeof atsData.score).toBe('number');
-      expect(atsData.score).toBeGreaterThanOrEqual(0);
-      expect(atsData.score).toBeLessThanOrEqual(100);
-
-      // Should include section breakdown
-      expect(atsData.sectionBreakdown).toBeDefined();
-      expect(Array.isArray(atsData.sectionBreakdown)).toBe(true);
-
-      // Should include issues/recommendations
-      expect(atsData.issues).toBeDefined();
-      expect(Array.isArray(atsData.issues)).toBe(true);
+      const atsData = response.body.data;
+      expect(typeof atsData.extractedText).toBe('string');
+      expect(Array.isArray(atsData.sections)).toBe(true);
+      expect(Array.isArray(atsData.warnings)).toBe(true);
     });
   });
 
@@ -297,7 +290,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       const otherResult = await authHelper.registerAndLogin(otherUser, { skipOnboarding: true });
 
       const response = await app.request
-        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
+        .get(`/api/v1/ats/simulate/${resumeId}`)
         .set('Authorization', `Bearer ${otherResult.token}`);
 
       // Should not reveal resume existence - return 404 or 403

@@ -81,7 +81,7 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
     });
     if (!share?.isActive) return null;
     if (share.expiresAt && new Date() > share.expiresAt) return null;
-    return this.normalizeToGenericResume(share.resume as unknown as PrismaResumeData, locale);
+    return this.normalizeToGenericResume(share.resume as PrismaResumeData, locale);
   }
 
   async getSectionTypeTitles(locale: Locale): Promise<Map<string, string>> {

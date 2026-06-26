@@ -199,9 +199,7 @@ describe('DslCompilerService', () => {
   });
 
   describe('content-first section placement', () => {
-    const buildResume = (
-      sections: Array<Record<string, unknown>>,
-    ): GenericResume =>
+    const buildResume = (sections: Array<Record<string, unknown>>): GenericResume =>
       ({
         id: 'resume-1',
         userId: 'user-1',
@@ -271,7 +269,9 @@ describe('DslCompilerService', () => {
       expect(ids).toContain('education_v1');
       // Preserved in résumé order.
       expect(ids.indexOf('work_experience_v1')).toBeLessThan(ids.indexOf('education_v1'));
-      expect(extractSectionItems(ast.sections.find((s) => s.sectionId === 'education_v1'))).toHaveLength(1);
+      expect(
+        extractSectionItems(ast.sections.find((s) => s.sectionId === 'education_v1')),
+      ).toHaveLength(1);
     });
 
     it('does not duplicate a section the style already places', () => {

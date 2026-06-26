@@ -257,7 +257,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { shareId } = ctx.params as { shareId: string };
-      const q = ctx.query as unknown as z.infer<typeof QrSizeSchema>;
+      const q = QrSizeSchema.parse(ctx.query);
       const share = await bundle.shareService.getShareWithOwner(shareId);
       if (!share) throw new ShareNotFoundException();
       if (share.resume.userId !== ctx.user!.userId) {

@@ -76,8 +76,9 @@ export type UpdateProfileData = {
   linkedin?: string;
   github?: string;
   twitter?: string;
-  image?: string;
-  photoURL?: string;
+  /** `null` clears the avatar; a string sets it (kept in sync with `photoURL`). */
+  image?: string | null;
+  photoURL?: string | null;
 };
 
 // ============================================================================

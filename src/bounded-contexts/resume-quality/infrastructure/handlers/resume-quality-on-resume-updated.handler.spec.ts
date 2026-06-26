@@ -47,9 +47,7 @@ describe('ResumeQualityOnResumeUpdatedHandler', () => {
 
     await handler.onResumeUpdated(updateEvent(['sections:WORK_EXPERIENCE']));
 
-    expect(queue.removed).toEqual([
-      { queue: RESUME_QUALITY_QUEUE, jobId: 'resume-quality:r1' },
-    ]);
+    expect(queue.removed).toEqual([{ queue: RESUME_QUALITY_QUEUE, jobId: 'resume-quality:r1' }]);
     expect(queue.enqueued).toHaveLength(1);
     expect(queue.enqueued[0]?.data).toMatchObject({ resumeId: 'r1', runAi: true });
     expect(queue.enqueued[0]?.opts).toMatchObject({ delay: 15_000 });

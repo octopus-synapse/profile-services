@@ -27,7 +27,7 @@ export class PrismaMecSyncLogRepository extends MecSyncLogRepositoryPort {
   async create(params: CreateSyncLogParams): Promise<SyncLogRow> {
     return this.prisma.mecSyncLog.create({
       data: { status: MecSyncStatus.RUNNING, triggeredBy: params.triggeredBy },
-    }) as unknown as Promise<SyncLogRow>;
+    });
   }
 
   async markSuccess(id: string, params: CompleteSyncLogParams): Promise<SyncLogRow> {
@@ -43,7 +43,7 @@ export class PrismaMecSyncLogRepository extends MecSyncLogRepositoryPort {
         totalRowsProcessed: params.totalRowsProcessed,
         sourceFileSize: params.sourceFileSize,
       },
-    }) as unknown as Promise<SyncLogRow>;
+    });
   }
 
   async markFailed(id: string, params: FailSyncLogParams): Promise<SyncLogRow> {
@@ -55,18 +55,17 @@ export class PrismaMecSyncLogRepository extends MecSyncLogRepositoryPort {
         errorMessage: params.errorMessage,
         errorDetails: params.errorDetails as object | undefined,
       },
-    }) as unknown as Promise<SyncLogRow>;
+    });
   }
 
   async findLast(): Promise<SyncLogRow | null> {
-    const row = await this.prisma.mecSyncLog.findFirst({ orderBy: { createdAt: 'desc' } });
-    return (row as unknown as SyncLogRow) ?? null;
+    return this.prisma.mecSyncLog.findFirst({ orderBy: { createdAt: 'desc' } });
   }
 
   async findHistory(limit: number): Promise<SyncLogRow[]> {
     return this.prisma.mecSyncLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: limit,
-    }) as unknown as Promise<SyncLogRow[]>;
+    });
   }
 }

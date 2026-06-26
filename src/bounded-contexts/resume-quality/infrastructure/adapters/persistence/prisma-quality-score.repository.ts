@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { readJsonColumn, toPrismaJson } from '@/shared-kernel/persistence/json-column';
 import {
   QualityScoreRepositoryPort,
   type SavedQualityScore,
@@ -30,7 +31,7 @@ export class PrismaQualityScoreRepository extends QualityScoreRepositoryPort {
         overallScore: breakdown.overallScore,
         completenessScore: breakdown.completenessScore,
         contentQualityScore: breakdown.contentQualityScore,
-        issuesJson: breakdown.issues as unknown as Prisma.InputJsonValue,
+        issuesJson: toPrismaJson(breakdown.issues),
         scoringRulesVersion: breakdown.scoringRulesVersion,
         aiPromptVersion: breakdown.aiPromptVersion,
         aiCallsCount: breakdown.aiCallsCount,
@@ -90,7 +91,7 @@ export class PrismaQualityScoreRepository extends QualityScoreRepositoryPort {
       overallScore: row.overallScore,
       completenessScore: row.completenessScore,
       contentQualityScore: row.contentQualityScore,
-      issues: (row.issuesJson as unknown as QualityIssue[]) ?? [],
+      issues: readJsonColumn<QualityIssue[] | null>(row.issuesJson) ?? [],
       scoringRulesVersion: row.scoringRulesVersion,
       aiPromptVersion: row.aiPromptVersion,
       aiCallsCount: row.aiCallsCount,

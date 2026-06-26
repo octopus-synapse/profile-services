@@ -48,15 +48,15 @@ export class InMemoryAdminTechAreasRepository extends AdminTechAreasRepositoryPo
 
   async create(input: Record<string, unknown>): Promise<TechArea> {
     this.created.push(input);
-    const fake = { id: `area-${this.created.length}`, ...input } as unknown as TechArea;
+    const fake = { id: `area-${this.created.length}`, ...input } as TechArea;
     this.rows.set(fake.id, fake);
     return fake;
   }
 
   async update(id: string, input: Record<string, unknown>): Promise<TechArea> {
     this.updated.push({ id, input });
-    const existing = this.rows.get(id) ?? ({ id } as unknown as TechArea);
-    const next = { ...existing, ...input } as TechArea;
+    const existing = this.rows.get(id);
+    const next = { ...(existing ?? { id }), ...input } as TechArea;
     this.rows.set(id, next);
     return next;
   }

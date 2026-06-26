@@ -17,13 +17,13 @@ import type { JobType } from '@prisma/client';
 import { z } from 'zod';
 import type { LoggerPort } from '@/shared-kernel';
 import { JSearchUpstreamException } from '../../../domain/exceptions/external-jobs.exceptions';
-import { deriveWorkMode } from '../../../domain/services/derive-work-mode';
 import {
   type ExternalJobPosting,
   type ExternalJobSearchParams,
   ExternalJobSearchPort,
   type ExternalJobSearchResult,
 } from '../../../domain/ports/external-job-search.port';
+import { deriveWorkMode } from '../../../domain/services/derive-work-mode';
 
 const CTX = 'JSearchJobSearchAdapter';
 // Multi-page aggregation upstream is slow — this is a batch worker

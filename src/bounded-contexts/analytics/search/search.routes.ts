@@ -14,17 +14,13 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { SearchServicePort } from './ports';
 import { parseCsvQuery } from './search.presenter';
 import {
-  GlobalSearchQuery,
   GlobalSearchQuerySchema,
   GlobalSearchResponseSchema,
   IdParam,
-  SearchQuery,
   SearchQuerySchema,
   SearchResponseSchema,
-  SimilarQuery,
   SimilarQuerySchema,
   SimilarResumesResponseSchema,
-  SuggestionsQuery,
   SuggestionsQuerySchema,
   SuggestionsResponseSchema,
 } from './search.routes.schemas';
@@ -35,7 +31,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     path: '/v1/search',
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=30' },
-    query: SearchQuerySchema as unknown as Route<SearchServicePort>['query'],
+    query: SearchQuerySchema,
     response: SearchResponseSchema,
     openapi: {
       summary: 'Search public resumes',
@@ -44,7 +40,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, service) => {
-      const q = ctx.query as unknown as SearchQuery;
+      const q = SearchQuerySchema.parse(ctx.query);
       const result = await service.search({
         query: q.q || '',
         skills: parseCsvQuery(q.skills),
@@ -63,7 +59,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     path: '/v1/search/suggestions',
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=30' },
-    query: SuggestionsQuerySchema as unknown as Route<SearchServicePort>['query'],
+    query: SuggestionsQuerySchema,
     response: SuggestionsResponseSchema,
     openapi: {
       summary: 'Get search autocomplete suggestions',
@@ -72,7 +68,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, service) => {
-      const q = ctx.query as unknown as SuggestionsQuery;
+      const q = SuggestionsQuerySchema.parse(ctx.query);
       const suggestions = await service.suggest(q.prefix || '', q.limit);
       return { suggestions };
     },
@@ -82,7 +78,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     path: '/v1/search/global',
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=30' },
-    query: GlobalSearchQuerySchema as unknown as Route<SearchServicePort>['query'],
+    query: GlobalSearchQuerySchema,
     response: GlobalSearchResponseSchema,
     openapi: {
       summary: 'Global multi-type search (resumes, users, jobs, posts)',
@@ -92,7 +88,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, service) => {
-      const q = ctx.query as unknown as GlobalSearchQuery;
+      const q = GlobalSearchQuerySchema.parse(ctx.query);
       return service.globalSearch(q.q, q.limit);
     },
   },
@@ -102,7 +98,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=30' },
     params: IdParam,
-    query: SimilarQuerySchema as unknown as Route<SearchServicePort>['query'],
+    query: SimilarQuerySchema,
     response: SimilarResumesResponseSchema,
     openapi: {
       summary: 'Find similar resumes by resume id',
@@ -112,7 +108,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     sdk: { exported: true },
     handler: async (ctx, service) => {
       const { id } = ctx.params as { id: string };
-      const q = ctx.query as unknown as SimilarQuery;
+      const q = SimilarQuerySchema.parse(ctx.query);
       const resumes = await service.findSimilar(id, q.limit);
       return { resumes };
     },

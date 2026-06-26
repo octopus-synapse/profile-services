@@ -13,8 +13,10 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   type Locale,
+  type ResolvedSectionGroup,
   type ResolvedSectionType,
   type SectionDefinitionJson,
+  type SectionGroupTranslationsJson,
   type SectionTypeTranslation,
   type TranslationsJson,
 } from './locale-resolver.types';
@@ -55,7 +57,7 @@ export function parseLocale(locale: string | undefined): Locale {
 /**
  * Resolve a section type's translation for a locale. No fallback: a section
  * type served without a translation for the requested locale is a BUG (drift
- * between the catalog and prisma/seeds/section-type-translations.ts), so this
+ * between the catalog and prisma/seeds/shared/section-type-translations.ts), so this
  * throws instead of returning empty strings or the English copy. The seed-time
  * validation and the i18n parity specs are the first lines of defence.
  */
@@ -65,9 +67,7 @@ export function resolveTranslation(
   sectionKeyHint = '(unknown section)',
 ): SectionTypeTranslation {
   if (!translations || typeof translations !== 'object') {
-    throw new Error(
-      `[i18n] Section type '${sectionKeyHint}' has no translations. No fallback.`,
-    );
+    throw new Error(`[i18n] Section type '${sectionKeyHint}' has no translations. No fallback.`);
   }
   const entry = translations[locale];
   if (!entry) {
@@ -106,6 +106,7 @@ export function resolveSectionTypeForLocale(
     slug: string;
     semanticKind: string;
     version: number;
+    groupKey: string | null;
     title: string;
     description: string | null;
     iconType: string;
@@ -144,6 +145,7 @@ export function resolveSectionTypeForLocale(
     slug: sectionType.slug,
     semanticKind: sectionType.semanticKind,
     version: sectionType.version,
+    groupKey: sectionType.groupKey,
     title: requireField(resolved.title, 'title'),
     description: requireField(resolved.description, 'description'),
     label: requireField(resolved.label, 'label'),
@@ -161,6 +163,38 @@ export function resolveSectionTypeForLocale(
     uiSchema: sectionType.uiSchema,
     renderHints: sectionType.renderHints,
     fieldStyles: sectionType.fieldStyles,
+  };
+}
+
+/**
+ * Resolve a SectionGroup (supersection) from DB to a locale. Strict, like
+ * {@link resolveSectionTypeForLocale}: a group without a title for the requested
+ * locale is catalog drift and throws (seed validation is the first defence).
+ */
+export function resolveSectionGroupForLocale(
+  group: {
+    key: string;
+    iconType: string;
+    icon: string;
+    order: number;
+    translations: unknown;
+  },
+  locale: Locale,
+): ResolvedSectionGroup {
+  const translations = group.translations as SectionGroupTranslationsJson | null;
+  const entry = translations?.[locale];
+  if (!entry?.title?.trim()) {
+    throw new Error(
+      `[i18n] Section group '${group.key}' has no title for locale '${locale}'. No fallback.`,
+    );
+  }
+  return {
+    key: group.key,
+    title: entry.title,
+    description: entry.description?.trim() ? entry.description : null,
+    iconType: group.iconType,
+    icon: group.icon,
+    order: group.order,
   };
 }
 

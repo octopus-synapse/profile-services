@@ -34,11 +34,17 @@ const SAMPLE_ROW = {
     },
     {
       sectionType: { semanticKind: 'EDUCATION' },
-      items: [{ content: { institution: 'UFSCar', startDate: '2014-01-01', endDate: '2018-12-01' } }],
+      items: [
+        { content: { institution: 'UFSCar', startDate: '2014-01-01', endDate: '2018-12-01' } },
+      ],
     },
     {
       sectionType: { semanticKind: 'SKILL_SET' },
-      items: [{ content: { name: 'Go' } }, { content: { name: '' } }, { content: { name: 'Rust' } }],
+      items: [
+        { content: { name: 'Go' } },
+        { content: { name: '' } },
+        { content: { name: 'Rust' } },
+      ],
     },
     {
       sectionType: { semanticKind: 'SUMMARY' },

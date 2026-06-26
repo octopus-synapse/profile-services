@@ -1,7 +1,7 @@
 import { LOCALES, type Locale } from '@packages/i18n';
 import { z } from 'zod';
 
-export const SupportedLocaleSchema = z.enum(LOCALES as unknown as [string, ...string[]]);
+export const SupportedLocaleSchema = z.enum([...LOCALES] as [string, ...string[]]);
 
 export type SupportedLocale = Locale;
 

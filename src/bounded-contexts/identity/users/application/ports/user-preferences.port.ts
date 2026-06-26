@@ -112,7 +112,7 @@ export abstract class UserPreferencesUseCases {
     execute: (userId: string, data: UpdatePreferencesData) => Promise<void>;
   };
   abstract readonly getFullPreferencesUseCase: {
-    execute: (userId: string) => Promise<FullUserPreferences | Record<string, never>>;
+    execute: (userId: string) => Promise<FullUserPreferences>;
   };
   abstract readonly updateFullPreferencesUseCase: {
     execute: (userId: string, data: UpdateFullPreferencesData) => Promise<FullUserPreferences>;

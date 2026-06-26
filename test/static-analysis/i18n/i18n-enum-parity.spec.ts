@@ -90,6 +90,8 @@ describe('i18n enum parity (@packages/i18n ENUM_DICTIONARY)', () => {
       'ImportSource.LINKEDIN',
       'ImportSource.PDF',
       'JobType.FREELANCE',
+      'LinkKind.GITHUB',
+      'LinkKind.LINKEDIN',
       'PaymentCurrency.BRL',
       'PaymentCurrency.EUR',
       'PaymentCurrency.GBP',

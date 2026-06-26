@@ -479,6 +479,25 @@ export const achievementFieldTranslations: FieldTranslationsMap = {
 // Master Map: Section Type Key → Field Translations
 // ============================================================================
 
+// ============================================================================
+// Links Fields (links_v1) — `domain` is hidden, so it needs no translation.
+// ============================================================================
+
+export const linksFieldTranslations: FieldTranslationsMap = {
+  kind: {
+    en: { label: 'Link type' },
+    'pt-BR': { label: 'Tipo de link' },
+  },
+  url: {
+    en: { label: 'URL', placeholder: 'e.g., https://github.com/you' },
+    'pt-BR': { label: 'Endereço', placeholder: 'ex: https://github.com/voce' },
+  },
+  label: {
+    en: { label: 'Label', placeholder: 'e.g., My blog' },
+    'pt-BR': { label: 'Rótulo', placeholder: 'ex: Meu blog' },
+  },
+};
+
 export const allFieldTranslations: Record<string, FieldTranslationsMap> = {
   work_experience_v1: workExperienceFieldTranslations,
   education_v1: educationFieldTranslations,
@@ -497,6 +516,7 @@ export const allFieldTranslations: Record<string, FieldTranslationsMap> = {
   bug_bounty_v1: bugBountyFieldTranslations,
   talk_v1: talkFieldTranslations,
   achievement_v1: achievementFieldTranslations,
+  links_v1: linksFieldTranslations,
 };
 
 for (const [sectionKey, map] of Object.entries(allFieldTranslations)) {

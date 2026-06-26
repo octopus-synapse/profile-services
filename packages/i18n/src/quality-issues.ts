@@ -107,7 +107,10 @@ export const QUALITY_ISSUE_DICTIONARY = {
   },
   // ── Content quality (AI) — fixed category labels ───────────────────
   AI_VAGUE_BULLET: {
-    message: { en: 'This bullet is too vague — be specific.', 'pt-BR': 'Este item está vago — seja específico.' },
+    message: {
+      en: 'This bullet is too vague — be specific.',
+      'pt-BR': 'Este item está vago — seja específico.',
+    },
     params: [],
   },
   AI_NO_METRIC: {

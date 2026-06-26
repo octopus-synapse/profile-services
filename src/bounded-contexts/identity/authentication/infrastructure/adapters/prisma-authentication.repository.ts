@@ -1,6 +1,8 @@
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { hashToken } from '@/shared-kernel/crypto';
+import { isForeignKeyConstraintError } from '@/shared-kernel/http/prisma-error.mapper';
+import { InvalidCredentialsException } from '../../domain/exceptions';
 import type { AuthUser, RefreshTokenData, SessionAuthUser } from '../../domain/ports';
 import { AuthenticationRepositoryPort } from '../../domain/ports';
 
@@ -131,9 +133,21 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
     expiresAt: Date,
     authMethod?: string,
   ): Promise<void> {
-    await this.prisma.refreshToken.create({
-      data: { userId, token: hashToken(plaintext), expiresAt, authMethod },
-    });
+    try {
+      await this.prisma.refreshToken.create({
+        data: { userId, token: hashToken(plaintext), expiresAt, authMethod },
+      });
+    } catch (err) {
+      // A foreign-key violation here means the user row vanished between
+      // the (possibly cached) credential check and this write — e.g. the
+      // account was deleted mid-login. The only correct client-facing
+      // outcome is "those credentials are no longer valid" (401), not a
+      // raw 400 INVALID_FOREIGN_KEY leaking the persistence detail.
+      if (isForeignKeyConstraintError(err)) {
+        throw new InvalidCredentialsException();
+      }
+      throw err;
+    }
   }
 
   async findRefreshToken(plaintext: string): Promise<RefreshTokenData | null> {

@@ -54,7 +54,9 @@ describe('locale-resolver', () => {
       // 'pt-BR' is supported but absent: a translation gap is a BUG, not a
       // silent fall-through to English.
       const enOnly: TranslationsJson = { en: translations.en };
-      expect(() => resolveTranslation(enOnly, 'pt-BR')).toThrow(/no translation for locale 'pt-BR'/);
+      expect(() => resolveTranslation(enOnly, 'pt-BR')).toThrow(
+        /no translation for locale 'pt-BR'/,
+      );
     });
 
     test('throws for null translations — no empty fallback', () => {

@@ -18,8 +18,8 @@
  */
 
 import { z } from 'zod';
-import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import { ctxCookieWriter } from '../authentication/application/services/ctx-cookie-bridge';
 import {
   AcceptConsentRequestSchema,
@@ -160,6 +160,9 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
   {
     method: 'POST',
     path: '/v1/accounts/delete/confirm',
+    // Idempotent confirmation that returns a localized message — not a
+    // resource creation. Mirror the sibling `delete/request` route's 200.
+    statusCode: 200,
     auth: { kind: 'jwt' },
     body: ConfirmAccountDeletionSchema,
     guards: [

@@ -234,7 +234,7 @@ async function main(): Promise<void> {
     lines.push(`| ${k} | ${n} |`);
   }
 
-  writeFileSync(REPORT_PATH, lines.join('\n') + '\n');
+  writeFileSync(REPORT_PATH, `${lines.join('\n')}\n`);
   console.log(`[diff-spec-status-codes] ${all.length} mismatches`);
   for (const [k, n] of byPair) console.log(`  ${k}: ${n}`);
   console.log(`  written to ${REPORT_PATH.replace(`${process.cwd()}/`, '')}`);

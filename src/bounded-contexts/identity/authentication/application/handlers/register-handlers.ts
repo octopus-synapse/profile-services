@@ -10,6 +10,7 @@
 
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { EventBusPort, LoggerPort } from '@/shared-kernel';
+import { registerPayloadHandler } from '@/shared-kernel/event-bus/register-handler';
 import type { AuthenticationRepositoryPort } from '../../domain/ports';
 import { InvalidateSessionsOnCredentialChangeHandler } from './invalidate-sessions-on-credential-change.handler';
 
@@ -29,20 +30,14 @@ export function registerAuthenticationHandlers(deps: AuthenticationHandlersDeps)
     logger,
   );
 
-  // The handler methods take typed event payloads but `EventBusPort.on`
-  // expects `EventHandler<T extends DomainEvent>`. The bus surface is
-  // intentionally generic — cast through `unknown` so each binding can
-  // declare its own payload type without leaking `any`.
-  eventBus.on(
+  // Payload-only events (raw payloads, not DomainEvent envelopes); the
+  // helper contains the one boundary assertion the bus's
+  // `<T extends DomainEvent>` surface requires.
+  registerPayloadHandler(
+    eventBus,
     'auth.session.invalidate',
-    handler.handleSessionInvalidate.bind(handler) as unknown as Parameters<typeof eventBus.on>[1],
+    handler.handleSessionInvalidate.bind(handler),
   );
-  eventBus.on(
-    'email.verified',
-    handler.handleEmailVerified.bind(handler) as unknown as Parameters<typeof eventBus.on>[1],
-  );
-  eventBus.on(
-    'password.changed',
-    handler.handle.bind(handler) as unknown as Parameters<typeof eventBus.on>[1],
-  );
+  registerPayloadHandler(eventBus, 'email.verified', handler.handleEmailVerified.bind(handler));
+  registerPayloadHandler(eventBus, 'password.changed', handler.handle.bind(handler));
 }

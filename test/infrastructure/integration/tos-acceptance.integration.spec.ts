@@ -4,109 +4,70 @@
  * Tests complete GDPR compliance workflows with real database and services.
  * Validates ToS/Privacy Policy acceptance enforcement across API.
  *
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * out-of-declaration-order, so the prior shared `app`/`prisma` +
+ * global `beforeEach`/`afterEach` that mutated `process.env.TOS_VERSION`
+ * and bulk-deleted users by email-substring would race. Each test now
+ * provisions its own verified user (unique email), and the
+ * version-upgrade tests set + restore `TOS_VERSION` inside the test
+ * body sequentially (the consent-status endpoint reads the version
+ * live from config, so the bump must stay set for the duration of that
+ * single test's awaits).
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
-import type { PrismaClient } from '@prisma/client';
 import { ConsentDocumentType } from '@prisma/client';
-import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
+import { tokenFromResponse } from '../shared';
 import { assignUserRole, clearAuthRateLimits, getApp, signupBody } from './setup';
 
 function uniqueTestId(): string {
   return randomUUID().slice(0, 8);
 }
 
+interface VerifiedUser {
+  readonly userId: string;
+  readonly accessToken: string;
+}
+
+/**
+ * Create a verified, onboarded user via the real signup → login HTTP
+ * flow (the consent endpoints are the subject under test, so we want a
+ * genuine session). Unique email per call keeps it order-independent.
+ */
+async function createVerifiedUser(
+  app: Awaited<ReturnType<typeof getApp>>,
+  email: string,
+  password: string,
+  name: string,
+): Promise<VerifiedUser> {
+  await clearAuthRateLimits();
+  const signupResponse = await app.request
+    .post('/api/v1/accounts')
+    .send(signupBody({ email, password, name }))
+    .expect(201);
+
+  await app.prisma.user.update({ where: { email }, data: { emailVerified: new Date() } });
+
+  const userId = signupResponse.body.userId;
+  await app.prisma.user.update({
+    where: { id: userId },
+    data: { onboardingCompletedAt: new Date() },
+  });
+  await assignUserRole(userId);
+
+  const loginResponse = await app.request.post('/api/v1/auth/login').send({ email, password });
+
+  return { userId, accessToken: tokenFromResponse(loginResponse, 'access_token')! };
+}
+
 describe('ToS Acceptance Flow Integration', () => {
-  let app: TestApp; // was INestApplication
-  let prisma: PrismaClient;
-
-  /**
-   * Helper to verify user email directly in database.
-   * Bypasses email verification flow for integration tests.
-   */
-  async function verifyUserEmailInDb(email: string): Promise<void> {
-    await prisma.user.update({
-      where: { email },
-      data: { emailVerified: new Date() },
-    });
-  }
-
-  /**
-   * Helper to create verified user with access token.
-   * Returns { userId, accessToken } for test setup.
-   */
-  async function createVerifiedUser(
-    email: string,
-    password: string,
-    name: string,
-  ): Promise<{ userId: string; accessToken: string }> {
-    const signupResponse = await app.request
-      .post('/api/v1/accounts')
-      .send(signupBody({ email, password, name }))
-      .expect(201);
-
-    await verifyUserEmailInDb(email);
-
-    const userId = signupResponse.body.userId;
-    await prisma.user.update({
-      where: { id: userId },
-      data: { onboardingCompletedAt: new Date() },
-    });
-    await assignUserRole(userId);
-
-    const loginResponse = await app.request.post('/api/v1/auth/login').send({ email, password });
-
-    return {
-      userId,
-      accessToken: tokenFromResponse(loginResponse, 'access_token')!,
-    };
-  }
-
-  /**
-   * Helper to update ToS version in environment (simulates version bump).
-   * Note: In real scenarios, this would be an environment variable change.
-   */
-  function setTosVersion(version: string): void {
-    process.env.TOS_VERSION = version;
-  }
-
-  beforeAll(async () => {
-    app = await getApp();
-  });
-
-  beforeEach(async () => {
-    await clearAuthRateLimits();
-    prisma = app.prisma;
-
-    // Set initial ToS version
-    setTosVersion('1.0.0');
-  }, 30000);
-
-  afterAll(async () => {
-    await stopTestApp();
-  }, 20000);
-
-  afterEach(async () => {
-    // Clean up test data
-    await prisma.userConsent.deleteMany({
-      where: { user: { email: { contains: 'tos-test' } } },
-    });
-    await prisma.user.deleteMany({
-      where: { email: { contains: 'tos-test' } },
-    });
-
-    // Reset ToS version to default
-    setTosVersion('1.0.0');
-  });
-
   describe('Full ToS Acceptance Lifecycle', () => {
     it('should accept ToS and Privacy Policy successfully', async () => {
-      // Use unique email per test to avoid race conditions
+      const app = await getApp();
       const testEmail = `tos-lifecycle-${uniqueTestId()}@example.com`;
-
-      // Create verified user
       const { accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'ToS Test User',
@@ -141,9 +102,10 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should allow access to consent endpoints without prior ToS acceptance', async () => {
-      // Create user without ToS acceptance (unique email)
+      const app = await getApp();
       const testEmail = `tos-consent-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'ToS Test User',
@@ -178,8 +140,10 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should record IP address and user agent in consent', async () => {
+      const app = await getApp();
       const testEmail = `tos-audit-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'ToS Test User',
@@ -201,48 +165,43 @@ describe('ToS Acceptance Flow Integration', () => {
 
   describe('Version Upgrade Scenarios', () => {
     it('should track consent history across version upgrades', async () => {
+      const app = await getApp();
       const testEmail = `tos-version-${uniqueTestId()}@example.com`;
-
-      // User accepts ToS v1.0.0
-      setTosVersion('1.0.0');
-      const { accessToken } = await createVerifiedUser(
+      const currentTosVersion = process.env.TOS_VERSION || '1.0.0';
+      const { userId, accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'Version Test User',
       );
 
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
-        .expect(201);
+      // Simulate a user who accepted an OLDER ToS version than the current
+      // one by rewriting their signup consent row in the DB — rather than
+      // mutating the global `process.env.TOS_VERSION`, which would race with
+      // concurrently-running tests (Bun 1.3+ runs a describe's tests in
+      // parallel and the consent-status endpoint reads the version live).
+      await app.prisma.userConsent.updateMany({
+        where: { userId, documentType: ConsentDocumentType.TERMS_OF_SERVICE },
+        data: { version: '0.0.1' },
+      });
 
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.PRIVACY_POLICY })
-        .expect(201);
-
-      // Simulate ToS version upgrade to v2.0.0
-      setTosVersion('2.0.0');
-
-      // Check consent status shows outdated version
+      // Consent status now shows the ToS as outdated vs the current version.
       const statusResponse = await app.request
         .get('/api/v1/users/me/consent-status')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
       expect(statusResponse.body.tosAccepted).toBe(false);
-      expect(statusResponse.body.latestTosVersion).toBe('2.0.0');
+      expect(statusResponse.body.latestTosVersion).toBe(currentTosVersion);
 
-      // Accept new ToS version
+      // Accept the current ToS version.
       await app.request
         .post('/api/v1/users/me/accept-consent')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
         .expect(201);
 
-      // Verify consent history shows both versions
+      // History shows both the old and the freshly-accepted version.
       const historyResponse = await app.request
         .get('/api/v1/users/me/consent-history')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -253,45 +212,49 @@ describe('ToS Acceptance Flow Integration', () => {
       );
 
       expect(tosConsents).toHaveLength(2);
-      expect(tosConsents.map((c: { version: string }) => c.version).sort()).toEqual([
-        '1.0.0',
-        '2.0.0',
-      ]);
+      expect(tosConsents.map((c: { version: string }) => c.version).sort()).toEqual(
+        ['0.0.1', currentTosVersion].sort(),
+      );
     });
   });
 
   describe('Consent History and Status', () => {
     it('should track complete consent history across multiple acceptances', async () => {
+      const app = await getApp();
       const testEmail = `tos-history-${uniqueTestId()}@example.com`;
-      const { accessToken } = await createVerifiedUser(
+      const { userId, accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'History Test User',
       );
 
-      // Accept ToS
+      // Build a controlled 3-row history without mutating the global
+      // TOS_VERSION (which races under Bun's concurrent test execution):
+      // start clean, seed an OLD ToS acceptance, then accept the current ToS
+      // + Privacy via the real endpoints (which stamp the audit fields).
+      await app.prisma.userConsent.deleteMany({ where: { userId } });
+      await app.prisma.userConsent.create({
+        data: {
+          userId,
+          documentType: ConsentDocumentType.TERMS_OF_SERVICE,
+          version: '0.0.1',
+          ipAddress: '127.0.0.1',
+          userAgent: 'Integration Test',
+        },
+      });
+
       await app.request
         .post('/api/v1/users/me/accept-consent')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
         .expect(201);
-
-      // Accept Privacy Policy
       await app.request
         .post('/api/v1/users/me/accept-consent')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ documentType: ConsentDocumentType.PRIVACY_POLICY })
         .expect(201);
 
-      // Upgrade ToS version and accept again
-      setTosVersion('2.0.0');
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
-        .expect(201);
-
-      // Get history
       const historyResponse = await app.request
         .get('/api/v1/users/me/consent-history')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -326,8 +289,10 @@ describe('ToS Acceptance Flow Integration', () => {
 
   describe('Error Cases', () => {
     it('should reject invalid document type', async () => {
+      const app = await getApp();
       const testEmail = `tos-errors-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'Error Test User',
@@ -343,6 +308,7 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should require authentication for all consent endpoints', async () => {
+      const app = await getApp();
       // No token
       await app.request.get('/api/v1/users/me/consent-status').expect(401);
 
@@ -355,8 +321,10 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should handle missing required fields gracefully', async () => {
+      const app = await getApp();
       const testEmail = `tos-validation-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
+        app,
         testEmail,
         'SecurePass123!',
         'Validation Test User',

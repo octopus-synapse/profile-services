@@ -104,9 +104,11 @@ describe('E2E: Onboarding Session Data Persistence', () => {
     it.serial(
       'should persist professionalProfile when advancing from professional-profile step',
       async () => {
-        // Advance from professional-profile to template WITH profile data
+        // Advance from professional-profile to template WITH profile data.
+        // Note: `jobTitle` is NOT part of this step's contract — it is derived
+        // from work experience, so the step persists `headline`/`summary`/links.
         const profileData = {
-          jobTitle: 'Senior Software Engineer',
+          headline: 'Senior Software Engineer',
           summary:
             'Experienced developer with expertise in building scalable web applications using modern technologies.',
         };
@@ -118,16 +120,15 @@ describe('E2E: Onboarding Session Data Persistence', () => {
 
         expect(advanceResponse.status).toBe(201);
 
-        // Verify professionalProfile was persisted
+        // Verify professionalProfile was persisted and round-trips on read.
         const sessionResponse = await app.request
           .get('/api/v1/onboarding/session')
           .set('Authorization', `Bearer ${testUser.token}`);
 
         expect(sessionResponse.status).toBe(200);
 
-        // BUG: This assertion FAILS because professionalProfile is null
         expect(sessionResponse.body.professionalProfile).toBeDefined();
-        expect(sessionResponse.body.professionalProfile.jobTitle).toBe('Senior Software Engineer');
+        expect(sessionResponse.body.professionalProfile.headline).toBe('Senior Software Engineer');
         expect(sessionResponse.body.professionalProfile.summary).toContain('Experienced developer');
       },
     );

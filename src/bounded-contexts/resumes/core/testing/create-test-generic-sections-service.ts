@@ -11,6 +11,7 @@ import { GenericResumeSectionsUseCases } from '../services/generic-resume-sectio
 import { CreateSectionItemUseCase } from '../services/generic-resume-sections/use-cases/create-section-item.use-case';
 import { DeleteSectionItemUseCase } from '../services/generic-resume-sections/use-cases/delete-section-item.use-case';
 import { ListResumeSectionsUseCase } from '../services/generic-resume-sections/use-cases/list-resume-sections.use-case';
+import { ListSectionGroupsUseCase } from '../services/generic-resume-sections/use-cases/list-section-groups.use-case';
 import { ListSectionTypesUseCase } from '../services/generic-resume-sections/use-cases/list-section-types.use-case';
 import { UpdateSectionItemUseCase } from '../services/generic-resume-sections/use-cases/update-section-item.use-case';
 import { GenericResumeSectionsService } from '../services/generic-resume-sections.service';
@@ -27,6 +28,7 @@ export function createTestGenericResumeSectionsService(
 
   const useCases: GenericResumeSectionsUseCases = {
     listSectionTypesUseCase: new ListSectionTypesUseCase(repository),
+    listSectionGroupsUseCase: new ListSectionGroupsUseCase(repository),
     listResumeSectionsUseCase: new ListResumeSectionsUseCase(repository, ownershipPolicy),
     createSectionItemUseCase: new CreateSectionItemUseCase(
       repository,

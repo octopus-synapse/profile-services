@@ -91,7 +91,7 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
         stack: err.stack,
       });
     });
-    this.workers.set(name, worker as unknown as Worker);
+    this.workers.set(name, worker);
   }
 
   async enqueue<T>(name: string, data: T, opts?: JobOpts): Promise<void> {
@@ -107,13 +107,9 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
     if (opts?.jobId !== undefined) {
       (bullOpts as { jobId?: string }).jobId = opts.jobId;
     }
-    await (queue as unknown as { add: (n: string, d: T, o?: unknown) => Promise<unknown> }).add(
-      name,
-      data,
-      // P1-034: merge so per-call opts can override the defaults
-      // (e.g. an `attempts: 1` for fire-and-forget jobs).
-      bullOpts,
-    );
+    // P1-034: merge so per-call opts can override the defaults
+    // (e.g. an `attempts: 1` for fire-and-forget jobs).
+    await queue.add(name, data, bullOpts);
   }
 
   async schedule<T>(
@@ -122,11 +118,7 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
     opts: JobOpts & { repeat: { pattern: string; tz?: string } },
   ): Promise<void> {
     const queue = this.getOrCreateQueue<T>(name);
-    await (queue as unknown as { add: (n: string, d: T, o?: unknown) => Promise<unknown> }).add(
-      name,
-      data,
-      { ...DEFAULT_JOB_OPTIONS, ...opts, repeat: opts.repeat },
-    );
+    await queue.add(name, data, { ...DEFAULT_JOB_OPTIONS, ...opts, repeat: opts.repeat });
   }
 
   /** Sliding-debounce primitive: remove a delayed/waiting job by id so a
@@ -136,9 +128,7 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
   override async remove(name: string, jobId: string): Promise<void> {
     const queue = this.getOrCreateQueue(name);
     try {
-      const job = await (
-        queue as unknown as { getJob: (id: string) => Promise<{ remove: () => Promise<void> } | undefined> }
-      ).getJob(jobId);
+      const job = await queue.getJob(jobId);
       await job?.remove();
     } catch (err) {
       this.logger?.warn?.(
@@ -155,11 +145,15 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
     this.queues.clear();
   }
 
-  private getOrCreateQueue<T>(name: string): Queue<T> {
-    let q = this.queues.get(name) as Queue<T> | undefined;
+  /** Returns the base `Queue` (DataType `any`) so `.add(name, data, opts)`
+   *  typechecks for any payload — BullMQ's `ExtractNameType<T>` can't prove
+   *  `string` against an unconstrained generic, and we only ever use the
+   *  queue name as the job name. Creation still pins `Queue<T>`. */
+  private getOrCreateQueue<T>(name: string): Queue {
+    let q = this.queues.get(name);
     if (!q) {
       q = new Queue<T>(name, { connection: this.connectionOpts() });
-      this.queues.set(name, q as unknown as Queue);
+      this.queues.set(name, q);
     }
     return q;
   }

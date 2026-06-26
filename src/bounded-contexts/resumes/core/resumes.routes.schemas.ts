@@ -404,6 +404,11 @@ export const ResolvedSectionTypeSchema = z.object({
   slug: z.string(),
   semanticKind: z.string(),
   version: z.number().int(),
+  groupKey: z.string().nullable().openapi({
+    description:
+      'Supersection grouping (SectionGroup.key). null = standalone section (rendered as its own card).',
+    example: 'online_presence',
+  }),
   title: z.string(),
   description: z.string(),
   label: z.string(),
@@ -428,8 +433,20 @@ export const ResolvedSectionTypeSchema = z.object({
   fieldStyles: JsonObjectSchema,
 });
 
+export const SectionGroupSchema = z.object({
+  key: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  iconType: z.string(),
+  icon: z.string(),
+  order: z.number().int(),
+});
+
 export const ResumeSectionTypesDataSchema = z.object({
   sectionTypes: z.array(ResolvedSectionTypeSchema),
+  groups: z.array(SectionGroupSchema).openapi({
+    description: 'Supersection catalog (localized) referenced by sectionTypes[].groupKey.',
+  }),
 });
 
 // Generic sections list (used by /v1/resumes/:resumeId/sections)

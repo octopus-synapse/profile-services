@@ -207,6 +207,13 @@
     "DOUBLE_COLUMN",
     "SINGLE_COLUMN"
   ],
+  "LinkKind": [
+    "CUSTOM",
+    "GITHUB",
+    "LINKEDIN",
+    "PORTFOLIO",
+    "WEBSITE"
+  ],
   "MecSyncStatus": [
     "FAILED",
     "PARTIAL",

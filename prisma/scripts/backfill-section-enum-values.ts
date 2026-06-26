@@ -53,7 +53,10 @@ const MIGRATIONS: Record<string, Record<string, Record<string, string>>> = {
   // LANGUAGE.level (A1…NATIVE) was already canonical — no mapping needed.
 };
 
-async function backfillKind(semanticKind: string, fieldMaps: Record<string, Record<string, string>>) {
+async function backfillKind(
+  semanticKind: string,
+  fieldMaps: Record<string, Record<string, string>>,
+) {
   const items = await prisma.sectionItem.findMany({
     where: { resumeSection: { sectionType: { semanticKind } } },
     select: { id: true, content: true },

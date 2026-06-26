@@ -1,6 +1,6 @@
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type { DomainEvent } from './domain/domain-event';
-import type { EventBusPort } from './event-bus.port';
+import type { EventBusPort, EventHandler } from './event-bus.port';
 
 /**
  * Domain event handlers shaped for `registerHandler` auto-binding.
@@ -34,6 +34,24 @@ export interface EventHandlerConstructor<T extends DomainEvent> {
  * strict audit log) should NOT pass a logger here — they want the
  * error to propagate so the bus's strict-mode write fails the request.
  */
+/**
+ * Subscribe a raw-payload handler to a string event name.
+ *
+ * Some cross-context events are published as bare payload objects, not
+ * `DomainEvent` envelopes (the legacy `@OnEvent('resume.created')`
+ * emitters). `EventBusPort.on` is typed `<T extends DomainEvent>`, so
+ * binding a `(payload: P) => …` handler needs one boundary assertion —
+ * contained here, once, instead of a double-cast at every registration
+ * site. `P` documents the payload each binding expects.
+ */
+export function registerPayloadHandler<P>(
+  bus: EventBusPort,
+  eventType: string,
+  handler: (payload: P) => void | Promise<void>,
+): void {
+  bus.on(eventType, handler as EventHandler<DomainEvent>);
+}
+
 export function registerHandler<T extends DomainEvent>(
   bus: EventBusPort,
   eventClass: { readonly TYPE: string },

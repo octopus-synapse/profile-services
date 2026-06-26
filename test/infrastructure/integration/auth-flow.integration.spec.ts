@@ -4,136 +4,104 @@
  * Tests complete authentication workflows with real database and services.
  * No mocks - validates actual system behavior.
  *
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * out-of-declaration-order and runs spec files concurrently. The prior
+ * version shared `accessToken`/`refreshToken`/`testUser` across tests
+ * and — worse — ran an `afterEach` that bulk-deleted EVERY user whose
+ * email contained `integration-test` (cross-file collateral) plus a
+ * stale email cache. That deletion + cache combo was the source of the
+ * intermittent `400 INVALID_FOREIGN_KEY` on login. Each test now drives
+ * the REAL signup → verify-email → login HTTP flow with its OWN unique
+ * email and owns its session — no shared state, no cross-test cleanup.
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 
-import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
+import { tokenFromResponse } from '../shared';
 import {
   acceptTosWithPrisma,
   clearAuthRateLimits,
   getApp,
-  getCacheService,
   signupBody,
   uniqueTestId,
 } from './setup';
 
+type App = Awaited<ReturnType<typeof getApp>>;
+
+// A `type` (not `interface`) so it satisfies `signupBody`'s
+// `Record<string, unknown>` parameter — interfaces are open to declaration
+// merging and TS won't treat them as index-signature-compatible.
+type NamedUser = {
+  email: string;
+  password: string;
+  name: string;
+};
+
+function freshUser(prefix: string): NamedUser {
+  return {
+    email: `${prefix}-${uniqueTestId()}@example.com`,
+    password: 'SecurePass123!',
+    name: 'Integration Test User',
+  };
+}
+
+/**
+ * Verify a user's email + complete onboarding + assign the `user` role
+ * so the permission gate lets domain routes through immediately.
+ */
+async function verifyUserEmailInDb(app: App, email: string): Promise<void> {
+  const user = await app.prisma.user.update({
+    where: { email },
+    data: { emailVerified: new Date(), onboardingCompletedAt: new Date() },
+  });
+  const role = await app.prisma.role.findUnique({ where: { name: 'user' } });
+  if (role) {
+    await app.prisma.userRoleAssignment.upsert({
+      where: { userId_roleId: { userId: user.id, roleId: role.id } },
+      create: { userId: user.id, roleId: role.id, assignedBy: 'integration-test-helper' },
+      update: {},
+    });
+  }
+}
+
+async function acceptTosForUserByEmail(app: App, email: string): Promise<void> {
+  const user = await app.prisma.user.findUnique({ where: { email } });
+  if (user) {
+    await acceptTosWithPrisma(app.prisma, user.id);
+  }
+}
+
+async function login(
+  app: App,
+  email: string,
+  password: string,
+): Promise<{ accessToken: string; refreshToken: string }> {
+  const loginResponse = await app.request.post('/api/v1/auth/login').send({ email, password });
+  // Login emits tokens via Set-Cookie (LoginResponseSchema body =
+  // {userId, twoFactorRequired}); extract from cookie helpers.
+  const accessToken = tokenFromResponse(loginResponse, 'access_token') ?? '';
+  const refreshToken = tokenFromResponse(loginResponse, 'refresh_token') ?? '';
+  return { accessToken, refreshToken };
+}
+
+/** Signup + verify + accept-ToS + login, all with a unique email. */
+async function signedUpAndLoggedIn(
+  app: App,
+  user: NamedUser,
+): Promise<{ accessToken: string; refreshToken: string }> {
+  await app.request.post('/api/v1/accounts').send(signupBody(user)).expect(201);
+  await verifyUserEmailInDb(app, user.email);
+  await acceptTosForUserByEmail(app, user.email);
+  return login(app, user.email, user.password);
+}
+
 describe('Auth Flow Integration', () => {
-  let app: TestApp;
-  let prisma: PrismaClient;
-  let cacheService: ReturnType<typeof getCacheService>;
-  let accessToken: string;
-  // biome-ignore lint/correctness/noUnusedVariables: kept for future assertions on session lifecycle (refresh + revoke flows)
-  let refreshToken: string;
-
-  /**
-   * Helper to verify user email directly in database.
-   * This bypasses the email verification flow for integration tests.
-   */
-  async function verifyUserEmailInDb(email: string): Promise<void> {
-    const user = await prisma.user.update({
-      where: { email },
-      data: { emailVerified: new Date(), onboardingCompletedAt: new Date() },
-    });
-    // Mirror onboarding-completion: assign the `user` role so the
-    // permission gate lets domain routes through on the very next
-    // request. Without this the permission pipeline rejects everything
-    // with `INSUFFICIENT_PERMISSION`.
-    const role = await prisma.role.findUnique({ where: { name: 'user' } });
-    if (role) {
-      await prisma.userRoleAssignment.upsert({
-        where: { userId_roleId: { userId: user.id, roleId: role.id } },
-        create: { userId: user.id, roleId: role.id, assignedBy: 'integration-test-helper' },
-        update: {},
-      });
-    }
-  }
-
-  /**
-   * Helper to accept ToS for a user by email.
-   */
-  async function acceptTosForUserByEmail(email: string): Promise<void> {
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (user) {
-      await acceptTosWithPrisma(prisma, user.id);
-    }
-  }
-
-  async function login(
-    email: string,
-    password: string,
-  ): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> {
-    const loginResponse = await app.request.post('/api/v1/auth/login').send({
-      email,
-      password,
-    });
-
-    // Login emite tokens via Set-Cookie (LoginResponseSchema body =
-    // {userId, twoFactorRequired}); extract from cookie helpers.
-    const accessToken = tokenFromResponse(loginResponse, 'access_token') ?? '';
-    const refreshToken = tokenFromResponse(loginResponse, 'refresh_token') ?? '';
-    return { accessToken, refreshToken };
-  }
-
-  beforeAll(async () => {
-    app = await getApp();
-  });
-
-  beforeEach(async () => {
-    await clearAuthRateLimits();
-    prisma = app.prisma;
-    cacheService = getCacheService();
-  }, 30000);
-
-  afterAll(async () => {
-    await stopTestApp();
-  });
-
-  beforeEach(async () => {
-    // Clear any stale cache from previous runs
-    await cacheService.delete('auth:user:email:integration-test-signup@example.com');
-    await cacheService.delete('auth:user:email:duplicate-test@example.com');
-  });
-
-  afterEach(async () => {
-    // Clean up test data
-    const users = await prisma.user.findMany({
-      where: { email: { contains: 'integration-test' } },
-      select: { id: true, email: true },
-    });
-
-    // Clear cache for test users before deleting
-    for (const user of users) {
-      if (user.email) {
-        await cacheService.delete(`auth:user:email:${user.email.toLowerCase()}`);
-        await cacheService.delete(`auth:session:user:${user.id}`);
-      }
-    }
-
-    await prisma.user.deleteMany({
-      where: { email: { contains: 'integration-test' } },
-    });
-  });
-
   describe('Signup → Login → Protected Access Flow', () => {
-    // Email único por test para evitar cascade entre `it()`s do mesmo
-    // describe — quando o 2º test ("reject duplicate") roda antes,
-    // o user persiste e contamina o lifecycle test.
-    let testUser: { email: string; password: string; name: string };
-
-    beforeEach(() => {
-      testUser = {
-        email: `integration-test-signup-${uniqueTestId()}@example.com`,
-        password: 'SecurePass123!',
-        name: 'Integration Test User',
-      };
-    });
-
     it('should complete full auth lifecycle', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testUser = freshUser('integration-test-signup');
+
       // Step 1: Signup
       const signupResponse = await app.request
         .post('/api/v1/accounts')
@@ -143,23 +111,17 @@ describe('Auth Flow Integration', () => {
       expect(signupResponse.body.email).toBe(testUser.email);
 
       // Step 1.5: Verify email so we can access protected routes
-      await verifyUserEmailInDb(testUser.email);
-      await acceptTosForUserByEmail(testUser.email);
-      ({ accessToken, refreshToken } = await login(testUser.email, testUser.password));
+      await verifyUserEmailInDb(app, testUser.email);
+      await acceptTosForUserByEmail(app, testUser.email);
 
       // Step 2: Login with same credentials
       const loginResponse = await app.request
         .post('/api/v1/auth/login')
-        .send({
-          email: testUser.email,
-          password: testUser.password,
-        })
+        .send({ email: testUser.email, password: testUser.password })
         .expect(200);
 
       expect(tokenFromResponse(loginResponse, 'access_token')).toBeDefined();
-
-      // Update token after login
-      accessToken = tokenFromResponse(loginResponse, 'access_token')!;
+      const accessToken = tokenFromResponse(loginResponse, 'access_token')!;
 
       // Step 3: Access protected route
       const meResponse = await app.request
@@ -172,6 +134,10 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should reject duplicate email signup', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testUser = freshUser('integration-test-dup');
+
       // First signup
       await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
 
@@ -186,6 +152,10 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should reject invalid credentials on login', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testUser = freshUser('integration-test-badcreds');
+
       // Signup first
       await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
 
@@ -202,10 +172,12 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should reject access to protected route without token', async () => {
+      const app = await getApp();
       await app.request.get('/api/v1/users/profile').expect(401);
     });
 
     it('should reject access with invalid token', async () => {
+      const app = await getApp();
       await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', 'Bearer invalid-token-123')
@@ -214,41 +186,23 @@ describe('Auth Flow Integration', () => {
   });
 
   describe('Token Refresh Flow', () => {
-    let currentTestUser: { email: string; password: string; name: string };
-
-    beforeEach(async () => {
-      // Use unique email per test to avoid race conditions
-      currentTestUser = {
-        email: `refresh-test-${uniqueTestId()}@example.com`,
-        password: 'SecurePass123!',
-        name: 'Refresh Test User',
-      };
-
-      const _signupResponse = await app.request
-        .post('/api/v1/accounts')
-        .send(signupBody(currentTestUser))
-        .expect(201);
-
-      // Verify email for protected route access
-      await verifyUserEmailInDb(currentTestUser.email);
-      await acceptTosForUserByEmail(currentTestUser.email);
-      ({ accessToken, refreshToken } = await login(
-        currentTestUser.email,
-        currentTestUser.password,
-      ));
-    }, 15000);
-
     it('should refresh access token using refresh token', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const currentTestUser = freshUser('refresh-test');
+      await signedUpAndLoggedIn(app, currentTestUser);
+
       // O sistema atual emite apenas `access_token` cookie no login; para
       // refresh com `{refreshToken}` body, precisamos provisionar
       // manualmente um RefreshToken row no DB.
       const { randomUUID, createHash } = await import('node:crypto');
       const rawRefresh = `test-${randomUUID()}`;
       const tokenHash = createHash('sha256').update(rawRefresh).digest('hex');
-      await prisma.refreshToken.create({
+      await app.prisma.refreshToken.create({
         data: {
           token: tokenHash,
-          userId: (await prisma.user.findUnique({ where: { email: currentTestUser.email } }))!.id,
+          userId: (await app.prisma.user.findUnique({ where: { email: currentTestUser.email } }))!
+            .id,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
       });
@@ -265,6 +219,8 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should reject invalid refresh token', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
       const response = await app.request
         .post('/api/v1/auth/refresh')
         .send({ refreshToken: 'invalid-refresh-token' });
@@ -274,28 +230,20 @@ describe('Auth Flow Integration', () => {
   });
 
   describe('Email Verification Flow', () => {
-    let testAccessToken: string;
-
-    beforeEach(async () => {
-      // Generate unique email for each test
+    it('should return 409 when requesting verification for already verified email', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
       const testEmail = `verify-${uniqueTestId()}@example.com`;
-      const _signupResponse = await app.request
+      await app.request
         .post('/api/v1/accounts')
         .send(
-          signupBody({
-            email: testEmail,
-            password: 'SecurePass123!',
-            name: 'Verify Test User',
-          }),
+          signupBody({ email: testEmail, password: 'SecurePass123!', name: 'Verify Test User' }),
         )
         .expect(201);
+      await verifyUserEmailInDb(app, testEmail);
+      const testAccessToken = (await login(app, testEmail, 'SecurePass123!')).accessToken;
 
-      await verifyUserEmailInDb(testEmail);
-      testAccessToken = (await login(testEmail, 'SecurePass123!')).accessToken;
-    }, 15000);
-
-    it('should return 409 when requesting verification for already verified email', async () => {
-      // Email was verified in beforeEach; requesting verification should
+      // Email was verified above; requesting verification should
       // return 409. The .expect(409) chain enforces it — the response
       // body itself is not asserted.
       await app.request
@@ -316,17 +264,12 @@ describe('Auth Flow Integration', () => {
   });
 
   describe('Password Reset Flow', () => {
-    const testUser = {
-      email: 'integration-test-reset@example.com',
-      password: 'OldPass123!',
-      name: 'Reset Test User',
-    };
-
-    beforeEach(async () => {
-      await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
-    }, 10000);
-
     it('should complete password reset flow', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testUser = freshUser('integration-test-reset');
+      await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
+
       // Step 1: Request password reset
       await app.request
         .post('/api/v1/auth/forgot-password')
@@ -338,6 +281,8 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should reject invalid password reset token', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
       await app.request
         .post('/api/v1/auth/reset-password')
         .send({
@@ -349,28 +294,12 @@ describe('Auth Flow Integration', () => {
   });
 
   describe('Account Management Flow', () => {
-    let testUser: { email: string; password: string; name: string };
-
-    beforeEach(async () => {
-      // Generate unique email for each test
-      testUser = {
-        email: `account-test-${uniqueTestId()}@test.com`,
-        password: 'Account123!',
-        name: 'Account Test User',
-      };
-
-      const _signupResponse = await app.request
-        .post('/api/v1/accounts')
-        .send(signupBody(testUser))
-        .expect(201);
-
-      // Verify email for protected route access
-      await verifyUserEmailInDb(testUser.email);
-      await acceptTosForUserByEmail(testUser.email);
-      accessToken = (await login(testUser.email, testUser.password)).accessToken;
-    }, 15000);
-
     it('should change user password', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testUser = freshUser('account-test-pwd');
+      const { accessToken } = await signedUpAndLoggedIn(app, testUser);
+
       const newPassword = 'NewSecurePass123!';
 
       // Password change should succeed; route canonical é /v1/me/password/change.
@@ -387,15 +316,18 @@ describe('Auth Flow Integration', () => {
       expect([200, 201, 500]).toContain(changeRes.status);
 
       // Verify password was updated in database by checking the hash changed
-      const user = await prisma.user.findUnique({
-        where: { email: testUser.email },
-      });
+      const user = await app.prisma.user.findUnique({ where: { email: testUser.email } });
       expect(user).not.toBeNull();
       expect(user?.passwordHash).toBeDefined();
       // Password hash should be different after change (bcrypt hashes are always different due to salt)
     });
 
     it('should delete user account', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testUser = freshUser('account-test-del');
+      const { accessToken } = await signedUpAndLoggedIn(app, testUser);
+
       // Two-step, code-confirmed deletion: request (re-auth with phrase +
       // currentPassword) issues a 6-digit code, then confirm erases the account.
       const request = await app.request
@@ -408,7 +340,7 @@ describe('Auth Flow Integration', () => {
         .expect(200);
       expect(request.status).toBe(200);
 
-      const pending = await prisma.emailVerificationToken.findFirst({
+      const pending = await app.prisma.emailVerificationToken.findFirst({
         where: { email: testUser.email, purpose: 'ACCOUNT_DELETION' },
         orderBy: { createdAt: 'desc' },
       });
@@ -430,10 +362,7 @@ describe('Auth Flow Integration', () => {
       expect([400, 401, 500]).toContain(loginRes.status);
 
       // Verify user deleted from database
-      const user = await prisma.user.findUnique({
-        where: { email: testUser.email },
-      });
-
+      const user = await app.prisma.user.findUnique({ where: { email: testUser.email } });
       expect(user).toBeNull();
     });
   });

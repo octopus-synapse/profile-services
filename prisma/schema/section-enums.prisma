@@ -49,3 +49,14 @@ enum Severity {
   HIGH
   CRITICAL
 }
+
+/// links_v1.kind — the type of an external profile link. CUSTOM carries a
+/// user-chosen label + domain (logo derived via logo.dev); the others render a
+/// fixed brand/icon. No TWITTER by product decision.
+enum LinkKind {
+  LINKEDIN
+  GITHUB
+  WEBSITE
+  PORTFOLIO
+  CUSTOM
+}

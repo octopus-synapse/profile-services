@@ -26,7 +26,7 @@ export class ConfirmEmailChangeUseCase implements ConfirmEmailChangePort {
     const { userId, code } = command;
 
     const pending = await this.codeStore.findPurposeToken(userId, code, 'EMAIL_CHANGE');
-    if (!pending || !pending.pendingEmail) {
+    if (!pending?.pendingEmail) {
       throw new InvalidEmailChangeCodeException();
     }
 

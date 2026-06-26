@@ -273,9 +273,12 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
   describe('Step 9: Disable 2FA', () => {
     it.serial('should disable 2FA', async () => {
+      // Disabling 2FA requires re-authentication (current password OR a TOTP
+      // code) — supply the password to satisfy the route's body contract.
       const response = await app.request
         .delete('/api/v1/auth/2fa')
-        .set('Authorization', `Bearer ${testUser.token}`);
+        .set('Authorization', `Bearer ${testUser.token}`)
+        .send({ currentPassword: testUser.password });
 
       expect(response.status).toBe(204);
     });
@@ -290,7 +293,10 @@ describe('E2E Journey: Two-Factor Authentication', () => {
     });
 
     it.serial('should reject disable without authentication', async () => {
-      const response = await app.request.delete('/api/v1/auth/2fa');
+      // Valid body but no Authorization header — the auth gate must reject it.
+      const response = await app.request
+        .delete('/api/v1/auth/2fa')
+        .send({ currentPassword: testUser.password });
 
       expect(response.status).toBe(401);
     });
@@ -306,8 +312,12 @@ describe('E2E Journey: Two-Factor Authentication', () => {
       expect(response.status).toBe(200);
       expect(tokenFromResponse(response, 'access_token')).toBeDefined();
 
-      // Should NOT require 2FA anymore
-      expect(response.body.twoFactorRequired).toBeUndefined();
+      // Should NOT require 2FA anymore. The login response is a
+      // discriminated union on `twoFactorRequired`; the no-challenge variant
+      // carries `twoFactorRequired: false` (and issues tokens), whereas the
+      // 2FA-challenge variant carries `true` and issues none. Assert it's the
+      // false (non-challenge) variant rather than absent.
+      expect(response.body.twoFactorRequired).toBe(false);
     });
   });
 

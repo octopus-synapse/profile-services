@@ -53,7 +53,7 @@ export class InMemoryAdminTechSkillsRepository extends AdminTechSkillsRepository
   private referenceCounts = 0;
   async create(input: Record<string, unknown>) {
     this.created.push(input);
-    const row = { id: `skill-${this.created.length}`, ...input } as unknown as TechSkill;
+    const row = { id: `skill-${this.created.length}`, ...input } as TechSkill;
     this.rows.set(row.id, row);
     return row;
   }

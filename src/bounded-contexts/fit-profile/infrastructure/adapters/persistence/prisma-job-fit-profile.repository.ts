@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { readJsonColumn, toPrismaJson } from '@/shared-kernel/persistence/json-column';
 import {
   JobFitProfileRepositoryPort,
   type JobFitProfileWrite,
@@ -23,7 +24,7 @@ export class PrismaJobFitProfileRepository extends JobFitProfileRepositoryPort {
   }
 
   async upsert(input: JobFitProfileWrite): Promise<SavedJobFitProfile> {
-    const vectorJson = input.vector as unknown as Prisma.InputJsonValue;
+    const vectorJson = toPrismaJson(input.vector);
     const row = await this.prisma.jobFitProfile.upsert({
       where: { jobId: input.jobId },
       create: { jobId: input.jobId, vectorJson, editedByUserId: input.editedByUserId },
@@ -42,7 +43,7 @@ export class PrismaJobFitProfileRepository extends JobFitProfileRepositoryPort {
     return {
       id: row.id,
       jobId: row.jobId,
-      vector: row.vectorJson as unknown as FitVector,
+      vector: readJsonColumn<FitVector>(row.vectorJson),
       editedByUserId: row.editedByUserId,
       computedAt: row.computedAt,
     };

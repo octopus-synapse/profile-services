@@ -76,8 +76,9 @@ describe('E2E Journey 5: Export Pipeline', () => {
           .get('/api/v1/export/resume/docx')
           .set('Authorization', `Bearer ${testUser.token}`);
 
-        if ([500, 502, 503].includes(response.status)) return;
-
+        // DOCX export uploads to MinIO and returns a presigned URL — no
+        // browser/typst involved, so with MinIO wired into the e2e stack
+        // this is the reliable proof that object storage works end-to-end.
         expect(response.status).toBe(200);
 
         const { downloadUrl, filename, expiresAt } = response.body;
@@ -255,8 +256,12 @@ describe('E2E Journey 5: Export Pipeline', () => {
           .set('x-e2e-bypass-rate-limit', 'true')
           .query({ palette: 'nonexistent-palette' });
 
-        // Should either succeed with default palette or return client error
-        expect([200, 400, 500]).toContain(response.status);
+        // Succeeds with the default palette, returns a client error, or
+        // degrades (502 = typst render binary unavailable in this env).
+        // Storage is asserted separately by the DOCX test (the only
+        // upload path with no render step), so MinIO failures don't hide
+        // here.
+        expect([200, 400, 500, 502]).toContain(response.status);
       },
       60000,
     );

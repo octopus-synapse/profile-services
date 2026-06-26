@@ -7,9 +7,9 @@
  */
 
 import type { ChangePasswordPort } from './change-password.port';
-import type { ForgotPasswordPort } from './forgot-password.port';
 import type { ConfirmEmailChangePort } from './confirm-email-change.port';
 import type { ConfirmPasswordChangePort } from './confirm-password-change.port';
+import type { ForgotPasswordPort } from './forgot-password.port';
 import type { RequestEmailChangePort } from './request-email-change.port';
 import type { RequestPasswordChangePort } from './request-password-change.port';
 import type { ResetPasswordPort } from './reset-password.port';

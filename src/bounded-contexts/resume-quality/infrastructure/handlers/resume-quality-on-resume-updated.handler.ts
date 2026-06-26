@@ -1,6 +1,7 @@
 import type { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
 import type { LoggerPort } from '@/shared-kernel';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import { SEMANTIC_KIND } from '@/shared-kernel/schemas/sections/semantic-kind.const';
 import { RESUME_QUALITY_QUEUE, type ResumeQualityJobData } from '../workers/resume-quality.worker';
 
 /** Scalar resume fields whose change feeds the AI Content Quality grader
@@ -9,7 +10,12 @@ const AI_CONTENT_SCALAR_FIELDS = new Set(['summary']);
 
 /** Section kinds whose item edits change gradeable bullet text. Encoded by
  * the section-item use-cases as `sections:<semanticKind>` changedFields. */
-const AI_CONTENT_SECTION_KINDS = new Set(['WORK_EXPERIENCE', 'SUMMARY', 'PROJECT', 'VOLUNTEER']);
+const AI_CONTENT_SECTION_KINDS = new Set<string>([
+  SEMANTIC_KIND.WORK_EXPERIENCE,
+  SEMANTIC_KIND.SUMMARY,
+  SEMANTIC_KIND.PROJECT,
+  SEMANTIC_KIND.VOLUNTEER,
+]);
 
 const SECTION_PREFIX = 'sections:';
 

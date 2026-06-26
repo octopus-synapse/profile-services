@@ -239,7 +239,6 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
           author: this.authorOf(c.authorId),
           post: {
             id: post?.id ?? c.postId,
-            type: post?.type ?? 'TEXT',
             content: post?.content ?? null,
             authorId: post?.authorId ?? 'unknown',
             author: this.authorOf(post?.authorId ?? 'unknown'),

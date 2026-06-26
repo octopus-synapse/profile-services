@@ -16,6 +16,14 @@ function stripDeletedAt<T extends CommentWithAuthor>(c: T): Omit<T, 'deletedAt'>
   return rest;
 }
 
+/** Read view served to the API: `deletedAt` is intentionally dropped (the
+ *  comment response schema omits it), so the use case's output type
+ *  reflects the stripped shape instead of asserting back to the full
+ *  entity. */
+type CommentWithRepliesView = Omit<CommentWithReplies, 'deletedAt' | 'replies'> & {
+  readonly replies: Omit<CommentWithAuthor, 'deletedAt'>[];
+};
+
 export class ListPostCommentsUseCase {
   constructor(private readonly repository: CommentRepositoryPort) {}
 
@@ -23,7 +31,7 @@ export class ListPostCommentsUseCase {
     postId: string,
     cursor: string | undefined,
     limit: number,
-  ): Promise<CommentsResult<CommentWithReplies>> {
+  ): Promise<CommentsResult<CommentWithRepliesView>> {
     const post = await this.repository.findPostById(postId);
     if (!post || post.isDeleted) {
       throw new EntityNotFoundException('Post', postId);
@@ -32,10 +40,10 @@ export class ListPostCommentsUseCase {
     // P1 #35 — composite (createdAt, id) cursor so two comments with
     // the same millisecond don't drop one across page boundaries.
     const nextCursor = nextCursorFromPage(comments, limit);
-    const sanitized = comments.map((c) => ({
+    const sanitized: CommentWithRepliesView[] = comments.map((c) => ({
       ...stripDeletedAt(c),
       replies: c.replies.map((r) => stripDeletedAt(r)),
-    })) as unknown as CommentWithReplies[];
+    }));
     return { items: sanitized, nextCursor, hasNext: nextCursor !== null };
   }
 }

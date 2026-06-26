@@ -5,4 +5,5 @@ export {
   type EventHandlerConstructor,
   type EventHandlerLike,
   registerHandler,
+  registerPayloadHandler,
 } from './register-handler';

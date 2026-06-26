@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test';
-import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type {
   ContentQualityInput,
   ContentQualityResult as LlmResult,
   ScoringLlmPort,
 } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
+import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { ResumeForCompleteness } from '../../domain/rules/completeness.rules';
 import { AiContentQualityAdapter } from './ai-content-quality.adapter';
@@ -33,7 +33,9 @@ function resume(overrides: Partial<ResumeForCompleteness> = {}): ResumeForComple
     experiences: [{ role: 'Engineer', company: 'Acme' }],
     educations: [],
     skills: [],
-    bullets: [{ id: 'exp:0:description', text: 'Led the payments rewrite', sectionKind: 'WORK_EXPERIENCE' }],
+    bullets: [
+      { id: 'exp:0:description', text: 'Led the payments rewrite', sectionKind: 'WORK_EXPERIENCE' },
+    ],
     ...overrides,
   };
 }
@@ -44,7 +46,9 @@ describe('AiContentQualityAdapter', () => {
     const adapter = new AiContentQualityAdapter(llm, enabledFlags, stubLogger);
     await adapter.analyze(resume());
     expect(llm.lastInput?.language).toBe('pt-br');
-    expect(llm.lastInput?.bullets).toEqual([{ id: 'exp:0:description', text: 'Led the payments rewrite' }]);
+    expect(llm.lastInput?.bullets).toEqual([
+      { id: 'exp:0:description', text: 'Led the payments rewrite' },
+    ]);
   });
 
   it('computes costUsdMicros from tokens × price', async () => {

@@ -55,10 +55,12 @@ describe('i18n quality-issue parity (@packages/i18n QUALITY_ISSUE_DICTIONARY)', 
       for (const locale of LOCALES) {
         const used = extractPlaceholders(tpl.message[locale]);
         for (const p of used) {
-          if (!declared.has(p)) mismatches.push(`${code} (${locale}): uses undeclared param "${p}"`);
+          if (!declared.has(p))
+            mismatches.push(`${code} (${locale}): uses undeclared param "${p}"`);
         }
         for (const p of declared) {
-          if (!used.has(p)) mismatches.push(`${code} (${locale}): declared param "${p}" never used`);
+          if (!used.has(p))
+            mismatches.push(`${code} (${locale}): declared param "${p}" never used`);
         }
       }
     }

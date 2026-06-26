@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { readJsonColumn, toPrismaJson } from '@/shared-kernel/persistence/json-column';
 import {
   FitRemapHistoryRepositoryPort,
   type FitRemapSnapshot,
@@ -17,7 +18,7 @@ export class PrismaFitRemapHistoryRepository extends FitRemapHistoryRepositoryPo
 
   async append(userId: string, vector: FitVector): Promise<FitRemapSnapshot> {
     const row = await this.prisma.fitRemapHistory.create({
-      data: { userId, vectorJson: vector as unknown as Prisma.InputJsonValue },
+      data: { userId, vectorJson: toPrismaJson(vector) },
     });
     return this.toDomain(row);
   }
@@ -40,7 +41,7 @@ export class PrismaFitRemapHistoryRepository extends FitRemapHistoryRepositoryPo
     return {
       id: row.id,
       userId: row.userId,
-      vector: row.vectorJson as unknown as FitVector,
+      vector: readJsonColumn<FitVector>(row.vectorJson),
       snapshotAt: row.snapshotAt,
     };
   }

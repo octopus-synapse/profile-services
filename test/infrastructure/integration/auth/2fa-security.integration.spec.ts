@@ -9,13 +9,22 @@
  * - Brute force vulnerabilities
  * - Time window exploitation
  * - Backup code security
+ *
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * out-of-declaration-order, so the prior shared `accessToken`/`userId`/
+ * `totpSecret` (set in `beforeAll` / leaked between the two "Setup"
+ * tests) would race — two parallel tests would overwrite each other's
+ * 2FA secret + session. Each test now provisions its own fresh user
+ * (unique email) and drives its own 2FA setup/enable so there's no
+ * shared 2FA / session state. These tests exercise the REAL auth HTTP
+ * flow (setup → verify → login → verify-2fa), so they keep real
+ * signup/login via `createTestUserAndLogin`.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import * as speakeasy from 'speakeasy';
 import {
   clearRateLimitState,
-  closeApp,
   createTestUserAndLogin,
   getApp,
   getPrisma,
@@ -23,51 +32,81 @@ import {
   uniqueTestId,
 } from '../setup';
 
+interface TfaActor {
+  readonly userId: string;
+  readonly accessToken: string;
+  readonly email: string;
+  readonly secret: string;
+}
+
+/**
+ * Provision a fresh user, set up + enable 2FA, and return its
+ * identity + TOTP secret + (optionally) backup codes. Each call is
+ * fully independent — no shared 2FA/session state with sibling tests.
+ */
+async function freshUserWith2fa(
+  emailPrefix: string,
+): Promise<TfaActor & { backupCodes: string[] }> {
+  const testUser = await createTestUserAndLogin({
+    email: `${emailPrefix}-${uniqueTestId()}@example.com`,
+  });
+
+  const setupRes = await getRequest()
+    .post('/api/v1/auth/2fa/setup')
+    .set('Authorization', `Bearer ${testUser.accessToken}`);
+  const secret = setupRes.body.secret;
+
+  const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
+  const verifyRes = await getRequest()
+    .post('/api/v1/auth/2fa/verify')
+    .set('Authorization', `Bearer ${testUser.accessToken}`)
+    .send({ code: enableToken });
+
+  const prisma = getPrisma();
+  const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
+
+  return {
+    userId: testUser.userId,
+    accessToken: testUser.accessToken,
+    email: user?.email ?? '',
+    secret,
+    backupCodes: (verifyRes.body?.backupCodes as string[]) ?? [],
+  };
+}
+
 describe('2FA Security - Bug Discovery Tests', () => {
-  let accessToken: string;
-  let userId: string;
-  let totpSecret: string;
-
-  beforeAll(async () => {
-    await getApp();
-    const auth = await createTestUserAndLogin();
-    accessToken = auth.accessToken;
-    userId = auth.userId;
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    if (userId) {
-      await prisma.twoFactorAuth.deleteMany({ where: { userId } });
-      await prisma.twoFactorBackupCode.deleteMany({ where: { userId } });
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.deleteMany({ where: { id: userId } });
-    }
-    await closeApp();
-  });
-
   describe('Setup 2FA', () => {
     it('should setup 2FA and return secret', async () => {
+      await getApp();
+      const testUser = await createTestUserAndLogin({
+        email: `2fa-setup-${uniqueTestId()}@example.com`,
+      });
+
       const response = await getRequest()
         .post('/api/v1/auth/2fa/setup')
-        .set('Authorization', `Bearer ${accessToken}`);
+        .set('Authorization', `Bearer ${testUser.accessToken}`);
 
       expect(response.status).toBe(201);
       expect(response.body?.secret).toBeDefined();
       expect(response.body?.qrCode).toBeDefined();
-
-      totpSecret = response.body.secret;
     });
 
     it('should enable 2FA with valid token', async () => {
-      const token = speakeasy.totp({
-        secret: totpSecret,
-        encoding: 'base32',
+      await getApp();
+      const testUser = await createTestUserAndLogin({
+        email: `2fa-enable-${uniqueTestId()}@example.com`,
       });
+
+      const setupRes = await getRequest()
+        .post('/api/v1/auth/2fa/setup')
+        .set('Authorization', `Bearer ${testUser.accessToken}`);
+      const secret = setupRes.body.secret;
+
+      const token = speakeasy.totp({ secret, encoding: 'base32' });
 
       const response = await getRequest()
         .post('/api/v1/auth/2fa/verify')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ code: token });
 
       expect(response.status).toBe(201);
@@ -83,7 +122,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
      * This is a REPLAY ATTACK vulnerability.
      */
     it('should REJECT same TOTP token used twice', async () => {
-      // Get fresh credentials for isolated test
+      await getApp();
       const testPassword = 'SecurePass123!';
       const testUser = await createTestUserAndLogin({
         email: `2fa-reuse-test-${uniqueTestId()}@example.com`,
@@ -105,7 +144,6 @@ describe('2FA Security - Bug Discovery Tests', () => {
         .send({ code: enableToken });
 
       // Now test token reuse during LOGIN
-      // First, get user email for login
       const prisma = getPrisma();
       const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
 
@@ -144,10 +182,6 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // If this test FAILS (status is 200), there's a REPLAY ATTACK vulnerability!
       expect(secondUse.status).toBe(401);
-      // Cleanup
-      await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.twoFactorBackupCode.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -159,41 +193,23 @@ describe('2FA Security - Bug Discovery Tests', () => {
     it(
       'should lock out after 5 failed 2FA attempts',
       async () => {
+        await getApp();
         // Clear rate limit state from previous tests to ensure clean state
         await clearRateLimitState();
 
-        // Get fresh credentials
-        const testUser = await createTestUserAndLogin({
-          email: `2fa-brute-${uniqueTestId()}@example.com`,
-        });
-
-        // Setup and enable 2FA
-        const setupRes = await getRequest()
-          .post('/api/v1/auth/2fa/setup')
-          .set('Authorization', `Bearer ${testUser.accessToken}`);
-
-        const secret = setupRes.body.secret;
-        const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
-
-        await getRequest()
-          .post('/api/v1/auth/2fa/verify')
-          .set('Authorization', `Bearer ${testUser.accessToken}`)
-          .send({ code: enableToken });
+        const actor = await freshUserWith2fa('2fa-brute');
 
         // Login to trigger 2FA
-        const prisma = getPrisma();
-        const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
-
         await getRequest().post('/api/v1/auth/login').send({
-          email: user?.email,
-          password: 'SecurePass123!',
+          email: actor.email,
+          password: 'FreshPass123!',
         });
 
         // Try 10 wrong codes
         const results: number[] = [];
         for (let i = 0; i < 10; i++) {
           const response = await getRequest().post('/api/v1/auth/login/verify-2fa').send({
-            userId: testUser.userId,
+            userId: actor.userId,
             code: '000000', // Wrong code
           });
           results.push(response.status);
@@ -205,11 +221,8 @@ describe('2FA Security - Bug Discovery Tests', () => {
         // This assertion should FAIL if there's no rate limiting
         expect(hasRateLimit).toBe(true);
 
-        // Cleanup - database and rate limits
+        // Reset rate limits so we don't leak throttle state to siblings.
         await clearRateLimitState();
-        await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
-        await prisma.twoFactorBackupCode.deleteMany({ where: { userId: testUser.userId } });
-        await prisma.user.deleteMany({ where: { id: testUser.userId } });
       },
       { timeout: 15000 },
     ); // 15 second timeout for this rate-limited test
@@ -221,48 +234,28 @@ describe('2FA Security - Bug Discovery Tests', () => {
      * Test verifies the fix is in place
      */
     it('should reject already-used backup code', async () => {
-      const testUser = await createTestUserAndLogin({
-        email: `2fa-backup-${uniqueTestId()}@example.com`,
-      });
+      await getApp();
+      const actor = await freshUserWith2fa('2fa-backup');
 
-      // Setup and enable 2FA
-      const setupRes = await getRequest()
-        .post('/api/v1/auth/2fa/setup')
-        .set('Authorization', `Bearer ${testUser.accessToken}`);
-
-      const secret = setupRes.body.secret;
-
-      // Enable 2FA - backup codes are returned in the verify response
-      const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
-      const verifyRes = await getRequest()
-        .post('/api/v1/auth/2fa/verify')
-        .set('Authorization', `Bearer ${testUser.accessToken}`)
-        .send({ code: enableToken });
-
-      const backupCodes: string[] = verifyRes.body?.backupCodes || [];
-
-      if (backupCodes.length === 0) {
+      if (actor.backupCodes.length === 0) {
         console.log('No backup codes returned - skipping test');
         return;
       }
 
-      const prisma = getPrisma();
-      const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
-
       // Use a backup code
-      const backupCode = backupCodes[0];
+      const backupCode = actor.backupCodes[0];
 
       // First login attempt
       await getRequest().post('/api/v1/auth/login').send({
-        email: user?.email,
-        password: 'SecurePass123!',
+        email: actor.email,
+        password: 'FreshPass123!',
       });
 
       const firstUse = await getRequest()
         .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          userId: testUser.userId,
+          userId: actor.userId,
           code: backupCode,
         });
 
@@ -271,25 +264,20 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // Second login attempt with same backup code
       await getRequest().post('/api/v1/auth/login').send({
-        email: user?.email,
-        password: 'SecurePass123!',
+        email: actor.email,
+        password: 'FreshPass123!',
       });
 
       const secondUse = await getRequest()
         .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          userId: testUser.userId,
+          userId: actor.userId,
           code: backupCode,
         });
 
       // Second use should FAIL
       expect(secondUse.status).toBe(401);
-
-      // Cleanup
-      await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.twoFactorBackupCode.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -299,6 +287,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
      * ACTUAL CONCERN: window=2 means 150 seconds - too long!
      */
     it('should document the actual time window (informational)', async () => {
+      await getApp();
       const testUser = await createTestUserAndLogin({
         email: `2fa-window-${uniqueTestId()}@example.com`,
       });
@@ -342,11 +331,6 @@ describe('2FA Security - Bug Discovery Tests', () => {
           'SECURITY CONCERN: Time window is too large. Consider reducing from window=2 to window=1',
         );
       }
-
-      // Cleanup
-      const prisma = getPrisma();
-      await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
     });
   });
 
@@ -356,31 +340,17 @@ describe('2FA Security - Bug Discovery Tests', () => {
      * POTENTIAL BUG: Attacker might be able to use their own 2FA with victim's userId
      */
     it('should reject 2FA verification with mismatched userId', async () => {
+      await getApp();
       // Create two users
       const victim = await createTestUserAndLogin({
         email: `2fa-victim-${uniqueTestId()}@example.com`,
       });
 
-      const attacker = await createTestUserAndLogin({
-        email: `2fa-attacker-${uniqueTestId()}@example.com`,
-      });
-
-      // Setup 2FA for attacker only
-      const attackerSetup = await getRequest()
-        .post('/api/v1/auth/2fa/setup')
-        .set('Authorization', `Bearer ${attacker.accessToken}`);
-
-      const attackerSecret = attackerSetup.body.secret;
-
-      // Enable attacker's 2FA
-      const enableToken = speakeasy.totp({ secret: attackerSecret, encoding: 'base32' });
-      await getRequest()
-        .post('/api/v1/auth/2fa/verify')
-        .set('Authorization', `Bearer ${attacker.accessToken}`)
-        .send({ code: enableToken });
+      // Setup + enable 2FA for attacker only
+      const attacker = await freshUserWith2fa('2fa-attacker');
 
       // Try to use attacker's valid token with victim's userId
-      const attackerToken = speakeasy.totp({ secret: attackerSecret, encoding: 'base32' });
+      const attackerToken = speakeasy.totp({ secret: attacker.secret, encoding: 'base32' });
 
       const response = await getRequest()
         .post('/api/v1/auth/login/verify-2fa')
@@ -392,16 +362,6 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // This should FAIL - can't use someone else's 2FA
       expect(response.status).toBe(401);
-
-      // Cleanup
-      const prisma = getPrisma();
-      await prisma.twoFactorAuth.deleteMany({
-        where: { userId: { in: [victim.userId, attacker.userId] } },
-      });
-      await prisma.twoFactorBackupCode.deleteMany({
-        where: { userId: { in: [victim.userId, attacker.userId] } },
-      });
-      await prisma.user.deleteMany({ where: { id: { in: [victim.userId, attacker.userId] } } });
     });
   });
 });

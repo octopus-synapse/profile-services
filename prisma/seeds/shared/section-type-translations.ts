@@ -69,6 +69,35 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     },
   },
 
+  links_v1: {
+    en: {
+      title: 'Links',
+      description: 'Links to your online presence',
+      label: 'Links',
+      noDataLabel: 'No links yet',
+      placeholder: 'Add a link...',
+      addLabel: 'Add link',
+      fieldLabels: {
+        kind: 'Link type',
+        url: 'URL',
+        label: 'Label',
+      },
+    },
+    'pt-BR': {
+      title: 'Links',
+      description: 'Links da sua presença online',
+      label: 'Links',
+      noDataLabel: 'Nenhum link ainda',
+      placeholder: 'Adicione um link...',
+      addLabel: 'Adicionar link',
+      fieldLabels: {
+        kind: 'Tipo de link',
+        url: 'Endereço',
+        label: 'Rótulo',
+      },
+    },
+  },
+
   skill_set_v1: {
     en: {
       title: 'Hard Skills',
@@ -411,4 +440,5 @@ export const sectionTypeIcons: Record<string, { iconType: 'emoji' | 'lucide'; ic
   summary_v1: { iconType: 'lucide', icon: 'file-text' },
   interest_v1: { iconType: 'lucide', icon: 'lightbulb' },
   recommendation_v1: { iconType: 'lucide', icon: 'users' },
+  links_v1: { iconType: 'lucide', icon: 'link' },
 };

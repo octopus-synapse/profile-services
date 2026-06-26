@@ -327,8 +327,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       digestFrequency: preferences.digestFrequency ?? existingPrefs?.digestFrequency ?? 'WEEKLY',
       profileVisibility:
         preferences.profileVisibility ?? existingPrefs?.profileVisibility ?? 'PRIVATE',
-      messagePrivacy:
-        preferences.messagePrivacy ?? existingPrefs?.messagePrivacy ?? 'EVERYONE',
+      messagePrivacy: preferences.messagePrivacy ?? existingPrefs?.messagePrivacy ?? 'EVERYONE',
       showEmail: preferences.showEmail ?? existingPrefs?.showEmail ?? false,
       showPhone: preferences.showPhone ?? existingPrefs?.showPhone ?? false,
       allowSearchEngineIndex:

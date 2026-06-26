@@ -66,6 +66,7 @@ import { PrismaSavedExternalJobsRepository } from './infrastructure/adapters/per
 import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
 import { ExternalJobsIngestionWorker } from './infrastructure/workers/external-jobs-ingestion.worker';
 import { jobsRoutes } from './jobs.routes';
+import { jobsTrackerRoutes } from './jobs-tracker.routes';
 
 export { JobsUseCases };
 
@@ -210,8 +211,10 @@ export function buildJobsComposition(
   return {
     useCases,
     // External routes first: `/v1/jobs/external` is static and must not
-    // be shadowed by `/v1/jobs/:id`.
-    routes: [...externalJobsRoutes, ...jobsRoutes],
+    // be shadowed by `/v1/jobs/:id`. Tracker/import routes
+    // (`/v1/jobs/applications/*`, `/v1/jobs/import-from-url`) are static
+    // too, so order them before the dynamic `/v1/jobs/:id` catalog routes.
+    routes: [...externalJobsRoutes, ...jobsTrackerRoutes, ...jobsRoutes],
   };
 }
 

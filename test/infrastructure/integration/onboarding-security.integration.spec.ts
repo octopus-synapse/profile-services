@@ -13,41 +13,43 @@
  * exercised.
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
-import type { PrismaClient } from '@prisma/client';
-import { freshInDbUser, stopTestApp, type TestApp } from '../shared';
+import { describe, expect, it } from 'bun:test';
+import { freshInDbUser, type TestApp } from '../shared';
 import { getApp, uniqueTestUsername } from './setup';
 
 const PROGRESS_PATH = '/api/v1/onboarding/progress';
 const NEXT_PATH = '/api/v1/onboarding/session/next';
 const USERNAME_RULES_PATH = '/api/v1/users/username/rules';
 
+/**
+ * Order-independent onboarding-security suite. Bun 1.3+ runs tests
+ * inside a `describe` concurrently, so the prior shared `userA`/`userB`
+ * provisioned in `beforeEach` would race across parallel tests. Each
+ * test now provisions its own pair of fresh users so it owns its
+ * fixtures for its lifetime.
+ */
+interface UserPair {
+  readonly app: TestApp;
+  readonly userA: { userId: string; token: string };
+  readonly userB: { userId: string; token: string };
+}
+
+async function freshPair(): Promise<UserPair> {
+  const app = await getApp();
+  const a = await freshInDbUser(app);
+  const b = await freshInDbUser(app);
+  return {
+    app,
+    userA: { userId: a.userId, token: a.token },
+    userB: { userId: b.userId, token: b.token },
+  };
+}
+
 describe('Onboarding Security & Race Integration', () => {
-  let app: TestApp;
-  let prisma: PrismaClient;
-
-  beforeAll(async () => {
-    app = await getApp();
-    prisma = app.prisma;
-  });
-
-  afterAll(async () => {
-    await stopTestApp();
-  });
-
-  let userA: { userId: string; token: string };
-  let userB: { userId: string; token: string };
-
-  beforeEach(async () => {
-    const a = await freshInDbUser(app);
-    const b = await freshInDbUser(app);
-    userA = { userId: a.userId, token: a.token };
-    userB = { userId: b.userId, token: b.token };
-  });
-
   // ── B1+B2 (the reported "Enzo Patti" path) ───────────────────────
   describe('Username format validation at the API boundary', () => {
     it('rejects "Enzo Patti" (uppercase + space) with a field error', async () => {
+      const { app, userA } = await freshPair();
       const res = await app.request
         .put(PROGRESS_PATH)
         .set('Authorization', `Bearer ${userA.token}`)
@@ -64,6 +66,7 @@ describe('Onboarding Security & Race Integration', () => {
     });
 
     it('rejects hyphenated usernames (regex contract)', async () => {
+      const { app, userA } = await freshPair();
       const res = await app.request
         .put(PROGRESS_PATH)
         .set('Authorization', `Bearer ${userA.token}`)
@@ -76,6 +79,7 @@ describe('Onboarding Security & Race Integration', () => {
     });
 
     it('rejects reserved usernames (admin)', async () => {
+      const { app, userA } = await freshPair();
       const res = await app.request
         .put(PROGRESS_PATH)
         .set('Authorization', `Bearer ${userA.token}`)
@@ -88,6 +92,7 @@ describe('Onboarding Security & Race Integration', () => {
     });
 
     it('accepts and normalises whitespace + casing on a valid username', async () => {
+      const { app, userA } = await freshPair();
       const handle = uniqueTestUsername('enzo');
       const res = await app.request
         .put(PROGRESS_PATH)
@@ -98,7 +103,7 @@ describe('Onboarding Security & Race Integration', () => {
           username: `  ${handle.toUpperCase()}  `,
         });
       expect(res.status).toBe(200);
-      const progress = await prisma.onboardingProgress.findUnique({
+      const progress = await app.prisma.onboardingProgress.findUnique({
         where: { userId: userA.userId },
       });
       expect(progress?.username).toBe(handle);
@@ -108,6 +113,7 @@ describe('Onboarding Security & Race Integration', () => {
   // ── B1+B3 (case-insensitive lookup across BOTH lookups) ──────────
   describe('Username uniqueness across users', () => {
     it('rejects another user claiming the same username in different casing', async () => {
+      const { app, userA, userB } = await freshPair();
       const handle = uniqueTestUsername('clash');
 
       // A claims the canonical casing.
@@ -136,6 +142,7 @@ describe('Onboarding Security & Race Integration', () => {
     });
 
     it('handles concurrent username claims — only one wins', async () => {
+      const { app, userA, userB } = await freshPair();
       const handle = uniqueTestUsername('race');
 
       const [resA, resB] = await Promise.all([
@@ -161,6 +168,7 @@ describe('Onboarding Security & Race Integration', () => {
     });
 
     it('allows the same user to re-submit their own username (idempotent)', async () => {
+      const { app, userA } = await freshPair();
       const handle = uniqueTestUsername('idem');
       const body = {
         currentStep: 'username',
@@ -185,6 +193,7 @@ describe('Onboarding Security & Race Integration', () => {
   // ── Idempotence: stepper Continue double-click ───────────────────
   describe('POST /session/next idempotence', () => {
     it('keeps `completedSteps` from doubling on rapid double-click', async () => {
+      const { app, userA } = await freshPair();
       // Two near-simultaneous next requests. Either both succeed (we
       // ended up at the same step but the set was de-duped) or the
       // second hits a 409/422 because the state machine already moved.
@@ -199,7 +208,7 @@ describe('Onboarding Security & Race Integration', () => {
         expect([200, 201, 400, 409, 422]).toContain(r.status);
       }
 
-      const finalProgress = await prisma.onboardingProgress.findUnique({
+      const finalProgress = await app.prisma.onboardingProgress.findUnique({
         where: { userId: userA.userId },
       });
       const completed = finalProgress?.completedSteps ?? [];
@@ -211,6 +220,7 @@ describe('Onboarding Security & Race Integration', () => {
   // ── XSS: persisted-content sanitisation contract ─────────────────
   describe('XSS / hostile input', () => {
     it('does not echo back a raw <script> tag from a fullName payload', async () => {
+      const { app, userA } = await freshPair();
       const payload = '<script>alert(1)</script>Mallory';
       const res = await app.request
         .put(PROGRESS_PATH)
@@ -229,7 +239,7 @@ describe('Onboarding Security & Race Integration', () => {
       // <script> opening tag we'd later render unescaped".
       expect([200, 400]).toContain(res.status);
       if (res.status === 200) {
-        const row = await prisma.onboardingProgress.findUnique({
+        const row = await app.prisma.onboardingProgress.findUnique({
           where: { userId: userA.userId },
         });
         const stored = (row?.personalInfo as { fullName?: string } | null)?.fullName ?? '';
@@ -243,6 +253,7 @@ describe('Onboarding Security & Race Integration', () => {
   // ── New endpoint: public username rules ──────────────────────────
   describe('GET /v1/users/username/rules (public)', () => {
     it('returns the regex sources + min/max without auth', async () => {
+      const app = await getApp();
       const res = await app.request.get(USERNAME_RULES_PATH);
       expect(res.status).toBe(200);
       const body = res.body as {

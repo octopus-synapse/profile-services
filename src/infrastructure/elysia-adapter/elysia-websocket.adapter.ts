@@ -37,6 +37,12 @@ interface SocketState {
   readonly rateBucket: RateBucket;
 }
 
+/** Structural view of Elysia's `.ws()` mounting surface — its hook
+ *  generics are too strict to express our dynamic namespace handlers. */
+interface WsCapableApp {
+  ws(path: string, handlers: object): unknown;
+}
+
 interface NamespaceState {
   readonly authenticate: WsAuthenticator;
   readonly messageHandlers: Map<string, WsMessageHandler>;
@@ -232,8 +238,14 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
 
   private mountNamespace(app: Elysia, path: string, state: NamespaceState): void {
     const adapter = this;
-    (app as unknown as { ws: (path: string, handlers: object) => unknown }).ws(path, {
-      async beforeHandle(ctx: { request: Request; query: Record<string, unknown> }) {
+    // Elysia's `.ws()` hook generics are too strict to express our dynamic
+    // per-namespace mounting; treat the app's ws surface structurally.
+    (app as WsCapableApp).ws(path, {
+      async beforeHandle(ctx: {
+        request: Request;
+        query: Record<string, unknown>;
+        data?: { userId: string };
+      }) {
         // P0-002: CSRF defense for WS upgrades. A browser at attacker.com
         // would auto-send the user's httpOnly auth cookie on a WS
         // upgrade — checking Origin is the only browser-side primitive
@@ -267,7 +279,7 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
           return new Response('Too Many Connections', { status: 429 });
         }
         // Pass the userId via Elysia's data slot so `open` can read it.
-        (ctx as unknown as { data: { userId: string } }).data = { userId };
+        ctx.data = { userId };
       },
       open(ws: ServerWebSocket<SocketState> & { data?: { userId: string } }) {
         const userId = ws.data?.userId;
@@ -277,7 +289,7 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
         }
         const socketId = nextSocketId();
         // Replace ws.data with the full SocketState the adapter tracks.
-        (ws as unknown as { data: SocketState }).data = {
+        (ws as { data: SocketState }).data = {
           userId,
           socketId,
           rooms: new Set(),

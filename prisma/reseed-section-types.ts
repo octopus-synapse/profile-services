@@ -1,7 +1,7 @@
 /**
  * Idempotent re-seed of the section-type catalog (definitions + translations).
  *
- * Run after changing prisma/seeds/section-type.seed.ts or the translation
+ * Run after changing prisma/seeds/shared/section-type.seed.ts or the translation
  * seeds — the runtime now resolves labels with NO fallback, so the DB must
  * carry the current, fully-translated catalog or requests throw.
  *
@@ -14,7 +14,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
-import { seedSectionTypes } from './seeds/section-type.seed';
+import { seedSectionTypes } from './seeds/shared/section-type.seed';
 
 const prisma = new PrismaClient(createPrismaClientOptions());
 

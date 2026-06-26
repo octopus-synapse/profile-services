@@ -247,7 +247,7 @@ export class PrismaJobsRepository extends JobsRepositoryPort {
       }),
       this.prisma.jobApplication.count({ where }),
     ]);
-    return { items: items as unknown as ApplicationWithJob[], total };
+    return { items: items as ApplicationWithJob[], total };
   }
 
   async listApplicationsByJob(
@@ -325,7 +325,7 @@ export class PrismaJobsRepository extends JobsRepositoryPort {
       }),
       this.prisma.jobBookmark.count({ where: { userId } }),
     ]);
-    return { items: bookmarks as unknown as BookmarkWithJob[], total };
+    return { items: bookmarks as BookmarkWithJob[], total };
   }
 
   // ============================================================================

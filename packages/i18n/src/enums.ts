@@ -243,6 +243,13 @@ export const ENUM_DICTIONARY = {
     HIGH: { en: 'High', 'pt-BR': 'Alta' },
     CRITICAL: { en: 'Critical', 'pt-BR': 'Crítica' },
   },
+  LinkKind: {
+    LINKEDIN: { en: 'LinkedIn', 'pt-BR': 'LinkedIn' },
+    GITHUB: { en: 'GitHub', 'pt-BR': 'GitHub' },
+    WEBSITE: { en: 'Website', 'pt-BR': 'Site' },
+    PORTFOLIO: { en: 'Portfolio', 'pt-BR': 'Portfólio' },
+    CUSTOM: { en: 'Custom link', 'pt-BR': 'Link personalizado' },
+  },
   MecSyncStatus: {
     FAILED: { en: 'Failed', 'pt-BR': 'Falhou' },
     PARTIAL: { en: 'Partial', 'pt-BR': 'Parcial' },

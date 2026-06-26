@@ -35,7 +35,9 @@ for (const s of styles) {
   console.log(`  stored styleScore : ${s.styleScore}`);
   console.log(`  REAL recomputed   : ${result.overall}`);
   console.log(`  breakdown         : ${JSON.stringify(result.breakdown)}`);
-  console.log(`  issues            : ${result.issues.length === 0 ? 'none' : JSON.stringify(result.issues)}`);
+  console.log(
+    `  issues            : ${result.issues.length === 0 ? 'none' : JSON.stringify(result.issues)}`,
+  );
   console.log(`  match stored?     : ${result.overall === s.styleScore ? 'YES ✅' : 'NO ❌'}\n`);
 }
 

@@ -63,7 +63,10 @@ const sample: StyleDetail = {
   version: 1,
   styleConfig: { foo: 'bar' },
   sectionStyles: {},
-  styleScoreBreakdown: { buckets: { structure: 35, typography: 30, contrast: 20, decorations: 15 }, issues: [] },
+  styleScoreBreakdown: {
+    buckets: { structure: 35, typography: 30, contrast: 20, decorations: 15 },
+    issues: [],
+  },
   previewImages: [],
   authorId: 'admin',
 };

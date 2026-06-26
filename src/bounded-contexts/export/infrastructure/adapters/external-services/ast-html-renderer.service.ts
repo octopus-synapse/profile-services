@@ -504,7 +504,7 @@ ${FIT_SCRIPT}
 // ─── Stylesheet (the hardcoded ATS look from the default template) ──────
 const STYLE = `
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;background:#e5e7eb;}
+html,body{margin:0;padding:0;background:#e5e7eb;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{background:#e5e7eb;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;}
 .fit{width:100%;overflow-x:hidden;}
 .page{
@@ -546,7 +546,7 @@ body{background:#e5e7eb;-webkit-font-smoothing:antialiased;text-rendering:optimi
 // ─── ATS stylesheet (mirrors templates-ats/: serif, no rules/bars) ──────
 const ATS_STYLE = `
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;background:#e5e7eb;}
+html,body{margin:0;padding:0;background:#e5e7eb;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{background:#e5e7eb;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;}
 .fit{width:100%;overflow-x:hidden;}
 .page-ats{

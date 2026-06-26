@@ -14,6 +14,15 @@ const PRISMA_CODE_TO_DOMAIN_CODE: Record<string, string> = {
   P2025: 'ENTITY_NOT_FOUND',
 };
 
+/**
+ * True when `error` is a Prisma foreign-key constraint violation (P2003).
+ * Lets domain adapters react to a vanished referenced row without taking a
+ * direct `@prisma/client` import (which would couple them to the ORM).
+ */
+export function isForeignKeyConstraintError(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003';
+}
+
 export function mapPrismaErrorToHttp(error: unknown): MappedHttpError | null {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     const status = PRISMA_CODE_TO_STATUS[error.code];

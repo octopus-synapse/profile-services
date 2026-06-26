@@ -21,6 +21,19 @@ export interface SanitizeHtmlOptions {
 }
 
 /**
+ * C0 control characters with no place in user text — NUL and friends —
+ * excluding the legitimate whitespace `\t` (09), `\n` (0A), `\r` (0D).
+ * A NUL byte in particular is rejected by Postgres (`invalid byte sequence
+ * for encoding "UTF8": 0x00`) and, left unstripped, surfaces as an
+ * unhandled 500 on the write path. `sanitize-html` only removes markup, so
+ * we strip these ourselves as part of sanitization. Built via `new RegExp`
+ * from an escaped string so no raw control byte appears in the source and
+ * `noControlCharactersInRegex` (which only inspects regex literals) is moot.
+ */
+// biome-ignore lint/complexity/useRegexLiterals: a literal would embed raw control bytes / trip noControlCharactersInRegex
+const CONTROL_CHARS_RE = new RegExp('[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]', 'g');
+
+/**
  * Defense-in-depth HTML sanitization for user-supplied content. Backed by
  * `sanitize-html`, which parses the input into a proper DOM and re-emits
  * only the whitelisted nodes / attributes — unlike a regex strip
@@ -37,7 +50,7 @@ export interface SanitizeHtmlOptions {
 export function sanitizeHtmlContent(input: string, opts?: SanitizeHtmlOptions): string {
   const allowedTags = (opts?.allowedTags ?? DEFAULT_ALLOWED_TAGS) as string[];
   const allowedAttributes = mutableAttrs(opts?.allowedAttrs ?? DEFAULT_ALLOWED_ATTRS);
-  return sanitizeHtml(input, {
+  return sanitizeHtml(input.replace(CONTROL_CHARS_RE, ''), {
     allowedTags,
     allowedAttributes,
     allowedSchemes: ['http', 'https', 'mailto'],

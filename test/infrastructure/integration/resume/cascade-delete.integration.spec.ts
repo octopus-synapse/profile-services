@@ -10,70 +10,36 @@
  * - Event order (event before delete = inconsistency)
  * - Transaction isolation
  * - Race conditions on concurrent operations
+ *
+ * Order-independent: each test provisions its own user via
+ * `freshInDbUser` instead of the shared `beforeEach` token. Bun 1.3+
+ * runs tests inside a `describe` concurrently, so the old shared
+ * `accessToken`/`userId` would be overwritten by a parallel test.
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { waitFor } from '../../shared';
-import {
-  clearAuthRateLimits,
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getPrisma,
-  getRequest,
-  uniqueTestId,
-  uniqueTestSlug,
-} from '../setup';
+import { freshInDbUser } from '../../shared/fresh-context';
+import { getApp, uniqueTestSlug } from '../setup';
 
 describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
-  let accessToken: string;
-  let userId: string;
-
-  beforeAll(async () => {
-    await getApp();
-  });
-
-  beforeEach(async () => {
-    await clearAuthRateLimits();
-    const auth = await createTestUserAndLogin({
-      email: `cascade-test-${uniqueTestId()}@example.com`,
-    });
-    accessToken = auth.accessToken;
-    userId = auth.userId;
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    if (userId) {
-      // Clean up any remaining test data
-      await prisma.sectionItem.deleteMany({
-        where: { resumeSection: { resume: { userId } } },
-      });
-      await prisma.resumeSection.deleteMany({
-        where: { resume: { userId } },
-      });
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.deleteMany({ where: { id: userId } });
-    }
-    await closeApp();
-  });
-
   describe('BUG-CASCADE-001: Orphaned Sections After Delete', () => {
     /**
      * EXPECTED BEHAVIOR: Deleting resume should cascade delete all sections
      * ACTUAL BUG: Sections remain orphaned in database
      */
     it('should cascade delete all resume sections - EXPECTED TO FAIL IF ORPHANS EXIST', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
-      // Get or create a resume for this user
-      let resume = await prisma.resume.findFirst({ where: { userId } });
-
-      if (!resume) {
-        resume = await prisma.resume.create({
-          data: { userId, title: 'Test Resume for Cascade', slug: uniqueTestSlug('cascade-test') },
-        });
-      }
+      const resume = await prisma.resume.create({
+        data: {
+          userId: user.userId,
+          title: 'Test Resume for Cascade',
+          slug: uniqueTestSlug('cascade-test'),
+        },
+      });
 
       // Get a section type
       const sectionType = await prisma.sectionType.findFirst();
@@ -103,9 +69,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       expect(itemsBefore).toBe(3);
 
       // Delete the resume via API
-      const _deleteResponse = await getRequest()
-        .delete(`/api/v1/resumes/${resume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      await app.request.delete(`/api/v1/resumes/${resume.id}`).set(user.bearer());
 
       // Poll until async cleanup handlers finish; previous fixed
       // 500ms sleep silently passed when the cascade didn't run.
@@ -142,31 +106,33 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * ACTUAL BUG: Cache returns deleted resume data
      */
     it('should invalidate cache immediately - EXPECTED TO FAIL IF STALE CACHE', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create a new resume
       const resume = await prisma.resume.create({
-        data: { userId, title: 'Cache Test Resume', slug: uniqueTestSlug('cache-test') },
+        data: {
+          userId: user.userId,
+          title: 'Cache Test Resume',
+          slug: uniqueTestSlug('cache-test'),
+        },
       });
 
       // Fetch the resume to populate cache
-      const fetchBefore = await getRequest()
-        .get(`/api/v1/resumes/${resume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      const fetchBefore = await app.request.get(`/api/v1/resumes/${resume.id}`).set(user.bearer());
 
       expect(fetchBefore.status).toBe(200);
 
       // Delete the resume
-      const deleteResponse = await getRequest()
+      const deleteResponse = await app.request
         .delete(`/api/v1/resumes/${resume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+        .set(user.bearer());
 
       expect(deleteResponse.status).toBe(200);
 
       // IMMEDIATELY try to fetch again (should get 404, not cached 200)
-      const fetchAfter = await getRequest()
-        .get(`/api/v1/resumes/${resume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      const fetchAfter = await app.request.get(`/api/v1/resumes/${resume.id}`).set(user.bearer());
 
       console.log('Status after delete:', fetchAfter.status);
 
@@ -185,27 +151,26 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * ACTUAL BUG: Race condition causes errors or inconsistent state
      */
     it('should handle concurrent deletes gracefully - EXPECTED TO FAIL IF RACE CONDITION', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create a resume to delete
       const resume = await prisma.resume.create({
-        data: { userId, title: 'Race Condition Test', slug: uniqueTestSlug('race-test') },
+        data: {
+          userId: user.userId,
+          title: 'Race Condition Test',
+          slug: uniqueTestSlug('race-test'),
+        },
       });
 
       // Send TWO delete requests simultaneously
       const [result1, result2] = await Promise.all([
-        getRequest()
-          .delete(`/api/v1/resumes/${resume.id}`)
-          .set('Authorization', `Bearer ${accessToken}`),
-        getRequest()
-          .delete(`/api/v1/resumes/${resume.id}`)
-          .set('Authorization', `Bearer ${accessToken}`),
+        app.request.delete(`/api/v1/resumes/${resume.id}`).set(user.bearer()),
+        app.request.delete(`/api/v1/resumes/${resume.id}`).set(user.bearer()),
       ]);
 
       console.log('Concurrent delete statuses:', result1.status, result2.status);
-
-      // One should succeed (200), one should fail (404 or similar)
-      const _statuses = [result1.status, result2.status].sort();
 
       // Both returning 200 would indicate no idempotency protection
       const bothSucceeded = result1.status === 200 && result2.status === 200;
@@ -230,12 +195,14 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Test error handling for invalid resume ID
      */
     it('should return 404 for non-existent resume', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
       // IDs são UUID v7 (Q11). UUID válido mas inexistente.
       const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
-      const response = await getRequest()
+      const response = await app.request
         .delete(`/api/v1/resumes/${fakeResumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+        .set(user.bearer());
 
       expect(response.status).toBe(404);
     });
@@ -247,12 +214,12 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * ACTUAL BUG: IDOR allows deleting other users' resumes
      */
     it('should not allow deleting other user resume - EXPECTED TO FAIL IF IDOR EXISTS', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create another user with a resume
-      const otherUser = await createTestUserAndLogin({
-        email: `other-user-cascade-${uniqueTestId()}@example.com`,
-      });
+      const otherUser = await freshInDbUser(app);
 
       // Create resume for other user
       const otherResume = await prisma.resume.create({
@@ -264,9 +231,9 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       });
 
       // Try to delete other user's resume with our token
-      const response = await getRequest()
+      const response = await app.request
         .delete(`/api/v1/resumes/${otherResume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+        .set(user.bearer());
 
       console.log('IDOR delete attempt status:', response.status);
 
@@ -279,10 +246,6 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       });
 
       expect(resumeStillExists).not.toBeNull();
-
-      // Cleanup
-      await prisma.resume.deleteMany({ where: { userId: otherUser.userId } });
-      await prisma.user.deleteMany({ where: { id: otherUser.userId } });
     });
   });
 
@@ -298,17 +261,21 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       // 3. Then actual delete happens
       // 4. If delete fails, cache is already invalidated = inconsistent state
 
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create a resume
       const resume = await prisma.resume.create({
-        data: { userId, title: 'Consistency Test', slug: uniqueTestSlug('consistency-test') },
+        data: {
+          userId: user.userId,
+          title: 'Consistency Test',
+          slug: uniqueTestSlug('consistency-test'),
+        },
       });
 
       // Populate cache
-      await getRequest()
-        .get(`/api/v1/resumes/${resume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      await app.request.get(`/api/v1/resumes/${resume.id}`).set(user.bearer());
 
       // Note: In current implementation, event is published BEFORE delete
       // This means if delete fails (e.g., database constraint), cache is already invalidated
@@ -316,9 +283,6 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       console.log('ARCHITECTURE NOTE: Event is published before delete in DeleteResumeUseCase');
       console.log('If delete fails after event is published, cache state is inconsistent');
-
-      // Cleanup
-      await prisma.resume.delete({ where: { id: resume.id } });
     });
   });
 
@@ -328,10 +292,13 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Test that user:userId:resumes cache key is cleared
      */
     it('should invalidate user resume list cache', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+
       // Create a resume through the API to ensure all required data is present
-      const createResponse = await getRequest()
+      const createResponse = await app.request
         .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set(user.bearer())
         .send({ title: 'User Cache Test' });
 
       expect(createResponse.status).toBe(201);
@@ -339,9 +306,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       expect(resumeId).toBeDefined();
 
       // Fetch user's resumes to populate cache
-      const listBefore = await getRequest()
-        .get('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`);
+      const listBefore = await app.request.get('/api/v1/resumes').set(user.bearer());
 
       // Handle paginated response: data.data contains the array
       const resumesBefore = listBefore.body?.items || [];
@@ -349,14 +314,10 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       expect(countBefore).toBeGreaterThan(0);
 
       // Delete the resume
-      await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      await app.request.delete(`/api/v1/resumes/${resumeId}`).set(user.bearer());
 
       // Immediately fetch list again
-      const listAfter = await getRequest()
-        .get('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`);
+      const listAfter = await app.request.get('/api/v1/resumes').set(user.bearer());
 
       // Handle paginated response
       const resumesAfter = listAfter.body?.items || [];
@@ -380,18 +341,22 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Check if deleted data can be recovered
      */
     it('should perform hard delete (no recovery) - INFORMATIONAL', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create and immediately delete a resume
       const resume = await prisma.resume.create({
-        data: { userId, title: 'Hard Delete Test', slug: uniqueTestSlug('hard-delete-test') },
+        data: {
+          userId: user.userId,
+          title: 'Hard Delete Test',
+          slug: uniqueTestSlug('hard-delete-test'),
+        },
       });
 
       const resumeId = resume.id;
 
-      await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      await app.request.delete(`/api/v1/resumes/${resumeId}`).set(user.bearer());
 
       // Try to find with raw query (bypass soft delete filters if any)
       const rawResult = await prisma.$queryRaw`
@@ -417,24 +382,27 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * EXPECTED BEHAVIOR: Unauthenticated delete should return 401
      */
     it('should reject delete without authentication', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create a resume
       const resume = await prisma.resume.create({
-        data: { userId, title: 'No Auth Delete Test', slug: uniqueTestSlug('no-auth-test') },
+        data: {
+          userId: user.userId,
+          title: 'No Auth Delete Test',
+          slug: uniqueTestSlug('no-auth-test'),
+        },
       });
 
       // Try to delete without auth
-      const response = await getRequest().delete(`/api/v1/resumes/${resume.id}`);
+      const response = await app.request.delete(`/api/v1/resumes/${resume.id}`);
 
       expect(response.status).toBe(401);
 
       // Resume should still exist
       const resumeExists = await prisma.resume.findUnique({ where: { id: resume.id } });
       expect(resumeExists).not.toBeNull();
-
-      // Cleanup
-      await prisma.resume.delete({ where: { id: resume.id } });
     });
   });
 
@@ -444,20 +412,21 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Check for orphaned related data
      */
     it('should cascade delete related data - INFORMATIONAL', async () => {
-      const prisma = getPrisma();
+      const app = await getApp();
+      const prisma = app.prisma;
+      const user = await freshInDbUser(app);
 
       // Create a resume
       const resume = await prisma.resume.create({
-        data: { userId, title: 'Analytics Test', slug: uniqueTestSlug('analytics-test') },
+        data: {
+          userId: user.userId,
+          title: 'Analytics Test',
+          slug: uniqueTestSlug('analytics-test'),
+        },
       });
 
-      // Check if there are related tables (versions, analytics, etc.)
-      // This is informational - document what gets cleaned up
-
       // Delete the resume
-      await getRequest()
-        .delete(`/api/v1/resumes/${resume.id}`)
-        .set('Authorization', `Bearer ${accessToken}`);
+      await app.request.delete(`/api/v1/resumes/${resume.id}`).set(user.bearer());
 
       // Check for orphaned resume versions (if table exists)
       try {

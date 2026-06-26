@@ -9,8 +9,8 @@
  * `ThrottlerGuard` from `@nestjs/throttler`) into the registry.
  */
 
-import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import { ChangePasswordSchema } from './infrastructure/controllers/change-password.schema';
 import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.schema';

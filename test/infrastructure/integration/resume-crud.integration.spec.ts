@@ -4,100 +4,35 @@
  * Tests complete resume lifecycle with real database.
  * Validates business rules: 4 resume limit, ownership, etc.
  *
- * Kent Beck: "Test behavior, not implementation"
+ * Order-independent: each test provisions its own fully-onboarded user
+ * via `freshInDbUser(app)` and owns its resumes for its lifetime. Bun
+ * runs tests inside a `describe` concurrently (1.3+), so shared
+ * `let accessToken/userId/resumeId` would race. No `afterAll` tearing
+ * down the shared app — it's reused by other parallel spec files.
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
+import type { FreshUser } from '../shared/fresh-context';
+import { freshInDbUser } from '../shared/fresh-context';
+import type { TestApp } from '../shared/test-app';
+import { getApp } from './setup';
 
-import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
-import {
-  acceptTosWithPrisma,
-  assignUserRole,
-  clearAuthRateLimits,
-  getApp,
-  signupBody,
-  uniqueTestId,
-} from './setup';
+/** Create a resume for `user` via the API and return its id. */
+async function createResume(
+  app: TestApp,
+  user: FreshUser,
+  body: Record<string, unknown>,
+): Promise<string> {
+  const res = await app.request.post('/api/v1/resumes').set(user.bearer()).send(body).expect(201);
+  return res.body.id as string;
+}
 
 describe('Resume CRUD Integration', () => {
-  let app: TestApp;
-  let prisma: PrismaClient;
-  let accessToken: string;
-  let userId: string;
-
-  // testUser é declarado por test (escopo beforeEach) para evitar
-  // colisão de email entre tests sequenciais — `afterEach` limpa
-  // apenas resumes, então reusar o mesmo email faria signup 409.
-  let testUser: { email: string; password: string; name: string };
-
-  beforeAll(async () => {
-    app = await getApp();
-  });
-
-  beforeEach(async () => {
-    await clearAuthRateLimits();
-    prisma = app.prisma;
-
-    testUser = {
-      email: `resume-test-${uniqueTestId()}@example.com`,
-      password: 'SecurePass123!',
-      name: 'Resume Test User',
-    };
-
-    // Create test user
-    const signupResponse = await app.request
-      .post('/api/v1/accounts')
-      .send(signupBody(testUser))
-      .expect(201);
-
-    userId = signupResponse.body.userId;
-
-    // Verify email to allow access to protected routes
-    await prisma.user.update({
-      where: { id: userId },
-      data: { emailVerified: new Date(), onboardingCompletedAt: new Date() },
-    });
-
-    // Accept ToS and Privacy Policy (GDPR compliance)
-    await acceptTosWithPrisma(prisma, userId);
-
-    // Mirror onboarding-completion: assign `user` role so domain
-    // routes pass the permission gate.
-    await assignUserRole(userId);
-
-    const loginResponse = await app.request.post('/api/v1/auth/login').send({
-      email: testUser.email,
-      password: testUser.password,
-    });
-    accessToken = tokenFromResponse(loginResponse, 'access_token')!;
-  }, 20000);
-
-  afterAll(async () => {
-    // Clean up test data
-    try {
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.deleteMany({
-        where: { email: testUser.email },
-      });
-    } catch {
-      // Ignore cleanup errors
-    }
-    await stopTestApp();
-  }, 20000);
-
-  afterEach(async () => {
-    // Limpa resumes e o user criado neste test — beforeEach gera
-    // email novo, então usuários antigos só ocupam espaço se não
-    // forem removidos.
-    if (userId) {
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.deleteMany({ where: { id: userId } }).catch(() => {});
-    }
-  });
-
   describe('Resume Creation', () => {
     it('should create a resume successfully', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+
       const resumeData = {
         title: 'My First Resume',
         summary: 'A professional software engineer with experience in...',
@@ -107,37 +42,30 @@ describe('Resume CRUD Integration', () => {
 
       const response = await app.request
         .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set(user.bearer())
         .send(resumeData)
         .expect(201);
       expect(response.body.title).toBe(resumeData.title);
     });
 
     it('should reject resume creation without authentication', async () => {
+      const app = await getApp();
       await app.request.post('/api/v1/resumes').send({ title: 'Unauthorized Resume' }).expect(401);
     });
   });
 
   describe('Resume Retrieval', () => {
-    let resumeId: string;
-
-    beforeEach(async () => {
-      const response = await app.request
-        .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: 'Test Resume for Retrieval',
-          fullName: 'Test User',
-        })
-        .expect(201);
-
-      resumeId = response.body.id;
-    });
-
     it('should retrieve own resume by ID', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, {
+        title: 'Test Resume for Retrieval',
+        fullName: 'Test User',
+      });
+
       const response = await app.request
         .get(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set(user.bearer())
         .expect(200);
 
       expect(response.body.id).toBe(resumeId);
@@ -145,39 +73,27 @@ describe('Resume CRUD Integration', () => {
     });
 
     it('should list all user resumes', async () => {
-      // Create additional resume
-      await app.request
-        .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ title: 'Second Resume', fullName: 'Test' })
-        .expect(201);
+      const app = await getApp();
+      const user = await freshInDbUser(app);
 
-      const response = await app.request
-        .get('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
+      await createResume(app, user, { title: 'First Resume', fullName: 'Test' });
+      await createResume(app, user, { title: 'Second Resume', fullName: 'Test' });
+
+      const response = await app.request.get('/api/v1/resumes').set(user.bearer()).expect(200);
 
       expect(response.body.items.length).toBe(2);
     });
   });
 
   describe('Resume Update', () => {
-    let resumeId: string;
-
-    beforeEach(async () => {
-      const response = await app.request
-        .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: 'Resume to Update',
-          fullName: 'Original Name',
-        })
-        .expect(201);
-
-      resumeId = response.body.id;
-    });
-
     it('should update resume successfully', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, {
+        title: 'Resume to Update',
+        fullName: 'Original Name',
+      });
+
       const updateData = {
         title: 'Updated Resume Title',
         fullName: 'Updated Name',
@@ -186,7 +102,7 @@ describe('Resume CRUD Integration', () => {
 
       const response = await app.request
         .patch(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set(user.bearer())
         .send(updateData)
         .expect(200);
 
@@ -195,78 +111,47 @@ describe('Resume CRUD Integration', () => {
   });
 
   describe('Resume Deletion', () => {
-    let resumeId: string;
-
-    beforeEach(async () => {
-      const response = await app.request
-        .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: 'Resume to Delete',
-          fullName: 'Delete Test',
-        })
-        .expect(201);
-
-      resumeId = response.body.id;
-    });
-
     it('should delete own resume', async () => {
-      await app.request
-        .delete(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, {
+        title: 'Resume to Delete',
+        fullName: 'Delete Test',
+      });
+
+      await app.request.delete(`/api/v1/resumes/${resumeId}`).set(user.bearer()).expect(200);
 
       // Verify deletion
-      await app.request
-        .get(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(404);
+      await app.request.get(`/api/v1/resumes/${resumeId}`).set(user.bearer()).expect(404);
     });
   });
 
   describe('Resume Limit (Max 4)', () => {
     it('should allow creating up to 4 resumes', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+
       for (let i = 1; i <= 4; i++) {
-        await app.request
-          .post('/api/v1/resumes')
-          .set('Authorization', `Bearer ${accessToken}`)
-          .send({
-            title: `Resume ${i}`,
-            fullName: `User ${i}`,
-          })
-          .expect(201);
+        await createResume(app, user, { title: `Resume ${i}`, fullName: `User ${i}` });
       }
 
-      // Verify all 4 exist
-      const response = await app.request
-        .get('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
+      const response = await app.request.get('/api/v1/resumes').set(user.bearer()).expect(200);
 
       expect(response.body.items.length).toBe(4);
     });
 
     it('should reject 5th resume creation', async () => {
-      // Create 4 resumes
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+
       for (let i = 1; i <= 4; i++) {
-        await app.request
-          .post('/api/v1/resumes')
-          .set('Authorization', `Bearer ${accessToken}`)
-          .send({
-            title: `Resume ${i}`,
-            fullName: `User ${i}`,
-          })
-          .expect(201);
+        await createResume(app, user, { title: `Resume ${i}`, fullName: `User ${i}` });
       }
 
-      // Try to create 5th
       const response = await app.request
         .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: 'Resume 5',
-          fullName: 'User 5',
-        })
+        .set(user.bearer())
+        .send({ title: 'Resume 5', fullName: 'User 5' })
         .expect(422);
 
       expect(response.body.message.includes('limit')).toBe(true);
@@ -274,35 +159,25 @@ describe('Resume CRUD Integration', () => {
   });
 
   describe('Resume Visibility', () => {
-    let resumeId: string;
-    let _resumeSlug: string;
-
-    beforeEach(async () => {
-      const response = await app.request
-        .post('/api/v1/resumes')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: 'Public Resume Test',
-          fullName: 'Public User',
-        })
-        .expect(201);
-
-      resumeId = response.body.id;
-      _resumeSlug = response.body.slug;
-    });
-
     it('should toggle resume visibility', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, {
+        title: 'Public Resume Test',
+        fullName: 'Public User',
+      });
+
       // Make public
       await app.request
         .patch(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set(user.bearer())
         .send({ isPublic: true })
         .expect(200);
 
       // Verify it's public
       const response = await app.request
         .get(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set(user.bearer())
         .expect(200);
 
       expect(response.body.isPublic).toBe(true);

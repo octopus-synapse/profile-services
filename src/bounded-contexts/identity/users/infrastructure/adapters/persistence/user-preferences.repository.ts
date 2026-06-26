@@ -7,6 +7,7 @@ import type {
 } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { readJsonColumn } from '@/shared-kernel/persistence/json-column';
 import {
   type FullUserPreferences,
   type OneClickApplyConfig,
@@ -270,7 +271,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       select: { oneClickApplyConfig: true },
     });
     if (!row || row.oneClickApplyConfig === null) return null;
-    return row.oneClickApplyConfig as unknown as OneClickApplyConfig;
+    return readJsonColumn<OneClickApplyConfig>(row.oneClickApplyConfig);
   }
 
   async upsertOneClickApplyConfig(

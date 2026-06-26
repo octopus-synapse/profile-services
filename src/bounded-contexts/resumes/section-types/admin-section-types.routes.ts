@@ -29,7 +29,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     path: '/v1/admin/section-types',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
-    query: ListSectionTypesQuerySchema as unknown as z.ZodType<ListSectionTypesQueryDto>,
+    query: ListSectionTypesQuerySchema,
     response: SectionTypeListResponseSchema,
     openapi: {
       summary: 'List all section types with pagination',
@@ -38,7 +38,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     },
     sdk: { exported: true },
     handler: async (ctx, bc) =>
-      bc.listSectionTypesAdminUseCase.execute(ctx.query as unknown as ListSectionTypesQueryDto),
+      bc.listSectionTypesAdminUseCase.execute(ctx.query as ListSectionTypesQueryDto),
   },
   {
     method: 'GET',
@@ -76,7 +76,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
-    body: CreateSectionTypeSchema as unknown as z.ZodType<CreateSectionTypeDto>,
+    body: CreateSectionTypeSchema,
     response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Create a new section type',
@@ -93,7 +93,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: KeyParam,
-    body: UpdateSectionTypeSchema as unknown as z.ZodType<UpdateSectionTypeDto>,
+    body: UpdateSectionTypeSchema,
     response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Update a section type',

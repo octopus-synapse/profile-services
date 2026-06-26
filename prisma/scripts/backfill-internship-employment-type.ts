@@ -20,8 +20,8 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { foldRoleText } from '../../src/bounded-contexts/roles/domain/services/role-search-ranking';
 import { createPrismaClientOptions } from '../../src/bounded-contexts/platform/prisma/prisma-client-options';
+import { foldRoleText } from '../../src/bounded-contexts/roles/domain/services/role-search-ranking';
 
 const prisma = new PrismaClient(createPrismaClientOptions());
 
@@ -49,7 +49,8 @@ async function backfillWorkExperience(internLabels: Set<string>): Promise<void> 
     const content = item.content as Record<string, unknown>;
     const role = typeof content.role === 'string' ? content.role : '';
     const isIntern =
-      content.roleSeniority === 'INTERN' || (role.length > 0 && internLabels.has(foldRoleText(role)));
+      content.roleSeniority === 'INTERN' ||
+      (role.length > 0 && internLabels.has(foldRoleText(role)));
     if (!isIntern) continue;
 
     const next: Record<string, unknown> = { ...content };

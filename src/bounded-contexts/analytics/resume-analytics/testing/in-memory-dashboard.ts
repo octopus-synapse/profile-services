@@ -66,10 +66,7 @@ export class InMemorySnapshot implements SnapshotPort {
   }
 
   /** Seeds the latest persisted quality score for a resume (for testing). */
-  seedLatest(
-    resumeId: string,
-    score: { overallScore: number; completenessScore: number },
-  ): void {
+  seedLatest(resumeId: string, score: { overallScore: number; completenessScore: number }): void {
     this.latest.set(resumeId, score);
   }
 

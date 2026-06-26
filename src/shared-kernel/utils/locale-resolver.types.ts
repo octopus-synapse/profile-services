@@ -23,6 +23,24 @@ export interface SectionTypeTranslation {
 
 export type TranslationsJson = Record<string, SectionTypeTranslation>;
 
+/** Translation structure stored in SectionGroup.translations JSON. */
+export interface SectionGroupTranslation {
+  title: string;
+  description?: string;
+}
+
+export type SectionGroupTranslationsJson = Record<string, SectionGroupTranslation>;
+
+/** Supersection group with translations resolved to a single locale. */
+export interface ResolvedSectionGroup {
+  key: string;
+  title: string;
+  description: string | null;
+  iconType: string;
+  icon: string;
+  order: number;
+}
+
 /** Field-level translation (in definition.fields[].meta.translations). */
 export interface FieldTranslation {
   label?: string;
@@ -39,6 +57,8 @@ export interface ResolvedSectionType {
   slug: string;
   semanticKind: string;
   version: number;
+  /** Optional supersection grouping (SectionGroup.key). null = standalone. */
+  groupKey: string | null;
   // Resolved from translations[locale]
   title: string;
   description: string;

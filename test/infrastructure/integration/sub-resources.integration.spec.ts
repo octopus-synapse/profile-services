@@ -1,18 +1,21 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import {
-  authHeader,
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getRequest,
-  testContext,
-} from './setup';
+import { describe, expect, it } from 'bun:test';
+import type { FreshUser } from '../shared/fresh-context';
+import { freshInDbUser } from '../shared/fresh-context';
+import type { TestApp } from '../shared/test-app';
+import { getApp } from './setup';
 
 /**
- * Generic Section configuration for parametrized tests
- * Uses the new generic sections API pattern: /sections/:sectionTypeKey/items
+ * Order-independent generic-sections smoke suite. Bun 1.3+ runs tests
+ * inside a `describe` concurrently, so a shared `let resumeId` /
+ * `let itemId` would race. Each test provisions its own fresh user +
+ * resume (and, where the test verifies list/update/delete, its own
+ * section item) so it owns its fixtures for its lifetime.
  *
- * IMPORTANT: Payloads must match the field definitions in section-type.seed.ts
+ * Generic sections API pattern: /sections/:sectionTypeKey/items
+ *
+ * IMPORTANT: Payloads must match the field definitions in
+ * prisma/seeds/shared/section-type.seed.ts (enum values are
+ * SCREAMING_CASE).
  */
 interface SectionConfig {
   name: string;
@@ -173,11 +176,11 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'bug bounties',
     sectionTypeKey: 'bug_bounty_v1',
-    // Required: platform, date
+    // Required: platform, date. severity enum: LOW, MEDIUM, HIGH, CRITICAL
     createPayload: {
       platform: 'HackerOne',
       date: '2023-01-01',
-      severity: 'High',
+      severity: 'HIGH',
       description: 'SQL Injection vulnerability',
       reward: '1000',
     },
@@ -186,50 +189,56 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'open source',
     sectionTypeKey: 'open_source_v1',
-    // Required: projectName, role (enum: Maintainer, Contributor, Creator)
+    // Required: projectName, role (enum: MAINTAINER, CONTRIBUTOR, CREATOR)
     createPayload: {
       projectName: 'Test OSS Project',
-      role: 'Maintainer',
+      role: 'MAINTAINER',
       description: 'Open source contribution',
       url: 'https://github.com/test/project',
     },
-    updatePayload: { projectName: 'Test OSS Project', role: 'Creator' },
+    updatePayload: { projectName: 'Test OSS Project', role: 'CREATOR' },
   },
 ];
 
+/** Create a resume owned by `user` via the public POST route. */
+async function createResume(app: TestApp, user: FreshUser, title: string): Promise<string> {
+  const res = await app.request.post('/api/v1/resumes').set(user.bearer()).send({ title });
+  if (res.status !== 201) {
+    throw new Error(`createResume failed: ${res.status} ${JSON.stringify(res.body)}`);
+  }
+  return res.body.id as string;
+}
+
+/** Create a section item and return its id (asserting create succeeds). */
+async function createSectionItem(
+  app: TestApp,
+  user: FreshUser,
+  resumeId: string,
+  sectionTypeKey: string,
+  content: Record<string, unknown>,
+): Promise<string> {
+  const res = await app.request
+    .post(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items`)
+    .set(user.bearer())
+    .send({ content });
+  if (![200, 201].includes(res.status)) {
+    throw new Error(
+      `createSectionItem ${sectionTypeKey} failed: ${res.status} ${JSON.stringify(res.body)}`,
+    );
+  }
+  return res.body.item.id as string;
+}
+
 describe('Generic Sections Smoke Tests', () => {
-  let resumeId: string;
-  let accessToken: string;
-
-  beforeAll(async () => {
-    await getApp();
-    // Use a suite-local token to avoid races with other integration files mutating testContext
-    const login = await createTestUserAndLogin();
-    accessToken = login.accessToken;
-
-    // Create a resume for testing sections
-    const res = await getRequest()
-      .post('/api/v1/resumes')
-      .set(authHeader(accessToken))
-      .send({ title: 'Generic Sections Test Resume' });
-
-    if (res.status !== 201) {
-      throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);
-    }
-
-    resumeId = res.body.id;
-    testContext.resumeId = resumeId;
-  });
-
-  afterAll(async () => {
-    await closeApp();
-  });
-
   describe('Section Types', () => {
     it('GET /api/v1/resumes/:id/sections/types - should list section types', async () => {
-      const res = await getRequest()
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, 'Section Types Resume');
+
+      const res = await app.request
         .get(`/api/v1/resumes/${resumeId}/sections/types`)
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('sectionTypes');
@@ -238,9 +247,11 @@ describe('Generic Sections Smoke Tests', () => {
     });
 
     it('GET /api/v1/resumes/:id/sections - should list resume sections', async () => {
-      const res = await getRequest()
-        .get(`/api/v1/resumes/${resumeId}/sections`)
-        .set(authHeader(accessToken));
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, 'List Sections Resume');
+
+      const res = await app.request.get(`/api/v1/resumes/${resumeId}/sections`).set(user.bearer());
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('sections');
@@ -254,12 +265,14 @@ describe('Generic Sections Smoke Tests', () => {
     createPayload,
     updatePayload,
   }) => {
-    let itemId: string;
-
     it(`POST /sections/${sectionTypeKey}/items - should create ${name}`, async () => {
-      const res = await getRequest()
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, `${name} create resume`);
+
+      const res = await app.request
         .post(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items`)
-        .set(authHeader(accessToken))
+        .set(user.bearer())
         .send({ content: createPayload });
 
       // Log response for debugging if it fails
@@ -271,14 +284,15 @@ describe('Generic Sections Smoke Tests', () => {
       expect([200, 201].includes(res.status)).toBe(true);
       expect(res.body).toHaveProperty('item');
       expect(res.body.item).toHaveProperty('id');
-
-      itemId = res.body.item.id;
     });
 
     it(`GET /sections - should include ${name} in list`, async () => {
-      const res = await getRequest()
-        .get(`/api/v1/resumes/${resumeId}/sections`)
-        .set(authHeader(accessToken));
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, `${name} list resume`);
+      await createSectionItem(app, user, resumeId, sectionTypeKey, createPayload);
+
+      const res = await app.request.get(`/api/v1/resumes/${resumeId}/sections`).set(user.bearer());
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('sections');
@@ -301,14 +315,14 @@ describe('Generic Sections Smoke Tests', () => {
     });
 
     it(`PATCH /sections/${sectionTypeKey}/items/:itemId - should update ${name}`, async () => {
-      if (!itemId) {
-        console.warn(`Skipping update ${name} test - no item created`);
-        return;
-      }
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, `${name} update resume`);
+      const itemId = await createSectionItem(app, user, resumeId, sectionTypeKey, createPayload);
 
-      const res = await getRequest()
+      const res = await app.request
         .patch(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items/${itemId}`)
-        .set(authHeader(accessToken))
+        .set(user.bearer())
         .send({ content: updatePayload });
 
       // Log response for debugging if it fails
@@ -321,14 +335,14 @@ describe('Generic Sections Smoke Tests', () => {
     });
 
     it(`DELETE /sections/${sectionTypeKey}/items/:itemId - should delete ${name}`, async () => {
-      if (!itemId) {
-        console.warn(`Skipping delete ${name} test - no item created`);
-        return;
-      }
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, `${name} delete resume`);
+      const itemId = await createSectionItem(app, user, resumeId, sectionTypeKey, createPayload);
 
-      const res = await getRequest()
+      const res = await app.request
         .delete(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items/${itemId}`)
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('deleted', true);
@@ -337,16 +351,22 @@ describe('Generic Sections Smoke Tests', () => {
 
   describe('Authorization checks', () => {
     it('should reject section access without auth', async () => {
-      const res = await getRequest().get(`/api/v1/resumes/${resumeId}/sections`);
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const resumeId = await createResume(app, user, 'Auth Guard Resume');
+
+      const res = await app.request.get(`/api/v1/resumes/${resumeId}/sections`);
 
       expect(res.status).toBe(401);
     });
 
     it('should reject section access for other user resume', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
       const fakeResumeId = '00000000-0000-0000-0000-000000000000';
-      const res = await getRequest()
+      const res = await app.request
         .get(`/api/v1/resumes/${fakeResumeId}/sections`)
-        .set(authHeader(accessToken));
+        .set(user.bearer());
 
       // Could be 400 (validation), 403 (forbidden) or 404 (not found)
       expect([400, 403, 404].includes(res.status)).toBe(true);

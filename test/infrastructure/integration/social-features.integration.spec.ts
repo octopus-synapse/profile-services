@@ -12,98 +12,69 @@
  * - Social stats accuracy
  * - Activity feed entries
  * - Non-existent user edge cases
+ *
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * concurrently, so the prior shared `userA/userB/userC` + their
+ * accumulated follow-state would race (a prior follow turned a later
+ * "should follow" 201 into a 409). Each test now self-provisions its
+ * own fresh actors (a pair or trio of `freshInDbUser`) so there is no
+ * shared follow-state from a sibling test.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import {
-  authHeader,
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getPrisma,
-  getRequest,
-  uniqueTestEmail,
-} from './setup';
+import { describe, expect, it } from 'bun:test';
+import { type FreshUser, freshInDbUser, type TestApp } from '../shared';
+import { getApp } from './setup';
 
 const describeIntegration =
   process.env.DATABASE_URL && !process.env.SKIP_INTEGRATION ? describe : describe.skip;
 
+/** Provision N fresh, independent, fully-onboarded actors. */
+async function freshActors(app: TestApp, count: number): Promise<FreshUser[]> {
+  const actors: FreshUser[] = [];
+  for (let i = 0; i < count; i++) {
+    actors.push(await freshInDbUser(app));
+  }
+  return actors;
+}
+
 describeIntegration('Social Features Integration', () => {
-  let userAToken: string;
-  let userAId: string;
-  let userBToken: string;
-  let userBId: string;
-  let userCToken: string;
-  let userCId: string;
-
-  const createdUserIds: string[] = [];
-
-  beforeAll(async () => {
-    await getApp();
-
-    // Create three test users for social interactions
-    const userA = await createTestUserAndLogin({ email: uniqueTestEmail('social-a') });
-    userAToken = userA.accessToken;
-    userAId = userA.userId;
-    createdUserIds.push(userAId);
-
-    const userB = await createTestUserAndLogin({ email: uniqueTestEmail('social-b') });
-    userBToken = userB.accessToken;
-    userBId = userB.userId;
-    createdUserIds.push(userBId);
-
-    const userC = await createTestUserAndLogin({ email: uniqueTestEmail('social-c') });
-    userCToken = userC.accessToken;
-    userCId = userC.userId;
-    createdUserIds.push(userCId);
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    // Clean up follows and activities first
-    for (const id of createdUserIds) {
-      try {
-        await prisma.activity.deleteMany({ where: { userId: id } });
-        await prisma.follow.deleteMany({
-          where: { OR: [{ followerId: id }, { followingId: id }] },
-        });
-        await prisma.userConsent.deleteMany({ where: { userId: id } });
-        await prisma.resume.deleteMany({ where: { userId: id } });
-        await prisma.user.deleteMany({ where: { id } });
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
-    await closeApp();
-  });
-
   // =========================================================================
   // Follow / Unfollow Lifecycle
   // =========================================================================
 
   describe('Follow a user', () => {
     it('should allow User A to follow User B', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/users/${userBId}/follow`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+
+      const response = await app.request
+        .post(`/api/v1/users/${userB.userId}/follow`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(201);
       expect(response.body.id).toBeDefined();
     });
 
     it('should confirm User A is following User B', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userBId}/is-following`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userB.userId}/is-following`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.isFollowing).toBe(true);
     });
 
     it('should confirm User A is NOT following User C yet', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userCId}/is-following`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userC] = await freshActors(app, 2);
+
+      const response = await app.request
+        .get(`/api/v1/users/${userC.userId}/is-following`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.isFollowing).toBe(false);
@@ -112,9 +83,12 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Cannot follow yourself', () => {
     it('should reject self-follow with 400', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/users/${userAId}/follow`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
+        .post(`/api/v1/users/${userA.userId}/follow`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(400);
     });
@@ -122,10 +96,15 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Idempotent follow (cannot follow same user twice)', () => {
     it('should handle duplicate follow gracefully', async () => {
-      // User A already follows User B from previous test
-      const response = await getRequest()
-        .post(`/api/v1/users/${userBId}/follow`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      // First follow.
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      // Second (duplicate) follow.
+      const response = await app.request
+        .post(`/api/v1/users/${userB.userId}/follow`)
+        .set(userA.bearer());
 
       // Should either return 200 (idempotent) or 409 (conflict)
       expect([200, 409]).toContain(response.status);
@@ -134,26 +113,38 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Unfollow a user', () => {
     it('should allow User A to unfollow User B', async () => {
-      const response = await getRequest()
-        .delete(`/api/v1/users/${userBId}/follow`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      const response = await app.request
+        .delete(`/api/v1/users/${userB.userId}/follow`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
     });
 
     it('should confirm User A is no longer following User B', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userBId}/is-following`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+      await app.request.delete(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userB.userId}/is-following`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.isFollowing).toBe(false);
     });
 
     it('should handle unfollowing a user you do not follow', async () => {
-      const response = await getRequest()
-        .delete(`/api/v1/users/${userCId}/follow`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userC] = await freshActors(app, 2);
+
+      const response = await app.request
+        .delete(`/api/v1/users/${userC.userId}/follow`)
+        .set(userA.bearer());
 
       // Should either succeed as no-op or return 404
       expect([200, 404]).toContain(response.status);
@@ -165,17 +156,16 @@ describeIntegration('Social Features Integration', () => {
   // =========================================================================
 
   describe('Get followers list', () => {
-    beforeAll(async () => {
-      // Set up: A and C both follow B
-      await getRequest().post(`/api/v1/users/${userBId}/follow`).set(authHeader(userAToken));
-
-      await getRequest().post(`/api/v1/users/${userBId}/follow`).set(authHeader(userCToken));
-    });
-
     it('should return followers of User B', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userBId}/followers`)
-        .set(authHeader(userBToken));
+      const app = await getApp();
+      const [userA, userB, userC] = await freshActors(app, 3);
+      // A and C both follow B.
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userC.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userB.userId}/followers`)
+        .set(userB.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.items).toBeDefined();
@@ -185,9 +175,14 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should support pagination on followers', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userBId}/followers?page=1&limit=1`)
-        .set(authHeader(userBToken));
+      const app = await getApp();
+      const [userA, userB, userC] = await freshActors(app, 3);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userC.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userB.userId}/followers?page=1&limit=1`)
+        .set(userB.bearer());
 
       expect(response.status).toBe(200);
 
@@ -195,9 +190,12 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should return empty followers for user with no followers', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/followers`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/followers`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
 
@@ -208,9 +206,13 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Get following list', () => {
     it('should return users that User A is following', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/following`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/following`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
 
@@ -219,9 +221,13 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should support pagination on following', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/following?page=1&limit=1`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/following?page=1&limit=1`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
     });
@@ -233,9 +239,14 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Social stats accuracy', () => {
     it('should return correct stats for User B (has followers)', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userBId}/social-stats`)
-        .set(authHeader(userBToken));
+      const app = await getApp();
+      const [userA, userB, userC] = await freshActors(app, 3);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userC.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userB.userId}/social-stats`)
+        .set(userB.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.followers).toBeGreaterThanOrEqual(2);
@@ -243,28 +254,38 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should return correct stats for User A (follows someone)', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/social-stats`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA, userB] = await freshActors(app, 2);
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/social-stats`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.following).toBeGreaterThanOrEqual(1);
     });
 
     it('should update stats after unfollow', async () => {
+      const app = await getApp();
+      const [userA, userB, userC] = await freshActors(app, 3);
+      // A and C both follow B so the count is deterministic for this test.
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userA.bearer());
+      await app.request.post(`/api/v1/users/${userB.userId}/follow`).set(userC.bearer());
+
       // Get stats before
-      const beforeResp = await getRequest()
-        .get(`/api/v1/users/${userBId}/social-stats`)
-        .set(authHeader(userBToken));
+      const beforeResp = await app.request
+        .get(`/api/v1/users/${userB.userId}/social-stats`)
+        .set(userB.bearer());
       const followersBefore = beforeResp.body.followers;
 
       // User C unfollows User B
-      await getRequest().delete(`/api/v1/users/${userBId}/follow`).set(authHeader(userCToken));
+      await app.request.delete(`/api/v1/users/${userB.userId}/follow`).set(userC.bearer());
 
       // Get stats after
-      const afterResp = await getRequest()
-        .get(`/api/v1/users/${userBId}/social-stats`)
-        .set(authHeader(userBToken));
+      const afterResp = await app.request
+        .get(`/api/v1/users/${userB.userId}/social-stats`)
+        .set(userB.bearer());
       const followersAfter = afterResp.body.followers;
 
       expect(followersAfter).toBe(followersBefore - 1);
@@ -277,39 +298,48 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Activity feed', () => {
     it('should show activities for a user', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/activities`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/activities`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it('should show feed for authenticated user', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/feed`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/feed`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it('should support pagination on activities', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userAId}/activities?page=1&limit=5`)
-        .set(authHeader(userAToken));
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
+        .get(`/api/v1/users/${userA.userId}/activities?page=1&limit=5`)
+        .set(userA.bearer());
 
       expect(response.status).toBe(200);
     });
 
     it('should return empty activities for user with no activity', async () => {
+      const app = await getApp();
       // Create a fresh user with no activities
-      const freshInDbUser = await createTestUserAndLogin({ email: uniqueTestEmail('no-activity') });
-      createdUserIds.push(freshInDbUser.userId);
+      const fresh = await freshInDbUser(app);
 
-      const response = await getRequest()
-        .get(`/api/v1/users/${freshInDbUser.userId}/activities`)
-        .set(authHeader(freshInDbUser.accessToken));
+      const response = await app.request
+        .get(`/api/v1/users/${fresh.userId}/activities`)
+        .set(fresh.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.items).toEqual([]);
@@ -323,17 +353,23 @@ describeIntegration('Social Features Integration', () => {
 
   describe('Edge cases', () => {
     it('should handle following a non-existent user', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
         .post('/api/v1/users/nonexistent-user-id-xyz/follow')
-        .set(authHeader(userAToken));
+        .set(userA.bearer());
 
       expect([400, 404]).toContain(response.status);
     });
 
     it('should handle checking is-following for non-existent user', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
         .get('/api/v1/users/nonexistent-user-id-xyz/is-following')
-        .set(authHeader(userAToken));
+        .set(userA.bearer());
 
       // Could return false or 404
       if (response.status === 200) {
@@ -344,9 +380,12 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should handle social stats for non-existent user', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const [userA] = await freshActors(app, 1);
+
+      const response = await app.request
         .get('/api/v1/users/nonexistent-user-id-xyz/social-stats')
-        .set(authHeader(userAToken));
+        .set(userA.bearer());
 
       expect(response.status).not.toBe(500);
 
@@ -357,9 +396,12 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should handle pagination limit cap at 100', async () => {
-      const response = await getRequest()
-        .get(`/api/v1/users/${userBId}/followers?limit=999`)
-        .set(authHeader(userBToken));
+      const app = await getApp();
+      const [_userA, userB] = await freshActors(app, 2);
+
+      const response = await app.request
+        .get(`/api/v1/users/${userB.userId}/followers?limit=999`)
+        .set(userB.bearer());
 
       // PaginationQuerySchema (Q3): MAX_PAGE_SIZE = 100; valores acima
       // disparam 400 via Zod. Antes era clamp silencioso.
@@ -367,25 +409,33 @@ describeIntegration('Social Features Integration', () => {
     });
 
     it('should require authentication for follow action', async () => {
-      const response = await getRequest().post(`/api/v1/users/${userBId}/follow`);
+      const app = await getApp();
+      const [userB] = await freshActors(app, 1);
+      const response = await app.request.post(`/api/v1/users/${userB.userId}/follow`);
 
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for unfollow action', async () => {
-      const response = await getRequest().delete(`/api/v1/users/${userBId}/follow`);
+      const app = await getApp();
+      const [userB] = await freshActors(app, 1);
+      const response = await app.request.delete(`/api/v1/users/${userB.userId}/follow`);
 
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for is-following check', async () => {
-      const response = await getRequest().get(`/api/v1/users/${userBId}/is-following`);
+      const app = await getApp();
+      const [userB] = await freshActors(app, 1);
+      const response = await app.request.get(`/api/v1/users/${userB.userId}/is-following`);
 
       expect(response.status).toBe(401);
     });
 
     it('should allow unauthenticated access to followers list (public endpoint)', async () => {
-      const response = await getRequest().get(`/api/v1/users/${userBId}/followers`);
+      const app = await getApp();
+      const [userB] = await freshActors(app, 1);
+      const response = await app.request.get(`/api/v1/users/${userB.userId}/followers`);
 
       // Followers list has no @RequirePermission, so it should be public
       // But JwtAuthGuard might still be applied at controller level

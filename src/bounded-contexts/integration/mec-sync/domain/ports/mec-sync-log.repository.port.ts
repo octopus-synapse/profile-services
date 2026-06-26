@@ -4,6 +4,8 @@
  * internal API to surface history + last-status to operators.
  */
 
+import type { MecSyncLog } from '@prisma/client';
+
 export interface CreateSyncLogParams {
   triggeredBy: string;
 }
@@ -23,14 +25,10 @@ export interface FailSyncLogParams {
 }
 
 /**
- * Adapters return the persisted row directly. The shape is intentionally
- * loose (Prisma's `MecSyncLog` model) — controllers serialize via the
- * flexible passthrough schema.
+ * Adapters return the persisted row directly — it IS Prisma's `MecSyncLog`
+ * model. Controllers serialize via the flexible passthrough schema.
  */
-export interface SyncLogRow {
-  id: string;
-  [key: string]: unknown;
-}
+export type SyncLogRow = MecSyncLog;
 
 export abstract class MecSyncLogRepositoryPort {
   abstract create(params: CreateSyncLogParams): Promise<SyncLogRow>;

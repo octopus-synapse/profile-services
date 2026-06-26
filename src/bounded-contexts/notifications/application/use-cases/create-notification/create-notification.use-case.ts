@@ -32,6 +32,7 @@ import type { PushSenderPort } from '../../../domain/ports/push-sender.port';
 export interface PushTokenReaderPort {
   listTokensByUser(userId: string): Promise<string[]>;
 }
+
 import { escapeHtml, humanizeType } from '../../shared/format';
 
 const CTX = 'CreateNotificationUseCase';

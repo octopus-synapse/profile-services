@@ -24,7 +24,7 @@ export function toSummaryResponseDto(s: StyleSummary): StyleSummaryDto {
 
 /**
  * P2-095 — narrow JsonValue → typed object via a single helper so
- * the presenter doesn't litter `as unknown as X` casts. The runtime
+ * the presenter doesn't litter double-cast assertions. The runtime
  * trusts the seeded shape (validated at write time by Zod schemas
  * in the admin routes); the helper just makes the assumption
  * explicit and gives tests one knob to flip.

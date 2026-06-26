@@ -1,7 +1,9 @@
-import type { Prisma, ResumeSection, SectionItem, SectionType } from '@prisma/client';
+import type { Prisma, ResumeSection, SectionGroup, SectionItem, SectionType } from '@prisma/client';
 
 // Use Prisma-generated types for consistency
 export type SectionTypeDto = SectionType & Record<string, unknown>;
+
+export type SectionGroupDto = SectionGroup & Record<string, unknown>;
 
 export type ResumeSectionDto = ResumeSection & {
   sectionType: SectionTypeDto | null;
@@ -17,15 +19,15 @@ export abstract class GenericResumeSectionsRepositoryPort {
 
   abstract findActiveSectionTypes(): Promise<SectionTypeDto[]>;
 
+  abstract findActiveSectionGroups(): Promise<SectionGroupDto[]>;
+
   abstract findResumeOwner(resumeId: string): Promise<{ id: string; userId: string } | null>;
 
   abstract findResumeSections(resumeId: string): Promise<ResumeSectionDto[]>;
 
   // `semanticKind` is surfaced so the section-item use-cases can tag the
   // `ResumeUpdatedEvent` they publish (resume-quality selective recompute).
-  abstract findActiveSectionTypeByKey(
-    sectionTypeKey: string,
-  ): Promise<{
+  abstract findActiveSectionTypeByKey(sectionTypeKey: string): Promise<{
     id: string;
     key: string;
     semanticKind: string;
@@ -74,6 +76,7 @@ export abstract class GenericResumeSectionsRepositoryPort {
 
 export abstract class GenericResumeSectionsUseCases {
   abstract readonly listSectionTypesUseCase: { execute: () => Promise<SectionTypeDto[]> };
+  abstract readonly listSectionGroupsUseCase: { execute: () => Promise<SectionGroupDto[]> };
   abstract readonly listResumeSectionsUseCase: {
     execute: (resumeId: string, userId: string) => Promise<ResumeSectionDto[]>;
   };

@@ -15,6 +15,41 @@ services:
       service: redis
     container_name: profile-redis-e2e
 
+  # Object storage for resume/banner exports. Internal-only (no host
+  # ports) so it never collides with a locally-running dev MinIO; the
+  # backend reaches it over the compose network at `minio:9000`.
+  minio:
+    image: minio/minio:${MINIO_VERSION:-RELEASE.2024-10-13T13-34-11Z}
+    container_name: profile-minio-e2e
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot bucket creation so the export upload has a target.
+  minio-init:
+    image: minio/mc:${MINIO_MC_VERSION:-RELEASE.2024-10-08T09-37-26Z}
+    container_name: profile-minio-init-e2e
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin};
+      mc mb local/$${MINIO_BUCKET:-profile-uploads} --ignore-existing;
+      mc anonymous set download local/$${MINIO_BUCKET:-profile-uploads};
+      echo 'Bucket ready';
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
+
   profile-services:
     image: ${PROFILE_SERVICES_IMAGE:-ghcr.io/ilelo/profile-services:latest}
     pull_policy: ${PULL_POLICY:-always}
@@ -34,10 +69,17 @@ services:
       RATE_LIMIT_AUTH_MAX: "1000"
       SKIP_EMAIL_VERIFICATION: "true"
       SKIP_TOS_CHECK: "true"
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
+      MINIO_PUBLIC_ENDPOINT: http://minio:9000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]

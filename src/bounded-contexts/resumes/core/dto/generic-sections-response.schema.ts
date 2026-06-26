@@ -10,6 +10,7 @@ const ResolvedSectionTypeSchema = z.object({
   slug: z.string(),
   semanticKind: z.string(),
   version: z.number().int(),
+  groupKey: z.string().nullable(),
   title: z.string(),
   description: z.string(),
   label: z.string(),
@@ -30,7 +31,19 @@ const ResolvedSectionTypeSchema = z.object({
   fieldStyles: z.unknown(),
 });
 
-const ResumeSectionTypesDataSchema = z.object({ sectionTypes: z.array(ResolvedSectionTypeSchema) });
+const SectionGroupSchema = z.object({
+  key: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  iconType: z.string(),
+  icon: z.string(),
+  order: z.number().int(),
+});
+
+const ResumeSectionTypesDataSchema = z.object({
+  sectionTypes: z.array(ResolvedSectionTypeSchema),
+  groups: z.array(SectionGroupSchema),
+});
 
 const GenericSectionItemSchema = z.object({
   id: z.string(),
@@ -91,6 +104,8 @@ const ResumeSectionDeleteDataSchema = z.object({ deleted: z.boolean() });
 // ============================================================================
 
 export type ResolvedSectionTypeDto = z.infer<typeof ResolvedSectionTypeSchema>;
+
+export type SectionGroupDto = z.infer<typeof SectionGroupSchema>;
 
 export type ResumeSectionTypesDataDto = z.infer<typeof ResumeSectionTypesDataSchema>;
 

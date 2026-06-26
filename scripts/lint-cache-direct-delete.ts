@@ -63,6 +63,11 @@ const ALLOWLIST = new Set([
   // P0-017: sync handler for JobUpdatedEvent — calls `cache.deletePattern`
   // directly with a queue fallback on failure.
   'src/bounded-contexts/job-match/infrastructure/handlers/invalidate-match-cache-on-job-updated.handler.ts',
+  // The session-exchange store's `consume()` deletes its own one-shot
+  // token key to enforce single-use semantics (TTL caps the replay
+  // window regardless). This is the store's primitive, not cross-cutting
+  // entity invalidation — `CacheInvalidationPort` would be the wrong tool.
+  'src/bounded-contexts/identity/authentication/infrastructure/adapters/cache-session-exchange.adapter.ts',
 ]);
 
 const PATTERN = /\b(?:cache|cachePort|this\.cache)\.(?:delete|deletePattern)\s*\(/;

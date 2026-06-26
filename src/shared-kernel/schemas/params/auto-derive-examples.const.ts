@@ -1,3 +1,6 @@
+// lint-allow-file-size: intrinsic flat catalog — one entry per known field
+// name; it grows monotonically as new response leaves appear and splitting it
+// would only fragment a single source of truth.
 /**
  * Auto-derive map: field name → example value.
  *
@@ -1100,4 +1103,22 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['englishLevels', 'B2'],
   ['currencies', 'BRL'],
   ['texts', EXAMPLE_DESCRIPTION],
+  // Two-step credential-change flows expose a `testCode` only in non-prod.
+  ['testCode', EXAMPLE_SLUG],
+  // Connected OAuth accounts.
+  ['connectedAt', EXAMPLE_ISO_DATETIME],
+  // External job listings (JSearch) + saved-job projections.
+  ['isSaved', 'false'],
+  ['savedId', EXAMPLE_GENERIC_ID],
+  ['externalId', EXAMPLE_GENERIC_ID],
+  ['isRemote', 'true'],
+  ['publisher', 'LinkedIn'],
+  ['alreadySaved', 'false'],
+  // Notification preferences (per-type channels).
+  ['inAppEnabled', 'true'],
+  ['pushEnabled', 'true'],
+  // Onboarding field descriptors carry the backing Prisma enum name.
+  ['enumName', EXAMPLE_SLUG],
+  // Style-score breakdown bucket map (criterion key → score).
+  ['buckets', EXAMPLE_SLUG],
 ]);

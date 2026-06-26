@@ -81,6 +81,7 @@ import { buildUiStateUseCases } from '@/bounded-contexts/identity/users/ui-state
 import { uiStateRoutes } from '@/bounded-contexts/identity/users/ui-state/ui-state.routes';
 import { buildUsersUseCases } from '@/bounded-contexts/identity/users/users.composition';
 import { usersRoutes } from '@/bounded-contexts/identity/users/users.routes';
+import { usersAdminRoutes } from '@/bounded-contexts/identity/users/users-admin.routes';
 import { buildImportComposition } from '@/bounded-contexts/import/import.composition';
 import { buildGitHubIntegrationUseCases } from '@/bounded-contexts/integration/github/github.composition';
 import { githubRoutes } from '@/bounded-contexts/integration/github/github.routes';
@@ -185,6 +186,7 @@ import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
+import { NoopJobQueueAdapter } from './noop-job-queue.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
 import { RedisDistributedLockAdapter } from './redis-distributed-lock.adapter';
@@ -383,11 +385,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
           },
           logger,
         )
-      : ({
-          register: () => {},
-          enqueue: async () => {},
-          schedule: async () => {},
-        } as never);
+      : new NoopJobQueueAdapter();
   if (enableBullmq && redisHost) {
     lifecycles.push(queue as BullMQJobQueueAdapter);
     logger.log(`BullMQ connected to ${redisHost}`, 'ElysiaBootstrap');
@@ -1071,13 +1069,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // pipeline expects keeps the stage framework-free.
   const permissionChecker = {
     check: async (userId: string, resource: string, action: string): Promise<boolean> => {
-      return (
-        authorization as unknown as {
-          checks: {
-            checkPermissionUseCase: { execute(u: string, r: string, a: string): Promise<boolean> };
-          };
-        }
-      ).checks.checkPermissionUseCase.execute(userId, resource, action);
+      return authorization.checks.checkPermissionUseCase.execute(userId, resource, action);
     },
   };
   const pipeline = buildDefaultPipeline({
@@ -1201,7 +1193,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     },
     { bundle: emailVerification, routes: emailVerificationRoutes },
     { bundle: passwordManagement, routes: passwordManagementRoutes },
-    { bundle: (users as { bundle: unknown }).bundle, routes: usersRoutes },
+    {
+      bundle: (users as { bundle: unknown }).bundle,
+      routes: [...usersRoutes, ...usersAdminRoutes],
+    },
     {
       bundle: shadowProfile,
       routes: shadowProfileRoutes,

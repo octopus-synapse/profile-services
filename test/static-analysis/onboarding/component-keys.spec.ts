@@ -15,7 +15,7 @@ import { describe, expect, it } from 'bun:test';
 
 // Seed source of truth — what the DB actually carries after
 // `bun run db:setup:test`.
-import { steps as seedSteps } from '../../../prisma/seeds/onboarding-step.seed';
+import { steps as seedSteps } from '../../../prisma/seeds/shared/onboarding-step.seed';
 
 /**
  * Components the runtime knows how to handle. Anything in the seed

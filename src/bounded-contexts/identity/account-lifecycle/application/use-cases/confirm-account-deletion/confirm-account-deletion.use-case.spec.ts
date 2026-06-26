@@ -61,9 +61,9 @@ describe('ConfirmAccountDeletionUseCase', () => {
   });
 
   it('rejects an invalid code and keeps the account', async () => {
-    await expect(
-      useCase.execute({ userId: 'user-1', code: '000000' }),
-    ).rejects.toBeInstanceOf(InvalidAccountDeletionCodeException);
+    await expect(useCase.execute({ userId: 'user-1', code: '000000' })).rejects.toBeInstanceOf(
+      InvalidAccountDeletionCodeException,
+    );
     expect(await repository.findById('user-1')).not.toBeNull();
   });
 });

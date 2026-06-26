@@ -10,149 +10,115 @@
  * - Idempotency and edge cases
  *
  * Roles: VIEWER, EDITOR, ADMIN
+ *
+ * Order-independent: every test provisions its own owner + resume +
+ * the collaborator/outsider actors it needs via `freshInDbUser`. Bun
+ * 1.3+ runs tests inside a `describe` concurrently, so any shared
+ * `let resumeId/ownerToken` would race; each test now owns its fixture
+ * for its lifetime.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import {
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getPrisma,
-  getRequest,
-  uniqueTestId,
-} from './setup';
+import { describe, expect, it } from 'bun:test';
+import type { FreshUser } from '../shared/fresh-context';
+import { freshInDbUser } from '../shared/fresh-context';
+import type { TestApp } from '../shared/test-app';
+import { getApp } from './setup';
 
 const describeIntegration =
   process.env.DATABASE_URL && !process.env.SKIP_INTEGRATION ? describe : describe.skip;
 
+interface CollabFixture {
+  readonly owner: FreshUser;
+  readonly resumeId: string;
+}
+
+/** Create a fresh owner + a resume they own. */
+async function freshOwnerWithResume(app: TestApp): Promise<CollabFixture> {
+  const owner = await freshInDbUser(app);
+  const resume = await app.prisma.resume.create({
+    data: { userId: owner.userId, title: 'Collab Test Resume' },
+  });
+  return { owner, resumeId: resume.id };
+}
+
+/** Invite `invitee` onto `resumeId` as `role`, owner-authenticated. Returns the 201 response. */
+function invite(
+  app: TestApp,
+  owner: FreshUser,
+  resumeId: string,
+  inviteeUserId: string,
+  role: string,
+) {
+  return app.request
+    .post(`/api/v1/resumes/${resumeId}/collaborators`)
+    .set(owner.bearer())
+    .send({ userId: inviteeUserId, role });
+}
+
 describeIntegration('Collaboration Integration Tests', () => {
-  // Owner of the resume
-  let ownerToken: string;
-  let ownerUserId: string;
-  let resumeId: string;
-
-  // Collaborator user
-  let collaboratorToken: string;
-  let collaboratorUserId: string;
-
-  // Second collaborator
-  let _collaborator2Token: string;
-  let collaborator2UserId: string;
-
-  // Non-collaborator (outsider)
-  let outsiderToken: string;
-  let outsiderUserId: string;
-
-  beforeAll(async () => {
-    await getApp();
-
-    // Create the resume owner
-    const ownerAuth = await createTestUserAndLogin({
-      email: `collab-owner-${uniqueTestId()}@example.com`,
-    });
-    ownerToken = ownerAuth.accessToken;
-    ownerUserId = ownerAuth.userId;
-
-    // Create a resume for the owner
-    const resumeResponse = await getRequest()
-      .post('/api/v1/resumes')
-      .set('Authorization', `Bearer ${ownerToken}`)
-      .send({ title: `Collab Test Resume ${uniqueTestId()}` });
-
-    if (resumeResponse.status === 201) {
-      resumeId = resumeResponse.body?.id || resumeResponse.body?.resumeId;
-    } else {
-      throw new Error(
-        `Failed to create resume: ${resumeResponse.status} ${JSON.stringify(resumeResponse.body)}`,
-      );
-    }
-
-    // Create collaborator users
-    const collabAuth = await createTestUserAndLogin({
-      email: `collab-user-${uniqueTestId()}@example.com`,
-    });
-    collaboratorToken = collabAuth.accessToken;
-    collaboratorUserId = collabAuth.userId;
-
-    const collab2Auth = await createTestUserAndLogin({
-      email: `collab-user2-${uniqueTestId()}@example.com`,
-    });
-    _collaborator2Token = collab2Auth.accessToken;
-    collaborator2UserId = collab2Auth.userId;
-
-    // Create outsider user
-    const outsiderAuth = await createTestUserAndLogin({
-      email: `collab-outsider-${uniqueTestId()}@example.com`,
-    });
-    outsiderToken = outsiderAuth.accessToken;
-    outsiderUserId = outsiderAuth.userId;
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    for (const uid of [ownerUserId, collaboratorUserId, collaborator2UserId, outsiderUserId]) {
-      if (uid) {
-        await prisma.resume.deleteMany({ where: { userId: uid } });
-        await prisma.user.deleteMany({ where: { id: uid } });
-      }
-    }
-    await closeApp();
-  });
-
   describe('Add collaborator to resume', () => {
     it('should invite a collaborator as VIEWER', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ userId: collaboratorUserId, role: 'VIEWER' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+
+      const response = await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
 
       expect(response.status).toBe(201);
       expect(response.body.collaborator).toBeDefined();
-      expect(response.body.collaborator.userId).toBe(collaboratorUserId);
+      expect(response.body.collaborator.userId).toBe(collaborator.userId);
       expect(response.body.collaborator.role).toBe('VIEWER');
     });
 
     it('should invite a second collaborator as EDITOR', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ userId: collaborator2UserId, role: 'EDITOR' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator2 = await freshInDbUser(app);
+
+      const response = await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
 
       expect(response.status).toBe(201);
       expect(response.body.collaborator.role).toBe('EDITOR');
     });
 
     it('should reject invitation without authentication', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { resumeId } = await freshOwnerWithResume(app);
+      const outsider = await freshInDbUser(app);
+
+      const response = await app.request
         .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .send({ userId: outsiderUserId, role: 'VIEWER' });
+        .send({ userId: outsider.userId, role: 'VIEWER' });
 
       expect(response.status).toBe(401);
     });
 
     it('should reject invitation with invalid role', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ userId: outsiderUserId, role: 'INVALID_ROLE' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const outsider = await freshInDbUser(app);
+
+      const response = await invite(app, owner, resumeId, outsider.userId, 'INVALID_ROLE');
 
       expect(response.status).toBe(400);
     });
 
     it('should reject invitation with empty userId', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ userId: '', role: 'VIEWER' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+
+      const response = await invite(app, owner, resumeId, '', 'VIEWER');
 
       expect(response.status).toBe(400);
     });
 
     it('should handle adding the same collaborator twice', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ userId: collaboratorUserId, role: 'VIEWER' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+      const response = await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
 
       // Should be idempotent (200/201) or return conflict (409)
       expect([200, 201, 409]).toContain(response.status);
@@ -161,9 +127,16 @@ describeIntegration('Collaboration Integration Tests', () => {
 
   describe('List collaborators', () => {
     it('should list all collaborators for resume owner', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const collaborator2 = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+      await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
+
+      const response = await app.request
         .get(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+        .set(owner.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.collaborators).toBeDefined();
@@ -172,29 +145,41 @@ describeIntegration('Collaboration Integration Tests', () => {
 
       // Should contain both collaborators
       const userIds = response.body.collaborators.map((c: { userId: string }) => c.userId);
-      expect(userIds).toContain(collaboratorUserId);
-      expect(userIds).toContain(collaborator2UserId);
+      expect(userIds).toContain(collaborator.userId);
+      expect(userIds).toContain(collaborator2.userId);
     });
 
     it('should allow collaborator to list collaborators', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
         .get(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${collaboratorToken}`);
+        .set(collaborator.bearer());
 
       // Collaborators should be able to see who else collaborates
       expect([200, 403]).toContain(response.status);
     });
 
     it('should reject listing without authentication', async () => {
-      const response = await getRequest().get(`/api/v1/resumes/${resumeId}/collaborators`);
+      const app = await getApp();
+      const { resumeId } = await freshOwnerWithResume(app);
+
+      const response = await app.request.get(`/api/v1/resumes/${resumeId}/collaborators`);
 
       expect(response.status).toBe(401);
     });
 
     it('should reject listing by non-collaborator', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { resumeId } = await freshOwnerWithResume(app);
+      const outsider = await freshInDbUser(app);
+
+      const response = await app.request
         .get(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${outsiderToken}`);
+        .set(outsider.bearer());
 
       expect([403, 404]).toContain(response.status);
     });
@@ -202,9 +187,14 @@ describeIntegration('Collaboration Integration Tests', () => {
 
   describe('Update collaborator role', () => {
     it('should update collaborator role from VIEWER to EDITOR', async () => {
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`)
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(owner.bearer())
         .send({ role: 'EDITOR' });
 
       expect(response.status).toBe(200);
@@ -212,9 +202,14 @@ describeIntegration('Collaboration Integration Tests', () => {
     });
 
     it('should update collaborator role to ADMIN', async () => {
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2UserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`)
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator2 = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
+
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2.userId}`)
+        .set(owner.bearer())
         .send({ role: 'ADMIN' });
 
       expect(response.status).toBe(200);
@@ -222,46 +217,72 @@ describeIntegration('Collaboration Integration Tests', () => {
     });
 
     it('should reject role update with invalid role', async () => {
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`)
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(owner.bearer())
         .send({ role: 'SUPERADMIN' });
 
       expect(response.status).toBe(400);
     });
 
     it('should reject role update by non-owner', async () => {
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const collaborator2 = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+      await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
+
       // VIEWER/EDITOR should not be able to change roles
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2UserId}`)
-        .set('Authorization', `Bearer ${collaboratorToken}`)
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2.userId}`)
+        .set(collaborator.bearer())
         .send({ role: 'VIEWER' });
 
       expect([403, 401]).toContain(response.status);
     });
 
     it('should reject role update by outsider', async () => {
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${outsiderToken}`)
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const outsider = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(outsider.bearer())
         .send({ role: 'ADMIN' });
 
       expect([403, 404]).toContain(response.status);
     });
 
     it('should reject role update without authentication', async () => {
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
         .send({ role: 'EDITOR' });
 
       expect(response.status).toBe(401);
     });
 
     it('should return 404 for updating non-existent collaborator', async () => {
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
       const fakeUserId = '00000000-0000-0000-0000-000000000000';
-      const response = await getRequest()
+
+      const response = await app.request
         .patch(`/api/v1/resumes/${resumeId}/collaborators/${fakeUserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`)
+        .set(owner.bearer())
         .send({ role: 'VIEWER' });
 
       expect([404, 400]).toContain(response.status);
@@ -270,9 +291,14 @@ describeIntegration('Collaboration Integration Tests', () => {
 
   describe('Collaborator access to shared resume', () => {
     it('should allow collaborator to see shared resumes', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
         .get('/api/v1/resumes/shared-with-me')
-        .set('Authorization', `Bearer ${collaboratorToken}`);
+        .set(collaborator.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.sharedResumes).toBeDefined();
@@ -286,9 +312,15 @@ describeIntegration('Collaboration Integration Tests', () => {
     });
 
     it('should not show shared resumes to outsider', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const outsider = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
         .get('/api/v1/resumes/shared-with-me')
-        .set('Authorization', `Bearer ${outsiderToken}`);
+        .set(outsider.bearer());
 
       expect(response.status).toBe(200);
 
@@ -300,7 +332,9 @@ describeIntegration('Collaboration Integration Tests', () => {
     });
 
     it('should reject shared-with-me without authentication', async () => {
-      const response = await getRequest().get('/api/v1/resumes/shared-with-me');
+      const app = await getApp();
+
+      const response = await app.request.get('/api/v1/resumes/shared-with-me');
 
       expect(response.status).toBe(401);
     });
@@ -308,19 +342,28 @@ describeIntegration('Collaboration Integration Tests', () => {
 
   describe('Resume owner always has full access', () => {
     it('should allow owner to list collaborators after role changes', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+      await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(owner.bearer())
+        .send({ role: 'EDITOR' });
+
+      const response = await app.request
         .get(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+        .set(owner.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.collaborators.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should not allow adding owner as collaborator to own resume', async () => {
-      const response = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ userId: ownerUserId, role: 'VIEWER' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+
+      const response = await invite(app, owner, resumeId, owner.userId, 'VIEWER');
 
       // Should reject - owner cannot be a collaborator on their own resume
       expect([400, 409, 422]).toContain(response.status);
@@ -329,55 +372,91 @@ describeIntegration('Collaboration Integration Tests', () => {
 
   describe('Remove collaborator', () => {
     it('should remove collaborator', async () => {
-      const response = await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2UserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator2 = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
+
+      const response = await app.request
+        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2.userId}`)
+        .set(owner.bearer());
 
       // Handler returns a JSON envelope, so 200 — not 204 (which is body-less).
       expect(response.status).toBe(200);
     });
 
     it('should no longer list removed collaborator', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator2 = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
+      await app.request
+        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2.userId}`)
+        .set(owner.bearer());
+
+      const response = await app.request
         .get(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+        .set(owner.bearer());
 
       expect(response.status).toBe(200);
 
       const userIds = response.body.collaborators.map((c: { userId: string }) => c.userId);
-      expect(userIds).not.toContain(collaborator2UserId);
+      expect(userIds).not.toContain(collaborator2.userId);
     });
 
     it('should reject removal by non-owner', async () => {
-      const response = await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${outsiderToken}`);
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const outsider = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(outsider.bearer());
 
       expect([403, 404]).toContain(response.status);
     });
 
     it('should reject removal without authentication', async () => {
-      const response = await getRequest().delete(
-        `/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`,
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request.delete(
+        `/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`,
       );
 
       expect(response.status).toBe(401);
     });
 
     it('should handle removing already-removed collaborator gracefully', async () => {
-      const response = await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2UserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator2 = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator2.userId, 'EDITOR');
+      await app.request
+        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2.userId}`)
+        .set(owner.bearer());
+
+      const response = await app.request
+        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator2.userId}`)
+        .set(owner.bearer());
 
       // Should be idempotent (204) or return 404
       expect([204, 404]).toContain(response.status);
     });
 
     it('should return 404 for removing collaborator from non-existent resume', async () => {
+      const app = await getApp();
+      const { owner } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
       const fakeResumeId = '00000000-0000-0000-0000-000000000000';
-      const response = await getRequest()
-        .delete(`/api/v1/resumes/${fakeResumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+
+      const response = await app.request
+        .delete(`/api/v1/resumes/${fakeResumeId}/collaborators/${collaborator.userId}`)
+        .set(owner.bearer());
 
       expect([403, 404]).toContain(response.status);
     });
@@ -385,52 +464,70 @@ describeIntegration('Collaboration Integration Tests', () => {
 
   describe('Security: Authorization bypass attempts', () => {
     it('should not allow outsider to invite collaborators', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { resumeId } = await freshOwnerWithResume(app);
+      const outsider = await freshInDbUser(app);
+
+      const response = await app.request
         .post(`/api/v1/resumes/${resumeId}/collaborators`)
-        .set('Authorization', `Bearer ${outsiderToken}`)
-        .send({ userId: outsiderUserId, role: 'ADMIN' });
+        .set(outsider.bearer())
+        .send({ userId: outsider.userId, role: 'ADMIN' });
 
       expect([403, 404]).toContain(response.status);
     });
 
     it('should not allow outsider to modify collaborator roles', async () => {
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${outsiderToken}`)
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const outsider = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(outsider.bearer())
         .send({ role: 'ADMIN' });
 
       expect([403, 404]).toContain(response.status);
     });
 
     it('should not allow outsider to remove collaborators', async () => {
-      const response = await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${outsiderToken}`);
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      const outsider = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
+
+      const response = await app.request
+        .delete(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(outsider.bearer());
 
       expect([403, 404]).toContain(response.status);
     });
 
     it('should not allow VIEWER to escalate their own role', async () => {
-      // First, re-add collaborator as VIEWER if they were changed
-      await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ role: 'VIEWER' });
+      const app = await getApp();
+      const { owner, resumeId } = await freshOwnerWithResume(app);
+      const collaborator = await freshInDbUser(app);
+      await invite(app, owner, resumeId, collaborator.userId, 'VIEWER');
 
       // Collaborator tries to escalate self to ADMIN
-      const response = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaboratorUserId}`)
-        .set('Authorization', `Bearer ${collaboratorToken}`)
+      const response = await app.request
+        .patch(`/api/v1/resumes/${resumeId}/collaborators/${collaborator.userId}`)
+        .set(collaborator.bearer())
         .send({ role: 'ADMIN' });
 
       expect([403, 401]).toContain(response.status);
     });
 
     it('should not expose collaborator data for non-existent resume', async () => {
+      const app = await getApp();
+      const { owner } = await freshOwnerWithResume(app);
       const fakeResumeId = '00000000-0000-0000-0000-000000000000';
-      const response = await getRequest()
+
+      const response = await app.request
         .get(`/api/v1/resumes/${fakeResumeId}/collaborators`)
-        .set('Authorization', `Bearer ${ownerToken}`);
+        .set(owner.bearer());
 
       expect([403, 404]).toContain(response.status);
     });

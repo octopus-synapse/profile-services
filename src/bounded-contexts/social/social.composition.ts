@@ -34,7 +34,8 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
 import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
-import type { EventBusPort, EventHandler } from '@/shared-kernel/event-bus/event-bus.port';
+import type { EventHandler } from '@/shared-kernel/event-bus/event-bus.port';
+import { EventBusPort } from '@/shared-kernel/event-bus/event-bus.port';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
@@ -255,21 +256,21 @@ export function buildSocialRoutes(): ReadonlyArray<Route<SocialUseCases>> {
  * `register-handlers.ts` so we can surface them as canonical
  * `BcEventBinding[]` entries the bootstrap drains at boot.
  */
-class RecordingEventBus implements Pick<EventBusPort, 'on'> {
+class RecordingEventBus extends EventBusPort {
   readonly bindings: BcEventBinding[] = [];
 
-  on<T extends DomainEvent>(eventType: string, handler: EventHandler<T>): void {
+  override on<T extends DomainEvent>(eventType: string, handler: EventHandler<T>): void {
     this.bindings.push({
       eventType,
       handler: handler as BcEventBinding['handler'],
     });
   }
 
-  publish(): void {
+  override publish(): void {
     /* not used in handler registration */
   }
 
-  publishAsync(): Promise<void> {
+  override publishAsync(): Promise<void> {
     return Promise.resolve();
   }
 }
@@ -309,7 +310,7 @@ export function buildSocialComposition(
   const { eventBus, idempotency, prisma, logger, cron, sse, lock } = deps;
 
   // --- Event handlers via `register-handlers.ts` (canonical pattern) ---
-  const recorder = new RecordingEventBus() as unknown as EventBusPort;
+  const recorder = new RecordingEventBus();
   registerSocialHandlers({
     eventBus: recorder,
     activityService,
@@ -319,8 +320,7 @@ export function buildSocialComposition(
     prisma,
     logger,
   });
-  const eventHandlers: ReadonlyArray<BcEventBinding> = (recorder as unknown as RecordingEventBus)
-    .bindings;
+  const eventHandlers: ReadonlyArray<BcEventBinding> = recorder.bindings;
   // `eventBus` is the runtime port the bootstrap drains the recorded
   // bindings against. Keep a reference so the parameter shape stays
   // symmetric with other compositions even though we don't subscribe

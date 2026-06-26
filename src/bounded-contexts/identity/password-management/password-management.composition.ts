@@ -15,8 +15,8 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
-import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { PrismaEmailVerificationRepository } from '../email-verification/infrastructure/adapters/persistence/email-verification.repository';
+import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import {
   ChangePasswordUseCase,

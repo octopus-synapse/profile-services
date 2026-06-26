@@ -49,7 +49,10 @@ export const AccountDeletionCodeSentResponseSchema = z
       .string()
       .optional()
       .openapi({ description: 'Localized confirmation that a code was sent.' }),
-    cooldownSeconds: z.number().int().openapi({ description: 'Seconds before a resend is allowed.' }),
+    cooldownSeconds: z
+      .number()
+      .int()
+      .openapi({ description: 'Seconds before a resend is allowed.' }),
     testCode: z
       .string()
       .optional()

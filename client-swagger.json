@@ -1780,7 +1780,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
@@ -79466,6 +79466,12 @@
                           "version": {
                             "type": "integer"
                           },
+                          "groupKey": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Supersection grouping (SectionGroup.key). null = standalone section (rendered as its own card).",
+                            "example": "online_presence"
+                          },
                           "title": {
                             "type": "string"
                           },
@@ -79560,6 +79566,7 @@
                           "slug",
                           "semanticKind",
                           "version",
+                          "groupKey",
                           "title",
                           "description",
                           "label",
@@ -79580,10 +79587,47 @@
                           "fieldStyles"
                         ]
                       }
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "iconType": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "order": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "title",
+                          "description",
+                          "iconType",
+                          "icon",
+                          "order"
+                        ]
+                      },
+                      "description": "Supersection catalog (localized) referenced by sectionTypes[].groupKey."
                     }
                   },
                   "required": [
-                    "sectionTypes"
+                    "sectionTypes",
+                    "groups"
                   ]
                 }
               }
@@ -99858,7 +99902,14 @@
                     "$ref": "#/components/schemas/SocialUrl"
                   },
                   "image": {
-                    "$ref": "#/components/schemas/SocialUrl"
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SocialUrl"
+                      },
+                      {
+                        "nullable": true
+                      }
+                    ]
                   }
                 },
                 "example": {

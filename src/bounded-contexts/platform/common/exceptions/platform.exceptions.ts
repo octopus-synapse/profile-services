@@ -13,9 +13,10 @@ import {
 
 export class RateLimitedException extends LimitExceededException {
   override readonly code: string = 'RATE_LIMITED';
+  readonly retryAfterSeconds: number;
   constructor(retryAfterSeconds: number) {
     super('rate', 1, 1);
-    (this as unknown as { retryAfterSeconds: number }).retryAfterSeconds = retryAfterSeconds;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 

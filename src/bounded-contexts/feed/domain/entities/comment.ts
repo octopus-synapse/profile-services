@@ -29,7 +29,6 @@ export interface CommentWithReplies extends CommentWithAuthor {
 export interface CommentWithPost extends CommentWithAuthor {
   readonly post: {
     readonly id: string;
-    readonly type: string;
     readonly content: string | null;
     readonly authorId: string;
     readonly author: PostAuthor;

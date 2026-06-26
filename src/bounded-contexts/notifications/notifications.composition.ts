@@ -47,10 +47,10 @@ import { ListNotificationsUseCase } from './application/use-cases/list-notificat
 import { MarkNotificationsReadUseCase } from './application/use-cases/mark-notifications-read/mark-notifications-read.use-case';
 import { NotifyFitProfileExpiredUseCase } from './application/use-cases/notify-fit-profile-expired/notify-fit-profile-expired.use-case';
 import { NotifyResumeQualityRankChangeUseCase } from './application/use-cases/notify-resume-quality-rank-change/notify-resume-quality-rank-change.use-case';
+import { RegisterPushDeviceUseCase } from './application/use-cases/register-push-device/register-push-device.use-case';
 import { SendDailyDigestsUseCase } from './application/use-cases/send-daily-digests/send-daily-digests.use-case';
 import { SendExpiryReminderUseCase } from './application/use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
 import { SendWeeklyDigestsUseCase } from './application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
-import { RegisterPushDeviceUseCase } from './application/use-cases/register-push-device/register-push-device.use-case';
 import { SetPreferenceUseCase } from './application/use-cases/set-preference/set-preference.use-case';
 import { UnregisterPushDeviceUseCase } from './application/use-cases/unregister-push-device/unregister-push-device.use-case';
 import type { NotificationStreamEvent } from './domain/entities/notification.entity';

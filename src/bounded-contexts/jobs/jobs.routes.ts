@@ -11,25 +11,14 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { JobsUseCases } from './application/ports/jobs.port';
-import { RecordApplicationEventSchema } from './dto/application-event.schema';
+import { ApplyToJobSchema, CreateJobSchema, UpdateJobSchema } from './dto/job.schema';
 import {
-  ApplyToJobSchema,
-  CreateJobSchema,
-  ImportJobFromUrlSchema,
-  UpdateJobSchema,
-} from './dto/job.schema';
-import {
-  ApplicationIdParam,
-  ApplicationsTimelineResponseSchema,
   ApplyContextResponseSchema,
   ApplyToJobResponseSchema,
   BookmarkedJobsResponseSchema,
   BookmarkResponseSchema,
   buildJobListInput,
-  CompanyParam,
-  CompanyResponseStatsResponseSchema,
   IdParam,
-  ImportJobFromUrlResponseSchema,
   JobApplicationsResponseSchema,
   JobFitResponseSchema,
   JobListQuerySchema,
@@ -42,10 +31,8 @@ import {
   PageOnlyQuerySchema,
   pageOnly,
   RecommendedJobsResponseSchema,
-  RecordApplicationEventResponseSchema,
   SimilarJobsResponseSchema,
   SimilarQuerySchema,
-  TrackerQuerySchema,
   UnbookmarkResponseSchema,
   WithdrawApplicationResponseSchema,
 } from './jobs.routes.schemas';
@@ -299,7 +286,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
       // jobs repository helper (`getPrimaryResumeId`). The full payload
       // stays small — frontend renders the picker if needed.
       const repository = (
-        bc as unknown as {
+        bc as {
           repository?: { getPrimaryResumeId?: (uid: string) => Promise<string | null> };
         }
       ).repository;
@@ -480,103 +467,6 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       return bc.deleteJob.execute(id, ctx.user!.userId);
-    },
-  },
-
-  // ─── Application tracker ──────────────────────────────────────────
-  {
-    method: 'GET',
-    path: '/v1/jobs/applications/tracker',
-    auth: { kind: 'jwt' },
-    permission: Permission.FEED_USE,
-    query: TrackerQuerySchema,
-    response: ApplicationsTimelineResponseSchema,
-    openapi: {
-      summary:
-        'Full application timeline for the viewer (enviada → visualizada → entrevista → oferta/silêncio).',
-      tags: ['application-tracker'],
-      description: 'Timeline + silence detection for job applications',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const q = TrackerQuerySchema.parse(ctx.query);
-      const threshold = q.silentDays ? Math.max(1, Number(q.silentDays)) : 10;
-      const applications = await bc.listApplicationTimeline.execute(ctx.user!.userId, threshold);
-      return { applications };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/v1/jobs/applications/:applicationId/events',
-    auth: { kind: 'jwt' },
-    permission: Permission.FEED_USE,
-    params: ApplicationIdParam,
-    body: RecordApplicationEventSchema,
-    response: RecordApplicationEventResponseSchema,
-    openapi: {
-      summary:
-        'Record a timeline event on an application (viewed, interview scheduled, offer, etc.).',
-      tags: ['application-tracker'],
-      description: 'Timeline + silence detection for job applications',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { applicationId } = ctx.params as { applicationId: string };
-      const body = ctx.body as z.infer<typeof RecordApplicationEventSchema>;
-      const event = await bc.recordApplicationEvent.execute({
-        applicationId,
-        userId: ctx.user!.userId,
-        type: body.type,
-        occurredAt: body.occurredAt ? new Date(body.occurredAt) : undefined,
-        note: body.note,
-      });
-      return event;
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/jobs/applications/companies/:company/response-stats',
-    auth: { kind: 'jwt' },
-    permission: Permission.FEED_USE,
-    params: CompanyParam,
-    response: CompanyResponseStatsResponseSchema,
-    openapi: {
-      summary: 'Per-company response percentiles (p50/p90 days to first response).',
-      tags: ['application-tracker'],
-      description: 'Timeline + silence detection for job applications',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { company } = ctx.params as { company: string };
-      return bc.getCompanyResponseStats.execute(company);
-    },
-  },
-
-  // ─── URL import (rate-limited) ────────────────────────────────────
-  {
-    method: 'POST',
-    path: '/v1/jobs/import-from-url',
-    auth: { kind: 'jwt' },
-    permission: Permission.JOB_CREATE,
-    body: ImportJobFromUrlSchema,
-    statusCode: 200,
-    response: ImportJobFromUrlResponseSchema,
-    guards: [
-      {
-        id: 'rate-limit',
-        metadata: { points: 5, duration: 600, keyStrategy: 'user' },
-      },
-      { id: 'external-api' },
-    ],
-    openapi: {
-      summary: 'Fetch a careers page and return an LLM-extracted job preview (not persisted)',
-      tags: ['jobs'],
-      description: 'Jobs API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const body = ctx.body as { url: string };
-      return bc.importJobFromUrl.execute(body.url);
     },
   },
 ];

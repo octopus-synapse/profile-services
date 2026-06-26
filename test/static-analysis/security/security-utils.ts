@@ -4,7 +4,7 @@
  * Shared utilities for static security analysis tests.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -12,17 +12,26 @@ export const SRC_DIR = path.resolve(__dirname, '../../../src');
 export const ROOT_DIR = path.resolve(__dirname, '../../..');
 
 /**
- * Search codebase using grep with proper escaping.
- * Uses -E for extended regex and proper shell escaping.
+ * Run grep with an argv array (no shell) so a pattern containing quotes,
+ * `|`, `()` or other shell metacharacters can never break tokenization —
+ * the previous `execSync` template literal produced `/bin/sh: Unterminated
+ * quoted string` for any pattern with an embedded quote.
  */
-export function grepCodebase(pattern: string, exclude: string[] = []): string[] {
-  const excludeArgs = exclude.map((e) => `--exclude-dir=${e}`).join(' ');
+function runGrep(flags: string, pattern: string, exclude: string[]): string[] {
+  const args = [
+    flags,
+    pattern,
+    SRC_DIR,
+    '--include=*.ts',
+    ...exclude.map((e) => `--exclude-dir=${e}`),
+  ];
   try {
-    // Use -E for extended regex and single quotes for pattern
-    const result = execSync(
-      `grep -rEn '${pattern}' ${SRC_DIR} ${excludeArgs} --include='*.ts' 2>/dev/null || true`,
-      { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 },
-    );
+    // grep exits 1 when there are no matches — execFileSync throws on a
+    // non-zero exit, so treat "no matches" as an empty result.
+    const result = execFileSync('grep', args, {
+      encoding: 'utf-8',
+      maxBuffer: 10 * 1024 * 1024,
+    });
     return result
       .trim()
       .split('\n')
@@ -33,22 +42,65 @@ export function grepCodebase(pattern: string, exclude: string[] = []): string[] 
 }
 
 /**
- * Search codebase using fixed string matching (no regex).
+ * Search codebase using grep extended regex (`-rEn`).
+ */
+export function grepCodebase(pattern: string, exclude: string[] = []): string[] {
+  return runGrep('-rEn', pattern, exclude);
+}
+
+/**
+ * Search codebase using fixed string matching (`-rFn`, no regex).
  */
 export function grepCodebaseFixed(text: string, exclude: string[] = []): string[] {
-  const excludeArgs = exclude.map((e) => `--exclude-dir=${e}`).join(' ');
-  try {
-    const result = execSync(
-      `grep -rFn '${text}' ${SRC_DIR} ${excludeArgs} --include='*.ts' 2>/dev/null || true`,
-      { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 },
-    );
-    return result
-      .trim()
-      .split('\n')
-      .filter((line) => line.length > 0);
-  } catch {
-    return [];
+  return runGrep('-rFn', text, exclude);
+}
+
+/**
+ * Strip grep's `path:lineno:` prefix, returning just the source-line body.
+ * Without this, a filename like `request-password-change.use-case.ts` makes
+ * every log line in that file look like it "contains password".
+ */
+export function grepLineContent(grepLine: string): string {
+  return grepLine.replace(/^.*?:\d+:/, '');
+}
+
+/**
+ * Blank out the *content* of string literals on a source line while keeping
+ * `${...}` template interpolations intact. Used by the "don't log secrets"
+ * specs so a message that merely *mentions* "password"/"token" (e.g.
+ * `logger.log('Password-change code issued')`) isn't mistaken for one that
+ * logs the secret *value* (`logger.log(\`pwd=${password}\`)`).
+ */
+export function stripStringLiterals(line: string): string {
+  let out = '';
+  let quote: "'" | '"' | '`' | null = null;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    const prev = line[i - 1];
+    if (quote) {
+      // Inside a template literal, preserve `${ ... }` interpolations —
+      // those carry real runtime values and ARE worth flagging.
+      if (quote === '`' && ch === '$' && line[i + 1] === '{') {
+        let depth = 0;
+        let j = i;
+        for (; j < line.length; j++) {
+          if (line[j] === '{') depth++;
+          else if (line[j] === '}' && --depth === 0) break;
+        }
+        out += line.slice(i, j + 1);
+        i = j;
+        continue;
+      }
+      if (ch === quote && prev !== '\\') quote = null;
+      continue; // drop the literal character
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    out += ch;
   }
+  return out;
 }
 
 /**

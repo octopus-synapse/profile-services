@@ -10,6 +10,7 @@
  */
 
 import type { EventBusPort, LoggerPort } from '@/shared-kernel';
+import { registerPayloadHandler } from '@/shared-kernel/event-bus/register-handler';
 import type { WebhooksUseCases } from '../../application/ports/webhooks.port';
 import { WebhookEventHandler } from './webhook-event.handler';
 
@@ -26,20 +27,14 @@ export function registerWebhooksHandlers(deps: WebhooksHandlersDeps): void {
 
   // The original `@OnEvent('resume.created', { async: true })` published
   // raw payloads, not DomainEvent envelopes. The bus contract preserves
-  // that — `on()` receives whatever `publish()` puts on the wire. Cast
-  // each binding through `unknown` so TS doesn't try to enforce the
-  // `EventHandler<T extends DomainEvent>` constraint on raw payloads.
-  type AnyEventHandler = Parameters<typeof eventBus.on>[1];
-  eventBus.on(
-    'resume.created',
-    handler.handleResumeCreated.bind(handler) as unknown as AnyEventHandler,
-  );
-  eventBus.on(
-    'resume.published',
-    handler.handleResumePublished.bind(handler) as unknown as AnyEventHandler,
-  );
-  eventBus.on(
+  // that — `on()` receives whatever `publish()` puts on the wire. The
+  // helper contains the one boundary assertion that raw-payload binding
+  // needs against the `<T extends DomainEvent>` surface.
+  registerPayloadHandler(eventBus, 'resume.created', handler.handleResumeCreated.bind(handler));
+  registerPayloadHandler(eventBus, 'resume.published', handler.handleResumePublished.bind(handler));
+  registerPayloadHandler(
+    eventBus,
     'ats.score.updated',
-    handler.handleATSScoreUpdated.bind(handler) as unknown as AnyEventHandler,
+    handler.handleATSScoreUpdated.bind(handler),
   );
 }

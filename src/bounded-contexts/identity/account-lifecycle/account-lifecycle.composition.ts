@@ -16,6 +16,7 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
+import { PrismaEmailVerificationRepository } from '../email-verification/infrastructure/adapters/persistence/email-verification.repository';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { accountLifecycleRoutes } from './account-lifecycle.routes';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
@@ -30,7 +31,6 @@ import {
   RequestAccountDeletionUseCase,
 } from './application/use-cases';
 import { ExportDataUseCase } from './application/use-cases/export-data/export-data.use-case';
-import { PrismaEmailVerificationRepository } from '../email-verification/infrastructure/adapters/persistence/email-verification.repository';
 import {
   AuditLoggerAdapter,
   BcryptPasswordHasher,

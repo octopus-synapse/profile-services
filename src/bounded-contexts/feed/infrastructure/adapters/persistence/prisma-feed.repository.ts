@@ -22,16 +22,12 @@ import type {
   UserPostsResult,
 } from '../../../domain/entities';
 import { FeedRepositoryPort } from '../../../domain/ports/feed.repository.port';
-
-const AUTHOR_SELECT = {
-  id: true,
-  name: true,
-  username: true,
-  photoURL: true,
-  headline: true,
-  bio: true,
-  location: true,
-} as const;
+import {
+  POST_WITH_AUTHOR_INCLUDE,
+  POST_WITH_RELATIONS_INCLUDE,
+  toPostWithAuthor,
+  toPostWithRelations,
+} from './post-row.mappers';
 
 /**
  * P1 #35 — Build a Prisma `where` fragment for the composite
@@ -55,26 +51,28 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
 
   // ---------- Post CRUD ----------
   async createPost(authorId: string, input: PersistPostInput): Promise<PostWithAuthor> {
-    return (await this.prisma.post.create({
-      data: {
-        authorId,
-        content: input.content,
-        hashtags: input.hashtags,
-        imageUrl: input.imageUrl,
-        linkUrl: input.linkUrl,
-        linkPreview: (input.linkPreview as Prisma.InputJsonValue | undefined) ?? undefined,
-        isRepost: input.isRepost === true,
-        originalPostId: input.originalPostId,
-        scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
-        isPublished: input.isPublished,
-        threadId: input.threadId,
-        pollOptions: (input.pollOptions as Prisma.InputJsonValue | undefined) ?? undefined,
-        pollDeadline: input.pollDeadline ? new Date(input.pollDeadline) : undefined,
-        codeSnippet: input.codeSnippet,
-        codeLanguage: input.codeLanguage,
-      },
-      include: { author: { select: AUTHOR_SELECT } },
-    })) as unknown as PostWithAuthor;
+    return toPostWithAuthor(
+      await this.prisma.post.create({
+        data: {
+          authorId,
+          content: input.content,
+          hashtags: input.hashtags,
+          imageUrl: input.imageUrl,
+          linkUrl: input.linkUrl,
+          linkPreview: (input.linkPreview as Prisma.InputJsonValue | undefined) ?? undefined,
+          isRepost: input.isRepost === true,
+          originalPostId: input.originalPostId,
+          scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
+          isPublished: input.isPublished,
+          threadId: input.threadId,
+          pollOptions: (input.pollOptions as Prisma.InputJsonValue | undefined) ?? undefined,
+          pollDeadline: input.pollDeadline ? new Date(input.pollDeadline) : undefined,
+          codeSnippet: input.codeSnippet,
+          codeLanguage: input.codeLanguage,
+        },
+        include: POST_WITH_AUTHOR_INCLUDE,
+      }),
+    );
   }
 
   async findPostById(id: string): Promise<Post | null> {
@@ -82,13 +80,11 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
   }
 
   async findPostByIdWithRelations(id: string): Promise<PostWithRelations | null> {
-    return (await this.prisma.post.findUnique({
+    const row = await this.prisma.post.findUnique({
       where: { id },
-      include: {
-        author: { select: AUTHOR_SELECT },
-        originalPost: { include: { author: { select: AUTHOR_SELECT } } },
-      },
-    })) as unknown as PostWithRelations | null;
+      include: POST_WITH_RELATIONS_INCLUDE,
+    });
+    return row ? toPostWithRelations(row) : null;
   }
 
   async markPostDeleted(id: string): Promise<Post> {
@@ -171,7 +167,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     userId: string;
   }): Promise<PostWithRelations[]> {
     const { cursor, take, followingOnly, followingIds, userId } = params;
-    return (await this.prisma.post.findMany({
+    const rows = await this.prisma.post.findMany({
       where: {
         isDeleted: false,
         ...compositeCursorWhere(cursor),
@@ -179,13 +175,11 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
           ? { authorId: { in: followingIds }, isPublished: true }
           : { OR: [{ isPublished: true }, { authorId: userId, isPublished: false }] }),
       },
-      include: {
-        author: { select: AUTHOR_SELECT },
-        originalPost: { include: { author: { select: AUTHOR_SELECT } } },
-      },
+      include: POST_WITH_RELATIONS_INCLUDE,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take,
-    })) as unknown as PostWithRelations[];
+    });
+    return rows.map(toPostWithRelations);
   }
 
   async listUserPosts(
@@ -193,19 +187,18 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<UserPostsResult> {
-    const posts = (await this.prisma.post.findMany({
-      where: {
-        authorId: userId,
-        isDeleted: false,
-        ...compositeCursorWhere(cursor),
-      },
-      include: {
-        author: { select: AUTHOR_SELECT },
-        originalPost: { include: { author: { select: AUTHOR_SELECT } } },
-      },
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: limit,
-    })) as unknown as PostWithRelations[];
+    const posts = (
+      await this.prisma.post.findMany({
+        where: {
+          authorId: userId,
+          isDeleted: false,
+          ...compositeCursorWhere(cursor),
+        },
+        include: POST_WITH_RELATIONS_INCLUDE,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit,
+      })
+    ).map(toPostWithRelations);
 
     const last = posts[posts.length - 1];
     const nextCursor =
@@ -227,21 +220,14 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
         userId,
         ...buildCompositeCursorWhere(cursor),
       },
-      include: {
-        post: {
-          include: {
-            author: { select: AUTHOR_SELECT },
-            originalPost: { include: { author: { select: AUTHOR_SELECT } } },
-          },
-        },
-      },
+      include: { post: { include: POST_WITH_RELATIONS_INCLUDE } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     });
 
     const valid = bookmarks.filter((b) => !b.post.isDeleted);
     const posts: BookmarkedFeedItem[] = valid.map((b) => ({
-      ...(b.post as unknown as PostWithRelations),
+      ...toPostWithRelations(b.post),
       bookmarkedAt: b.createdAt,
       isLiked: false,
       isBookmarked: true,
@@ -307,18 +293,17 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
 
   async findThreadPosts(threadIds: string[]): Promise<Map<string, PostWithRelations[]>> {
     if (threadIds.length === 0) return new Map();
-    const rows = (await this.prisma.post.findMany({
-      where: {
-        threadId: { in: threadIds },
-        isDeleted: false,
-        isPublished: true,
-      },
-      include: {
-        author: { select: AUTHOR_SELECT },
-        originalPost: { include: { author: { select: AUTHOR_SELECT } } },
-      },
-      orderBy: { createdAt: 'asc' },
-    })) as unknown as PostWithRelations[];
+    const rows = (
+      await this.prisma.post.findMany({
+        where: {
+          threadId: { in: threadIds },
+          isDeleted: false,
+          isPublished: true,
+        },
+        include: POST_WITH_RELATIONS_INCLUDE,
+        orderBy: { createdAt: 'asc' },
+      })
+    ).map(toPostWithRelations);
 
     const map = new Map<string, PostWithRelations[]>();
     for (const r of rows) {

@@ -34,7 +34,9 @@ export class GetProfileUseCase {
    */
   private computeUsernameChangeAvailableAt(usernameUpdatedAt?: Date | null): Date | null {
     if (!usernameUpdatedAt) return null;
-    const unlockAt = new Date(usernameUpdatedAt.getTime() + USERNAME_UPDATE_COOLDOWN_DAYS * MS_PER_DAY);
+    const unlockAt = new Date(
+      usernameUpdatedAt.getTime() + USERNAME_UPDATE_COOLDOWN_DAYS * MS_PER_DAY,
+    );
     return unlockAt.getTime() > Date.now() ? unlockAt : null;
   }
 }

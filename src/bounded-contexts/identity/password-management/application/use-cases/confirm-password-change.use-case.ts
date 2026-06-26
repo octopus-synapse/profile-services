@@ -26,7 +26,7 @@ export class ConfirmPasswordChangeUseCase implements ConfirmPasswordChangePort {
     const { userId, code } = command;
 
     const pending = await this.codeStore.findPurposeToken(userId, code, 'PASSWORD_CHANGE');
-    if (!pending || !pending.pendingPasswordHash) {
+    if (!pending?.pendingPasswordHash) {
       throw new InvalidPasswordChangeCodeException();
     }
 

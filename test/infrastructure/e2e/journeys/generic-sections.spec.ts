@@ -60,7 +60,11 @@ describe('E2E Journey: Generic Resume Sections', () => {
         semanticKind: 'CUSTOM',
         version: 1,
         isActive: true,
-        isSystem: false,
+        // The section-types discovery route returns the GLOBAL catalog
+        // filtered by `isSystem: true` and renders each row through a strict
+        // per-locale presenter (no fallback), so a discoverable type must be
+        // `isSystem: true` AND carry translations for every supported locale.
+        isSystem: true,
         isRepeatable: true,
         minItems: 0,
         maxItems: 10,
@@ -72,6 +76,17 @@ describe('E2E Journey: Generic Resume Sections', () => {
             { key: 'description', type: 'string', required: false },
           ],
         },
+        translations: (() => {
+          const entry = {
+            title: 'E2E Custom Section',
+            description: 'Custom section for E2E tests',
+            label: 'E2E Custom Section',
+            noDataLabel: 'No E2E Custom Section yet',
+            placeholder: 'Add E2E Custom Section...',
+            addLabel: 'Add E2E Custom Section',
+          };
+          return { en: entry, 'pt-BR': entry };
+        })(),
       },
     });
     sectionTypeId = sectionType.id;

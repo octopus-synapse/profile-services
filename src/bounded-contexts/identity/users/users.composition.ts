@@ -7,10 +7,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { AuditLogPort } from '@/shared-kernel/audit';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
-import {
-  buildConnectedAccountsUseCases,
-  type ConnectedAccountsUseCasesBundle,
-} from './application/connected-accounts.composition';
+import { buildConnectedAccountsUseCases } from './application/connected-accounts.composition';
 import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import {
   buildUserManagementUseCases,
@@ -34,6 +31,7 @@ import {
   UsersRepository,
 } from './infrastructure/adapters/persistence';
 import { usersRoutes } from './users.routes';
+import { usersAdminRoutes } from './users-admin.routes';
 
 export { UsersHttpBundle };
 
@@ -112,6 +110,6 @@ export function buildUsersComposition(
 
   return {
     useCases: useCases.bundle,
-    routes: usersRoutes,
+    routes: [...usersRoutes, ...usersAdminRoutes],
   };
 }

@@ -35,7 +35,9 @@ export const UpdateUserSchema = z
     linkedin: LinkedInUrlSchema.optional(),
     github: GitHubUrlSchema.optional(),
     twitter: SocialUrlSchema.optional(),
-    image: SocialUrlSchema.optional(),
+    // Nullable so the owner can clear their avatar (null → photo removed);
+    // a present value must still be a valid URL.
+    image: SocialUrlSchema.nullable().optional(),
   })
   .openapi({
     example: {

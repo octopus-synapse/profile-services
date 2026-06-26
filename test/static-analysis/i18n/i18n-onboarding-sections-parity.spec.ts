@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
+import { sectionTypes } from '../../../prisma/seeds/shared/section-type.seed';
 import { SECTION_ORDER_KEYS } from '../../../src/bounded-contexts/onboarding/domain/config/onboarding-section-defaults.config';
-import { sectionTypes } from '../../../prisma/seeds/section-type.seed';
 
 /**
  * The onboarding flow renders one step per SECTION_ORDER_KEYS entry, pulling

@@ -34,7 +34,7 @@ export class InMemoryAdminProgrammingLanguagesRepository extends AdminProgrammin
   }
   async create(input: Record<string, unknown>) {
     this.created.push(input);
-    const row = { ...(input as object) } as unknown as ProgrammingLanguage;
+    const row = { ...(input as object) } as ProgrammingLanguage;
     this.rows.set(row.slug, row);
     return row;
   }

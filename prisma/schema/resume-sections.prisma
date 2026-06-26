@@ -1,5 +1,25 @@
 // Resume Sections - Generic section model (single canonical source)
 
+// Supersection: an optional presentational grouping over SectionTypes. A
+// SectionType with groupKey == null is standalone (renders as its own card,
+// e.g. education, experience). The two seeded groups are `profile` (identity +
+// summary, sourced from User columns) and `online_presence` (the links_v1
+// section). Loose string key (no FK) like `semanticKind` — seed-managed; the
+// seed guards that every non-null SectionType.groupKey matches a group here.
+model SectionGroup {
+  id           String  @id @default(dbgenerated("uuidv7()"))
+  key          String  @unique
+  // i18n: { "en": { "title": "...", "description"?: "..." }, "pt-BR": { ... } }
+  translations Json    @default("{}")
+  iconType     String  @default("lucide")
+  icon         String  @default("folder")
+  order        Int     @default(0)
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model SectionType {
   id           String  @id @default(dbgenerated("uuidv7()"))
   key          String  @unique
@@ -8,6 +28,9 @@ model SectionType {
   description  String?
   semanticKind String
   version      Int     @default(1)
+
+  // Optional supersection grouping (SectionGroup.key). null = standalone.
+  groupKey String?
 
   isActive     Boolean @default(true)
   isSystem     Boolean @default(true)
@@ -45,6 +68,7 @@ model SectionType {
   @@unique([slug, version])
   @@index([semanticKind])
   @@index([isActive])
+  @@index([groupKey])
 }
 
 model ResumeSection {

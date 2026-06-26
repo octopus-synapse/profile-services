@@ -15,23 +15,27 @@
  * 8. Verify resume created
  * 9. Verify onboarding status (should show complete)
  *
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * out-of-declaration-order and runs spec files concurrently. The prior
+ * version shared a `testEmail`/`userId` across the `it`s in Step 1,
+ * used a `beforeAll`-seeded session in Step 7, and bulk-deleted users
+ * per test. Those collide under concurrency. Every test now drives the
+ * REAL signup → verify-email → (accept-ToS) → login HTTP flow with its
+ * OWN unique email, so it owns its session for its lifetime — no
+ * shared mutable state, no cross-test cleanup.
+ *
  * See docs/BUG_DISCOVERY_REPORT.md for known issues.
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { tokenFromResponse } from '../shared';
 import {
   acceptTosForUser,
   clearAuthRateLimits,
-  closeApp,
   getApp,
-  getPrisma,
-  getRequest,
   uniqueTestId,
   uniqueTestUsername,
   unwrapApiData,
-  verifyUserEmail,
-  waitForPendingHandlers,
 } from './setup';
 
 /** Generate unique email for each test to avoid conflicts */
@@ -64,25 +68,25 @@ function createSectionProgressPayload(
   };
 }
 
+type App = Awaited<ReturnType<typeof getApp>>;
+
 async function createTestAccount(
+  app: App,
   prefix: string,
   name: string,
   password = 'SecurePass123!',
 ): Promise<TestAccount> {
   const email = uniqueEmail(prefix);
-  // Defensive: the top-level `beforeEach` already calls
-  // `clearAuthRateLimits`, but specs that signup multiple users in a
-  // single `it()` would still hit the cap on the second one. Cheap.
+  // Clear the IP-keyed signup bucket before each signup so a long
+  // concurrent run never 429s here on shared-IP bucket bleed.
   await clearAuthRateLimits();
-  const response = await getRequest()
-    .post('/api/v1/accounts')
-    .send({
-      email,
-      password,
-      name,
-      acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
-      acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
-    });
+  const response = await app.request.post('/api/v1/accounts').send({
+    email,
+    password,
+    name,
+    acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+    acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+  });
 
   if (response.status !== 201 || !response.body?.userId) {
     throw new Error(`Signup failed: ${JSON.stringify(response.body)}`);
@@ -91,14 +95,34 @@ async function createTestAccount(
   return { email, password, userId: response.body.userId };
 }
 
-async function loginTestAccount(email: string, password: string): Promise<string> {
-  const response = await getRequest().post('/api/v1/auth/login').send({ email, password });
+async function loginTestAccount(app: App, email: string, password: string): Promise<string> {
+  const response = await app.request.post('/api/v1/auth/login').send({ email, password });
 
   const accessToken = tokenFromResponse(response, 'access_token');
   if (response.status !== 200 || !accessToken) {
     throw new Error(`Login failed: ${JSON.stringify(response.body)}`);
   }
   return accessToken;
+}
+
+/**
+ * Provision a brand-new user that has signed up, verified email, and
+ * accepted ToS, then logged in. Each call uses a unique email so the
+ * returned session is owned solely by the calling test.
+ */
+async function verifiedSession(
+  app: App,
+  prefix: string,
+  name: string,
+): Promise<{ userId: string; accessToken: string; email: string; password: string }> {
+  const account = await createTestAccount(app, prefix, name);
+  await app.prisma.user.update({
+    where: { id: account.userId },
+    data: { emailVerified: new Date() },
+  });
+  await acceptTosForUser(account.userId);
+  const accessToken = await loginTestAccount(app, account.email, account.password);
+  return { ...account, accessToken };
 }
 
 /**
@@ -177,95 +201,61 @@ function createOnboardingPayload(
 }
 
 describe('Complete Onboarding Flow', () => {
-  beforeAll(async () => {
-    await getApp();
-  }, 30000);
-
-  afterAll(async () => {
-    await closeApp();
-  });
-
-  // `.env.test` keeps RATE_LIMIT_ENABLED=true so the security specs
-  // remain meaningful. This suite signs up dozens of users in a single
-  // run, so without a per-test reset the 10/600s POST /v1/accounts cap
-  // turns every later test into a 429 cascade. `clearAuthRateLimits`
-  // is surgical — leaves password-reset / userId-keyed buckets live
-  // for specs that exercise those throttles.
-  beforeEach(async () => {
-    await clearAuthRateLimits();
-  });
-
-  // Drain async audit handlers from the previous test before deleting
-  // users in this one — otherwise the FK race surfaces as
-  // `# Unhandled error between tests`. See
-  // docs/audits/integration-test-triage-2026-05-21.md bug #4.
-  afterEach(async () => {
-    await waitForPendingHandlers();
-  });
-
   describe('Step 1: Account Creation (Signup)', () => {
-    const testEmail = uniqueEmail('onboarding-flow');
-    let userId: string;
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should create account with valid credentials', async () => {
-      const response = await getRequest()
-        .post('/api/v1/accounts')
-        .send({
-          email: testEmail,
-          password: 'SecurePass123!',
-          name: 'Test User',
-          acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
-          acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
-        });
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testEmail = uniqueEmail('onboarding-flow');
+
+      const response = await app.request.post('/api/v1/accounts').send({
+        email: testEmail,
+        password: 'SecurePass123!',
+        name: 'Test User',
+        acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+        acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('userId');
       expect(response.body.email).toBe(testEmail);
       expect(response.body.message).toBeDefined();
-
-      userId = response.body.userId;
     });
 
     it('should reject signup with existing email', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const testEmail = uniqueEmail('onboarding-flow-dup');
       const consents = {
         acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
         acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
       };
 
       // First signup
-      const first = await getRequest()
+      await app.request
         .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'SecurePass123!',
           name: 'First User',
           ...consents,
-        });
-
-      userId = first.body?.userId;
+        })
+        .expect(201);
 
       // Second signup with same email
-      const response = await getRequest()
-        .post('/api/v1/accounts')
-        .send({
-          email: testEmail,
-          password: 'DifferentPass123!',
-          name: 'Second User',
-          ...consents,
-        });
+      const response = await app.request.post('/api/v1/accounts').send({
+        email: testEmail,
+        password: 'DifferentPass123!',
+        name: 'Second User',
+        ...consents,
+      });
 
       expect(response.status).toBe(409);
     });
 
     it('should reject signup with weak password', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const response = await app.request
         .post('/api/v1/accounts')
         .send({ email: uniqueEmail('weak-pass'), password: '123', name: 'Weak Pass User' });
 
@@ -274,7 +264,9 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject signup with invalid email format', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const response = await app.request
         .post('/api/v1/accounts')
         .send({ email: 'not-an-email', password: 'SecurePass123!', name: 'Invalid Email User' });
 
@@ -283,7 +275,9 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject signup without required fields', async () => {
-      const response = await getRequest().post('/api/v1/accounts').send({});
+      const app = await getApp();
+      await clearAuthRateLimits();
+      const response = await app.request.post('/api/v1/accounts').send({});
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);
@@ -291,27 +285,12 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Step 2: Email Verification', () => {
-    let accessToken: string;
-    let userId: string;
-    let _testEmail: string;
-
-    beforeEach(async () => {
-      // Generate unique email for each test
-      const account = await createTestAccount('email-verify', 'Email Verify User');
-      _testEmail = account.email;
-      userId = account.userId;
-      accessToken = await loginTestAccount(account.email, account.password);
-    });
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should request email verification', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const account = await createTestAccount(app, 'email-verify', 'Email Verify User');
+      const accessToken = await loginTestAccount(app, account.email, account.password);
+
+      const response = await app.request
         .post('/api/v1/auth/email-verification/send')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({}); // Send empty body - email should be taken from token
@@ -320,7 +299,8 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject verification with invalid token', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const response = await app.request
         .post('/api/v1/auth/verify-email')
         .send({ token: 'invalid-token-12345' });
 
@@ -328,8 +308,12 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should not allow protected actions without email verification', async () => {
+      const app = await getApp();
+      const account = await createTestAccount(app, 'email-verify', 'Email Verify User');
+      const accessToken = await loginTestAccount(app, account.email, account.password);
+
       // Try to access onboarding without email verification
-      const response = await getRequest()
+      const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -339,28 +323,16 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Step 3: Terms of Service Acceptance', () => {
-    let accessToken: string;
-    let userId: string;
-
-    beforeEach(async () => {
-      const account = await createTestAccount('tos', 'ToS User');
-      userId = account.userId;
-
-      // Verify email
-      await verifyUserEmail(userId);
-      accessToken = await loginTestAccount(account.email, account.password);
-    });
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        await prisma.userConsent.deleteMany({ where: { userId } });
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should follow current ToS policy for onboarding access', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const account = await createTestAccount(app, 'tos', 'ToS User');
+      await app.prisma.user.update({
+        where: { id: account.userId },
+        data: { emailVerified: new Date() },
+      });
+      const accessToken = await loginTestAccount(app, account.email, account.password);
+
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username: uniqueTestUsername('tospre') }));
@@ -370,9 +342,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should allow onboarding after ToS acceptance', async () => {
-      await acceptTosForUser(userId);
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'tos', 'ToS User');
 
-      const response = await getRequest()
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username: uniqueTestUsername('tosuser') }));
@@ -382,30 +355,11 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Step 4: Onboarding Status Check', () => {
-    let accessToken: string;
-    let userId: string;
-
-    beforeEach(async () => {
-      const account = await createTestAccount('status', 'Status User');
-      userId = account.userId;
-
-      // Setup: verify email and accept ToS
-      await verifyUserEmail(userId);
-      await acceptTosForUser(userId);
-      accessToken = await loginTestAccount(account.email, account.password);
-    });
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        await prisma.userConsent.deleteMany({ where: { userId } });
-        await prisma.onboardingProgress.deleteMany({ where: { userId } });
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should return incomplete status for new user', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'status', 'Status User');
+
+      const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -414,37 +368,19 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject unauthenticated request', async () => {
-      const response = await getRequest().get('/api/v1/onboarding/status');
+      const app = await getApp();
+      const response = await app.request.get('/api/v1/onboarding/status');
 
       expect(response.status).toBe(401);
     });
   });
 
   describe('Step 5: Onboarding Progress Save/Load', () => {
-    let accessToken: string;
-    let userId: string;
-
-    beforeEach(async () => {
-      const account = await createTestAccount('progress', 'Progress User');
-      userId = account.userId;
-
-      // Setup: verify email and accept ToS
-      await verifyUserEmail(userId);
-      await acceptTosForUser(userId);
-      accessToken = await loginTestAccount(account.email, account.password);
-    });
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        await prisma.userConsent.deleteMany({ where: { userId } });
-        await prisma.onboardingProgress.deleteMany({ where: { userId } });
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should get initial progress', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .get('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -453,7 +389,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should save progress for personal-info step', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -466,7 +405,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should save progress for professional-profile step', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -480,7 +422,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should save progress for experiences step', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -495,7 +440,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should save progress for education step', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -517,7 +465,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should save progress for skills step', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -541,7 +492,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should save progress for languages step', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -566,8 +520,11 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should persist and retrieve progress', async () => {
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'progress', 'Progress User');
+
       // Save progress
-      await getRequest()
+      await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -577,7 +534,7 @@ describe('Complete Onboarding Flow', () => {
         });
 
       // Retrieve progress
-      const response = await getRequest()
+      const response = await app.request
         .get('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -589,38 +546,11 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Step 6: Complete Onboarding', () => {
-    let accessToken: string;
-    let userId: string;
-
-    beforeEach(async () => {
-      const account = await createTestAccount('complete', 'Complete User');
-      userId = account.userId;
-
-      // Setup: verify email and accept ToS
-      await verifyUserEmail(userId);
-      await acceptTosForUser(userId);
-      accessToken = await loginTestAccount(account.email, account.password);
-    });
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        // Clean up section items and sections (new generic sections model)
-        await prisma.sectionItem.deleteMany({
-          where: { resumeSection: { resume: { userId } } },
-        });
-        await prisma.resumeSection.deleteMany({
-          where: { resume: { userId } },
-        });
-        await prisma.resume.deleteMany({ where: { userId } });
-        await prisma.userConsent.deleteMany({ where: { userId } });
-        await prisma.onboardingProgress.deleteMany({ where: { userId } });
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should complete onboarding with minimal data', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'complete', 'Complete User');
+
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -638,7 +568,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should complete onboarding with full data', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'complete', 'Complete User');
+
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -657,45 +590,37 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject duplicate username', async () => {
+      const app = await getApp();
       const username = uniqueTestUsername('uniqueuser');
 
-      // First completion
-      const first = await getRequest()
+      // First user completes onboarding with `username`.
+      const first = await verifiedSession(app, 'complete', 'Complete User');
+      const firstRes = await app.request
         .post('/api/v1/onboarding')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${first.accessToken}`)
         .send(
           createOnboardingPayload({ username, fullName: 'First User', email: 'first@test.com' }),
         );
 
-      if (first.status !== 200 && first.status !== 201) return;
+      if (firstRes.status !== 200 && firstRes.status !== 201) return;
 
-      // Create another user
-      const secondAccount = await createTestAccount('second', 'Second User');
-      const userId2 = secondAccount.userId;
-
-      // Setup second user
-      await verifyUserEmail(userId2);
-      await acceptTosForUser(userId2);
-      const token2 = await loginTestAccount(secondAccount.email, secondAccount.password);
-
-      // Try same username
-      const response = await getRequest()
+      // A second, independent user tries the same username.
+      const second = await verifiedSession(app, 'second', 'Second User');
+      const response = await app.request
         .post('/api/v1/onboarding')
-        .set('Authorization', `Bearer ${token2}`)
+        .set('Authorization', `Bearer ${second.accessToken}`)
         .send(
           createOnboardingPayload({ username, fullName: 'Second User', email: 'second@test.com' }),
         );
 
       expect(response.status).toBe(409);
-
-      // Cleanup second user
-      const prisma = getPrisma();
-      await prisma.userConsent.deleteMany({ where: { userId: userId2 } });
-      await prisma.user.deleteMany({ where: { id: userId2 } });
     });
 
     it('should reject invalid onboarding data', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'complete', 'Complete User');
+
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -709,12 +634,11 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject onboarding without authentication', async () => {
-      const response = await getRequest()
-        .post('/api/v1/onboarding')
-        .send({
-          username: 'noauth',
-          personalInfo: { fullName: 'No Auth' },
-        });
+      const app = await getApp();
+      const response = await app.request.post('/api/v1/onboarding').send({
+        username: 'noauth',
+        personalInfo: { fullName: 'No Auth' },
+      });
 
       // Body validation runs in buildHttpCtx before the auth pipeline,
       // so a payload that doesn't satisfy the OnboardingDataSchema
@@ -725,21 +649,15 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Step 7: Post-Onboarding Verification', () => {
-    let accessToken: string;
-    let userId: string;
-    let resumeId: string;
-
-    beforeAll(async () => {
-      const account = await createTestAccount('verify', 'Verify User');
-      userId = account.userId;
-
-      // Setup: verify email and accept ToS
-      await verifyUserEmail(userId);
-      await acceptTosForUser(userId);
-      accessToken = await loginTestAccount(account.email, account.password);
-
-      // Complete onboarding
-      const onboardingRes = await getRequest()
+    /**
+     * Each assertion owns its own fully-onboarded user. Provisioning a
+     * verified session + completing onboarding inside every `it` keeps
+     * the suite order-independent (no `beforeAll`-shared resumeId/token
+     * that another concurrent test could read mid-write).
+     */
+    async function onboardedUser(app: App): Promise<{ accessToken: string; resumeId: string }> {
+      const { accessToken } = await verifiedSession(app, 'verify', 'Verify User');
+      const onboardingRes = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
@@ -750,29 +668,14 @@ describe('Complete Onboarding Flow', () => {
             jobTitle: 'Tester',
           }),
         );
-
-      resumeId = onboardingRes.body?.resumeId;
-    });
-
-    afterAll(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        // Clean up section items and sections (new generic sections model)
-        await prisma.sectionItem.deleteMany({
-          where: { resumeSection: { resume: { userId } } },
-        });
-        await prisma.resumeSection.deleteMany({
-          where: { resume: { userId } },
-        });
-        await prisma.resume.deleteMany({ where: { userId } });
-        await prisma.userConsent.deleteMany({ where: { userId } });
-        await prisma.onboardingProgress.deleteMany({ where: { userId } });
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
+      return { accessToken, resumeId: onboardingRes.body?.resumeId };
+    }
 
     it('should show completed onboarding status', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await onboardedUser(app);
+
+      const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -781,9 +684,11 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should have created resume', async () => {
+      const app = await getApp();
+      const { accessToken, resumeId } = await onboardedUser(app);
       if (!resumeId) return;
 
-      const response = await getRequest()
+      const response = await app.request
         .get(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -792,7 +697,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should list user resumes', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await onboardedUser(app);
+
+      const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -801,7 +709,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should have cleared onboarding progress', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await onboardedUser(app);
+
+      const response = await app.request
         .get('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -811,39 +722,12 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Edge Cases: Onboarding Flow', () => {
-    let accessToken: string;
-    let userId: string;
-
-    beforeEach(async () => {
-      const account = await createTestAccount('edge', 'Edge Case User');
-      userId = account.userId;
-
-      // Setup: verify email and accept ToS
-      await verifyUserEmail(userId);
-      await acceptTosForUser(userId);
-      accessToken = await loginTestAccount(account.email, account.password);
-    });
-
-    afterEach(async () => {
-      if (userId) {
-        const prisma = getPrisma();
-        // Clean up section items and sections (new generic sections model)
-        await prisma.sectionItem.deleteMany({
-          where: { resumeSection: { resume: { userId } } },
-        });
-        await prisma.resumeSection.deleteMany({
-          where: { resume: { userId } },
-        });
-        await prisma.resume.deleteMany({ where: { userId } });
-        await prisma.userConsent.deleteMany({ where: { userId } });
-        await prisma.onboardingProgress.deleteMany({ where: { userId } });
-        await prisma.user.deleteMany({ where: { id: userId } });
-      }
-    });
-
     it('should handle concurrent progress saves', async () => {
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'edge', 'Edge Case User');
+
       const promises = Array.from({ length: 3 }, (_, i) =>
-        getRequest()
+        app.request
           .put('/api/v1/onboarding/progress')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
@@ -858,10 +742,12 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should prevent double onboarding completion', async () => {
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'edge', 'Edge Case User');
       const username = uniqueTestUsername('double');
 
       // First completion
-      const first = await getRequest()
+      const first = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username, fullName: 'Double User' }));
@@ -869,7 +755,7 @@ describe('Complete Onboarding Flow', () => {
       expect([200, 201]).toContain(first.status);
 
       // Second completion attempt with different username
-      const second = await getRequest()
+      const second = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username: uniqueTestUsername('double2') }));
@@ -879,7 +765,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject special characters in username', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'edge', 'Edge Case User');
+
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username: 'user@special!chars#$%' }));
@@ -889,7 +778,10 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should handle emoji in personal info', async () => {
-      const response = await getRequest()
+      const app = await getApp();
+      const { accessToken } = await verifiedSession(app, 'edge', 'Edge Case User');
+
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(

@@ -14,6 +14,7 @@
 import type { SectionDataV2 } from '@/bounded-contexts/dsl/domain/schemas/ast/generic-section-data.schema';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import { formatPhoneForDisplay } from '@/shared-kernel/phone/format-phone';
 import type { GenericResume, GenericResumeSection } from '@/shared-kernel/schemas/sections';
 import {
   buildPageLayout,
@@ -77,7 +78,7 @@ export class DslCompilerService {
         ? {
             fullName: resumeData.fullName,
             jobTitle: resumeData.jobTitle,
-            phone: resumeData.phone,
+            phone: formatPhoneForDisplay(resumeData.phone),
             // email used to come from `Resume.emailContact`; the column
             // was dropped in commit acc22598 — pass null until we plumb
             // `User.email` through the GenericResume loader.

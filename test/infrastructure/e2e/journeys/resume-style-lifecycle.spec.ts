@@ -320,8 +320,47 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
           description: 'Created by resume-style lifecycle journey',
           typstTemplate: '#set page(margin: 1cm)\n',
           layoutKind: 'SINGLE_COLUMN',
-          styleConfig: { primaryColor: '#000000' },
-          sectionStyles: { header: { fontSize: 14 } },
+          // styleScore is recomputed from styleConfig by the ATS rubric; a
+          // create below STYLE_SCORE_MIN (80) is rejected with 422. Use a
+          // full DSL-compliant config (mirrors the seeded ATS Classic style,
+          // which scores 100) so the create is accepted.
+          styleConfig: {
+            version: '1.0.0',
+            layout: {
+              type: 'single-column',
+              paperSize: 'a4',
+              margins: 'normal',
+              pageBreakBehavior: 'auto',
+            },
+            tokens: {
+              typography: {
+                fontFamily: { heading: 'calibri', body: 'calibri' },
+                fontSize: 'base',
+                headingStyle: 'bold',
+              },
+              colors: {
+                colors: {
+                  primary: '#111111',
+                  secondary: '#444444',
+                  background: '#FFFFFF',
+                  surface: '#F9FAFB',
+                  text: { primary: '#1A1A1A', secondary: '#444444', accent: '#222222' },
+                  border: '#CCCCCC',
+                  divider: '#E5E7EB',
+                },
+                borderRadius: 'sm',
+                shadows: 'none',
+              },
+              spacing: {
+                density: 'comfortable',
+                sectionGap: 'md',
+                itemGap: 'md',
+                contentPadding: 'md',
+              },
+            },
+            sections: [],
+          },
+          sectionStyles: {},
         });
 
       expect([200, 201]).toContain(res.status);

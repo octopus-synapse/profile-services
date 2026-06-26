@@ -20,7 +20,7 @@ function resolveEnumOptions(
   locale: Locale,
 ): Array<{ value: string; label: string }> | undefined {
   if (typeof enumName !== 'string' || !Array.isArray(values)) return undefined;
-  const dict = (ENUM_DICTIONARY as unknown as EnumLabels)[enumName];
+  const dict = (ENUM_DICTIONARY as EnumLabels)[enumName];
   if (!dict) {
     throw new MissingFieldTranslationError(
       locale,
@@ -30,7 +30,10 @@ function resolveEnumOptions(
   return values.map((value) => {
     const label = dict[value]?.[locale];
     if (!label) {
-      throw new MissingFieldTranslationError(locale, `enum '${enumName}' is missing value '${value}'`);
+      throw new MissingFieldTranslationError(
+        locale,
+        `enum '${enumName}' is missing value '${value}'`,
+      );
     }
     return { value, label };
   });
@@ -39,7 +42,7 @@ function resolveEnumOptions(
 /**
  * i18n is mandatory — there is NO fallback chain. A visible field that reaches
  * here without a translation for the requested locale is a BUG (drift between
- * the catalog and prisma/seeds/field-translations.ts), so we throw instead of
+ * the catalog and prisma/seeds/shared/field-translations.ts), so we throw instead of
  * silently rendering the raw English `meta.label`. The seed-time validation
  * (`injectFieldTranslations`) and the parity specs in test/static-analysis/i18n
  * are the first lines of defence; this throw is the last.

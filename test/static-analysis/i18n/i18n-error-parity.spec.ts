@@ -64,10 +64,9 @@ describe('i18n catalog parity (@packages/i18n ERROR_DICTIONARY)', () => {
         suspects.push(`${code} = "${entry.en}"`);
       }
     }
-    expect(
-      suspects,
-      `Untranslated error messages (en === pt-BR):\n${suspects.join('\n')}`,
-    ).toEqual([]);
+    expect(suspects, `Untranslated error messages (en === pt-BR):\n${suspects.join('\n')}`).toEqual(
+      [],
+    );
   });
 
   it('no entry contains unresolved template-literal leakage', () => {

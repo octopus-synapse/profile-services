@@ -16,6 +16,8 @@ export type {
   ConfirmPasswordChangeResult,
 } from './confirm-password-change.port';
 export { ConfirmPasswordChangePort } from './confirm-password-change.port';
+export type { ForgotPasswordCommand } from './forgot-password.port';
+export { ForgotPasswordPort } from './forgot-password.port';
 export type {
   RequestEmailChangeCommand,
   RequestEmailChangeResult,
@@ -26,7 +28,5 @@ export type {
   RequestPasswordChangeResult,
 } from './request-password-change.port';
 export { RequestPasswordChangePort } from './request-password-change.port';
-export type { ForgotPasswordCommand } from './forgot-password.port';
-export { ForgotPasswordPort } from './forgot-password.port';
 export type { ResetPasswordCommand, ResetPasswordResult } from './reset-password.port';
 export { ResetPasswordPort } from './reset-password.port';

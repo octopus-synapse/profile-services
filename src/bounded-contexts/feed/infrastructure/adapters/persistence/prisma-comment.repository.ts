@@ -38,7 +38,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     content: string;
     parentId?: string;
   }): Promise<CommentWithAuthor> {
-    return (await this.prisma.postComment.create({
+    return this.prisma.postComment.create({
       data: {
         postId: input.postId,
         authorId: input.authorId,
@@ -46,7 +46,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
         parentId: input.parentId,
       },
       include: { author: { select: AUTHOR_SELECT } },
-    })) as unknown as CommentWithAuthor;
+    });
   }
 
   async markCommentDeleted(id: string): Promise<Comment> {
@@ -94,7 +94,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     // for the top-level listing. The replies sub-select stays on
     // single-column orderBy because we cap it at 3 and ties at that
     // scale don't visibly skip / duplicate.
-    return (await this.prisma.postComment.findMany({
+    return this.prisma.postComment.findMany({
       where: {
         postId,
         parentId: null,
@@ -112,7 +112,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
-    })) as unknown as CommentWithReplies[];
+    });
   }
 
   async listRepliesByComment(
@@ -125,7 +125,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     // so for ascending lists we keep the single-column predicate
     // (replies pages are small + chronological, so the boundary-skew
     // is bounded by `take: limit`).
-    return (await this.prisma.postComment.findMany({
+    return this.prisma.postComment.findMany({
       where: {
         parentId: commentId,
         isDeleted: false,
@@ -134,7 +134,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
       include: { author: { select: AUTHOR_SELECT } },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       take: limit,
-    })) as unknown as CommentWithAuthor[];
+    });
   }
 
   async listByAuthor(
@@ -143,7 +143,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     limit: number,
   ): Promise<CommentWithPost[]> {
     // P1 #35 — composite (createdAt, id) cursor.
-    return (await this.prisma.postComment.findMany({
+    return this.prisma.postComment.findMany({
       where: {
         authorId: userId,
         isDeleted: false,
@@ -162,7 +162,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
-    })) as unknown as CommentWithPost[];
+    });
   }
 }
 

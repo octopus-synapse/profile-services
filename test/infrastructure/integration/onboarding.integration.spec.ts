@@ -4,84 +4,64 @@
  * Tests onboarding lifecycle with real database.
  * Validates business rules for onboarding endpoints.
  *
- * Kent Beck: "Integration tests are the safety net for refactoring"
+ * Order-independent: Bun 1.3+ runs tests inside a `describe`
+ * out-of-declaration-order and runs spec files concurrently. The prior
+ * shared `accessToken`/`userId` (set in `beforeEach`, read in the
+ * `it`s) plus per-test `prisma.user.delete` + email-substring deletes
+ * raced across tests AND across files. Each test now drives the REAL
+ * signup → verify-email → login HTTP flow with its OWN unique email,
+ * so it owns its session for its lifetime — no cross-test cleanup, no
+ * shared mutable state.
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 
-import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
-import { clearAuthRateLimits, getApp, uniqueTestId, uniqueTestUsername } from './setup';
+import { tokenFromResponse } from '../shared';
+import { clearAuthRateLimits, getApp, signupBody, uniqueTestId, uniqueTestUsername } from './setup';
+
+interface SessionUser {
+  readonly accessToken: string;
+}
+
+/**
+ * Create a verified user via the real signup + login HTTP flow with a
+ * unique email, leaving onboarding INCOMPLETE (this suite exercises
+ * that flow). Unique email per call keeps it order/file-independent.
+ */
+async function createVerifiedUser(app: Awaited<ReturnType<typeof getApp>>): Promise<SessionUser> {
+  const email = `onboarding-${uniqueTestId()}@test.com`;
+  const password = 'SecurePass123!';
+
+  const signupResponse = await app.request
+    .post('/api/v1/accounts')
+    .send(signupBody({ email, password, name: 'Onboarding Test User' }))
+    .expect(201);
+
+  // Verify email so the email-verified guard lets the test through;
+  // onboarding stays incomplete since that flow is the subject here.
+  await app.prisma.user.update({
+    where: { id: signupResponse.body.userId },
+    data: { emailVerified: new Date() },
+  });
+
+  const loginResponse = await app.request.post('/api/v1/auth/login').send({ email, password });
+
+  return { accessToken: tokenFromResponse(loginResponse, 'access_token')! };
+}
 
 describe('Onboarding Flow Integration', () => {
-  let app: TestApp;
-  let prisma: PrismaClient;
-  let accessToken: string;
-  let userId: string;
-
-  const testUser = {
-    email: 'onboarding-integration-test@example.com',
-    password: 'SecurePass123!',
-    name: 'Onboarding Test User',
-  };
-
-  beforeAll(async () => {
-    app = await getApp();
-  });
-
   beforeEach(async () => {
+    // RATE_LIMIT_ENABLED=true in .env.test; clearing the IP-keyed
+    // signup/login buckets per test keeps a long concurrent run from
+    // 429-ing here on shared-IP bucket bleed.
     await clearAuthRateLimits();
-    prisma = app.prisma;
-  });
-
-  afterAll(async () => {
-    await stopTestApp();
-  });
-
-  beforeEach(async () => {
-    // Create fresh test user for each test. /api/v1/accounts requires
-    // the consent versions in the body (LGPD) and creates the
-    // matching `UserConsent` rows itself, so we don't double-write.
-    const email = `onboarding-${uniqueTestId()}@test.com`;
-    const signupResponse = await app.request
-      .post('/api/v1/accounts')
-      .send({
-        ...testUser,
-        email,
-        acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
-        acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
-      })
-      .expect(201);
-
-    userId = signupResponse.body.userId;
-
-    // Verify email so the email-verified guard lets the test through.
-    // Onboarding completion stays `false` since this suite exercises
-    // that flow itself.
-    await prisma.user.update({
-      where: { id: userId },
-      data: { emailVerified: new Date() },
-    });
-
-    const loginResponse = await app.request
-      .post('/api/v1/auth/login')
-      .send({ email, password: testUser.password });
-    accessToken = tokenFromResponse(loginResponse, 'access_token')!;
-  });
-
-  afterEach(async () => {
-    // Clean up test data - use try/catch to handle connection issues
-    try {
-      await prisma.onboardingProgress.deleteMany({ where: { userId } });
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.delete({ where: { id: userId } });
-    } catch {
-      // Ignore cleanup errors - may already be deleted or connection closed
-    }
   });
 
   describe('Onboarding Status', () => {
     it('should return onboarding status for new user', async () => {
+      const app = await getApp();
+      const { accessToken } = await createVerifiedUser(app);
+
       const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -92,12 +72,16 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should reject unauthenticated requests', async () => {
+      const app = await getApp();
       await app.request.get('/api/v1/onboarding/status').expect(401);
     });
   });
 
   describe('Onboarding Progress', () => {
     it('should get initial progress for new user', async () => {
+      const app = await getApp();
+      const { accessToken } = await createVerifiedUser(app);
+
       const response = await app.request
         .get('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -109,6 +93,9 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should save onboarding progress', async () => {
+      const app = await getApp();
+      const { accessToken } = await createVerifiedUser(app);
+
       const progressData = {
         currentStep: 'personal-info',
         completedSteps: ['welcome'],
@@ -129,6 +116,7 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should reject unauthenticated progress save', async () => {
+      const app = await getApp();
       await app.request
         .put('/api/v1/onboarding/progress')
         .send({ currentStep: 'personalInfo' })
@@ -138,6 +126,9 @@ describe('Onboarding Flow Integration', () => {
 
   describe('Complete Onboarding', () => {
     it('should complete onboarding with valid data', async () => {
+      const app = await getApp();
+      const { accessToken } = await createVerifiedUser(app);
+
       const onboardingData = {
         username: uniqueTestUsername('testuser'),
         personalInfo: {
@@ -167,10 +158,14 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should reject onboarding without authentication', async () => {
+      const app = await getApp();
       await app.request.post('/api/v1/onboarding').send({ personalInfo: {} }).expect(401);
     });
 
     it('should reject invalid onboarding data', async () => {
+      const app = await getApp();
+      const { accessToken } = await createVerifiedUser(app);
+
       // Send invalid data (missing required fields)
       const response = await app.request
         .post('/api/v1/onboarding')

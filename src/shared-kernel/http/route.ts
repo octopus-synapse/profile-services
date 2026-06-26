@@ -8,7 +8,7 @@
  * (section A) for the design and migration strategy.
  */
 
-import type { ZodSchema } from 'zod';
+import type { ZodTypeAny } from 'zod';
 import type { Permission } from '../authorization';
 import type { HandlerResult, HttpCtx } from './context';
 
@@ -139,17 +139,19 @@ export interface Route<
   /** Body / query / params validation. Adapter runs Zod parse and
    *  populates `ctx.body | ctx.query | ctx.params` with the parsed
    *  output. When omitted, the raw shape passes through unchanged.
-   *  The schemas are intentionally typed loosely (`ZodSchema<unknown>`)
-   *  so route descriptors can plug any project-specific Zod schema in
-   *  without re-stating its inferred output type — the handler then
-   *  narrows via `ctx.body as XDto`. */
-  readonly body?: ZodSchema<unknown>;
-  readonly query?: ZodSchema<unknown>;
-  readonly params?: ZodSchema<unknown>;
+   *  The schemas are intentionally typed loosely (`ZodTypeAny`) so route
+   *  descriptors can plug any project-specific Zod schema in without
+   *  re-stating its inferred output type — the handler then narrows via
+   *  `ctx.body as XDto`. `ZodTypeAny` (vs `ZodSchema<unknown>`) accepts a
+   *  concrete schema's own type directly, so descriptors don't need a
+   *  bridge cast onto `Route<T>['query']`. */
+  readonly body?: ZodTypeAny;
+  readonly query?: ZodTypeAny;
+  readonly params?: ZodTypeAny;
 
   /** Used by the SDK generator + OpenAPI doc. Optional — routes that
    *  return raw text/streams (Prometheus metrics, SSE) leave it off. */
-  readonly response?: ZodSchema<unknown>;
+  readonly response?: ZodTypeAny;
 
   readonly openapi: OpenApiMeta;
   readonly sdk?: SdkMeta;

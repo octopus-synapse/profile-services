@@ -18,7 +18,6 @@ import {
   AtsSimulationResponseSchema,
   BenchmarkOptionsQuery,
   HistoryQuery,
-  HistoryQueryT,
   IndustryBenchmarkResponseSchema,
   JobMatchBody,
   JobMatchResponseSchema,
@@ -222,7 +221,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
-    query: HistoryQuery as unknown as Route<ResumeAnalyticsFacade>['query'],
+    query: HistoryQuery,
     response: AnalyticsHistoryResponseSchema,
     openapi: {
       summary: 'Get analytics history',
@@ -232,7 +231,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     sdk: { exported: true },
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
-      const q = ctx.query as unknown as HistoryQueryT;
+      const q = HistoryQuery.parse(ctx.query);
       const history = await facade.getHistory(resumeId, ctx.user!.userId, q);
       return history;
     },

@@ -1,7 +1,11 @@
-import { resolveSectionTypeForLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import {
+  resolveSectionGroupForLocale,
+  resolveSectionTypeForLocale,
+} from '@/shared-kernel/utils/locale-resolver.util';
 import type { ResumeSectionTypesDataDto } from '../dto/generic-sections-response.schema';
 
 type SectionTypeLike = Parameters<typeof resolveSectionTypeForLocale>[0];
+type SectionGroupLike = Parameters<typeof resolveSectionGroupForLocale>[0];
 
 /**
  * A section type is mandatory when the seed's ATS metadata says so
@@ -18,6 +22,7 @@ function isMandatorySectionType(definition: unknown, minItems: number | null | u
 export function toResumeSectionTypesData(
   rawSectionTypes: SectionTypeLike[],
   locale: Parameters<typeof resolveSectionTypeForLocale>[1],
+  rawGroups: SectionGroupLike[] = [],
 ): ResumeSectionTypesDataDto {
   const sectionTypes: ResumeSectionTypesDataDto['sectionTypes'] = [];
   for (const st of rawSectionTypes) {
@@ -31,5 +36,6 @@ export function toResumeSectionTypesData(
       fieldStyles: (resolved.fieldStyles ?? {}) as Record<string, unknown>,
     });
   }
-  return { sectionTypes };
+  const groups = rawGroups.map((g) => resolveSectionGroupForLocale(g, locale));
+  return { sectionTypes, groups };
 }

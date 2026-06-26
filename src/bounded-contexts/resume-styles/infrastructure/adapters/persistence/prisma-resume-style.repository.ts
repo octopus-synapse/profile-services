@@ -1,6 +1,7 @@
 import { type LayoutKind, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { toPrismaJson } from '@/shared-kernel/persistence/json-column';
 import {
   type ListStylesArgs,
   type PaginatedStyles,
@@ -89,7 +90,7 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
         styleConfig: input.styleConfig as Prisma.InputJsonValue,
         sectionStyles: (input.sectionStyles ?? {}) as Prisma.InputJsonValue,
         styleScore: input.styleScore,
-        styleScoreBreakdown: input.styleScoreBreakdown as unknown as Prisma.InputJsonValue,
+        styleScoreBreakdown: toPrismaJson(input.styleScoreBreakdown),
         isSystem: false,
       },
     });
@@ -116,7 +117,7 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
     }
     if (patch.styleScore !== undefined) data.styleScore = patch.styleScore;
     if (patch.styleScoreBreakdown !== undefined) {
-      data.styleScoreBreakdown = patch.styleScoreBreakdown as unknown as Prisma.InputJsonValue;
+      data.styleScoreBreakdown = toPrismaJson(patch.styleScoreBreakdown);
     }
     // Bump version on every admin update so the historyJson timeline
     // stays consistent with the row's mutation count.

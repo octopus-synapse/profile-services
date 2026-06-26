@@ -7,53 +7,28 @@
  * These tests verify that business rules are enforced correctly.
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import type { TestResponse as Response } from '../shared';
-import {
-  clearAuthRateLimits,
-  closeApp,
-  createTestUserAndLogin,
-  getApp,
-  getPrisma,
-  getRequest,
-  signupBody,
-  uniqueTestId,
-  uniqueTestUsername,
-} from './setup';
+import { freshInDbUser } from '../shared/fresh-context';
+import { clearAuthRateLimits, getApp, signupBody, uniqueTestId, uniqueTestUsername } from './setup';
+
+/**
+ * Order-independent business-rules suite. Bun 1.3+ runs tests inside a
+ * `describe` concurrently, so the prior shared `accessToken`/`userId`
+ * (provisioned in `beforeEach`) would race. Each test now provisions
+ * its own fresh user + fixtures so it owns them for its lifetime.
+ */
 
 describe('Business Rules Integration', () => {
-  let accessToken: string;
-  let userId: string;
-
-  beforeAll(async () => {
-    await getApp();
-  });
-
-  beforeEach(async () => {
-    await clearAuthRateLimits();
-    const auth = await createTestUserAndLogin();
-    accessToken = auth.accessToken;
-    userId = auth.userId;
-  });
-
-  afterAll(async () => {
-    const prisma = getPrisma();
-    if (userId) {
-      await prisma.resumeShare.deleteMany({
-        where: { resume: { userId } },
-      });
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.deleteMany({ where: { id: userId } });
-    }
-    await closeApp();
-  });
-
   describe('BUG-019: Resume Limits', () => {
     it('should enforce maximum resume count per user', async () => {
+      const app = await getApp();
+      const user = await freshInDbUser(app);
+      const accessToken = user.token;
       // Create many resumes to test limit
       const results: Response[] = [];
       for (let i = 0; i < 15; i++) {
-        const response = await getRequest()
+        const response = await app.request
           .post('/api/v1/resumes')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({ title: `Limit Test Resume ${i}` });
@@ -75,25 +50,25 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-020: Email Verification Enforcement', () => {
     it('should require email verification for protected actions', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
       // Create new unverified user with unique email
       const unverifiedEmail = `unverified-${uniqueTestId()}@example.com`;
 
-      const signupRes = await getRequest()
-        .post('/api/v1/accounts')
-        .send(
-          signupBody({
-            email: unverifiedEmail,
-            password: 'SecurePass123!',
-            name: 'Unverified User',
-          }),
-        );
+      const signupRes = await app.request.post('/api/v1/accounts').send(
+        signupBody({
+          email: unverifiedEmail,
+          password: 'SecurePass123!',
+          name: 'Unverified User',
+        }),
+      );
 
       const unverifiedToken = signupRes.body?.accessToken;
 
       if (!unverifiedToken) return;
 
       // Try to perform protected action
-      const response = await getRequest()
+      const response = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${unverifiedToken}`)
         .send({ title: 'Test Resume' });
@@ -108,21 +83,21 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-021: Terms of Service Enforcement', () => {
     it('should require ToS acceptance for protected actions', async () => {
+      const app = await getApp();
+      await clearAuthRateLimits();
       // This is already enforced by setup, but test the flow
-      const prisma = getPrisma();
+      const prisma = app.prisma;
 
       // Create user without ToS
       const noTosEmail = `no-tos-${uniqueTestId()}@example.com`;
 
-      const signupRes = await getRequest()
-        .post('/api/v1/accounts')
-        .send(
-          signupBody({
-            email: noTosEmail,
-            password: 'SecurePass123!',
-            name: 'No ToS User',
-          }),
-        );
+      const signupRes = await app.request.post('/api/v1/accounts').send(
+        signupBody({
+          email: noTosEmail,
+          password: 'SecurePass123!',
+          name: 'No ToS User',
+        }),
+      );
 
       const noTosToken = signupRes.body?.accessToken;
       const noTosUserId = signupRes.body?.user?.id;
@@ -136,7 +111,7 @@ describe('Business Rules Integration', () => {
       });
 
       // Try protected action
-      const response = await getRequest()
+      const response = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${noTosToken}`)
         .send({ title: 'Test Resume' });
@@ -151,8 +126,10 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-022: Share Expiration', () => {
     it('should respect share expiration dates', async () => {
+      const app = await getApp();
+      const accessToken = (await freshInDbUser(app)).token;
       // Create resume
-      const createRes = await getRequest()
+      const createRes = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'Expiration Test Resume' });
@@ -162,7 +139,7 @@ describe('Business Rules Integration', () => {
       const resumeId = createRes.body.id;
 
       // Create share with past expiration
-      const shareRes = await getRequest()
+      const shareRes = await app.request
         .post(`/api/v1/resumes/${resumeId}/share`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -174,7 +151,7 @@ describe('Business Rules Integration', () => {
         const shareToken = shareRes.body?.shareToken;
         if (shareToken) {
           // Try to access expired share
-          const accessRes = await getRequest().get(`/api/v1/public/resumes/${shareToken}`);
+          const accessRes = await app.request.get(`/api/v1/public/resumes/${shareToken}`);
           expect([404, 410]).toContain(accessRes.status); // Not found or Gone
         }
       }
@@ -183,8 +160,10 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-023: Password Protection on Shares', () => {
     it('should enforce password on protected shares', async () => {
+      const app = await getApp();
+      const accessToken = (await freshInDbUser(app)).token;
       // Create resume
-      const createRes = await getRequest()
+      const createRes = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'Password Protected Resume' });
@@ -194,7 +173,7 @@ describe('Business Rules Integration', () => {
       const resumeId = createRes.body.id;
 
       // Create password-protected share
-      const shareRes = await getRequest()
+      const shareRes = await app.request
         .post(`/api/v1/resumes/${resumeId}/share`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -207,7 +186,7 @@ describe('Business Rules Integration', () => {
 
       if (shareToken) {
         // Try to access without password
-        const accessRes = await getRequest().get(`/api/v1/public/resumes/${shareToken}`);
+        const accessRes = await app.request.get(`/api/v1/public/resumes/${shareToken}`);
 
         // Should require password or return partial response
         expect([401, 403, 200]).toContain(accessRes.status);
@@ -217,8 +196,10 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-024: Username Uniqueness', () => {
     it('should enforce unique usernames', async () => {
+      const app = await getApp();
+      const userId = (await freshInDbUser(app)).userId;
       const uniqueUsername = uniqueTestUsername('user');
-      const prisma = getPrisma();
+      const prisma = app.prisma;
 
       // Set username for current user
       await prisma.user.update({
@@ -255,8 +236,10 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-025: Resume State Transitions', () => {
     it('should only allow valid state transitions', async () => {
+      const app = await getApp();
+      const accessToken = (await freshInDbUser(app)).token;
       // Create resume
-      const createRes = await getRequest()
+      const createRes = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'State Transition Test' });
@@ -266,7 +249,7 @@ describe('Business Rules Integration', () => {
       const resumeId = createRes.body.id;
 
       // Try various state transitions
-      const response = await getRequest()
+      const response = await app.request
         .patch(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ status: 'published' });

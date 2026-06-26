@@ -39,6 +39,13 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
     });
   }
 
+  findActiveSectionGroups() {
+    return this.prisma.sectionGroup.findMany({
+      where: { isActive: true },
+      orderBy: [{ order: 'asc' }, { key: 'asc' }],
+    });
+  }
+
   findResumeOwner(resumeId: string) {
     return this.prisma.resume.findUnique({
       where: { id: resumeId },

@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { injectFieldTranslations } from './field-translations';
+import { SECTION_GROUP_KEYS } from './section-group.seed';
 import { sectionTypeIcons, sectionTypeTranslations } from './section-type-translations';
 
 export interface SectionTypeSeedData {
@@ -16,6 +17,8 @@ export interface SectionTypeSeedData {
   isRepeatable: boolean;
   minItems: number;
   maxItems?: number;
+  /** Optional supersection grouping (SectionGroup.key). Omit = standalone. */
+  groupKey?: string;
   definition: Prisma.InputJsonValue;
   uiSchema?: Prisma.InputJsonValue;
   renderHints?: Prisma.InputJsonValue;
@@ -1378,6 +1381,76 @@ export const sectionTypes: SectionTypeSeedData[] = [
       },
     },
   },
+  {
+    key: 'links_v1',
+    slug: 'links',
+    title: 'Links',
+    description: 'External profile and portfolio links',
+    semanticKind: 'LINKS',
+    version: 1,
+    isRepeatable: true,
+    minItems: 0,
+    groupKey: 'online_presence',
+    renderHints: {
+      layout: 'list',
+      itemLayout: 'horizontal',
+      showDividers: false,
+    },
+    definition: {
+      schemaVersion: 1,
+      kind: 'LINKS',
+      fields: [
+        // Order matters: the add-link flow gates URL → label sequentially.
+        {
+          key: 'kind',
+          type: 'enum',
+          required: true,
+          semanticRole: 'LINK_KIND',
+          enum: ['LINKEDIN', 'GITHUB', 'WEBSITE', 'PORTFOLIO', 'CUSTOM'],
+          meta: { label: 'Link type', enumName: 'LinkKind' },
+        },
+        {
+          key: 'url',
+          type: 'string',
+          required: true,
+          semanticRole: 'URL',
+          meta: { label: 'URL', format: 'uri' },
+        },
+        {
+          key: 'label',
+          type: 'string',
+          required: false,
+          semanticRole: 'TITLE',
+          meta: { label: 'Label' },
+        },
+        // Set client-side from the URL host; the client derives the logo.dev
+        // image from it for CUSTOM links. Hidden: never an input field.
+        {
+          key: 'domain',
+          type: 'string',
+          required: false,
+          nullable: true,
+          semanticRole: 'ORGANIZATION_DOMAIN',
+          meta: { label: 'Domain', hidden: true },
+        },
+      ],
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 17,
+        sectionDetection: {
+          keywords: ['links', 'profiles', 'contact'],
+          multiWord: ['online presence', 'social links'],
+        },
+        scoring: {
+          baseScore: 10,
+          fieldWeights: { URL: 10 },
+        },
+      },
+      export: {
+        dsl: { sectionId: 'links', astType: 'links' },
+      },
+    },
+  },
 ];
 
 export async function seedSectionTypes(prisma: PrismaClient) {
@@ -1385,6 +1458,15 @@ export async function seedSectionTypes(prisma: PrismaClient) {
 
   for (const sectionType of sectionTypes) {
     const { key, renderHints, fieldStyles, ...restData } = sectionType;
+
+    // Guard: groupKey has no FK (loose string), so a typo would silently make
+    // the section standalone. Fail loud instead.
+    if (restData.groupKey && !SECTION_GROUP_KEYS.has(restData.groupKey)) {
+      throw new Error(
+        `[section-type] '${key}' has groupKey '${restData.groupKey}' which is not a ` +
+          `seeded SectionGroup. Add it to prisma/seeds/section-group.seed.ts.`,
+      );
+    }
 
     // Get icon and translations from the translation file. Icons have a
     // generic default (not i18n), but translations must NOT fall back — a

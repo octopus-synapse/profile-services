@@ -37,7 +37,7 @@ export class InMemoryAdminTechNichesRepository extends AdminTechNichesRepository
   }
   async create(input: Record<string, unknown>) {
     this.created.push(input);
-    const row = { id: `niche-${this.created.length}`, ...input } as unknown as TechNiche;
+    const row = { id: `niche-${this.created.length}`, ...input } as TechNiche;
     this.rows.set(row.id, row);
     return row;
   }

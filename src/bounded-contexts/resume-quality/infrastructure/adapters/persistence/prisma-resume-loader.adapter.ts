@@ -1,10 +1,16 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SEMANTIC_KIND } from '@/shared-kernel/schemas/sections/semantic-kind.const';
 import { ResumeLoaderPort } from '../../../domain/ports/resume-loader.port';
 import type { ResumeBullet, ResumeForCompleteness } from '../../../domain/rules/completeness.rules';
 
 /** Section kinds whose item content carries free-text the Content Quality
  * AI should grade (action verbs / metrics / XYZ-STAR / specificity). */
-const BULLET_KINDS = new Set(['WORK_EXPERIENCE', 'SUMMARY', 'PROJECT', 'VOLUNTEER']);
+const BULLET_KINDS = new Set<string>([
+  SEMANTIC_KIND.WORK_EXPERIENCE,
+  SEMANTIC_KIND.SUMMARY,
+  SEMANTIC_KIND.PROJECT,
+  SEMANTIC_KIND.VOLUNTEER,
+]);
 
 /**
  * Prisma-backed ResumeLoader. Projects the generic section graph
@@ -12,7 +18,7 @@ const BULLET_KINDS = new Set(['WORK_EXPERIENCE', 'SUMMARY', 'PROJECT', 'VOLUNTEE
  * quality engine needs: `experiences`/`educations`/`skills` for the
  * deterministic completeness rules and `bullets` (real text) for the AI
  * Content Quality call. Section content keys come from the seed
- * (`prisma/seeds/section-type.seed.ts`): WORK_EXPERIENCE →
+ * (`prisma/seeds/shared/section-type.seed.ts`): WORK_EXPERIENCE →
  * company/role/startDate/endDate/description/achievements[]; EDUCATION →
  * institution/startDate/endDate; SKILL_SET → name; SUMMARY → text;
  * PROJECT → name/description/highlights[].
@@ -60,7 +66,7 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
       items.forEach((item, itemIndex) => {
         const c = item.content;
         switch (semanticKind) {
-          case 'WORK_EXPERIENCE':
+          case SEMANTIC_KIND.WORK_EXPERIENCE:
             experiences.push({
               role: asString(c.role),
               company: asString(c.company),
@@ -68,14 +74,14 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
               endedAt: parseDate(c.endDate),
             });
             break;
-          case 'EDUCATION':
+          case SEMANTIC_KIND.EDUCATION:
             educations.push({
               institution: asString(c.institution),
               startedAt: parseDate(c.startDate),
               endedAt: parseDate(c.endDate),
             });
             break;
-          case 'SKILL_SET': {
+          case SEMANTIC_KIND.SKILL_SET: {
             const name = asString(c.name);
             if (name) skills.push({ name });
             break;
