@@ -5,6 +5,11 @@ name: Fast Deploy
 # release-please / não cria tag). A imagem vai pro GHCR como `main-<short-sha>`
 # (imutável, alvo válido de rollback.yml) e também atualiza `:latest`.
 #
+# Build roda em runner do GitHub (push pro GHCR). Deploy roda num runner
+# SELF-HOSTED na própria VPS (label profile-vps): o firewall do provedor bloqueia
+# SSH de entrada dos runners do GitHub, então o runner local faz polling de saída
+# e roda `docker compose` direto no host — sem SSH.
+#
 # Para mudar a versão de verdade (bump + tag + CHANGELOG), use o fluxo normal:
 # release.yml (PR de release patch/minor/major) + cd.yml.
 on:
@@ -75,52 +80,34 @@ jobs:
 
   deploy:
     needs: build
-    # Reusa o MESMO deploy do cd.yml (SSH na VPS + .env + migrate + restart),
-    # mas pinando a imagem recém-buildada em vez de :latest.
-    uses: octopus-synapse/octopus-workflows/.github/workflows/_deploy.yml@v1
-    with:
-      service-name: "backend"
-      container-name: "profile-backend"
-      deploy-path: "/opt/profile-services"
-      image-tag: ${{ needs.build.outputs.image_tag }}
-      has-database: true
-      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"
-    secrets:
-      NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
-      SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
-      OCTOPUS_SSH_PRIVATE_KEY: ${{ secrets.OCTOPUS_SSH_PRIVATE_KEY }}
-      OCTOPUS_VM_HOST: ${{ secrets.OCTOPUS_VM_HOST }}
-      OCTOPUS_VM_USER: ${{ secrets.OCTOPUS_VM_USER }}
-      ENV_VARS: |
-        NODE_ENV=production
-        BACKEND_PORT=${{ secrets.BACKEND_PORT }}
-        POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
-        POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-        POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
-        DATABASE_URL="postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}?schema=public"
-        REDIS_HOST=redis
-        REDIS_PORT=6379
-        REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
-        JWT_SECRET="${{ secrets.JWT_SECRET }}"
-        JWT_EXPIRATION=7d
-        JWT_ISSUER=patch-careers
-        JWT_AUDIENCE=patch-clients
-        IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
-        ENABLE_BULLMQ=true
-        SMTP_HOST=smtp.resend.com
-        SMTP_PORT=465
-        SMTP_SECURE=true
-        SMTP_USER=resend
-        SMTP_PASS="${{ secrets.RESEND_API_KEY }}"
-        EMAIL_FROM=noreply@patchcareers.org
-        EMAIL_FROM_NAME="Patch Careers"
-        MINIO_ENDPOINT="${{ secrets.MINIO_ENDPOINT }}"
-        MINIO_ACCESS_KEY="${{ secrets.MINIO_ACCESS_KEY }}"
-        MINIO_SECRET_KEY="${{ secrets.MINIO_SECRET_KEY }}"
-        MINIO_BUCKET="${{ secrets.MINIO_BUCKET }}"
-        INTERNAL_API_TOKEN="${{ secrets.INTERNAL_API_TOKEN }}"
-        ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY="${{ secrets.ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY }}"
-        ATTESTATION_WITNESS_KEY_ID="${{ secrets.ATTESTATION_WITNESS_KEY_ID }}"
-        CORS_ORIGIN="${{ secrets.CORS_ORIGIN }}"
-        PERSISTENT_SESSION_EXPIRY_DAYS="${{ secrets.PERSISTENT_SESSION_EXPIRY_DAYS }}"
-        OAUTH_REDIRECT_URI_ALLOWLIST="${{ secrets.OAUTH_REDIRECT_URI_ALLOWLIST }}"
+    # Runner SELF-HOSTED na VPS (container DooD, label profile-vps). Roda
+    # `docker compose` direto no host — sem SSH de entrada (bloqueado pelo
+    # firewall do provedor). Mantém o `.env` que já está na VPS (tem PEM
+    # multi-linha do witness; não reescrever). As migrations rodam via o
+    # entrypoint do container no recreate.
+    runs-on: [self-hosted, profile-vps]
+    steps:
+      - name: Login to ghcr.io
+        run: echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Pull + recreate backend (${{ needs.build.outputs.image_tag }})
+        working-directory: /opt/profile-services
+        run: |
+          docker compose pull backend
+          docker compose up -d --force-recreate backend
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 40); do
+            s="$(docker inspect profile-backend --format '{{.State.Health.Status}}' 2>/dev/null || echo none)"
+            echo "attempt ${i}: health=${s}"
+            [ "$s" = "healthy" ] && { echo "✅ backend healthy"; exit 0; }
+            sleep 5
+          done
+          echo "::error::backend não ficou healthy a tempo"
+          docker logs profile-backend --tail 80 || true
+          exit 1
+
+      - name: Logout ghcr.io
+        if: always()
+        run: docker logout ghcr.io || true
