@@ -280,8 +280,8 @@ describe('SubmitFitAnswersUseCase', () => {
     expect(answers.saved).toHaveLength(25);
     expect(profile.version).toBe(1);
     expect(profile.vector).not.toBeNull();
-    // TTL 90 days → 2026-04-23 + 90d = 2026-07-22T12:00:00Z
-    expect(profile.expiresAt.toISOString()).toBe('2026-07-22T12:00:00.000Z');
+    // TTL 180 days → 2026-04-23 + 180d = 2026-10-20T12:00:00Z
+    expect(profile.expiresAt.toISOString()).toBe('2026-10-20T12:00:00.000Z');
     expect(history.rows).toHaveLength(1);
     const updated = questionSets.rows.find((r) => r.id === set.id);
     expect(updated?.completedAt).toBeInstanceOf(Date);

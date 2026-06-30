@@ -1,7 +1,13 @@
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import {
+  recommendationsCacheKey,
+  RECOMMENDATIONS_TTL_SECONDS,
+  type RecommendedMatch,
+} from '@/shared-kernel/cache';
 import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { ComputeMatchUseCase } from '../../application/use-cases/compute-match.use-case';
@@ -48,6 +54,7 @@ const CTX = 'DailyRecommendationsWorker';
 export class DailyRecommendationsWorker {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
     private readonly flags: FeatureFlagService,
     private readonly computeMatch: ComputeMatchUseCase,
     private readonly notifications: NotificationsUseCases,
@@ -106,44 +113,44 @@ export class DailyRecommendationsWorker {
     if (!user?.primaryResumeId) return;
 
     const techArea = user.primaryResume?.techArea ?? null;
-    // Recency window keeps the recommendation set fresh.
+    // Recency window keeps the recommendation set fresh. We rank over the
+    // EXTERNAL (JSearch) listings — the inventory the user actually browses
+    // — now that the Match engine can score them (external job-loader).
     const recencyCutoff = new Date(Date.now() - JOB_RECENCY_DAYS * 24 * 60 * 60 * 1000);
-    const jobs = await this.prisma.job.findMany({
+    const listings = await this.prisma.externalJobListing.findMany({
       where: {
-        createdAt: { gte: recencyCutoff },
-        // Author exclusion: never recommend a user their own listing.
-        authorId: { not: userId },
-        // Best-effort area scoping. When the user has no `techArea`
-        // (resume not categorised) we score over the whole recent set
-        // — that costs more but is the honest fallback.
+        fetchedAt: { gte: recencyCutoff },
+        // Best-effort area scoping over the free-text copy (external rows
+        // carry no structured `skills[]`). No `techArea` ⇒ score the whole
+        // recent set — costlier but the honest fallback.
         ...(techArea
           ? {
               OR: [
-                { skills: { has: techArea } },
                 { title: { contains: techArea, mode: 'insensitive' as const } },
+                { description: { contains: techArea, mode: 'insensitive' as const } },
               ],
             }
           : {}),
       },
       select: { id: true, title: true },
       take: MAX_CANDIDATES_PER_USER,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { fetchedAt: 'desc' },
     });
-    if (jobs.length === 0) return;
+    if (listings.length === 0) return;
 
-    const ranked: Array<{ jobId: string; title: string; score: number }> = [];
-    for (const j of jobs) {
+    const ranked: Array<{ externalJobId: string; title: string; score: number }> = [];
+    for (const listing of listings) {
       try {
         const result = await this.computeMatch.execute({
           userId,
           resumeId: user.primaryResumeId,
-          jobId: j.id,
+          jobId: listing.id,
         });
-        ranked.push({ jobId: j.id, title: j.title, score: result.overallScore });
+        ranked.push({ externalJobId: listing.id, title: listing.title, score: result.overallScore });
       } catch (err) {
-        // One bad job shouldn't poison the batch. Log + continue.
+        // One bad listing shouldn't poison the batch. Log + continue.
         this.logger.warn(
-          `daily-recommendations: compute failed user=${userId} job=${j.id}: ${err instanceof Error ? err.message : 'unknown'}`,
+          `daily-recommendations: compute failed user=${userId} job=${listing.id}: ${err instanceof Error ? err.message : 'unknown'}`,
           CTX,
         );
       }
@@ -151,6 +158,21 @@ export class DailyRecommendationsWorker {
     ranked.sort((a, b) => b.score - a.score);
     const top = ranked.slice(0, TOP_N);
     if (top.length === 0) return;
+
+    // Persist the ranked top-N so `GET /v1/jobs/recommended` (jobs BC) can
+    // read it and hydrate the listings — see the shared-kernel contract.
+    const payload: RecommendedMatch[] = top.map((t) => ({
+      externalJobId: t.externalJobId,
+      score: t.score,
+    }));
+    await this.cache
+      .set(recommendationsCacheKey(userId), payload, RECOMMENDATIONS_TTL_SECONDS)
+      .catch((err) => {
+        this.logger.warn(
+          `daily-recommendations: cache write failed user=${userId}: ${err instanceof Error ? err.message : 'unknown'}`,
+          CTX,
+        );
+      });
 
     try {
       await this.notifications.createNotification.execute({

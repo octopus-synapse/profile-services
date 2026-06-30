@@ -71,9 +71,10 @@ export const SIMILARITY_BLOCK_WEIGHTS = { bigFive: 1 / 3, schwartz: 1 / 3, sdt: 
  * changes; MINOR when weights shift; PATCH for bug fixes. */
 export const FIT_RULES_VERSION = '1.0.0';
 
-/** Expiry window for a cached user vector — matches the 90-day remap
- * cycle documented in `docs/scoring/README.md`. */
-export const FIT_VECTOR_TTL_DAYS = 90;
+/** Expiry window for a cached user vector. 180 days balances signal
+ * freshness against re-asking the 25-question set too often (a personality
+ * profile is stable over months). See `docs/scoring/README.md`. */
+export const FIT_VECTOR_TTL_DAYS = 180;
 
 /** Scale type for a FitQuestion. Mirrors the string stored on
  * `FitQuestion.scaleType`; enumerated here so the vectoriser can branch

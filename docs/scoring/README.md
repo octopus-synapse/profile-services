@@ -117,7 +117,7 @@ Admins and recruiters are exempt. Gates enforce invariants; never bypass silentl
 
 | Gate | What blocks |
 |---|---|
-| Fit profile not answered / expired (>90 days) | Auto-Apply, AI Tailor (resume rewrite), apply to internal Patch jobs, view Match Score (+ all sub-scores including Keyword/Requirements/Semantic) |
+| Fit profile not answered / expired (>180 days) | Auto-Apply, AI Tailor (resume rewrite), apply to internal Patch jobs, view Match Score (+ all sub-scores including Keyword/Requirements/Semantic) |
 | Resume Quality < 50 | Auto-Apply, apply to internal Patch jobs. PDF export is warning-only. |
 | ResumeStyle below ATS-safe threshold | Blocked at creation (422). Only admins can create styles. |
 

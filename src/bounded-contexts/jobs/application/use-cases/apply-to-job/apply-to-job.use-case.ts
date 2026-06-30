@@ -6,8 +6,9 @@
  * for silence detection and company response percentiles.
  */
 
-import { LoggerPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { JobApplicationSubmittedEvent } from '../../../domain/events';
 import { CannotApplyToOwnJobException } from '../../../domain/exceptions/jobs.exceptions';
 import { ApplicationTrackerPort } from '../../../domain/ports/application-tracker.port';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
@@ -21,6 +22,7 @@ export class ApplyToJobUseCase {
   constructor(
     private readonly repository: JobsRepositoryPort,
     private readonly tracker: ApplicationTrackerPort,
+    private readonly events: EventPublisherPort,
     private readonly logger: LoggerPort,
   ) {}
 
@@ -43,6 +45,17 @@ export class ApplyToJobUseCase {
       resumeId: dto.resumeId || null,
     });
     await this.tracker.ensureSubmittedEvent(application.id, application.createdAt);
+    // Freeze the Match Score for this apply (async, in job-match). Only when
+    // the user applied with a résumé — that's the subject of the match.
+    if (application.resumeId) {
+      this.events.publish(
+        new JobApplicationSubmittedEvent(application.id, {
+          userId,
+          jobId,
+          resumeId: application.resumeId,
+        }),
+      );
+    }
     return { ...application, alreadyApplied: false };
   }
 }

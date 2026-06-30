@@ -18,6 +18,7 @@ import {
 } from '@prisma/client';
 import { z } from 'zod';
 import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
+import { ExternalJobItemSchema } from './external-jobs.routes.schemas';
 import {
   PaginatedResponseSchema,
   PaginationQuerySchema,
@@ -55,23 +56,6 @@ export const PageOnlyQuerySchema = PaginationQuerySchema;
 export const SimilarQuerySchema = z.object({ limit: z.coerce.number().int().min(1).optional() });
 
 export const TrackerQuerySchema = z.object({ silentDays: z.string().optional() });
-
-export const FitDimensionSchema = z.object({
-  key: z.string(),
-  label: z.string(),
-  value: z.number(),
-  target: z.number(),
-  color: z.string(),
-  hint: z.string(),
-  weight: z.number(),
-});
-
-export const JobFitResponseSchema = z.object({
-  score: z.number(),
-  dimensions: z.array(FitDimensionSchema),
-  matchedKeywords: z.array(z.string()),
-  missingKeywords: z.array(z.string()),
-});
 
 export const ApplyRequirementSchema = z.object({
   type: z.string(),
@@ -153,25 +137,7 @@ export const JobViewSchema = JobWithAuthorSchema.extend({
   hasApplied: z.boolean().optional(),
 });
 
-export const FitScoreBreakdownSchema = z.object({
-  skillOverlap: z.number(),
-  englishMatch: z.number(),
-  remoteMatch: z.number(),
-  matchedSkills: z.array(z.string()),
-  missingSkills: z.array(z.string()),
-});
-
-export const FitScoreSchema = z.object({
-  score: z.number(),
-  breakdown: FitScoreBreakdownSchema,
-});
-
-export const JobWithFitScoreSchema = JobViewSchema.extend({
-  fitScore: FitScoreSchema.nullable(),
-});
-
 export const JobsListResponseSchema = PaginatedResponseSchema(JobViewSchema);
-export const JobsListWithFitScoreResponseSchema = PaginatedResponseSchema(JobWithFitScoreSchema);
 export const MyJobsListResponseSchema = PaginatedResponseSchema(JobSchema);
 
 export const BookmarkedJobItemSchema = JobWithAuthorSchema.extend({
@@ -180,7 +146,10 @@ export const BookmarkedJobItemSchema = JobWithAuthorSchema.extend({
 
 export const BookmarkedJobsResponseSchema = PaginatedResponseSchema(BookmarkedJobItemSchema);
 
-export const RecommendedJobItemSchema = JobViewSchema.extend({ matchScore: z.number() });
+// Recommended = external (JSearch) listings ranked by the Match Score
+// (precomputed by the job-match worker), so the item is the external shape
+// + a 0–100 `matchScore`.
+export const RecommendedJobItemSchema = ExternalJobItemSchema.extend({ matchScore: z.number() });
 export const RecommendedJobsResponseSchema = PaginatedResponseSchema(RecommendedJobItemSchema);
 
 // `listMyApplications` returns `data: ApplicationWithJob[]` (typed
@@ -194,6 +163,8 @@ export const JobApplicationSchema = z.object({
   coverLetter: z.string().nullable(),
   resumeId: z.string().uuid().nullable(),
   tailoredVersionId: z.string().uuid().nullable(),
+  /** Match Score frozen at apply time (0-100); null when not computable. */
+  matchScoreSnapshot: z.number().nullable(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });

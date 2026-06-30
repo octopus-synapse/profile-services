@@ -20,11 +20,9 @@ import {
   buildJobListInput,
   IdParam,
   JobApplicationsResponseSchema,
-  JobFitResponseSchema,
   JobListQuerySchema,
   JobSchema,
   JobsListResponseSchema,
-  JobsListWithFitScoreResponseSchema,
   JobViewSchema,
   MyApplicationsResponseSchema,
   MyJobsListResponseSchema,
@@ -36,6 +34,7 @@ import {
   UnbookmarkResponseSchema,
   WithdrawApplicationResponseSchema,
 } from './jobs.routes.schemas';
+import { toRecommendedExternalJobResponseDto } from './presenters/external-job.presenter';
 
 export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
   // ─── Catalog ──────────────────────────────────────────────────────
@@ -51,25 +50,6 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     handler: async (ctx, bc) => {
       const q = JobListQuerySchema.parse(ctx.query);
       return bc.listJobs.execute(buildJobListInput(q), ctx.user!.userId);
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/jobs/with-fit-score',
-    auth: { kind: 'jwt' },
-    permission: Permission.FEED_USE,
-    query: JobListQuerySchema,
-    response: JobsListWithFitScoreResponseSchema,
-    openapi: {
-      summary:
-        'Same as GET /jobs but each item is enriched with a 0-100 structured fit score for the current user.',
-      tags: ['jobs'],
-      description: 'Jobs API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const q = JobListQuerySchema.parse(ctx.query);
-      return bc.listJobsWithFitScore.execute(buildJobListInput(q), ctx.user!.userId);
     },
   },
   {
@@ -123,7 +103,8 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
-      return bc.listRecommendedJobs.execute(ctx.user!.userId, page, limit);
+      const result = await bc.listRecommendedJobs.execute(ctx.user!.userId, page, limit);
+      return { ...result, items: result.items.map(toRecommendedExternalJobResponseDto) };
     },
   },
   {
@@ -202,65 +183,6 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       return bc.getJob.execute(id, ctx.user!.userId);
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/jobs/:id/fit',
-    auth: { kind: 'jwt' },
-    permission: Permission.FEED_USE,
-    params: IdParam,
-    response: JobFitResponseSchema,
-    openapi: {
-      summary: "Fit score breakdown for this job against the viewer's primary resume",
-      tags: ['jobs'],
-      description:
-        'Returns `{score, dimensions:[{key,label,value,target,color,hint,weight}], matchedKeywords?, missingKeywords?}` so the frontend renders bars/cards by iterating dimensions[] without per-key mapping.',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
-      const raw = (await bc.getJobFit.execute(id, ctx.user!.userId)) as Record<string, unknown>;
-      const score = Number(raw.score ?? raw.matchScore ?? 0);
-      const legacy = (raw.dimensions ?? {}) as { hardSkills?: number; softSkills?: number };
-      const hardSkills = Number(legacy.hardSkills ?? 0);
-      const softSkills = Number(legacy.softSkills ?? 0);
-      const dimensions = [
-        {
-          key: 'hardSkills' as const,
-          label: 'Habilidades técnicas',
-          value: hardSkills,
-          target: 100,
-          color: hardSkills >= 70 ? 'green' : hardSkills >= 40 ? 'amber' : 'red',
-          hint:
-            hardSkills >= 70
-              ? 'Excelente alinhamento técnico'
-              : hardSkills >= 40
-                ? 'Cobertura técnica parcial'
-                : 'Faltam habilidades-chave',
-          weight: 0.6,
-        },
-        {
-          key: 'softSkills' as const,
-          label: 'Habilidades comportamentais',
-          value: softSkills,
-          target: 100,
-          color: softSkills >= 60 ? 'green' : softSkills >= 30 ? 'amber' : 'red',
-          hint:
-            softSkills >= 60
-              ? 'Sinais comportamentais alinhados'
-              : softSkills >= 30
-                ? 'Sinais comportamentais parciais'
-                : 'Poucos sinais comportamentais detectados',
-          weight: 0.4,
-        },
-      ];
-      return {
-        score,
-        dimensions,
-        matchedKeywords: (raw.matchedKeywords as string[] | undefined) ?? [],
-        missingKeywords: (raw.missingKeywords as string[] | undefined) ?? [],
-      };
     },
   },
   {

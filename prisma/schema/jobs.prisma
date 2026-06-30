@@ -108,6 +108,11 @@ model JobApplication {
   // tailored versions respond at a higher rate than the master.
   tailoredVersionId String?
 
+  // Match Score frozen at apply time (0-100), captured async by the
+  // job-match BC on `JobApplicationSubmittedEvent`. Null when the user had
+  // no fit profile (match not computable) or the job wasn't matchable.
+  matchScoreSnapshot Int?
+
   status    JobApplicationStatus @default(SUBMITTED)
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt

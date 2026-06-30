@@ -27,6 +27,7 @@ import type { NotificationsUseCases } from '@/bounded-contexts/notifications/app
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
 import type { EventBusPort, EventPublisher, LoggerPort } from '@/shared-kernel';
 import type {
@@ -45,6 +46,7 @@ import { PrismaResumeExistence } from './infrastructure/adapters/persistence/pri
 import { PrismaUserFitStateAdapter } from './infrastructure/adapters/persistence/prisma-user-fit-state.repository';
 import { RedisMatchCacheAdapter } from './infrastructure/adapters/redis-match-cache.adapter';
 import { JobMatchRecomputeOnResumeUpdatedHandler } from './infrastructure/handlers/job-match-recompute-on-resume-updated.handler';
+import { SnapshotMatchOnApplicationSubmittedHandler } from './infrastructure/handlers/snapshot-match-on-application-submitted.handler';
 import {
   DAILY_RECOMMENDATIONS_QUEUE,
   type DailyRecommendationsJobData,
@@ -119,11 +121,22 @@ export function buildJobMatchComposition(
     deps.queue,
     deps.logger,
   );
+  const snapshotOnApplicationSubmitted = new SnapshotMatchOnApplicationSubmittedHandler(
+    computeMatch,
+    deps.prisma,
+    deps.logger,
+  );
 
   const eventHandlers: ReadonlyArray<BcEventBinding> = [
     {
       eventType: ResumeUpdatedEvent.TYPE,
       handler: recomputeOnResumeUpdated.onResumeUpdated.bind(recomputeOnResumeUpdated),
+    },
+    {
+      eventType: JobApplicationSubmittedEvent.TYPE,
+      handler: snapshotOnApplicationSubmitted.onApplicationSubmitted.bind(
+        snapshotOnApplicationSubmitted,
+      ),
     },
   ];
 
@@ -131,6 +144,7 @@ export function buildJobMatchComposition(
   const recomputeWorker = new JobMatchRecomputeWorker(deps.cache, deps.logger);
   const dailyWorker = new DailyRecommendationsWorker(
     deps.prisma,
+    deps.cache,
     deps.flags,
     computeMatch,
     deps.notifications,

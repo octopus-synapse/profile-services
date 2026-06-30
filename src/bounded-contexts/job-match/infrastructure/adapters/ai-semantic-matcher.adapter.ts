@@ -84,13 +84,27 @@ export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
       where: { id: jobId },
       select: { title: true, description: true, skills: true, requirements: true },
     });
-    if (!row) return null;
+    if (!row) return this.loadExternalJobText(jobId);
     const parts = [
       row.title,
       row.description,
       (row.skills ?? []).join(', '),
       (row.requirements ?? []).join('\n'),
     ]
+      .filter((p) => typeof p === 'string' && p.trim().length > 0)
+      .join('\n\n');
+    return parts || null;
+  }
+
+  /** Free-text fallback for external (JSearch) listings — only title +
+   *  description are available; that's enough to embed and compare. */
+  private async loadExternalJobText(jobId: string): Promise<string | null> {
+    const row = await this.prisma.externalJobListing.findUnique({
+      where: { id: jobId },
+      select: { title: true, description: true },
+    });
+    if (!row) return null;
+    const parts = [row.title, row.description]
       .filter((p) => typeof p === 'string' && p.trim().length > 0)
       .join('\n\n');
     return parts || null;

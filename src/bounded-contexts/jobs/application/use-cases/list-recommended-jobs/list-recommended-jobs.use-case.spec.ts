@@ -1,73 +1,100 @@
 import { describe, expect, it } from 'bun:test';
+import type { RemotePolicy } from '@prisma/client';
+import type { CachePort } from '@/shared-kernel/cache';
+import { recommendationsCacheKey, type RecommendedMatch } from '@/shared-kernel/cache';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { InMemoryJobsRepository } from '../../../testing';
-import { JobEnrichmentService } from '../../services/job-enrichment.service';
+import type {
+  ExternalJobListingRecord,
+  ExternalJobListingsRepositoryPort,
+} from '../../../domain/ports/external-job-listings.repository.port';
+import type { SavedExternalJobsRepositoryPort } from '../../../domain/ports/saved-external-jobs.repository.port';
 import { ListRecommendedJobsUseCase } from './list-recommended-jobs.use-case';
 
+function makeRecord(id: string, externalId: string): ExternalJobListingRecord {
+  return {
+    id,
+    externalId,
+    dedupHash: 'h',
+    sourceQuery: 'q',
+    title: `Job ${id}`,
+    company: 'Acme',
+    location: 'Remote',
+    isRemote: true,
+    workMode: 'REMOTE' as RemotePolicy,
+    employmentType: null,
+    applyUrl: 'https://example.com/apply',
+    publisher: null,
+    description: 'desc',
+    postedAt: null,
+    fetchedAt: new Date('2026-06-01T00:00:00Z'),
+    raw: {},
+  };
+}
+
+function buildUseCase(opts: {
+  ranked: RecommendedMatch[] | null;
+  records: Record<string, ExternalJobListingRecord>;
+  saved?: Map<string, string>;
+  onKey?: (key: string) => void;
+}): ListRecommendedJobsUseCase {
+  const cache = {
+    isEnabled: true,
+    get: async (key: string) => {
+      opts.onKey?.(key);
+      return opts.ranked as unknown;
+    },
+  } as unknown as CachePort;
+  const listings = {
+    findListingById: async (id: string) => opts.records[id] ?? null,
+  } as unknown as ExternalJobListingsRepositoryPort;
+  const saved = {
+    listSavedExternalIds: async () => opts.saved ?? new Map<string, string>(),
+  } as unknown as SavedExternalJobsRepositoryPort;
+  return new ListRecommendedJobsUseCase(cache, listings, saved, stubLogger);
+}
+
 describe('ListRecommendedJobsUseCase', () => {
-  it('returns empty when the user has no skills', async () => {
-    const repo = new InMemoryJobsRepository();
-    repo.seedUser({ id: 'me' });
-    repo.seedJob({ authorId: 'r', title: 'A', skills: ['typescript'] });
-    const out = await new ListRecommendedJobsUseCase(
-      repo,
-      new JobEnrichmentService(repo),
-      stubLogger,
-    ).execute('me');
-    expect(out.total).toBe(0);
+  it('reads the per-user recommendations cache key', async () => {
+    let queriedKey = '';
+    const uc = buildUseCase({ ranked: null, records: {}, onKey: (k) => (queriedKey = k) });
+    await uc.execute('u1');
+    expect(queriedKey).toBe(recommendationsCacheKey('u1'));
   });
 
-  it('orders candidates by skill-overlap percentage', async () => {
-    const repo = new InMemoryJobsRepository();
-    repo.seedUser({ id: 'me', skills: ['typescript', 'postgres'] });
-    repo.seedJob({ authorId: 'r', title: 'A', skills: ['typescript', 'postgres'] });
-    repo.seedJob({ authorId: 'r', title: 'B', skills: ['typescript', 'rust', 'go'] });
-    repo.seedJob({ authorId: 'me', title: 'self', skills: ['typescript'] }); // own job → excluded
-
-    const out = await new ListRecommendedJobsUseCase(
-      repo,
-      new JobEnrichmentService(repo),
-      stubLogger,
-    ).execute('me');
-    expect(out.items.map((d) => d.title)).toEqual(['A', 'B']);
-    expect(out.items[0].matchScore).toBeGreaterThan(out.items[1].matchScore);
+  it('returns empty when nothing is precomputed', async () => {
+    const res = await buildUseCase({ ranked: null, records: {} }).execute('u1');
+    expect(res.items).toEqual([]);
+    expect(res.total).toBe(0);
   });
 
-  // P1 #36 — symmetric Jaccard matchScore. A 1-skill job overlapping 1 of
-  // the user's 50 skills should NOT score 100%.
-  it('uses symmetric Jaccard so a narrow job does not score 100% (P1 #36)', async () => {
-    const repo = new InMemoryJobsRepository();
-    repo.seedUser({
-      id: 'me',
-      skills: ['typescript', 'postgres', 'rust', 'go', 'python', 'aws'],
-    });
-    repo.seedJob({ authorId: 'r', title: 'narrow', skills: ['typescript'] });
-
-    const out = await new ListRecommendedJobsUseCase(
-      repo,
-      new JobEnrichmentService(repo),
-      stubLogger,
-    ).execute('me');
-    expect(out.items.length).toBe(1);
-    // 1 / 6 = ~17
-    expect(out.items[0].matchScore).toBeLessThan(50);
+  it('hydrates cached ids in rank order and attaches matchScore', async () => {
+    const ranked: RecommendedMatch[] = [
+      { externalJobId: 'e1', score: 92 },
+      { externalJobId: 'e2', score: 71 },
+    ];
+    const records = { e1: makeRecord('e1', 'x1'), e2: makeRecord('e2', 'x2') };
+    const res = await buildUseCase({ ranked, records }).execute('u1');
+    expect(res.items.map((i) => i.id)).toEqual(['e1', 'e2']);
+    expect(res.items.map((i) => i.matchScore)).toEqual([92, 71]);
+    expect(res.total).toBe(2);
   });
 
-  it('clamps limit to [1, 50] (P1 #36)', async () => {
-    const repo = new InMemoryJobsRepository();
-    repo.seedUser({ id: 'me', skills: ['typescript'] });
-    repo.seedJob({ authorId: 'r', title: 'A', skills: ['typescript'] });
+  it('drops swept listings (id no longer found) gracefully', async () => {
+    const ranked: RecommendedMatch[] = [
+      { externalJobId: 'e1', score: 80 },
+      { externalJobId: 'gone', score: 75 },
+    ];
+    const records = { e1: makeRecord('e1', 'x1') };
+    const res = await buildUseCase({ ranked, records }).execute('u1');
+    expect(res.items.map((i) => i.id)).toEqual(['e1']);
+    expect(res.total).toBe(1);
+  });
 
-    const useCase = new ListRecommendedJobsUseCase(
-      repo,
-      new JobEnrichmentService(repo),
-      stubLogger,
-    );
-
-    const zero = await useCase.execute('me', 1, 0);
-    expect(zero.limit).toBe(1);
-
-    const huge = await useCase.execute('me', 1, 999);
-    expect(huge.limit).toBe(50);
+  it('annotates the caller saved state', async () => {
+    const ranked: RecommendedMatch[] = [{ externalJobId: 'e1', score: 80 }];
+    const records = { e1: makeRecord('e1', 'x1') };
+    const saved = new Map<string, string>([['x1', 'saved-1']]);
+    const res = await buildUseCase({ ranked, records, saved }).execute('u1');
+    expect(res.items[0]?.savedId).toBe('saved-1');
   });
 });

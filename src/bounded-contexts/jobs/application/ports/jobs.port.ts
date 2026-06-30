@@ -11,14 +11,12 @@ import type { EnsureSubmittedEventUseCase } from '../use-cases/ensure-submitted-
 import type { FindSimilarJobsUseCase } from '../use-cases/find-similar-jobs/find-similar-jobs.use-case';
 import type { GetCompanyResponseStatsUseCase } from '../use-cases/get-company-response-stats/get-company-response-stats.use-case';
 import type { GetJobUseCase } from '../use-cases/get-job/get-job.use-case';
-import type { GetJobFitUseCase } from '../use-cases/get-job-fit/get-job-fit.use-case';
 import type { ImportJobFromUrlUseCase } from '../use-cases/import-job-from-url/import-job-from-url.use-case';
 import type { ListApplicationTimelineUseCase } from '../use-cases/list-application-timeline/list-application-timeline.use-case';
 import type { ListBookmarkedJobsUseCase } from '../use-cases/list-bookmarked-jobs/list-bookmarked-jobs.use-case';
 import type { ListExternalJobsUseCase } from '../use-cases/list-external-jobs/list-external-jobs.use-case';
 import type { ListJobApplicationsUseCase } from '../use-cases/list-job-applications/list-job-applications.use-case';
 import type { ListJobsUseCase } from '../use-cases/list-jobs/list-jobs.use-case';
-import type { ListJobsWithFitScoreUseCase } from '../use-cases/list-jobs-with-fit-score/list-jobs-with-fit-score.use-case';
 import type { ListMyApplicationsUseCase } from '../use-cases/list-my-applications/list-my-applications.use-case';
 import type { ListMyJobsUseCase } from '../use-cases/list-my-jobs/list-my-jobs.use-case';
 import type { ListRecommendedJobsUseCase } from '../use-cases/list-recommended-jobs/list-recommended-jobs.use-case';
@@ -36,7 +34,6 @@ import type { WithdrawApplicationUseCase } from '../use-cases/withdraw-applicati
 export abstract class JobsUseCases {
   // Catalog
   abstract readonly listJobs: ListJobsUseCase;
-  abstract readonly listJobsWithFitScore: ListJobsWithFitScoreUseCase;
   abstract readonly listMyJobs: ListMyJobsUseCase;
   abstract readonly listBookmarkedJobs: ListBookmarkedJobsUseCase;
   abstract readonly listRecommendedJobs: ListRecommendedJobsUseCase;
@@ -44,7 +41,6 @@ export abstract class JobsUseCases {
   abstract readonly listJobApplications: ListJobApplicationsUseCase;
   abstract readonly findSimilarJobs: FindSimilarJobsUseCase;
   abstract readonly getJob: GetJobUseCase;
-  abstract readonly getJobFit: GetJobFitUseCase;
   abstract readonly bookmarkJob: BookmarkJobUseCase;
   abstract readonly unbookmarkJob: UnbookmarkJobUseCase;
   abstract readonly applyToJob: ApplyToJobUseCase;

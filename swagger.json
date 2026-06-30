@@ -38217,6 +38217,10 @@
                             "nullable": true,
                             "format": "uuid"
                           },
+                          "matchScoreSnapshot": {
+                            "type": "number",
+                            "nullable": true
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time",
@@ -38415,6 +38419,7 @@
                           "coverLetter",
                           "resumeId",
                           "tailoredVersionId",
+                          "matchScoreSnapshot",
                           "createdAt",
                           "updatedAt",
                           "job"
@@ -41678,9 +41683,9 @@
                           "id": {
                             "type": "string"
                           },
-                          "authorId": {
+                          "externalId": {
                             "type": "string",
-                            "format": "uuid"
+                            "example": "BreJXMXqEoK60_-dAAAAAA=="
                           },
                           "title": {
                             "type": "string"
@@ -41692,8 +41697,23 @@
                             "type": "string",
                             "nullable": true
                           },
-                          "jobType": {
+                          "isRemote": {
+                            "type": "boolean",
+                            "description": "Raw upstream remote flag. Deprecated — read `workMode` instead.",
+                            "example": true
+                          },
+                          "workMode": {
                             "type": "string",
+                            "enum": [
+                              "REMOTE",
+                              "HYBRID",
+                              "ONSITE"
+                            ],
+                            "example": "REMOTE"
+                          },
+                          "employmentType": {
+                            "type": "string",
+                            "nullable": true,
                             "enum": [
                               "INTERNSHIP",
                               "CONTRACT",
@@ -41703,132 +41723,38 @@
                               "FREELANCE"
                             ]
                           },
-                          "description": {
+                          "applyUrl": {
                             "type": "string"
                           },
-                          "requirements": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
+                          "publisher": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "Indeed"
                           },
-                          "skills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "salaryRange": {
+                          "description": {
                             "type": "string",
                             "nullable": true
                           },
-                          "applyUrl": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "isActive": {
-                            "type": "boolean"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
-                            "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
-                            "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "expiresAt": {
+                          "postedAt": {
                             "type": "string",
                             "nullable": true,
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
                           },
-                          "paymentCurrency": {
+                          "fetchedAt": {
                             "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "BRL",
-                              "USD",
-                              "EUR",
-                              "GBP"
-                            ]
-                          },
-                          "remotePolicy": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "REMOTE",
-                              "HYBRID",
-                              "ONSITE"
-                            ]
-                          },
-                          "minEnglishLevel": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "BASIC",
-                              "INTERMEDIATE",
-                              "ADVANCED",
-                              "FLUENT"
-                            ]
-                          },
-                          "requirementsStructured": {
-                            "nullable": true
-                          },
-                          "requirementsEnrichedByAi": {
-                            "nullable": true
-                          },
-                          "enrichedAt": {
-                            "type": "string",
-                            "nullable": true,
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
                           },
-                          "enrichedBy": {
+                          "isSaved": {
+                            "type": "boolean"
+                          },
+                          "savedId": {
                             "type": "string",
-                            "nullable": true
-                          },
-                          "culturalProfileCaptured": {
-                            "type": "boolean"
-                          },
-                          "author": {
-                            "type": "object",
                             "nullable": true,
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "username": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "photoURL": {
-                                "type": "string",
-                                "nullable": true
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "username",
-                              "photoURL"
-                            ]
-                          },
-                          "isBookmarked": {
-                            "type": "boolean"
-                          },
-                          "hasApplied": {
-                            "type": "boolean"
+                            "description": "Id of the caller’s saved row for this listing; null when not saved."
                           },
                           "matchScore": {
                             "type": "number"
@@ -41836,525 +41762,21 @@
                         },
                         "required": [
                           "id",
-                          "authorId",
+                          "externalId",
                           "title",
                           "company",
                           "location",
-                          "jobType",
-                          "description",
-                          "requirements",
-                          "skills",
-                          "salaryRange",
+                          "isRemote",
+                          "workMode",
+                          "employmentType",
                           "applyUrl",
-                          "isActive",
-                          "createdAt",
-                          "updatedAt",
-                          "expiresAt",
-                          "paymentCurrency",
-                          "remotePolicy",
-                          "minEnglishLevel",
-                          "enrichedAt",
-                          "enrichedBy",
-                          "culturalProfileCaptured",
+                          "publisher",
+                          "description",
+                          "postedAt",
+                          "fetchedAt",
+                          "isSaved",
+                          "savedId",
                           "matchScore"
-                        ]
-                      }
-                    },
-                    "total": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "page": {
-                      "type": "integer",
-                      "minimum": 1
-                    },
-                    "limit": {
-                      "type": "integer",
-                      "minimum": 1
-                    },
-                    "totalPages": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "hasNext": {
-                      "type": "boolean"
-                    },
-                    "hasPrev": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "items",
-                    "total",
-                    "page",
-                    "limit",
-                    "totalPages",
-                    "hasNext",
-                    "hasPrev"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt",
-        "x-permission": "feed:use"
-      }
-    },
-    "/api/v1/jobs/with-fit-score": {
-      "get": {
-        "summary": "Same as GET /jobs but each item is enriched with a 0-100 structured fit score for the current user.",
-        "description": "Jobs API",
-        "tags": [
-          "jobs"
-        ],
-        "operationId": "get_v1_jobs_with_fit_score",
-        "parameters": [
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Page"
-            },
-            "required": false,
-            "name": "page",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Limit"
-            },
-            "required": false,
-            "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "salaryMin",
-                "salaryMax"
-              ]
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "maxLength": 500
-            },
-            "required": false,
-            "name": "search",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "jobType",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "maxLength": 500
-            },
-            "required": false,
-            "name": "skills",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "maxLength": 100
-            },
-            "required": false,
-            "name": "paymentCurrency",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "maxLength": 100
-            },
-            "required": false,
-            "name": "remotePolicy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "minEnglishLevel",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "items": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "authorId": {
-                            "type": "string",
-                            "format": "uuid"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "company": {
-                            "type": "string"
-                          },
-                          "location": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "jobType": {
-                            "type": "string",
-                            "enum": [
-                              "INTERNSHIP",
-                              "CONTRACT",
-                              "FULL_TIME",
-                              "PART_TIME",
-                              "VOLUNTEER",
-                              "FREELANCE"
-                            ]
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "requirements": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "skills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "salaryRange": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "applyUrl": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "isActive": {
-                            "type": "boolean"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
-                            "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
-                            "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "expiresAt": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "date-time",
-                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
-                            "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "paymentCurrency": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "BRL",
-                              "USD",
-                              "EUR",
-                              "GBP"
-                            ]
-                          },
-                          "remotePolicy": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "REMOTE",
-                              "HYBRID",
-                              "ONSITE"
-                            ]
-                          },
-                          "minEnglishLevel": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "BASIC",
-                              "INTERMEDIATE",
-                              "ADVANCED",
-                              "FLUENT"
-                            ]
-                          },
-                          "requirementsStructured": {
-                            "nullable": true
-                          },
-                          "requirementsEnrichedByAi": {
-                            "nullable": true
-                          },
-                          "enrichedAt": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "date-time",
-                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
-                            "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "enrichedBy": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "culturalProfileCaptured": {
-                            "type": "boolean"
-                          },
-                          "author": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "username": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "photoURL": {
-                                "type": "string",
-                                "nullable": true
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "username",
-                              "photoURL"
-                            ]
-                          },
-                          "isBookmarked": {
-                            "type": "boolean"
-                          },
-                          "hasApplied": {
-                            "type": "boolean"
-                          },
-                          "fitScore": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {
-                              "score": {
-                                "type": "number"
-                              },
-                              "breakdown": {
-                                "type": "object",
-                                "properties": {
-                                  "skillOverlap": {
-                                    "type": "number"
-                                  },
-                                  "englishMatch": {
-                                    "type": "number"
-                                  },
-                                  "remoteMatch": {
-                                    "type": "number"
-                                  },
-                                  "matchedSkills": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "missingSkills": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "skillOverlap",
-                                  "englishMatch",
-                                  "remoteMatch",
-                                  "matchedSkills",
-                                  "missingSkills"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "score",
-                              "breakdown"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "authorId",
-                          "title",
-                          "company",
-                          "location",
-                          "jobType",
-                          "description",
-                          "requirements",
-                          "skills",
-                          "salaryRange",
-                          "applyUrl",
-                          "isActive",
-                          "createdAt",
-                          "updatedAt",
-                          "expiresAt",
-                          "paymentCurrency",
-                          "remotePolicy",
-                          "minEnglishLevel",
-                          "enrichedAt",
-                          "enrichedBy",
-                          "culturalProfileCaptured",
-                          "fitScore"
                         ]
                       }
                     },
@@ -44164,6 +43586,10 @@
                       "nullable": true,
                       "format": "uuid"
                     },
+                    "matchScoreSnapshot": {
+                      "type": "number",
+                      "nullable": true
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -44188,6 +43614,7 @@
                     "coverLetter",
                     "resumeId",
                     "tailoredVersionId",
+                    "matchScoreSnapshot",
                     "createdAt",
                     "updatedAt",
                     "alreadyApplied"
@@ -44894,253 +44321,6 @@
                     "jobId",
                     "userId",
                     "alreadyBookmarked"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt",
-        "x-permission": "feed:use"
-      }
-    },
-    "/api/v1/jobs/{id}/fit": {
-      "get": {
-        "summary": "Fit score breakdown for this job against the viewer's primary resume",
-        "description": "Returns `{score, dimensions:[{key,label,value,target,color,hint,weight}], matchedKeywords?, missingKeywords?}` so the frontend renders bars/cards by iterating dimensions[] without per-key mapping.",
-        "tags": [
-          "jobs"
-        ],
-        "operationId": "get_v1_jobs_id_fit",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Resource UUID (path parameter).",
-              "example": "01900000-0000-7000-a000-000000000001"
-            },
-            "required": true,
-            "name": "id",
-            "in": "path",
-            "example": "01900000-0000-7000-a000-000000000001"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "score": {
-                      "type": "number"
-                    },
-                    "dimensions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "key": {
-                            "type": "string"
-                          },
-                          "label": {
-                            "type": "string"
-                          },
-                          "value": {
-                            "type": "number"
-                          },
-                          "target": {
-                            "type": "number"
-                          },
-                          "color": {
-                            "type": "string"
-                          },
-                          "hint": {
-                            "type": "string"
-                          },
-                          "weight": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "key",
-                          "label",
-                          "value",
-                          "target",
-                          "color",
-                          "hint",
-                          "weight"
-                        ]
-                      }
-                    },
-                    "matchedKeywords": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "missingKeywords": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": [
-                    "score",
-                    "dimensions",
-                    "matchedKeywords",
-                    "missingKeywords"
                   ]
                 }
               }

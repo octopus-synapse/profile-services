@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { type JobForMatch, JobLoaderPort } from '../../../domain/ports/job-loader.port';
+import { extractSkillKeywords } from '../../../domain/rules/extract-keywords.rules';
 
 type JobStructuredRequirements = Readonly<Record<string, unknown>>;
 
@@ -36,7 +37,7 @@ export class PrismaJobLoader extends JobLoaderPort {
         company: true,
       },
     });
-    if (!row) return null;
+    if (!row) return this.loadExternal(jobId);
 
     return {
       id: row.id,
@@ -47,6 +48,29 @@ export class PrismaJobLoader extends JobLoaderPort {
         (row.requirementsEnrichedByAi as Prisma.JsonValue as JobStructuredRequirements | null) ??
         undefined,
       culturalProfileCaptured: row.culturalProfileCaptured,
+      companyId: row.company || null,
+    };
+  }
+
+  /**
+   * Fallback for external (JSearch) listings, which carry no recruiter
+   * `skills[]` or structured requirements — only free-text title +
+   * description. We synthesize keywords from that copy so the Keyword
+   * sub-score stays meaningful; structured requirements stay empty (the
+   * Requirements sub-score degrades to null and the blender renormalises),
+   * and culture is never captured for an aggregated employer.
+   */
+  private async loadExternal(jobId: string): Promise<JobForMatch | null> {
+    const row = await this.prisma.externalJobListing.findUnique({
+      where: { id: jobId },
+      select: { id: true, title: true, description: true, company: true },
+    });
+    if (!row) return null;
+    return {
+      id: row.id,
+      keywords: extractSkillKeywords(`${row.title}\n${row.description ?? ''}`),
+      structuredRequirements: {},
+      culturalProfileCaptured: false,
       companyId: row.company || null,
     };
   }

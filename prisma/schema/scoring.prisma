@@ -32,16 +32,17 @@ model ResumeQualityScoreHistory {
   @@index([resumeId, computedAt])
 }
 
-// One row per user — cached behavioural vector with a 90-day expiry.
-// Missing/expired vector triggers the fit-profile lockout (403) on gated
-// endpoints (Match, Auto-Apply, AI Tailor, apply-to-internal-jobs).
+// One row per user — cached behavioural vector with a 180-day expiry
+// (FIT_VECTOR_TTL_DAYS). Missing/expired vector triggers the fit-profile
+// lockout (403) on gated endpoints (Match, Auto-Apply, AI Tailor,
+// apply-to-internal-jobs).
 model UserFitProfile {
   id         String   @id @default(dbgenerated("uuidv7()"))
   userId     String   @unique
   vectorJson Json // { bigFive: [...], schwartz: [...], sdt: [...] }
   version    Int
   computedAt DateTime @default(now())
-  expiresAt  DateTime // computedAt + 90 days
+  expiresAt  DateTime // computedAt + 180 days (FIT_VECTOR_TTL_DAYS)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -5,6 +5,7 @@
  */
 
 import type { ExternalJobListItem } from '../application/use-cases/list-external-jobs/list-external-jobs.use-case';
+import type { RecommendedExternalJobItem } from '../application/use-cases/list-recommended-jobs/list-recommended-jobs.use-case';
 import type { SavedExternalJobRecord } from '../domain/ports/saved-external-jobs.repository.port';
 
 export function toExternalJobResponseDto(record: ExternalJobListItem) {
@@ -25,6 +26,11 @@ export function toExternalJobResponseDto(record: ExternalJobListItem) {
     isSaved: record.savedId !== null,
     savedId: record.savedId,
   };
+}
+
+/** Recommended listing = the external DTO plus its 0–100 match score. */
+export function toRecommendedExternalJobResponseDto(record: RecommendedExternalJobItem) {
+  return { ...toExternalJobResponseDto(record), matchScore: record.matchScore };
 }
 
 export function toSavedExternalJobResponseDto(record: SavedExternalJobRecord) {
