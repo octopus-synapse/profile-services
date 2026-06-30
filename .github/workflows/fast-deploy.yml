@@ -88,7 +88,10 @@ jobs:
     runs-on: [self-hosted, profile-vps]
     steps:
       - name: Login to ghcr.io
-        run: echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        # GITHUB_TOKEN (packages:write neste workflow) consegue puxar a própria
+        # imagem do repo — sem depender do GH_PAT (que expira). É o mesmo token
+        # que o job de build usa pra dar push.
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Pull + recreate backend (${{ needs.build.outputs.image_tag }})
         working-directory: /opt/profile-services
