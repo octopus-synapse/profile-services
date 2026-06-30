@@ -1,0 +1,126 @@
+name: Fast Deploy
+
+# Deploy rápido SEM bump de versão: rebuilda o HEAD atual da branch e sobe pra
+# produção. O app continua reportando a versão do package.json (NÃO mexe no
+# release-please / não cria tag). A imagem vai pro GHCR como `main-<short-sha>`
+# (imutável, alvo válido de rollback.yml) e também atualiza `:latest`.
+#
+# Para mudar a versão de verdade (bump + tag + CHANGELOG), use o fluxo normal:
+# release.yml (PR de release patch/minor/major) + cd.yml.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  packages: write
+
+# Mesmo grupo do cd.yml: nunca roda concorrente com um deploy normal.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & push (HEAD)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.tag.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Compute image tag (main-<short-sha>)
+        id: tag
+        run: echo "image_tag=main-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.image_tag }}
+            ghcr.io/${{ github.repository }}:latest
+          secrets: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          cache-from: |
+            type=gha
+            type=registry,ref=ghcr.io/octopus-synapse/profile-services:cache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=ghcr.io/octopus-synapse/profile-services:cache,mode=max
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Fast Deploy — build" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Property | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image | \`ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.image_tag }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Also tagged | \`:latest\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Ref | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: build
+    # Reusa o MESMO deploy do cd.yml (SSH na VPS + .env + migrate + restart),
+    # mas pinando a imagem recém-buildada em vez de :latest.
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_deploy.yml@v1
+    with:
+      service-name: "backend"
+      container-name: "profile-backend"
+      deploy-path: "/opt/profile-services"
+      image-tag: ${{ needs.build.outputs.image_tag }}
+      has-database: true
+      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"
+    secrets:
+      NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+      SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
+      OCTOPUS_SSH_PRIVATE_KEY: ${{ secrets.OCTOPUS_SSH_PRIVATE_KEY }}
+      OCTOPUS_VM_HOST: ${{ secrets.OCTOPUS_VM_HOST }}
+      OCTOPUS_VM_USER: ${{ secrets.OCTOPUS_VM_USER }}
+      ENV_VARS: |
+        NODE_ENV=production
+        BACKEND_PORT=${{ secrets.BACKEND_PORT }}
+        POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
+        POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+        POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
+        DATABASE_URL="postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}?schema=public"
+        REDIS_HOST=redis
+        REDIS_PORT=6379
+        REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+        JWT_SECRET="${{ secrets.JWT_SECRET }}"
+        JWT_EXPIRATION=7d
+        JWT_ISSUER=patch-careers
+        JWT_AUDIENCE=patch-clients
+        IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
+        ENABLE_BULLMQ=true
+        SMTP_HOST=smtp.resend.com
+        SMTP_PORT=465
+        SMTP_SECURE=true
+        SMTP_USER=resend
+        SMTP_PASS="${{ secrets.RESEND_API_KEY }}"
+        EMAIL_FROM=noreply@patchcareers.org
+        EMAIL_FROM_NAME="Patch Careers"
+        MINIO_ENDPOINT="${{ secrets.MINIO_ENDPOINT }}"
+        MINIO_ACCESS_KEY="${{ secrets.MINIO_ACCESS_KEY }}"
+        MINIO_SECRET_KEY="${{ secrets.MINIO_SECRET_KEY }}"
+        MINIO_BUCKET="${{ secrets.MINIO_BUCKET }}"
+        INTERNAL_API_TOKEN="${{ secrets.INTERNAL_API_TOKEN }}"
+        ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY="${{ secrets.ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY }}"
+        ATTESTATION_WITNESS_KEY_ID="${{ secrets.ATTESTATION_WITNESS_KEY_ID }}"
+        CORS_ORIGIN="${{ secrets.CORS_ORIGIN }}"
+        PERSISTENT_SESSION_EXPIRY_DAYS="${{ secrets.PERSISTENT_SESSION_EXPIRY_DAYS }}"
+        OAUTH_REDIRECT_URI_ALLOWLIST="${{ secrets.OAUTH_REDIRECT_URI_ALLOWLIST }}"
