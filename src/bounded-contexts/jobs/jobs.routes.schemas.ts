@@ -18,7 +18,6 @@ import {
 } from '@prisma/client';
 import { z } from 'zod';
 import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
-import { ExternalJobItemSchema } from './external-jobs.routes.schemas';
 import {
   PaginatedResponseSchema,
   PaginationQuerySchema,
@@ -26,6 +25,7 @@ import {
 import { makePaginationSchema } from '@/shared-kernel/schemas/common/pagination.factory';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ExternalJobItemSchema } from './external-jobs.routes.schemas';
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,

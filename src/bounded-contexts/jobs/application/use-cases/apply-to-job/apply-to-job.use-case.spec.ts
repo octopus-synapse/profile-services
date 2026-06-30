@@ -20,7 +20,11 @@ describe('ApplyToJobUseCase', () => {
   it('throws when the job is missing', async () => {
     const repo = new InMemoryJobsRepository();
     await expect(
-      new ApplyToJobUseCase(repo, new CountingTracker(), noopEvents, stubLogger).execute('x', 'me', {}),
+      new ApplyToJobUseCase(repo, new CountingTracker(), noopEvents, stubLogger).execute(
+        'x',
+        'me',
+        {},
+      ),
     ).rejects.toBeInstanceOf(EntityNotFoundException);
   });
 

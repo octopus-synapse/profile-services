@@ -221,6 +221,7 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['styleScore', String(EXAMPLE_SCORE)],
   ['fitScore', String(EXAMPLE_SCORE)],
   ['matchScore', String(EXAMPLE_SCORE)],
+  ['matchScoreSnapshot', String(EXAMPLE_SCORE)],
   ['weight', '1'],
   ['order', '0'],
   ['position', '0'],

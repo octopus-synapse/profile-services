@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import type { RemotePolicy } from '@prisma/client';
 import type { CachePort } from '@/shared-kernel/cache';
-import { recommendationsCacheKey, type RecommendedMatch } from '@/shared-kernel/cache';
+import { type RecommendedMatch, recommendationsCacheKey } from '@/shared-kernel/cache';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import type {
   ExternalJobListingRecord,

@@ -8,7 +8,6 @@
  */
 
 import type { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
-import type { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
@@ -74,7 +73,6 @@ export function buildJobsUseCases(
   logger: LoggerPort,
   events: EventPublisherPort,
   llm: LlmPort,
-  resumeAnalytics: ResumeAnalyticsFacade,
   safeFetch: SafeFetchPort,
   cache: CachePort,
   config: ConfigPort,
@@ -190,22 +188,11 @@ export function buildJobsComposition(
   logger: LoggerPort,
   events: EventPublisherPort,
   llm: LlmPort,
-  resumeAnalytics: ResumeAnalyticsFacade,
   safeFetch: SafeFetchPort,
   cache: CachePort,
   config: ConfigPort,
 ): BoundedContextComposition<JobsUseCases> {
-  const useCases = buildJobsUseCases(
-    prisma,
-    email,
-    logger,
-    events,
-    llm,
-    resumeAnalytics,
-    safeFetch,
-    cache,
-    config,
-  );
+  const useCases = buildJobsUseCases(prisma, email, logger, events, llm, safeFetch, cache, config);
 
   return {
     useCases,

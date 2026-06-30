@@ -4,9 +4,9 @@ import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-fla
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import {
-  recommendationsCacheKey,
   RECOMMENDATIONS_TTL_SECONDS,
   type RecommendedMatch,
+  recommendationsCacheKey,
 } from '@/shared-kernel/cache';
 import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
@@ -146,7 +146,11 @@ export class DailyRecommendationsWorker {
           resumeId: user.primaryResumeId,
           jobId: listing.id,
         });
-        ranked.push({ externalJobId: listing.id, title: listing.title, score: result.overallScore });
+        ranked.push({
+          externalJobId: listing.id,
+          title: listing.title,
+          score: result.overallScore,
+        });
       } catch (err) {
         // One bad listing shouldn't poison the batch. Log + continue.
         this.logger.warn(

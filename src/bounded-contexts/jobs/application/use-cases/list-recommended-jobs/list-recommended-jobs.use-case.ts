@@ -10,7 +10,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import { CachePort, recommendationsCacheKey, type RecommendedMatch } from '@/shared-kernel/cache';
+import { CachePort, type RecommendedMatch, recommendationsCacheKey } from '@/shared-kernel/cache';
 import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
 import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {

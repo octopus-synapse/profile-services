@@ -23,11 +23,11 @@
 import type { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
 import type { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
 import type { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
+import { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
 import type { EventBusPort, EventPublisher, LoggerPort } from '@/shared-kernel';
 import type {
