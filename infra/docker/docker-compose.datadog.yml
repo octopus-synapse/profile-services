@@ -21,6 +21,7 @@ services:
       DD_LOGS_ENABLED: "true"
       DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: ${DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL:-true}
       DD_CONTAINER_EXCLUDE: ${DD_CONTAINER_EXCLUDE:-name:profile-datadog-agent}
+      DD_IGNORE_AUTOCONF: ${DD_IGNORE_AUTOCONF:-redisdb}
       DD_CONTAINER_LABELS_AS_TAGS: >-
         {"com.docker.compose.project":"compose_project","com.docker.compose.service":"compose_service"}
       DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT: 0.0.0.0:4318
