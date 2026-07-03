@@ -105,9 +105,12 @@ jobs:
           cp infra/docker/docker-compose.datadog.yml /opt/profile-services/infra/docker/docker-compose.datadog.yml
           cp -R infra/docker/datadog/conf.d /opt/profile-services/infra/docker/datadog/
 
-      - name: Write Datadog env
+      - name: Write deploy env
         working-directory: /opt/profile-services
         env:
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
           DD_SITE: ${{ secrets.DD_SITE }}
           DD_ENV: ${{ secrets.DD_ENV }}
@@ -124,6 +127,9 @@ jobs:
               printf '%s=%s\n' "$key" "$value" >> .env
             fi
           }
+          set_env IMAGE_TAG "$IMAGE_TAG"
+          [ -n "$FRONTEND_URL" ] && set_env FRONTEND_URL "$FRONTEND_URL"
+          [ -n "$PUBLIC_APP_URL" ] && set_env PUBLIC_APP_URL "$PUBLIC_APP_URL"
           set_env DD_API_KEY "$DD_API_KEY"
           set_env DD_SITE "${DD_SITE:-datadoghq.com}"
           set_env DD_ENV "${DD_ENV:-prod}"

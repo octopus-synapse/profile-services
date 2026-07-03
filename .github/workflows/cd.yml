@@ -20,7 +20,7 @@ jobs:
       container-name: "profile-backend"
       deploy-path: "/opt/profile-services"
       has-database: true
-      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY,DD_API_KEY"
+      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY,FRONTEND_URL,DD_API_KEY"
     secrets:
       NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
@@ -50,6 +50,8 @@ jobs:
         SMTP_PASS="${{ secrets.RESEND_API_KEY }}"
         EMAIL_FROM=noreply@patchcareers.org
         EMAIL_FROM_NAME="Patch Careers"
+        FRONTEND_URL="${{ secrets.FRONTEND_URL }}"
+        PUBLIC_APP_URL="${{ secrets.PUBLIC_APP_URL }}"
         MINIO_ENDPOINT="${{ secrets.MINIO_ENDPOINT }}"
         MINIO_ACCESS_KEY="${{ secrets.MINIO_ACCESS_KEY }}"
         MINIO_SECRET_KEY="${{ secrets.MINIO_SECRET_KEY }}"

@@ -31,5 +31,3 @@ RUN set -eux; \
 # Init scripts run on first boot of a fresh data volume — bootstraps
 # the extensions and the `uuidv7()` alias the migrations call.
 COPY infra/docker/postgres/init/ /docker-entrypoint-initdb.d/
-
-USER postgres
