@@ -22,8 +22,11 @@ describe('signed-state-cookie', () => {
 
   it('rejects a tampered signature', () => {
     const signed = signState('abc', SECRET);
-    // Flip the last byte of the signature.
-    const tampered = signed.slice(0, -1) + (signed.endsWith('A') ? 'B' : 'A');
+    const parts = signed.split('.');
+    const signature = parts[2] ?? '';
+    // Flip a significant base64url character; the final char may only carry padding bits.
+    parts[2] = (signature.startsWith('A') ? 'B' : 'A') + signature.slice(1);
+    const tampered = parts.join('.');
     expect(verifyState(tampered, { secret: SECRET, ttlMs: 60_000 })).toBeNull();
   });
 
