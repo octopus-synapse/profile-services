@@ -2,6 +2,28 @@
 
 Deferred work that was considered during the initial design but intentionally kept out of the first ship. Each item has a rationale for why it's not in v1 and enough context to pick it up later.
 
+## Readiness Score — market-relative coverage
+
+**Current (v1):** the Readiness Score's `coverage` factor is the breadth of
+distinct skills/keywords on the resume, saturating at a fixed target
+(`READINESS_COVERAGE_TARGET`).
+
+- Pro: deterministic, no AI, no dependency on job data
+- Con: rewards *quantity* of skills, blind to whether they're the *right*
+  skills for the user's target role
+
+**Followup:** measure coverage against the in-demand skills of the user's
+declared target role (from onboarding RoleSeniority / the roles taxonomy) —
+i.e. run the keyword/semantic matchers against a synthesised "target-role
+profile" instead of a raw count. Turns Readiness into a true
+"matchability for the kind of job I want" signal.
+
+**Trigger to revisit:** once target-role data density is high enough
+(most active users have a declared target role) to make the signal
+meaningful.
+
+---
+
 ## Similarity math — Mahalanobis / learned weights
 
 **Current (MVP):** weighted cosine similarity for User↔Company and User↔Job matching.

@@ -20,7 +20,7 @@ export interface ResumesByLanguageBucket {
   readonly count: number;
 }
 
-export interface AtsScoreBucket {
+export interface QualityScoreBucket {
   readonly bucket: string;
   readonly count: number;
 }
@@ -67,7 +67,7 @@ export interface JobStats {
 export abstract class AdminAnalyticsRepositoryPort {
   abstract getUserGrowth(period: AdminAnalyticsPeriod): Promise<UserGrowthBucket[]>;
   abstract getResumesByLanguage(): Promise<ResumesByLanguageBucket[]>;
-  abstract getAtsScoreDistribution(): Promise<AtsScoreBucket[]>;
+  abstract getQualityScoreDistribution(): Promise<QualityScoreBucket[]>;
   abstract getMostUsedSections(): Promise<MostUsedSection[]>;
   abstract getImportSources(): Promise<SourceCount[]>;
   abstract getViewSources(): Promise<SourceCount[]>;

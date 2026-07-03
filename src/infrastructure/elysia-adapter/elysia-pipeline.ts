@@ -37,6 +37,7 @@ import {
   responseWrapperStage,
 } from '@/shared-kernel/http/stages';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
+import type { DatadogTelemetryService } from '../observability';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';
 import {
   type DomainGateCheck,
@@ -54,6 +55,7 @@ import {
   type AccessModifierLookup,
   permissionGuardStage,
 } from './pipeline-stages/permission-guard.stage';
+import { requestTracingStage } from './pipeline-stages/tracing.stage';
 
 export interface PipelineDeps {
   readonly logger: LoggerPort;
@@ -105,6 +107,7 @@ export interface PipelineDeps {
    * log line records.
    */
   readonly observeApiLatency?: ObserveApiLatency;
+  readonly telemetry?: DatadogTelemetryService;
 }
 
 /** Build the default ordered stage list. `requestLogging` is outermost
@@ -112,7 +115,17 @@ export interface PipelineDeps {
  *  status — otherwise we'd log 200 for a 500. */
 export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage[] {
   const stages: PipelineStage[] = [
-    requestLoggingStage({ logger: deps.logger, observeApiLatency: deps.observeApiLatency }),
+    requestTracingStage({
+      enabled: deps.telemetry?.enabled === true,
+      service: deps.telemetry?.service ?? 'profile-services',
+      hashIdentifier: deps.telemetry?.hashIdentifier.bind(deps.telemetry),
+      observeHttpRequest: deps.telemetry?.recordHttpRequest.bind(deps.telemetry),
+    }),
+    requestLoggingStage({
+      logger: deps.logger,
+      observeApiLatency: deps.observeApiLatency,
+      hashIdentifier: deps.telemetry?.hashIdentifier.bind(deps.telemetry),
+    }),
     errorMapperStage(deps),
   ];
   if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));

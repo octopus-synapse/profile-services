@@ -32,6 +32,27 @@ model ResumeQualityScoreHistory {
   @@index([resumeId, computedAt])
 }
 
+// Append-only snapshots of per-resume Readiness Score computations. The
+// Readiness Score is the job-independent "how ready is this resume to
+// compete" number (owned by job-match/), a deterministic blend of the
+// latest Quality Score, skill coverage, and fit-questionnaire freshness.
+// Only the primary (master) resume is scored; the trend feeds the
+// Desempenho hub's momentum chart. Mirrors ResumeQualityScoreHistory.
+model ReadinessScoreHistory {
+  id            String   @id @default(dbgenerated("uuidv7()"))
+  resumeId      String
+  overallScore  Int
+  qualityScore  Int? // null when no Quality Score has been computed yet
+  coverageScore Int? // null when the keyword source failed
+  fitScore      Int? // null when the fit-state read failed
+  rulesVersion  String // semver of the readiness blend (READINESS_RULES_VERSION)
+  computedAt    DateTime @default(now())
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId, computedAt])
+}
+
 // One row per user — cached behavioural vector with a 180-day expiry
 // (FIT_VECTOR_TTL_DAYS). Missing/expired vector triggers the fit-profile
 // lockout (403) on gated endpoints (Match, Auto-Apply, AI Tailor,

@@ -7,7 +7,7 @@ export const DashboardResponseSchema = z.object({
   overview: z.object({
     totalViews: z.number().int().nonnegative(),
     uniqueVisitors: z.number().int().nonnegative(),
-    atsScore: z.number().min(0).max(100),
+    qualityScore: z.number().min(0).max(100),
     keywordScore: z.number().min(0).max(100),
     industryPercentile: z.number().min(0).max(100),
   }),

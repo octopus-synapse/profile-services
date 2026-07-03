@@ -46,6 +46,8 @@ export const CreateResumeSchema = z.object({
   isPublic: z.boolean().default(false), // Personal info
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
+  targetRoleId: z.string().max(64).nullish(),
+  targetRoleLabel: z.string().max(120).nullish(),
   phone: PhoneSchema,
   location: UserLocationSchema,
   linkedin: LinkedInUrlSchema.optional(),

@@ -14,13 +14,13 @@ export class BenchmarkService {
     yourScore: number,
     _options: IndustryBenchmarkOptions,
   ): Promise<IndustryBenchmark> {
-    const scores = await this.repository.getAllAtsScores();
+    const scores = await this.repository.getAllQualityScores();
     const avgScore = this.calculateAverage(scores);
     const yourPercentile = this.calculatePercentile(yourScore, scores);
 
     const comparison: IndustryComparison = {
-      avgATSScore: Math.round(avgScore),
-      yourATSScore: yourScore,
+      avgQualityScore: Math.round(avgScore),
+      yourQualityScore: yourScore,
       avgViews: 0,
       yourViews: 0,
       avgStructuredItemCount: 0,

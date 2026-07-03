@@ -29,6 +29,8 @@ export type ResumeResult = {
   title: string | null;
   language?: string | null;
   targetRole?: string | null;
+  targetRoleId?: string | null;
+  targetRoleLabel?: string | null;
   template?: string | null;
   isPublic?: boolean;
   slug?: string | null;

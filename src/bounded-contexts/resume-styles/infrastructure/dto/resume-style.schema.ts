@@ -1,6 +1,7 @@
 import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ScoreRankSchema } from '@/shared-kernel/scoring';
 
 const LayoutKindEnum = z.nativeEnum(LayoutKind);
 
@@ -9,6 +10,8 @@ const StyleSummarySchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   styleScore: z.number().int().min(0).max(100),
+  /** Letter grade for `styleScore` (S/A/B/C/D/F), from the shared ladder. */
+  styleRank: ScoreRankSchema,
   layoutKind: LayoutKindEnum,
   typstTemplate: z.string(),
   isSystem: z.boolean(),

@@ -3,6 +3,13 @@ import { z } from 'zod';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 const LogLevelSchema = z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']);
+const SENSITIVE_META_KEY_PATTERN =
+  /(^|_)(authorization|cookie|email|password|secret|token|jwt|credential)$/iu;
+const ENTITY_ID_META_KEY_PATTERN =
+  /^(userId|resumeId|jobId|sessionId|applicationId|snapshotId|socketId|accountId)$/u;
+const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/giu;
+const ENTITY_ID_IN_MESSAGE_PATTERN =
+  /\b(user|resume|job|session|application|snapshot|socket|account)(?:Id| id)?[=:\s]+([A-Za-z0-9_-]{6,})/giu;
 
 /**
  * Winston-backed `LoggerPort` implementation.
@@ -81,24 +88,27 @@ export class AppLoggerService extends LoggerPort {
   }
 
   log(message: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.info(message, { context, ...meta });
+    this.logger.info(sanitizeLogMessage(message), { context, ...sanitizeLogMeta(meta) });
   }
 
   error(message: string, options: Record<string, unknown> = {}): void {
     const { context, stack, ...rest } = options;
-    this.logger.error(message, { context, stack, ...rest });
+    this.logger.error(sanitizeLogMessage(message), { context, stack, ...sanitizeLogMeta(rest) });
   }
 
   warn(message: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.warn(message, { context, ...meta });
+    this.logger.warn(sanitizeLogMessage(message), { context, ...sanitizeLogMeta(meta) });
   }
 
   debug(message: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.debug(message, { context, ...meta });
+    this.logger.debug(sanitizeLogMessage(message), { context, ...sanitizeLogMeta(meta) });
   }
 
   verbose(message: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.verbose(message, { context: context ?? this.context, ...meta });
+    this.logger.verbose(sanitizeLogMessage(message), {
+      context: context ?? this.context,
+      ...sanitizeLogMeta(meta),
+    });
   }
 
   setContext(context: string): void {
@@ -106,6 +116,40 @@ export class AppLoggerService extends LoggerPort {
   }
 
   errorWithMeta(message: string, meta?: Record<string, unknown>): void {
-    this.logger.error(message, { context: this.context, ...meta });
+    this.logger.error(sanitizeLogMessage(message), {
+      context: this.context,
+      ...sanitizeLogMeta(meta),
+    });
   }
+}
+
+function sanitizeLogMessage(message: string): string {
+  return message
+    .replace(EMAIL_PATTERN, '[email_redacted]')
+    .replace(ENTITY_ID_IN_MESSAGE_PATTERN, (_match, entity: string) => `${entity}=[id_redacted]`);
+}
+
+function sanitizeLogMeta(meta?: Record<string, unknown>): Record<string, unknown> {
+  if (!meta) return {};
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(meta)) {
+    sanitized[key] = sanitizeLogValue(key, value, 0);
+  }
+  return sanitized;
+}
+
+function sanitizeLogValue(key: string, value: unknown, depth: number): unknown {
+  if (SENSITIVE_META_KEY_PATTERN.test(key) || ENTITY_ID_META_KEY_PATTERN.test(key)) {
+    return '[redacted]';
+  }
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'string') return sanitizeLogMessage(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return { count: value.length };
+  if (typeof value !== 'object' || depth >= 2) return '[object]';
+  const sanitized: Record<string, unknown> = {};
+  for (const [nestedKey, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+    sanitized[nestedKey] = sanitizeLogValue(nestedKey, nestedValue, depth + 1);
+  }
+  return sanitized;
 }

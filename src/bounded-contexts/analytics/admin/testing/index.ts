@@ -8,10 +8,10 @@ import {
   type ActiveUsersStats,
   type AdminAnalyticsPeriod,
   AdminAnalyticsRepositoryPort,
-  type AtsScoreBucket,
   type ContentStats,
   type JobStats,
   type MostUsedSection,
+  type QualityScoreBucket,
   type ResumesByLanguageBucket,
   type SocialStats,
   type SourceCount,
@@ -21,7 +21,7 @@ import {
 interface AdminAnalyticsSeed {
   userGrowth?: Partial<Record<AdminAnalyticsPeriod, UserGrowthBucket[]>>;
   resumesByLanguage?: ResumesByLanguageBucket[];
-  atsScoreDistribution?: AtsScoreBucket[];
+  qualityScoreDistribution?: QualityScoreBucket[];
   mostUsedSections?: MostUsedSection[];
   importSources?: SourceCount[];
   viewSources?: SourceCount[];
@@ -35,7 +35,7 @@ export class InMemoryAdminAnalyticsRepository extends AdminAnalyticsRepositoryPo
   private state: Required<AdminAnalyticsSeed> = {
     userGrowth: { day: [], week: [], month: [] },
     resumesByLanguage: [],
-    atsScoreDistribution: [],
+    qualityScoreDistribution: [],
     mostUsedSections: [],
     importSources: [],
     viewSources: [],
@@ -61,7 +61,8 @@ export class InMemoryAdminAnalyticsRepository extends AdminAnalyticsRepositoryPo
     this.state = {
       userGrowth: { ...this.state.userGrowth, ...(seed.userGrowth ?? {}) },
       resumesByLanguage: seed.resumesByLanguage ?? this.state.resumesByLanguage,
-      atsScoreDistribution: seed.atsScoreDistribution ?? this.state.atsScoreDistribution,
+      qualityScoreDistribution:
+        seed.qualityScoreDistribution ?? this.state.qualityScoreDistribution,
       mostUsedSections: seed.mostUsedSections ?? this.state.mostUsedSections,
       importSources: seed.importSources ?? this.state.importSources,
       viewSources: seed.viewSources ?? this.state.viewSources,
@@ -78,8 +79,8 @@ export class InMemoryAdminAnalyticsRepository extends AdminAnalyticsRepositoryPo
   async getResumesByLanguage() {
     return this.state.resumesByLanguage;
   }
-  async getAtsScoreDistribution() {
-    return this.state.atsScoreDistribution;
+  async getQualityScoreDistribution() {
+    return this.state.qualityScoreDistribution;
   }
   async getMostUsedSections() {
     return this.state.mostUsedSections;

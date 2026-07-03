@@ -32,7 +32,7 @@ export abstract class AnalyticsSseBundle {
 export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
 
 // ─── ATS Simulator (F3-PD-009b) ──────────────────────────────────────
-export const AtsSimulationSectionSchema = z.object({
+export const QualitySimulationSectionSchema = z.object({
   title: z.string().openapi({ example: 'experience' }),
   semanticKind: z.string().openapi({ example: 'experience' }),
   column: z.enum(['main', 'sidebar', 'full-width']).openapi({ example: 'full-width' }),
@@ -45,14 +45,14 @@ export const AtsSimulationSectionSchema = z.object({
   ),
 });
 
-export const AtsSimulationResultSchema = z.object({
+export const QualitySimulationResultSchema = z.object({
   extractedText: z.string().openapi({ example: 'Senior Engineer\nAcme\nFrom Jan 2022' }),
-  sections: z.array(AtsSimulationSectionSchema),
+  sections: z.array(QualitySimulationSectionSchema),
   warnings: z.array(z.string()).openapi({ example: ['Decorative glyph stripped in "title"'] }),
 });
 
-export const AtsSimulationResponseSchema = z.object({
-  data: AtsSimulationResultSchema,
+export const QualitySimulationResponseSchema = z.object({
+  data: QualitySimulationResultSchema,
 });
 
 export const TrackViewBody = z
@@ -199,8 +199,8 @@ export const IndustryBenchmarkResponseSchema = z.object({
   percentile: z.number(),
   totalInIndustry: z.number().int().min(0),
   comparison: z.object({
-    avgATSScore: z.number(),
-    yourATSScore: z.number(),
+    avgQualityScore: z.number(),
+    yourQualityScore: z.number(),
     avgViews: z.number(),
     yourViews: z.number(),
     avgStructuredItemCount: z.number(),
@@ -228,7 +228,7 @@ export const AnalyticsDashboardResponseSchema = z.object({
   overview: z.object({
     totalViews: z.number().int().min(0),
     uniqueVisitors: z.number().int().min(0),
-    atsScore: z.number().int(),
+    qualityScore: z.number().int(),
     keywordScore: z.number().int(),
     industryPercentile: z.number(),
   }),
@@ -259,7 +259,7 @@ export const AnalyticsDashboardResponseSchema = z.object({
 export const AnalyticsSnapshotResponseSchema = z.object({
   id: z.string(),
   resumeId: z.string().uuid(),
-  atsScore: z.number().int(),
+  qualityScore: z.number().int(),
   keywordScore: z.number().int(),
   completenessScore: z.number().int(),
   industryRank: z.number().int().optional(),

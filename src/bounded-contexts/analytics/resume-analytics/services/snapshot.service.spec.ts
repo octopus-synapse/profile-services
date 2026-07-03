@@ -22,7 +22,7 @@ describe('SnapshotService', () => {
     it('should save analytics snapshot with all fields', async () => {
       const input = {
         resumeId: 'resume-1',
-        atsScore: 85,
+        qualityScore: 85,
         keywordScore: 80,
         completenessScore: 90,
         topKeywords: ['javascript', 'react'],
@@ -32,7 +32,7 @@ describe('SnapshotService', () => {
       const result = await service.save(input);
 
       expect(result.resumeId).toBe('resume-1');
-      expect(result.atsScore).toBe(85);
+      expect(result.qualityScore).toBe(85);
       expect(result.keywordScore).toBe(80);
       expect(result.completenessScore).toBe(90);
       expect(result.topKeywords).toEqual(['javascript', 'react']);
@@ -40,7 +40,12 @@ describe('SnapshotService', () => {
     });
 
     it('should use empty arrays for optional keywords', async () => {
-      const input = { resumeId: 'resume-1', atsScore: 85, keywordScore: 80, completenessScore: 90 };
+      const input = {
+        resumeId: 'resume-1',
+        qualityScore: 85,
+        keywordScore: 80,
+        completenessScore: 90,
+      };
 
       const result = await service.save(input);
 
@@ -51,7 +56,7 @@ describe('SnapshotService', () => {
     it('should return mapped snapshot', async () => {
       const result = await service.save({
         resumeId: 'resume-1',
-        atsScore: 85,
+        qualityScore: 85,
         keywordScore: 80,
         completenessScore: 90,
       });
@@ -59,7 +64,7 @@ describe('SnapshotService', () => {
       expect(result).toEqual({
         id: expect.any(String),
         resumeId: 'resume-1',
-        atsScore: 85,
+        qualityScore: 85,
         keywordScore: 80,
         completenessScore: 90,
         industryRank: undefined,
@@ -75,7 +80,7 @@ describe('SnapshotService', () => {
     it('should return snapshots ordered by date descending', async () => {
       snapshotRepo.seedSnapshot({
         resumeId: 'resume-1',
-        atsScore: 85,
+        qualityScore: 85,
         keywordScore: 80,
         completenessScore: 90,
         createdAt: new Date('2026-02-01'),
@@ -91,7 +96,7 @@ describe('SnapshotService', () => {
       for (let i = 0; i < 15; i++) {
         snapshotRepo.seedSnapshot({
           resumeId: 'resume-1',
-          atsScore: 85,
+          qualityScore: 85,
           keywordScore: 80,
           completenessScore: 90,
         });
@@ -106,7 +111,7 @@ describe('SnapshotService', () => {
       for (let i = 0; i < 15; i++) {
         snapshotRepo.seedSnapshot({
           resumeId: 'resume-1',
-          atsScore: 85,
+          qualityScore: 85,
           keywordScore: 80,
           completenessScore: 90,
         });
@@ -137,21 +142,21 @@ describe('SnapshotService', () => {
       snapshotRepo.seedSnapshots([
         {
           resumeId: 'resume-1',
-          atsScore: 70,
+          qualityScore: 70,
           keywordScore: 80,
           completenessScore: 90,
           createdAt: day15,
         },
         {
           resumeId: 'resume-1',
-          atsScore: 75,
+          qualityScore: 75,
           keywordScore: 80,
           completenessScore: 90,
           createdAt: day10,
         },
         {
           resumeId: 'resume-1',
-          atsScore: 85,
+          qualityScore: 85,
           keywordScore: 80,
           completenessScore: 90,
           createdAt: day5,

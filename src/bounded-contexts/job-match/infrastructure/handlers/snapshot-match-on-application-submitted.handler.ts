@@ -30,7 +30,22 @@ export class SnapshotMatchOnApplicationSubmittedHandler {
       const breakdown = await this.computeMatch.execute({ userId, resumeId, jobId });
       await this.prisma.jobApplication.update({
         where: { id: applicationId },
-        data: { matchScoreSnapshot: breakdown.overallScore },
+        data: {
+          matchScoreSnapshot: breakdown.overallScore,
+          // Freeze the breakdown too — the Redis cache behind the compute is
+          // short-lived, so this is the only durable record of "why it matched".
+          matchBreakdownSnapshot: {
+            subScores: {
+              keyword: breakdown.subScores.keyword.score,
+              requirements: breakdown.subScores.requirements.score,
+              semantic: breakdown.subScores.semantic.score,
+              fit: breakdown.subScores.fit.score,
+            },
+            effectiveWeights: breakdown.effectiveWeights,
+            rulesVersion: breakdown.rulesVersion,
+            computedAt: breakdown.computedAt.toISOString(),
+          },
+        },
       });
       this.logger.log(
         `match snapshot frozen application=${applicationId} score=${breakdown.overallScore}`,

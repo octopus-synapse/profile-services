@@ -1,4 +1,5 @@
 import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
+import { scoreToRank } from '@/shared-kernel/scoring';
 import type { PaginatedStyles } from '../../domain/ports/resume-style.repository.port';
 import type { StyleDetail, StyleSummary } from '../../domain/types';
 import type {
@@ -13,6 +14,7 @@ export function toSummaryResponseDto(s: StyleSummary): StyleSummaryDto {
     name: s.name,
     description: s.description,
     styleScore: s.styleScore,
+    styleRank: scoreToRank(s.styleScore),
     layoutKind: s.layoutKind,
     typstTemplate: s.typstTemplate,
     isSystem: s.isSystem,

@@ -14,7 +14,7 @@ export interface AdminDashboardMetrics {
   readonly signupsThisMonth: number;
   readonly resumesThisWeek: number;
   readonly resumesThisMonth: number;
-  readonly averageAtsScore: number;
+  readonly averageQualityScore: number;
   readonly onboardingCompletionRate: number;
 }
 

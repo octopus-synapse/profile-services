@@ -87,17 +87,60 @@ jobs:
     # entrypoint do container no recreate.
     runs-on: [self-hosted, profile-vps]
     steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
       - name: Login to ghcr.io
         # GITHUB_TOKEN (packages:write neste workflow) consegue puxar a própria
         # imagem do repo — sem depender do GH_PAT (que expira). É o mesmo token
         # que o job de build usa pra dar push.
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+      - name: Sync Datadog deployment files
+        run: |
+          cp docker-compose.yml /opt/profile-services/docker-compose.yml
+          mkdir -p /opt/profile-services/infra/docker
+          mkdir -p /opt/profile-services/infra/docker/datadog
+          cp infra/docker/docker-compose.datadog.yml /opt/profile-services/infra/docker/docker-compose.datadog.yml
+          cp -R infra/docker/datadog/conf.d /opt/profile-services/infra/docker/datadog/
+
+      - name: Write Datadog env
+        working-directory: /opt/profile-services
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: ${{ secrets.DD_SITE }}
+          DD_ENV: ${{ secrets.DD_ENV }}
+          DD_SERVICE: ${{ secrets.DD_SERVICE }}
+        run: |
+          [ -n "$DD_API_KEY" ] || { echo "::error::DD_API_KEY secret is required"; exit 1; }
+          set_env() {
+            key="$1"
+            value="$2"
+            touch .env
+            if grep -q "^${key}=" .env; then
+              sed -i "s|^${key}=.*|${key}=${value}|" .env
+            else
+              printf '%s=%s\n' "$key" "$value" >> .env
+            fi
+          }
+          set_env DD_API_KEY "$DD_API_KEY"
+          set_env DD_SITE "${DD_SITE:-datadoghq.com}"
+          set_env DD_ENV "${DD_ENV:-prod}"
+          set_env DD_SERVICE "${DD_SERVICE:-profile-services}"
+          set_env DD_OBSERVABILITY_ENABLED "true"
+          set_env DD_PRODUCT_EVENTS_ENABLED "true"
+          set_env DD_OTEL_ENABLED "true"
+          set_env DD_AGENT_HOST "datadog-agent"
+          set_env DD_DOGSTATSD_HOST "datadog-agent"
+          set_env DD_DOGSTATSD_PORT "8125"
+          set_env DD_TRACE_AGENT_PORT "8126"
+          set_env DD_OTLP_TRACES_URL "http://datadog-agent:4318/v1/traces"
+
       - name: Pull + recreate backend (${{ needs.build.outputs.image_tag }})
         working-directory: /opt/profile-services
         run: |
-          docker compose pull backend
-          docker compose up -d --force-recreate backend
+          docker compose -f docker-compose.yml -f infra/docker/docker-compose.datadog.yml pull backend datadog-agent
+          docker compose -f docker-compose.yml -f infra/docker/docker-compose.datadog.yml up -d datadog-agent
+          docker compose -f docker-compose.yml -f infra/docker/docker-compose.datadog.yml up -d --force-recreate backend
 
       - name: Wait for health
         run: |

@@ -6,6 +6,7 @@
  * histogram.
  */
 
+import { trace } from '@opentelemetry/api';
 import type { PipelineStage } from '@/shared-kernel/http/pipeline';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
@@ -18,6 +19,7 @@ export type ObserveApiLatency = (
 export function requestLoggingStage(deps: {
   readonly logger: LoggerPort;
   readonly observeApiLatency?: ObserveApiLatency;
+  readonly hashIdentifier?: (value: string | undefined | null) => string | undefined;
 }): PipelineStage {
   return {
     name: 'requestLogging',
@@ -28,9 +30,17 @@ export function requestLoggingStage(deps: {
       } finally {
         const duration = Date.now() - start;
         const status = (ctx.state.responseStatus as number | undefined) ?? 200;
+        const route = (ctx.state.__route as { path?: string } | undefined)?.path ?? '<unmatched>';
+        const spanContext = trace.getActiveSpan()?.spanContext();
         deps.logger.log(`${ctx.method} ${ctx.path} ${status} ${duration}ms`, 'ElysiaPipeline', {
-          ip: ctx.ip,
+          route,
+          status,
+          durationMs: duration,
+          ipHash: deps.hashIdentifier?.(ctx.ip),
+          userHash: deps.hashIdentifier?.(ctx.user?.userId),
           userAgent: ctx.userAgent,
+          traceId: spanContext?.traceId,
+          spanId: spanContext?.spanId,
         });
         // P1-023 / P2-#26 — feed the same measurement into the Prometheus
         // histogram. Use the route template (`/v1/users/:userId`) when
@@ -41,7 +51,6 @@ export function requestLoggingStage(deps: {
         // explode whenever an unrouted request slipped in with a UUID in
         // the URL.
         if (deps.observeApiLatency) {
-          const route = (ctx.state.__route as { path?: string } | undefined)?.path ?? '<unmatched>';
           deps.observeApiLatency(duration / 1000, {
             method: ctx.method,
             route,

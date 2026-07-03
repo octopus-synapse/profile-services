@@ -22,6 +22,9 @@ class CapturingScoringLlm implements ScoringLlmPort {
   async normalizeRequirements(): Promise<never> {
     throw new Error('not used');
   }
+  async generateRoleSkills(): Promise<never> {
+    throw new Error('not used');
+  }
 }
 
 function resume(overrides: Partial<ResumeForCompleteness> = {}): ResumeForCompleteness {

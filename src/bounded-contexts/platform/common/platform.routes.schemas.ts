@@ -25,7 +25,7 @@ export const AdminDashboardMetricsResponseSchema = z.object({
   signupsThisMonth: z.number().int(),
   resumesThisWeek: z.number().int(),
   resumesThisMonth: z.number().int(),
-  averageAtsScore: z.number(),
+  averageQualityScore: z.number(),
   onboardingCompletionRate: z.number(),
 });
 

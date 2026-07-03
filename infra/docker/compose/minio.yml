@@ -8,6 +8,13 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-prod}
+      com.datadoghq.tags.service: profile-minio
+      com.datadoghq.tags.version: ${MINIO_VERSION:-latest}
+      com.datadoghq.ad.logs: '[{"source":"minio","service":"profile-minio"}]'
+      com.datadoghq.ad.checks: >-
+        {"http_check":{"init_config":{},"instances":[{"name":"profile-minio-live","url":"http://%%host%%:9000/minio/health/live","timeout":3}]}}
     ports:
       - "${MINIO_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"

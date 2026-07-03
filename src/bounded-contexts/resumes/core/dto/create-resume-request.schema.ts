@@ -14,6 +14,9 @@ export const CreateResumeRequestSchema = z.object({
   isPublic: z.boolean().optional(),
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
+  // Desired role for the market-relative Readiness Score (RolePicker in the UI).
+  targetRoleId: z.string().max(64).nullish(),
+  targetRoleLabel: z.string().max(120).nullish(),
   phone: PhoneSchema,
   location: UserLocationSchema,
   linkedin: LinkedInUrlSchema.optional(),

@@ -71,6 +71,9 @@ const ResumeResponseSchema = z.object({
   title: z.string(),
   language: z.string().optional(),
   targetRole: z.string().optional(),
+  // Desired role for the market-relative Readiness Score (RolePicker).
+  targetRoleId: z.string().nullable().optional(),
+  targetRoleLabel: z.string().nullable().optional(),
   isPublic: z.boolean(),
   slug: z.string().optional(),
   createdAt: IsoDateTimeSchema,

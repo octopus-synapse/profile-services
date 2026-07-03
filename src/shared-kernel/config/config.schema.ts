@@ -165,6 +165,21 @@ export const EnvConfigSchema = z
     // --- Logging ---
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
 
+    // --- Observability (Datadog / OpenTelemetry) ---
+    DD_OBSERVABILITY_ENABLED: BooleanString.optional(),
+    DD_PRODUCT_EVENTS_ENABLED: BooleanString.optional(),
+    DD_ENV: z.string().optional(),
+    DD_SERVICE: z.string().optional(),
+    DD_VERSION: z.string().optional(),
+    DD_SITE: z.string().optional(),
+    DD_API_KEY: z.string().optional(),
+    DD_AGENT_HOST: z.string().optional(),
+    DD_TRACE_AGENT_PORT: PortNumber.optional(),
+    DD_DOGSTATSD_HOST: z.string().optional(),
+    DD_DOGSTATSD_PORT: PortNumber.optional(),
+    DD_OTEL_ENABLED: BooleanString.optional(),
+    DD_OTLP_TRACES_URL: OptionalUrl,
+
     // --- Rate limit ---
     RATE_LIMIT_ENABLED: BooleanString.optional(),
     RATE_LIMIT_MAX: PositiveIntString.optional(),

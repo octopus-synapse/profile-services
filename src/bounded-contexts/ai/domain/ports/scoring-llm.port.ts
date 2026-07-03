@@ -57,9 +57,27 @@ export interface NormalizedRequirementsResult {
   readonly tokensUsed: number;
 }
 
+// ── In-demand skills for a role (Readiness market-relative coverage) ──
+export interface RoleSkillsInput {
+  /** Free-text role/occupation label, e.g. "Backend Engineer". */
+  readonly roleLabel: string;
+  /** Preferred language for the skill names (`pt-br` / `en`). */
+  readonly language?: string | null;
+}
+
+export interface RoleSkillsResult {
+  /** Normalised in-demand skill/tech names for the role (deduped, lowercase-ish). */
+  readonly skills: readonly string[];
+  readonly tokensUsed: number;
+}
+
 export abstract class ScoringLlmPort {
   abstract analyzeContentQuality(input: ContentQualityInput): Promise<ContentQualityResult>;
   abstract normalizeRequirements(
     input: NormalizeRequirementsInput,
   ): Promise<NormalizedRequirementsResult>;
+  /** Generates the typical in-demand skills for a role title — the LLM
+   * fallback for market-relative Readiness coverage when internal job
+   * postings for the role are too sparse to aggregate. */
+  abstract generateRoleSkills(input: RoleSkillsInput): Promise<RoleSkillsResult>;
 }

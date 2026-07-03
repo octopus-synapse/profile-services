@@ -112,6 +112,10 @@ model JobApplication {
   // job-match BC on `JobApplicationSubmittedEvent`. Null when the user had
   // no fit profile (match not computable) or the job wasn't matchable.
   matchScoreSnapshot Int?
+  // The 4 sub-scores + effective weights behind `matchScoreSnapshot`, frozen
+  // alongside it so "why did this match" survives the Redis cache TTL.
+  // Shape: { subScores: {keyword,requirements,semantic,fit}, effectiveWeights, rulesVersion, computedAt }.
+  matchBreakdownSnapshot Json?
 
   status    JobApplicationStatus @default(SUBMITTED)
   createdAt DateTime             @default(now())

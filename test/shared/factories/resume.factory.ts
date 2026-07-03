@@ -54,6 +54,8 @@ const defaultResume: Resume = {
   isPublic: false,
   language: 'pt-br',
   primaryLanguage: 'pt-br',
+  targetRoleId: null,
+  targetRoleLabel: null,
   contentPtBr: null,
   contentEn: null,
   techPersona: null,

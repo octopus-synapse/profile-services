@@ -25,7 +25,7 @@ describe('GetAdminAnalyticsOverviewUseCase', () => {
     expect(overview.contentStats).toEqual({ posts: 1, comments: 2, reactions: 3 });
     // Untouched metrics fall back to empty defaults
     expect(overview.resumesByLanguage).toEqual([]);
-    expect(overview.atsScoreDistribution).toEqual([]);
+    expect(overview.qualityScoreDistribution).toEqual([]);
     expect(overview.jobStats.applicationsPerJob).toBe(0);
   });
 

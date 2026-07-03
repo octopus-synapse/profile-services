@@ -22,7 +22,7 @@ export const ResumesByLanguageEntrySchema = z.object({
   count: z.number().int().min(0),
 });
 
-export const AtsScoreDistributionEntrySchema = z.object({
+export const QualityScoreDistributionEntrySchema = z.object({
   bucket: z.string(),
   count: z.number().int().min(0),
 });
@@ -69,7 +69,7 @@ export const JobStatsSchema = z.object({
 export const AdminAnalyticsOverviewResponseSchema = z.object({
   userGrowth: z.array(UserGrowthEntrySchema),
   resumesByLanguage: z.array(ResumesByLanguageEntrySchema),
-  atsScoreDistribution: z.array(AtsScoreDistributionEntrySchema),
+  qualityScoreDistribution: z.array(QualityScoreDistributionEntrySchema),
   mostUsedSections: z.array(MostUsedSectionEntrySchema),
   importSources: z.array(SourceCountEntrySchema),
   viewSources: z.array(SourceCountEntrySchema),

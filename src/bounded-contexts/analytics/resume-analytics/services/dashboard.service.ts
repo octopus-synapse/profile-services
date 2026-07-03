@@ -3,7 +3,7 @@ import type { AnalyticsDashboard, ScoreProgressionPoint, ViewStats } from '../in
 import { SnapshotPort, ViewTrackingPort } from '../ports';
 
 /**
- * Builds the analytics dashboard. The resume score surfaced as `atsScore`
+ * Builds the analytics dashboard. The resume score surfaced as `qualityScore`
  * is the latest persisted Resume Quality `overallScore` (the content-based
  * ATS score was retired); `keywordScore` mirrors the completeness score.
  */
@@ -42,7 +42,7 @@ export class DashboardService {
       overview: {
         totalViews: viewStats.totalViews,
         uniqueVisitors: viewStats.uniqueVisitors,
-        atsScore: overallScore,
+        qualityScore: overallScore,
         keywordScore: completenessScore,
         industryPercentile: 0,
       },

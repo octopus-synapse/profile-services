@@ -6,8 +6,8 @@ export const BenchmarkResponseSchema = z.object({
   percentile: z.number().min(0).max(100),
   totalInIndustry: z.number().int().nonnegative(),
   comparison: z.object({
-    avgATSScore: z.number().min(0).max(100),
-    yourATSScore: z.number().min(0).max(100),
+    avgQualityScore: z.number().min(0).max(100),
+    yourQualityScore: z.number().min(0).max(100),
     avgViews: z.number().nonnegative(),
     yourViews: z.number().nonnegative(),
     avgStructuredItemCount: z.number().int().nonnegative(),

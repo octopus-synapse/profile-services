@@ -168,6 +168,11 @@ import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import { buildCorsAllowlist } from '@/shared-kernel/http/cors-allowlist';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
+import {
+  DatadogTelemetryService,
+  initOpenTelemetry,
+  registerDatadogDomainEvents,
+} from '../observability';
 import { assertBullmqRequiredInProd } from './assert-bullmq-required-in-prod';
 import { buildCacheAdapter } from './build-cache-adapter';
 import {
@@ -219,6 +224,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     process.exit(1);
   }
   const logger = new AppLoggerService();
+  const datadogTelemetry = new DatadogTelemetryService(config, logger);
+  const openTelemetryLifecycle = await initOpenTelemetry(config, logger);
 
   // Belt-and-suspenders: capture any Promise rejection that escapes
   // both the explicit `.catch` in `bindAuditListener` and the
@@ -357,12 +364,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       },
     },
   ];
+  if (openTelemetryLifecycle) lifecycles.push(openTelemetryLifecycle);
+  lifecycles.push(datadogTelemetry);
+  await datadogTelemetry.init();
 
   // --- Infra port adapters (shared by BCs) ---
   // (`cache` is constructed earlier so the auth extractor can read it.)
   const sseStream = new InMemorySseStreamAdapter();
   const cron = new CronerCronAdapter(logger);
   const eventBus = new EventPublisher();
+  registerDatadogDomainEvents(eventBus, datadogTelemetry, logger);
   lifecycles.push(cron);
 
   // BullMQ-backed JobQueuePort. Opt-in via `ENABLE_BULLMQ=true` —
@@ -1095,6 +1106,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     observeApiLatency: (durationSeconds, labels) => {
       metrics.metrics.observeApiLatency(durationSeconds, labels);
     },
+    telemetry: datadogTelemetry,
     // P1-follow-up: domain gates for auto-apply routes. fit-profile
     // is satisfied when the cached status is `'responded'` (the only
     // non-blocking state). min-quality reads the most-recent

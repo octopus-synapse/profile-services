@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ScoreRankSchema } from '@/shared-kernel/scoring';
 
 const SubScoreSchema = z.object({
   score: z.number().int().min(0).max(100).nullable(),
@@ -8,6 +9,8 @@ const SubScoreSchema = z.object({
 
 const MatchBreakdownSchema = z.object({
   overallScore: z.number().int().min(0).max(100),
+  /** Letter grade for `overallScore` (S/A/B/C/D/F), from the shared ladder. */
+  rank: ScoreRankSchema,
   subScores: z.object({
     keyword: SubScoreSchema,
     requirements: SubScoreSchema,

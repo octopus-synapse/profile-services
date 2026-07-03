@@ -74,6 +74,16 @@ export const CreateResumeBody = z
       .max(100)
       .optional()
       .openapi({ description: 'Target job title or current role shown under the name.' }),
+    targetRoleId: z
+      .string()
+      .max(64)
+      .nullish()
+      .openapi({ description: 'Soft reference to the picked RoleTitle (desired role).' }),
+    targetRoleLabel: z
+      .string()
+      .max(120)
+      .nullish()
+      .openapi({ description: 'Desired role label — drives the market-relative Readiness Score.' }),
     phone: PhoneSchema,
     location: UserLocationSchema,
     linkedin: LinkedInUrlSchema.optional(),
@@ -188,6 +198,14 @@ export const ResumeBaseSchema = z.object({
 export const ResumeListItemSchema = ResumeBaseSchema.extend({
   fullName: z.string().nullable().optional(),
   jobTitle: z.string().nullable().optional(),
+  targetRoleId: z.string().nullable().optional().openapi({
+    description: 'Soft reference to the desired RoleTitle used by Readiness scoring.',
+    example: 'role-software-engineer',
+  }),
+  targetRoleLabel: z.string().nullable().optional().openapi({
+    description: 'Human-readable desired role label used by Readiness scoring.',
+    example: 'Software Engineer',
+  }),
   summary: z.string().nullable().optional(),
   isPrimary: z.boolean().openapi({
     description: 'True when this resume is the master (User.primaryResumeId).',

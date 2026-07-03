@@ -24,7 +24,7 @@ import type {
 // ============================================================================
 
 export abstract class BenchmarkRepositoryPort {
-  abstract getAllAtsScores(): Promise<number[]>;
+  abstract getAllQualityScores(): Promise<number[]>;
 }
 
 /** The latest persisted Resume Quality scores for a resume, read from
@@ -38,7 +38,7 @@ export interface LatestResumeScore {
 export abstract class SnapshotRepositoryPort {
   abstract save(input: {
     resumeId: string;
-    atsScore: number;
+    qualityScore: number;
     keywordScore: number;
     completenessScore: number;
     topKeywords?: string[];

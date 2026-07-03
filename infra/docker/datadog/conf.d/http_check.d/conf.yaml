@@ -1,0 +1,16 @@
+init_config:
+
+instances:
+  - name: profile-minio-live
+    url: http://profile-minio:9000/minio/health/live
+    timeout: 3
+    tags:
+      - env:prod
+      - service:profile-minio
+
+  - name: profile-libretranslate-languages
+    url: http://profile-libretranslate:5000/languages
+    timeout: 5
+    tags:
+      - env:prod
+      - service:profile-libretranslate

@@ -4,7 +4,7 @@
  * (rounded percent of users) so the persistence layer stays a pure
  * read.
  *
- * `averageAtsScore` is hard-coded to 0 — the ATS aggregation against
+ * `averageQualityScore` is hard-coded to 0 — the ATS aggregation against
  * `ResumeAnalytics` was dropped in the scoring refactor and the
  * replacement (wired against `ResumeQualityScoreHistory`) lands in a
  * follow-up.
@@ -44,7 +44,7 @@ export class GetAdminDashboardMetricsUseCase {
       signupsThisMonth: counts.signupsThisMonth,
       resumesThisWeek: counts.resumesThisWeek,
       resumesThisMonth: counts.resumesThisMonth,
-      averageAtsScore: 0,
+      averageQualityScore: 0,
       onboardingCompletionRate,
     };
   }

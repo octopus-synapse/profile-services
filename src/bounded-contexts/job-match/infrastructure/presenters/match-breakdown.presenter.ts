@@ -1,15 +1,23 @@
+import { type ScoreRank, scoreToRank } from '@/shared-kernel/scoring';
 import type { MatchBreakdown } from '../../domain/types';
 import type { MatchBreakdownDto } from '../../dto/match-breakdown.schema';
 
+/**
+ * Canonical sub-score labels (see `docs/scoring/README.md`). "Semantic"
+ * and the personality sub-score no longer carry the word "Fit" — that
+ * term is reserved for the personality questionnaire alone, so the label
+ * overload ("Semantic Fit" / "Personality Fit") is retired here.
+ */
 const SUB_SCORE_LABELS: Record<keyof MatchBreakdown['subScores'], string> = {
   keyword: 'Keyword Match',
-  requirements: 'Requirements',
-  semantic: 'Semantic Fit',
-  fit: 'Personality Fit',
+  requirements: 'Requirements Match',
+  semantic: 'Semantic Match',
+  fit: 'Fit',
 };
 
 export interface JobMatchSimpleDto {
   readonly score: number;
+  readonly rank: ScoreRank;
   readonly matchedKeywords: readonly string[];
   readonly missingKeywords: readonly string[];
   readonly dimensions: ReadonlyArray<{
@@ -42,6 +50,7 @@ export function toJobMatchSimpleResponseDto(b: MatchBreakdown): JobMatchSimpleDt
 
   return {
     score: b.overallScore,
+    rank: scoreToRank(b.overallScore),
     matchedKeywords: keywordDetail?.matched ?? [],
     missingKeywords: keywordDetail?.missing ?? [],
     dimensions,
@@ -51,6 +60,7 @@ export function toJobMatchSimpleResponseDto(b: MatchBreakdown): JobMatchSimpleDt
 export function toMatchBreakdownResponseDto(b: MatchBreakdown): MatchBreakdownDto {
   return {
     overallScore: b.overallScore,
+    rank: scoreToRank(b.overallScore),
     subScores: {
       keyword: { score: b.subScores.keyword.score, detail: b.subScores.keyword.detail },
       requirements: {

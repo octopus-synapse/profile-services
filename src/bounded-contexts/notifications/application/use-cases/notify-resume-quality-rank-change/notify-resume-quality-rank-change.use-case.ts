@@ -11,24 +11,12 @@
  * via a "you regressed from F to F" email.
  */
 
-import type { LoggerPort } from '@/shared-kernel';
+import { type LoggerPort, RANK_ORDER, scoreToRank } from '@/shared-kernel';
 import { ResumeQualitySnapshotPort } from '../../../domain/ports/resume-quality-snapshot.port';
 import { CreateNotificationUseCase } from '../create-notification/create-notification.use-case';
 
 const CTX = 'NotifyResumeQualityRankChangeUseCase';
 const SYSTEM_ACTOR = 'system';
-
-type Rank = 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
-const RANK_ORDER: ReadonlyArray<Rank> = ['F', 'D', 'C', 'B', 'A', 'S'];
-
-function rankOf(score: number): Rank {
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 60) return 'C';
-  if (score >= 50) return 'D';
-  return 'F';
-}
 
 export interface NotifyResumeQualityRankInput {
   readonly resumeId: string;
@@ -49,8 +37,8 @@ export class NotifyResumeQualityRankChangeUseCase {
       // yet (event ordering issue); 1 row: nothing to compare against.
       if (recent.length < 2) return;
 
-      const newRank = rankOf(input.overallScore);
-      const oldRank = rankOf(recent[1]?.overallScore ?? 0);
+      const newRank = scoreToRank(input.overallScore);
+      const oldRank = scoreToRank(recent[1]?.overallScore ?? 0);
       if (newRank === oldRank) return;
 
       const movedUp = RANK_ORDER.indexOf(newRank) > RANK_ORDER.indexOf(oldRank);

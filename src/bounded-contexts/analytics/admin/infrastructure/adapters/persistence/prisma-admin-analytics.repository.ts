@@ -13,10 +13,10 @@ import {
   type ActiveUsersStats,
   type AdminAnalyticsPeriod,
   AdminAnalyticsRepositoryPort,
-  type AtsScoreBucket,
   type ContentStats,
   type JobStats,
   type MostUsedSection,
+  type QualityScoreBucket,
   type ResumesByLanguageBucket,
   type SocialStats,
   type SourceCount,
@@ -55,7 +55,7 @@ export class PrismaAdminAnalyticsRepository extends AdminAnalyticsRepositoryPort
     return results.map((r) => ({ language: r.primaryLanguage, count: r._count }));
   }
 
-  async getAtsScoreDistribution(): Promise<AtsScoreBucket[]> {
+  async getQualityScoreDistribution(): Promise<QualityScoreBucket[]> {
     const results = await this.prisma.$queryRaw<{ bucket: string; count: bigint }[]>`
       SELECT
         CASE

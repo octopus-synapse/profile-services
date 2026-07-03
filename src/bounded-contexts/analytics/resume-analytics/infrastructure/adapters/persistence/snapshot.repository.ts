@@ -8,7 +8,7 @@
  *
  * `ResumeQualityScoreHistory` carries:
  *   - `overallScore`, `completenessScore`: the two atomic numbers we
- *     surface as `atsScore` and `completenessScore` here. The
+ *     surface as `qualityScore` and `completenessScore` here. The
  *     historical `keywordScore`/`topKeywords`/`missingKeywords` fields
  *     are not tracked anymore — they map to defaults so the public
  *     `AnalyticsSnapshot` shape stays stable.
@@ -36,7 +36,7 @@ function toSnapshot(row: QualityHistoryRow): AnalyticsSnapshot {
   return {
     id: row.id,
     resumeId: row.resumeId,
-    atsScore: row.overallScore,
+    qualityScore: row.overallScore,
     keywordScore: row.completenessScore,
     completenessScore: row.completenessScore,
     industryRank: undefined,
@@ -52,7 +52,7 @@ export class PrismaSnapshotRepository implements SnapshotRepositoryPort {
 
   async save(input: {
     resumeId: string;
-    atsScore: number;
+    qualityScore: number;
     keywordScore: number;
     completenessScore: number;
     topKeywords?: string[];
@@ -64,7 +64,7 @@ export class PrismaSnapshotRepository implements SnapshotRepositoryPort {
     const row = await this.prisma.resumeQualityScoreHistory.create({
       data: {
         resumeId: input.resumeId,
-        overallScore: input.atsScore,
+        overallScore: input.qualityScore,
         completenessScore: input.completenessScore,
         contentQualityScore: null,
         issuesJson: [],

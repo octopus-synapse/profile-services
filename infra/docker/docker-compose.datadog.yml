@@ -1,0 +1,49 @@
+services:
+  backend:
+    depends_on:
+      datadog-agent:
+        condition: service_started
+
+  datadog-agent:
+    image: registry.datadoghq.com/agent:7
+    container_name: profile-datadog-agent
+    restart: unless-stopped
+    cgroup: host
+    pid: host
+    environment:
+      DD_API_KEY: ${DD_API_KEY:?DD_API_KEY is required}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_ENV: ${DD_ENV:-prod}
+      DD_HOSTNAME: ${DD_HOSTNAME:-profile-services-vps}
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: ${DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL:-true}
+      DD_CONTAINER_EXCLUDE: ${DD_CONTAINER_EXCLUDE:-name:profile-datadog-agent}
+      DD_CONTAINER_LABELS_AS_TAGS: >-
+        {"com.docker.compose.project":"compose_project","com.docker.compose.service":"compose_service"}
+      DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT: 0.0.0.0:4318
+      DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT: 0.0.0.0:4317
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./infra/docker/datadog/conf.d:/conf.d:ro
+    expose:
+      - "8126"
+      - "4317"
+      - "4318"
+      - "8125/udp"
+    networks:
+      - profile-network
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-prod}
+      com.datadoghq.tags.service: datadog-agent
+      com.datadoghq.ad.logs: '[{"source":"datadog-agent","service":"datadog-agent"}]'
+
+networks:
+  profile-network:
+    external: true
+    name: profile-network

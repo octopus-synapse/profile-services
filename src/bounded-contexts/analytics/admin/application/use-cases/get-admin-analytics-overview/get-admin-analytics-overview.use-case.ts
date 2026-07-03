@@ -15,10 +15,10 @@ import {
   type ActiveUsersStats,
   type AdminAnalyticsPeriod,
   AdminAnalyticsRepositoryPort,
-  type AtsScoreBucket,
   type ContentStats,
   type JobStats,
   type MostUsedSection,
+  type QualityScoreBucket,
   type ResumesByLanguageBucket,
   type SocialStats,
   type SourceCount,
@@ -30,7 +30,7 @@ export type Period = AdminAnalyticsPeriod;
 export interface AdminAnalyticsOverview {
   readonly userGrowth: UserGrowthBucket[];
   readonly resumesByLanguage: ResumesByLanguageBucket[];
-  readonly atsScoreDistribution: AtsScoreBucket[];
+  readonly qualityScoreDistribution: QualityScoreBucket[];
   readonly mostUsedSections: MostUsedSection[];
   readonly importSources: SourceCount[];
   readonly viewSources: SourceCount[];
@@ -47,7 +47,7 @@ export class GetAdminAnalyticsOverviewUseCase {
     const [
       userGrowth,
       resumesByLanguage,
-      atsScoreDistribution,
+      qualityScoreDistribution,
       mostUsedSections,
       importSources,
       viewSources,
@@ -58,7 +58,7 @@ export class GetAdminAnalyticsOverviewUseCase {
     ] = await Promise.all([
       this.repository.getUserGrowth(period),
       this.repository.getResumesByLanguage(),
-      this.repository.getAtsScoreDistribution(),
+      this.repository.getQualityScoreDistribution(),
       this.repository.getMostUsedSections(),
       this.repository.getImportSources(),
       this.repository.getViewSources(),
@@ -71,7 +71,7 @@ export class GetAdminAnalyticsOverviewUseCase {
     return {
       userGrowth,
       resumesByLanguage,
-      atsScoreDistribution,
+      qualityScoreDistribution,
       mostUsedSections,
       importSources,
       viewSources,

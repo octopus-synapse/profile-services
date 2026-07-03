@@ -14,7 +14,7 @@ import { BenchmarkRepositoryPort } from '../../../application/ports/resume-analy
 export class PrismaBenchmarkRepository implements BenchmarkRepositoryPort {
   constructor(private readonly _prisma: PrismaService) {}
 
-  async getAllAtsScores(): Promise<number[]> {
+  async getAllQualityScores(): Promise<number[]> {
     return [];
   }
 }

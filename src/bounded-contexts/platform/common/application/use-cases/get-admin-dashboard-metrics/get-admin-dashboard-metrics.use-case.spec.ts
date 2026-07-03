@@ -22,7 +22,7 @@ describe('GetAdminDashboardMetricsUseCase', () => {
 
     expect(result.onboardingCompletionRate).toBe(26);
     expect(result.totalUsers).toBe(200);
-    expect(result.averageAtsScore).toBe(0);
+    expect(result.averageQualityScore).toBe(0);
   });
 
   it('returns 0 onboarding rate when there are no users', async () => {

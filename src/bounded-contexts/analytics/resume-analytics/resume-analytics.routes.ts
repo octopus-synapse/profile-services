@@ -15,7 +15,6 @@ import {
   AnalyticsHistoryResponseSchema,
   AnalyticsSnapshotResponseSchema,
   AnalyticsSseBundle,
-  AtsSimulationResponseSchema,
   BenchmarkOptionsQuery,
   HistoryQuery,
   IndustryBenchmarkResponseSchema,
@@ -23,6 +22,7 @@ import {
   JobMatchResponseSchema,
   KeywordOptionsQuery,
   KeywordSuggestionsResponseSchema,
+  QualitySimulationResponseSchema,
   ResumeIdParam,
   ScoreProgressionResponseSchema,
   TrackViewBody,
@@ -96,7 +96,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
-    response: AtsSimulationResponseSchema,
+    response: QualitySimulationResponseSchema,
     openapi: {
       summary: 'Simulate how a generic ATS parser extracts the resume',
       tags: ['resume-analytics'],
@@ -105,7 +105,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     sdk: { exported: true },
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
-      const data = await facade.simulateATS(resumeId, ctx.user!.userId);
+      const data = await facade.simulateQuality(resumeId, ctx.user!.userId);
       return { data };
     },
   },

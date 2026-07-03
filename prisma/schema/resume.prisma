@@ -28,6 +28,13 @@ model Resume {
   phone    String?
   location String?
   linkedin String?
+
+  // Desired role for the market-relative Readiness Score. Soft reference to
+  // a `RoleTitle` (no hard FK — that taxonomy is re-imported), plus the label
+  // snapshot which is what coverage actually matches against. Null → Readiness
+  // falls back to skill-count coverage.
+  targetRoleId    String?
+  targetRoleLabel String?
   github   String?
   website  String?
   summary  String? @db.Text
@@ -71,6 +78,7 @@ model Resume {
   versions            ResumeVersion[]             @relation("ResumeVersions")
   analytics           ResumeAnalytics[]           @relation("ResumeAnalytics")
   qualityScoreHistory ResumeQualityScoreHistory[]
+  readinessScoreHistory ReadinessScoreHistory[]
   viewEvents          ResumeViewEvent[]           @relation("ResumeViews")
   import              ResumeImport?
   collaborators       ResumeCollaborator[]        @relation("ResumeCollaborators")

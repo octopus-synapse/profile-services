@@ -3,7 +3,7 @@ import type { AnalyticsSnapshot, ScoreProgressionPoint } from '../interfaces';
 
 interface AnalyticsSnapshotInput {
   resumeId: string;
-  atsScore: number;
+  qualityScore: number;
   keywordScore: number;
   completenessScore: number;
   topKeywords?: string[];

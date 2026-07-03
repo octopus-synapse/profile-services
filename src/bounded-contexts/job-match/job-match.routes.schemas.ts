@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ScoreRankSchema } from '@/shared-kernel/scoring';
 import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/job-match.exceptions';
 
 export const ScoreField = z.number().int().min(0).max(100).nullable();
@@ -46,6 +47,7 @@ export const FitSubScoreSchema = z.object({
 
 export const MatchBreakdownResponseSchema = z.object({
   overallScore: z.number().int().min(0).max(100),
+  rank: ScoreRankSchema,
   subScores: z.object({
     keyword: KeywordSubScoreSchema,
     requirements: RequirementsSubScoreSchema,
@@ -97,6 +99,7 @@ export const JobMatchDimensionSchema = z.object({
 
 export const JobMatchSimpleResponseSchema = z.object({
   score: z.number().int().min(0).max(100),
+  rank: ScoreRankSchema,
   matchedKeywords: z.array(z.string()),
   missingKeywords: z.array(z.string()),
   dimensions: z.array(JobMatchDimensionSchema),

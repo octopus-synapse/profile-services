@@ -20,7 +20,7 @@ jobs:
       container-name: "profile-backend"
       deploy-path: "/opt/profile-services"
       has-database: true
-      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"
+      required-env-vars: "DATABASE_URL,JWT_SECRET,SMTP_PASS,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY,DD_API_KEY"
     secrets:
       NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
@@ -60,3 +60,15 @@ jobs:
         CORS_ORIGIN="${{ secrets.CORS_ORIGIN }}"
         PERSISTENT_SESSION_EXPIRY_DAYS="${{ secrets.PERSISTENT_SESSION_EXPIRY_DAYS }}"
         OAUTH_REDIRECT_URI_ALLOWLIST="${{ secrets.OAUTH_REDIRECT_URI_ALLOWLIST }}"
+        DD_API_KEY="${{ secrets.DD_API_KEY }}"
+        DD_SITE="${{ secrets.DD_SITE }}"
+        DD_ENV="${{ secrets.DD_ENV }}"
+        DD_SERVICE="${{ secrets.DD_SERVICE }}"
+        DD_OBSERVABILITY_ENABLED=true
+        DD_PRODUCT_EVENTS_ENABLED=true
+        DD_OTEL_ENABLED=true
+        DD_AGENT_HOST=datadog-agent
+        DD_DOGSTATSD_HOST=datadog-agent
+        DD_DOGSTATSD_PORT=8125
+        DD_TRACE_AGENT_PORT=8126
+        DD_OTLP_TRACES_URL=http://datadog-agent:4318/v1/traces

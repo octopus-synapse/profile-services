@@ -84,7 +84,7 @@ const ViewStatsResponseSchema = z.object({
   ),
 });
 
-const ATSScoreResponseSchema = z.object({
+const QualityScoreResponseSchema = z.object({
   score: z.number().min(0).max(100),
   sectionBreakdown: z.array(
     z.object({
@@ -136,8 +136,8 @@ const BenchmarkResponseSchema = z.object({
   percentile: z.number().min(0).max(100),
   totalInIndustry: z.number().int().nonnegative(),
   comparison: z.object({
-    avgATSScore: z.number().min(0).max(100),
-    yourATSScore: z.number().min(0).max(100),
+    avgQualityScore: z.number().min(0).max(100),
+    yourQualityScore: z.number().min(0).max(100),
     avgViews: z.number().nonnegative(),
     yourViews: z.number().nonnegative(),
     avgStructuredItemCount: z.number().int().nonnegative(),
@@ -161,7 +161,7 @@ const DashboardResponseSchema = z.object({
   overview: z.object({
     totalViews: z.number().int().nonnegative(),
     uniqueVisitors: z.number().int().nonnegative(),
-    atsScore: z.number().min(0).max(100),
+    qualityScore: z.number().min(0).max(100),
     keywordScore: z.number().min(0).max(100),
     industryPercentile: z.number().min(0).max(100),
   }),
@@ -181,7 +181,7 @@ const DashboardResponseSchema = z.object({
 const SnapshotResponseSchema = z.object({
   id: z.string(),
   resumeId: z.string(),
-  atsScore: z.number().min(0).max(100),
+  qualityScore: z.number().min(0).max(100),
   keywordScore: z.number().min(0).max(100),
   completenessScore: z.number().min(0).max(100),
   topKeywords: z.array(z.string()),
@@ -221,7 +221,7 @@ export type CreateSnapshotRequestDto = z.infer<typeof CreateSnapshotRequestSchem
 
 export type ViewStatsResponseDto = z.infer<typeof ViewStatsResponseSchema>;
 
-export type ATSScoreResponseDto = z.infer<typeof ATSScoreResponseSchema>;
+export type QualityScoreResponseDto = z.infer<typeof QualityScoreResponseSchema>;
 
 export type KeywordSuggestionsResponseDto = z.infer<typeof KeywordSuggestionsResponseSchema>;
 

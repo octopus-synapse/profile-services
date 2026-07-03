@@ -22,6 +22,8 @@ export function toResumeResponseDto(resume: ResumeResult): ResumeResponseDto {
     title: resume.title ?? '',
     language: resume.language ?? undefined,
     targetRole: resume.targetRole ?? undefined,
+    targetRoleId: resume.targetRoleId ?? null,
+    targetRoleLabel: resume.targetRoleLabel ?? null,
     isPublic: resume.isPublic ?? false,
     slug: resume.slug ?? undefined,
     createdAt: resume.createdAt.toISOString(),

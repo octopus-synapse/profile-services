@@ -4,6 +4,13 @@ services:
       file: infra/docker/compose/postgres.yml
       service: postgres
     container_name: profile-postgres
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-prod}
+      com.datadoghq.tags.service: profile-postgres
+      com.datadoghq.tags.version: ${IMAGE_TAG:-latest}
+      com.datadoghq.ad.logs: '[{"source":"postgresql","service":"profile-postgres"}]'
+      com.datadoghq.ad.checks: >-
+        {"postgres":{"init_config":{},"instances":[{"host":"%%host%%","port":5432,"username":"${DD_POSTGRES_USER:-${POSTGRES_USER:-postgres}}","password":"${DD_POSTGRES_PASSWORD:-${POSTGRES_PASSWORD:-postgres}}","dbname":"${POSTGRES_DB:-profile}"}]}}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -21,6 +28,13 @@ services:
       file: infra/docker/compose/redis.yml
       service: redis
     container_name: profile-redis
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-prod}
+      com.datadoghq.tags.service: profile-redis
+      com.datadoghq.tags.version: ${IMAGE_TAG:-latest}
+      com.datadoghq.ad.logs: '[{"source":"redis","service":"profile-redis"}]'
+      com.datadoghq.ad.checks: >-
+        {"redisdb":{"init_config":{},"instances":[{"host":"%%host%%","port":6379,"password":"${DD_REDIS_PASSWORD:-${REDIS_PASSWORD:-redis}}"}]}}
     volumes:
       - redis_data:/data
     networks:
@@ -83,6 +97,19 @@ services:
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
       POSTHOG_HOST: ${POSTHOG_HOST:-http://posthog:8000}
       POSTHOG_API_KEY: ${POSTHOG_API_KEY}
+      DD_OBSERVABILITY_ENABLED: ${DD_OBSERVABILITY_ENABLED:-true}
+      DD_PRODUCT_EVENTS_ENABLED: ${DD_PRODUCT_EVENTS_ENABLED:-true}
+      DD_ENV: ${DD_ENV:-prod}
+      DD_SERVICE: ${DD_SERVICE:-profile-services}
+      DD_VERSION: ${DD_VERSION:-${IMAGE_TAG:-latest}}
+      DD_AGENT_HOST: ${DD_AGENT_HOST:-datadog-agent}
+      DD_TRACE_AGENT_PORT: ${DD_TRACE_AGENT_PORT:-8126}
+      DD_DOGSTATSD_HOST: ${DD_DOGSTATSD_HOST:-datadog-agent}
+      DD_DOGSTATSD_PORT: ${DD_DOGSTATSD_PORT:-8125}
+      DD_OTEL_ENABLED: ${DD_OTEL_ENABLED:-true}
+      DD_OTLP_TRACES_URL: ${DD_OTLP_TRACES_URL:-http://datadog-agent:4318/v1/traces}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://datadog-agent:4318}
+      OTEL_SERVICE_NAME: ${DD_SERVICE:-profile-services}
     ports:
       - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
     depends_on:
@@ -94,6 +121,11 @@ services:
       - profile-network
     volumes:
       - backend_logs:/app/logs
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-prod}
+      com.datadoghq.tags.service: ${DD_SERVICE:-profile-services}
+      com.datadoghq.tags.version: ${DD_VERSION:-${IMAGE_TAG:-latest}}
+      com.datadoghq.ad.logs: '[{"source":"bun","service":"profile-services"}]'
 
 networks:
   profile-network:

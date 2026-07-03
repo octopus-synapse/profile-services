@@ -59,14 +59,14 @@ describe('DashboardService', () => {
     it('should surface the latest resume quality score', async () => {
       const result = await service.build('resume-1', mockResume);
 
-      expect(result.overview.atsScore).toBe(85);
+      expect(result.overview.qualityScore).toBe(85);
       expect(result.overview.keywordScore).toBe(85);
     });
 
     it('should default scores to zero when no quality score exists', async () => {
       const result = await service.build('resume-unknown', mockResume);
 
-      expect(result.overview.atsScore).toBe(0);
+      expect(result.overview.qualityScore).toBe(0);
       expect(result.overview.keywordScore).toBe(0);
     });
 

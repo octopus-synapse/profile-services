@@ -45,7 +45,7 @@ export class ResumeAnalyticsFacade {
     return this.viewTracking.getViewStats(resumeId, options);
   }
 
-  async simulateATS(
+  async simulateQuality(
     resumeId: string,
     userId: string,
   ): Promise<{
@@ -144,12 +144,12 @@ export class ResumeAnalyticsFacade {
   async saveSnapshot(resumeId: string, userId: string): Promise<AnalyticsSnapshot> {
     await this.verifyOwnership(resumeId, userId);
     // Snapshot the latest persisted Resume Quality score (the content-based
-    // ATS score was retired). `atsScore` keeps its DTO field name for
+    // ATS score was retired). `qualityScore` keeps its DTO field name for
     // response stability but is sourced from the quality overall score.
     const latest = await this.snapshot.getLatest(resumeId);
     return this.snapshot.save({
       resumeId,
-      atsScore: latest?.overallScore ?? 0,
+      qualityScore: latest?.overallScore ?? 0,
       keywordScore: latest?.completenessScore ?? 0,
       completenessScore: latest?.completenessScore ?? 0,
     });

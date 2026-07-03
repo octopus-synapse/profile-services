@@ -12,6 +12,8 @@ import {
   type ContentQualityResult,
   type NormalizedRequirementsResult,
   type NormalizeRequirementsInput,
+  type RoleSkillsInput,
+  type RoleSkillsResult,
   ScoringLlmPort,
 } from '../../domain/ports/scoring-llm.port';
 import {
@@ -22,6 +24,10 @@ import {
   buildNormalizeRequirementsUserMessage,
   NORMALIZE_REQUIREMENTS_SYSTEM_PROMPT,
 } from '../../domain/prompts/normalize-requirements.v1';
+import {
+  buildRoleInDemandSkillsUserMessage,
+  ROLE_IN_DEMAND_SKILLS_SYSTEM_PROMPT,
+} from '../../domain/prompts/role-in-demand-skills.v1';
 
 const ContentQualityOutputSchema = z.object({
   score: z.number().int().min(0).max(100),
@@ -38,6 +44,10 @@ const ContentQualityOutputSchema = z.object({
     )
     .max(10)
     .default([]),
+});
+
+const RoleSkillsOutputSchema = z.object({
+  skills: z.array(z.string().min(1).max(60)).max(20).default([]),
 });
 
 const NormalizedRequirementsOutputSchema = z.object({
@@ -121,6 +131,32 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       seniority: data.seniority,
       tokensUsed,
     };
+  }
+
+  async generateRoleSkills(input: RoleSkillsInput): Promise<RoleSkillsResult> {
+    this.assertConfigured();
+    const baseMessages = [
+      { role: 'system' as const, content: ROLE_IN_DEMAND_SKILLS_SYSTEM_PROMPT },
+      { role: 'user' as const, content: buildRoleInDemandSkillsUserMessage(input) },
+    ];
+    const { data, tokensUsed } = await this.callWithRetry(
+      'generateRoleSkills',
+      baseMessages,
+      RoleSkillsOutputSchema,
+      0.2,
+    );
+    // Normalise: trim, dedupe case-insensitively, drop empties.
+    const seen = new Set<string>();
+    const skills: string[] = [];
+    for (const s of data.skills) {
+      const t = s.trim();
+      const key = t.toLowerCase();
+      if (t && !seen.has(key)) {
+        seen.add(key);
+        skills.push(t);
+      }
+    }
+    return { skills, tokensUsed };
   }
 
   /**

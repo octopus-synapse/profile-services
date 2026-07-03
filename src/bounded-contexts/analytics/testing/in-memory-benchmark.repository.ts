@@ -9,7 +9,7 @@ import { BenchmarkRepositoryPort } from '../resume-analytics/application/ports/r
 export interface ResumeAnalyticsRecord {
   id?: string;
   resumeId?: string;
-  atsScore: number;
+  qualityScore: number;
   keywordScore?: number;
   completenessScore?: number;
   createdAt?: Date;
@@ -19,8 +19,8 @@ export class InMemoryBenchmarkRepository extends BenchmarkRepositoryPort {
   private analytics: Map<string, ResumeAnalyticsRecord> = new Map();
   private idCounter = 0;
 
-  async getAllAtsScores(): Promise<number[]> {
-    return Array.from(this.analytics.values()).map((r) => r.atsScore);
+  async getAllQualityScores(): Promise<number[]> {
+    return Array.from(this.analytics.values()).map((r) => r.qualityScore);
   }
 
   seedAnalytics(record: ResumeAnalyticsRecord): void {
@@ -28,7 +28,7 @@ export class InMemoryBenchmarkRepository extends BenchmarkRepositoryPort {
     this.analytics.set(id, {
       id,
       resumeId: record.resumeId ?? `resume-${this.idCounter}`,
-      atsScore: record.atsScore,
+      qualityScore: record.qualityScore,
       keywordScore: record.keywordScore ?? 0,
       completenessScore: record.completenessScore ?? 0,
       createdAt: record.createdAt ?? new Date(),

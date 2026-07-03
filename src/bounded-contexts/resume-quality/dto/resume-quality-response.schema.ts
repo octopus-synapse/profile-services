@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ScoreRankSchema } from '@/shared-kernel/scoring';
 
 const IssueSchema = z.object({
   code: z.string(),
@@ -21,6 +22,10 @@ const ResumeQualityResponseSchema = z.object({
   id: z.string(),
   resumeId: z.string(),
   overallScore: z.number().int().min(0).max(100),
+  /** Letter grade for `overallScore` (S/A/B/C/D/F). Served so the client
+   * never re-derives the ladder — the single source of truth is the
+   * shared-kernel `scoreToRank`. */
+  rank: ScoreRankSchema,
   completenessScore: z
     .number()
     .int()

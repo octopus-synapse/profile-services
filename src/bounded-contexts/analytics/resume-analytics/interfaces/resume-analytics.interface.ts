@@ -34,7 +34,7 @@ export interface ViewStats {
   topSources: Array<{ source: string; count: number; percentage: number }>;
 }
 
-export interface ATSScoreResult {
+export interface QualityScoreResult {
   score: number;
   sectionBreakdown: SectionScoreBreakdown[];
   issues: ATSIssue[];
@@ -105,8 +105,8 @@ export interface IndustryBenchmark {
 }
 
 export interface IndustryComparison {
-  avgATSScore: number;
-  yourATSScore: number;
+  avgQualityScore: number;
+  yourQualityScore: number;
   avgViews: number;
   yourViews: number;
   avgStructuredItemCount: number;
@@ -142,7 +142,7 @@ export interface AnalyticsDashboard {
 export interface DashboardOverview {
   totalViews: number;
   uniqueVisitors: number;
-  atsScore: number;
+  qualityScore: number;
   keywordScore: number;
   industryPercentile: number;
 }
@@ -167,7 +167,7 @@ export interface DashboardRecommendation {
 export interface AnalyticsSnapshot {
   id: string;
   resumeId: string;
-  atsScore: number;
+  qualityScore: number;
   keywordScore: number;
   completenessScore: number;
   industryRank?: number;
@@ -190,7 +190,7 @@ export interface ScoreProgressionPoint {
 
 export interface AnalyticsSnapshotInput {
   resumeId: string;
-  atsScore: number;
+  qualityScore: number;
   completenessScore: number;
   industry?: string;
   totalViews: number;

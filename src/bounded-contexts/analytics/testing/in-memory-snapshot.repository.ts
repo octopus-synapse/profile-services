@@ -15,7 +15,7 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
 
   async save(input: {
     resumeId: string;
-    atsScore: number;
+    qualityScore: number;
     keywordScore: number;
     completenessScore: number;
     topKeywords?: string[];
@@ -25,7 +25,7 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
     const snapshot: AnalyticsSnapshot = {
       id,
       resumeId: input.resumeId,
-      atsScore: input.atsScore,
+      qualityScore: input.qualityScore,
       keywordScore: input.keywordScore,
       completenessScore: input.completenessScore,
       industryRank: undefined,
@@ -56,7 +56,7 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
     return Array.from(this.snapshots.values())
       .filter((s) => s.resumeId === resumeId && s.createdAt >= cutoff)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-      .map((s) => ({ date: s.createdAt.toISOString().split('T')[0], score: s.atsScore }));
+      .map((s) => ({ date: s.createdAt.toISOString().split('T')[0], score: s.qualityScore }));
   }
 
   async getLatest(
@@ -66,7 +66,7 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
       .filter((s) => s.resumeId === resumeId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
     return latest
-      ? { overallScore: latest.atsScore, completenessScore: latest.completenessScore }
+      ? { overallScore: latest.qualityScore, completenessScore: latest.completenessScore }
       : null;
   }
 
@@ -75,7 +75,7 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
     this.snapshots.set(id, {
       id,
       resumeId: snapshot.resumeId ?? 'resume-1',
-      atsScore: snapshot.atsScore ?? 0,
+      qualityScore: snapshot.qualityScore ?? 0,
       keywordScore: snapshot.keywordScore ?? 0,
       completenessScore: snapshot.completenessScore ?? 0,
       industryRank: snapshot.industryRank,

@@ -18,6 +18,10 @@ There are **three** top-level scores. Each belongs to a single subject (the thin
 ├─ Resume Quality Score                                     → Resume
 │   ├─ sub: Completeness Score           (deterministic)
 │   └─ sub: Content Quality Score        (AI: LLM)
+├─ Readiness Score                                          → Resume (master only)
+│   ├─ factor: Quality      (latest Resume Quality Score)
+│   ├─ factor: Coverage     (breadth of distinct skills)
+│   └─ factor: Fit freshness(fit-questionnaire lifecycle)
 └─ Match Score                                              → (Resume, Job)
     ├─ sub: Keyword Match                (deterministic)
     ├─ sub: Requirements Match           (AI normalizes + code compares)
@@ -46,6 +50,16 @@ There are **three** top-level scores. Each belongs to a single subject (the thin
   - **Content Quality Score** (AI): quality of bullet writing — XYZ/STAR structure, strong action verbs, quantified metrics, temporal consistency
 - **Computed:** event-driven, on `ResumeUpdated` (BullMQ). Latest snapshot in a materialized view; history is append-only.
 
+### Readiness Score
+
+- **Subject:** the master (`primaryResumeId`) `Resume`
+- **Question answered:** "how ready is my resume to compete in the market?" — the single **job-independent** number the Match Score can't provide (Match needs a `(resume, job)` pair + a valid fit profile).
+- **No job context required.** Owned by `job-match/` (reuses its keyword + fit-state adapters).
+- **Deterministic blend (v1)** of signals already computed (no extra AI calls): `0.55·Quality + 0.25·Coverage + 0.20·Fit-freshness`, renormalising any unavailable factor so a brand-new resume still yields a proper 0-100.
+- **Computed:** event-driven on `ResumeQualityComputedEvent` for the master (so it always blends a fresh Quality number); also on-demand inside `GET /v1/me/scores`. History append-only in `ReadinessScoreHistory` (feeds the trend chart).
+- **Served by:** `GET /v1/me/scores` (unified payload: Readiness + Quality + Style + Fit, each with its `rank`).
+- **Follow-up:** market-relative coverage (skills vs the user's target-role in-demand skills) — see `SCORES_TODO.md`.
+
 ### Match Score
 
 - **Subject:** a `(Resume, Job)` pair
@@ -69,8 +83,12 @@ Every score — top-level and sub — maps to the same rank scale. Consistent UX
 | **A** | 🟢 green | 80–89 | very good |
 | **B** | 🔵 blue | 70–79 | good |
 | **C** | 🟡 yellow | 60–69 | needs attention |
-| **D** | 🟠 orange | 40–59 | below expectations |
-| **F** | 🔴 red | 0–39 | failing |
+| **D** | 🟠 orange | 50–59 | below expectations |
+| **F** | 🔴 red | 0–49 | failing |
+
+The canonical thresholds live in `src/shared-kernel/scoring/rank.ts` (`scoreToRank`)
+and are mirrored by the frontend `score-scale.ts` (`scoreGrade`). Every score DTO
+carries the computed `rank` so no client re-derives the ladder.
 
 ## Transparency per actor
 

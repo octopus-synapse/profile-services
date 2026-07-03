@@ -39,8 +39,8 @@ describe('BenchmarkService', () => {
       const result = await service.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.comparison).toBeDefined();
-      expect(result.comparison.avgATSScore).toBe(75); // (60+70+75+80+90)/5 = 75
-      expect(result.comparison.yourATSScore).toBe(75);
+      expect(result.comparison.avgQualityScore).toBe(75); // (60+70+75+80+90)/5 = 75
+      expect(result.comparison.yourQualityScore).toBe(75);
     });
 
     it('should generate recommendations when below average', async () => {

@@ -1,4 +1,5 @@
 import { type Locale, renderQualityIssue } from '@packages/i18n';
+import { scoreToRank } from '@/shared-kernel/scoring';
 import type { SavedQualityScore } from '../../domain/ports/quality-score.repository.port';
 import type { ResumeQualityResponseDto } from '../../dto/resume-quality-response.schema';
 
@@ -16,6 +17,7 @@ export function toQualitySnapshotResponseDto(
     id: snapshot.id,
     resumeId: snapshot.resumeId,
     overallScore: snapshot.overallScore,
+    rank: scoreToRank(snapshot.overallScore),
     completenessScore: snapshot.completenessScore,
     contentQualityScore: snapshot.contentQualityScore,
     issues: snapshot.issues.map((i) => ({

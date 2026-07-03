@@ -7,7 +7,7 @@
  * Usage:
  *   import { createAnalyticsTestingModule } from '@/bounded-contexts/analytics/testing';
  *
- *   const { atsScoreRepo, benchmarkRepo, snapshotRepo, viewTrackingRepo, searchRepo } =
+ *   const { qualityScoreRepo, benchmarkRepo, snapshotRepo, viewTrackingRepo, searchRepo } =
  *     createAnalyticsTestingModule();
  */
 
@@ -112,9 +112,9 @@ export const defaultSectionTypes = [
 ];
 
 export const defaultResumeAnalytics = [
-  { atsScore: 60 },
-  { atsScore: 70 },
-  { atsScore: 75 },
-  { atsScore: 80 },
-  { atsScore: 90 },
+  { qualityScore: 60 },
+  { qualityScore: 70 },
+  { qualityScore: 75 },
+  { qualityScore: 80 },
+  { qualityScore: 90 },
 ];

@@ -30,23 +30,18 @@ export class ScoreMetricsHandler {
     this.metrics.observeScoreComputeDuration(event.payload.durationMs / 1000, {
       type: 'resume_quality',
     });
-    this.logger.log(
-      JSON.stringify({
-        scoreType: 'resume_quality',
-        resumeId: event.payload.resumeId,
-        snapshotId: event.payload.snapshotId,
-        value: event.payload.overallScore,
-        completeness: event.payload.completenessScore,
-        contentQuality: event.payload.contentQualityScore,
-        issuesCount: event.payload.issuesCount,
-        highSeverityCount: event.payload.highSeverityCount,
-        aiCallsCount: event.payload.aiCallsCount,
-        costUsdMicros: event.payload.costUsdMicros.toString(),
-        durationMs: event.payload.durationMs,
-        outcome,
-      }),
-      CTX,
-    );
+    this.logger.log('Score computed', CTX, {
+      scoreType: 'resume_quality',
+      value: event.payload.overallScore,
+      completeness: event.payload.completenessScore,
+      contentQuality: event.payload.contentQualityScore,
+      issuesCount: event.payload.issuesCount,
+      highSeverityCount: event.payload.highSeverityCount,
+      aiCallsCount: event.payload.aiCallsCount,
+      costUsdMicros: event.payload.costUsdMicros.toString(),
+      durationMs: event.payload.durationMs,
+      outcome,
+    });
   }
 
   onMatchComputed(event: MatchComputedEvent): void {
@@ -59,19 +54,13 @@ export class ScoreMetricsHandler {
     const outcome = anyNull ? 'partial' : 'success';
     this.metrics.incrementScoreComputed({ type: 'match', outcome });
     this.metrics.observeScoreComputeDuration(event.payload.durationMs / 1000, { type: 'match' });
-    this.logger.log(
-      JSON.stringify({
-        scoreType: 'match',
-        userId: event.payload.userId,
-        resumeId: event.payload.resumeId,
-        jobId: event.payload.jobId,
-        value: event.payload.overallScore,
-        subScores: sub,
-        fromCache: event.payload.fromCache,
-        durationMs: event.payload.durationMs,
-        outcome,
-      }),
-      CTX,
-    );
+    this.logger.log('Score computed', CTX, {
+      scoreType: 'match',
+      value: event.payload.overallScore,
+      subScores: sub,
+      fromCache: event.payload.fromCache,
+      durationMs: event.payload.durationMs,
+      outcome,
+    });
   }
 }

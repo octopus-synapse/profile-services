@@ -74,7 +74,7 @@ export const ViewStatsResponseSchema = z.object({
   ),
 });
 
-export const ATSScoreResponseSchema = z.object({
+export const QualityScoreResponseSchema = z.object({
   score: z.number().min(0).max(100),
   sectionBreakdown: z.array(
     z.object({
@@ -126,8 +126,8 @@ export const BenchmarkResponseSchema = z.object({
   percentile: z.number().min(0).max(100),
   totalInIndustry: z.number().int().nonnegative(),
   comparison: z.object({
-    avgATSScore: z.number().min(0).max(100),
-    yourATSScore: z.number().min(0).max(100),
+    avgQualityScore: z.number().min(0).max(100),
+    yourQualityScore: z.number().min(0).max(100),
     avgViews: z.number().nonnegative(),
     yourViews: z.number().nonnegative(),
     avgStructuredItemCount: z.number().int().nonnegative(),
@@ -151,7 +151,7 @@ export const DashboardResponseSchema = z.object({
   overview: z.object({
     totalViews: z.number().int().nonnegative(),
     uniqueVisitors: z.number().int().nonnegative(),
-    atsScore: z.number().min(0).max(100),
+    qualityScore: z.number().min(0).max(100),
     keywordScore: z.number().min(0).max(100),
     industryPercentile: z.number().min(0).max(100),
   }),
@@ -171,7 +171,7 @@ export const DashboardResponseSchema = z.object({
 export const SnapshotResponseSchema = z.object({
   id: z.string(),
   resumeId: z.string(),
-  atsScore: z.number().min(0).max(100),
+  qualityScore: z.number().min(0).max(100),
   keywordScore: z.number().min(0).max(100),
   completenessScore: z.number().min(0).max(100),
   topKeywords: z.array(z.string()),
@@ -204,7 +204,7 @@ export type BenchmarkOptions = z.infer<typeof BenchmarkOptionsSchema>;
 export type HistoryQuery = z.infer<typeof HistoryQuerySchema>;
 
 export type ViewStatsResponse = z.infer<typeof ViewStatsResponseSchema>;
-export type ATSScoreResponse = z.infer<typeof ATSScoreResponseSchema>;
+export type QualityScoreResponse = z.infer<typeof QualityScoreResponseSchema>;
 export type KeywordSuggestionsResponse = z.infer<typeof KeywordSuggestionsResponseSchema>;
 export type JobMatchResponse = z.infer<typeof JobMatchResponseSchema>;
 export type BenchmarkResponse = z.infer<typeof BenchmarkResponseSchema>;
@@ -284,7 +284,7 @@ export type HistoryQueryDto = z.infer<typeof HistoryQuerySchema>;
 
 export type ViewStatsResponseDto = z.infer<typeof ViewStatsResponseSchema>;
 
-export type ATSScoreResponseDto = z.infer<typeof ATSScoreResponseSchema>;
+export type QualityScoreResponseDto = z.infer<typeof QualityScoreResponseSchema>;
 
 export type KeywordSuggestionsResponseDto = z.infer<typeof KeywordSuggestionsResponseSchema>;
 
