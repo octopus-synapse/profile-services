@@ -100,6 +100,7 @@ jobs:
           cp docker-compose.yml /opt/profile-services/docker-compose.yml
           mkdir -p /opt/profile-services/infra/docker
           cp -R infra/docker/compose /opt/profile-services/infra/docker/
+          cp -R infra/docker/postgres /opt/profile-services/infra/docker/
           mkdir -p /opt/profile-services/infra/docker/datadog
           cp infra/docker/docker-compose.datadog.yml /opt/profile-services/infra/docker/docker-compose.datadog.yml
           cp -R infra/docker/datadog/conf.d /opt/profile-services/infra/docker/datadog/
