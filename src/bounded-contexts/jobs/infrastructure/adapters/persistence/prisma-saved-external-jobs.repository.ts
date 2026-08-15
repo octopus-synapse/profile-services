@@ -6,6 +6,7 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ExternalJobListingRecord } from '../../../domain/ports/external-job-listings.repository.port';
 import {
+  type AppliedCvDetails,
   type SavedExternalJobRecord,
   SavedExternalJobsRepositoryPort,
 } from '../../../domain/ports/saved-external-jobs.repository.port';
@@ -51,10 +52,20 @@ export class PrismaSavedExternalJobsRepository extends SavedExternalJobsReposito
     return this.prisma.savedExternalJob.findUnique({ where: { id } });
   }
 
-  async setApplied(id: string, didApply: boolean): Promise<SavedExternalJobRecord> {
+  async setApplied(
+    id: string,
+    didApply: boolean,
+    details?: AppliedCvDetails,
+  ): Promise<SavedExternalJobRecord> {
     return this.prisma.savedExternalJob.update({
       where: { id },
-      data: { hasApplied: didApply, appliedAt: didApply ? new Date() : null },
+      data: {
+        hasApplied: didApply,
+        appliedAt: didApply ? new Date() : null,
+        appliedResumeId: didApply ? (details?.resumeId ?? null) : null,
+        appliedTailoredVersionId: didApply ? (details?.tailoredVersionId ?? null) : null,
+        appliedMatchScore: didApply ? (details?.matchScore ?? null) : null,
+      },
     });
   }
 

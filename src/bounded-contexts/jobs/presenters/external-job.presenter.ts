@@ -51,5 +51,7 @@ export function toSavedExternalJobResponseDto(record: SavedExternalJobRecord) {
     fetchedAt: record.fetchedAt.toISOString(),
     hasApplied: record.hasApplied,
     appliedAt: record.appliedAt ? record.appliedAt.toISOString() : null,
+    appliedMatchScore: record.appliedMatchScore,
+    appliedTailoredVersionId: record.appliedTailoredVersionId,
   };
 }

@@ -23,6 +23,7 @@ import { GetTailoredVersionsUseCase } from './application/use-cases/get-tailored
 import { GetVersionsUseCase } from './application/use-cases/get-versions/get-versions.use-case';
 import { RestoreVersionUseCase } from './application/use-cases/restore-version/restore-version.use-case';
 import { TailorResumeForJobUseCase } from './application/use-cases/tailor-resume-for-job/tailor-resume-for-job.use-case';
+import type { TailorMatchPort } from './domain/ports/tailor-match.port';
 import { LlmResumeTailorAdapter } from './infrastructure/adapters/external-services/llm-resume-tailor.adapter';
 import { PrismaResumeVersionsRepository } from './infrastructure/adapters/persistence/prisma-resume-versions.repository';
 import { resumeVersionsRoutes } from './resume-versions.routes';
@@ -34,6 +35,7 @@ export function buildResumeVersionsUseCases(
   logger: LoggerPort,
   llm: LlmPort,
   events: ResumeEventPublisher,
+  tailorMatch: TailorMatchPort | null = null,
 ): ResumeVersionsUseCases {
   // Repos
   const repo = new PrismaResumeVersionsRepository(prisma, logger);
@@ -48,7 +50,7 @@ export function buildResumeVersionsUseCases(
     createSnapshot,
     getVersions: new GetVersionsUseCase(repo),
     restoreVersion: new RestoreVersionUseCase(repo, createSnapshot, events, logger),
-    tailorResumeForJob: new TailorResumeForJobUseCase(repo, tailorLlm, logger),
+    tailorResumeForJob: new TailorResumeForJobUseCase(repo, tailorLlm, logger, tailorMatch),
     getTailoredVersions: new GetTailoredVersionsUseCase(repo),
     getTailoredVersionDiff: new GetTailoredVersionDiffUseCase(repo),
   };
@@ -66,8 +68,9 @@ export function buildResumeVersionsComposition(
   logger: LoggerPort,
   llm: LlmPort,
   events: ResumeEventPublisher,
+  tailorMatch: TailorMatchPort | null = null,
 ): BoundedContextComposition<ResumeVersionsUseCases> & ResumeVersionsCompositionExtras {
-  const useCases = buildResumeVersionsUseCases(prisma, logger, llm, events);
+  const useCases = buildResumeVersionsUseCases(prisma, logger, llm, events, tailorMatch);
   const tailor = new ResumeTailorService(
     useCases.tailorResumeForJob,
     useCases.getTailoredVersions,

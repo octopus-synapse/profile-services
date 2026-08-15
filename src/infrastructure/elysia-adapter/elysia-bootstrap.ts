@@ -140,6 +140,10 @@ import {
 } from '@/bounded-contexts/resumes/domain/events';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters/resume-event-publisher.adapter';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories/section-type.repository';
+import {
+  JobMatchTailorAdapter,
+  type TailorComputeMatchLike,
+} from '@/bounded-contexts/resumes/resume-versions/infrastructure/adapters/external-services/job-match-tailor.adapter';
 import { VersionAuditHandler } from '@/bounded-contexts/resumes/resume-versions/infrastructure/handlers/version-audit.handler';
 import { buildResumeVersionsComposition } from '@/bounded-contexts/resumes/resume-versions/resume-versions.composition';
 import { buildAdminSectionTypesComposition } from '@/bounded-contexts/resumes/section-types/application/admin-section-types.composition';
@@ -191,6 +195,7 @@ import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
+import { resolveMinQualityTarget } from './min-quality-target.helper';
 import { NoopJobQueueAdapter } from './noop-job-queue.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
@@ -493,13 +498,19 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   for (const l of notifications.lifecycles ?? []) lifecycles.push(l);
 
   // Resume versions: uses ai.bundle.llm + ResumeEventPublisherAdapter
-  // wrapping the shared EventBus.
+  // wrapping the shared EventBus. The tailor's compatibility estimate
+  // delegates to job-match's ComputeMatchUseCase, which is composed
+  // further down — late-bind it through a thunk (tailor calls happen at
+  // request time, long after bootstrap completes).
   const resumeEvents = new ResumeEventPublisherAdapter(eventBus);
+  let tailorMatchEngine: TailorComputeMatchLike | null = null;
+  const tailorMatch = new JobMatchTailorAdapter(() => tailorMatchEngine, logger);
   const resumeVersions = buildResumeVersionsComposition(
     prisma as never,
     logger,
     ai.bundle.llm,
     resumeEvents,
+    tailorMatch,
   );
 
   // Resume analytics facade — needed by jobs. Registers cron + handlers
@@ -873,6 +884,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     queue,
     logger,
   } as never) as never;
+  // Close the tailor → match late-binding declared next to resumeVersions.
+  tailorMatchEngine = (jobMatch as { useCases: { computeMatch: TailorComputeMatchLike } }).useCases
+    .computeMatch;
   for (const binding of (
     jobMatch as {
       eventHandlers?: Array<{ eventType: string; handler: (e: never) => Promise<void> | void }>;
@@ -1107,28 +1121,45 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       metrics.metrics.observeApiLatency(durationSeconds, labels);
     },
     telemetry: datadogTelemetry,
-    // P1-follow-up: domain gates for auto-apply routes. fit-profile
-    // is satisfied when the cached status is `'responded'` (the only
-    // non-blocking state). min-quality reads the most-recent
-    // `ResumeQualityScoreHistory` row for the user's primary resume.
+    // P1-follow-up: domain gates for auto-apply + tailor routes.
+    // fit-profile is satisfied when the cached status is `'responded'`
+    // (the only non-blocking state). min-quality reads the most-recent
+    // `ResumeQualityScoreHistory` row for the gated resume — the one the
+    // route's guard metadata points at (`{ min, resumeParam }`, e.g. the
+    // tailor route gates `:resumeId` at 50), falling back to the user's
+    // primary resume at the historical threshold (70) when the route
+    // declares no metadata (auto-apply).
     hasValidFitProfile: async (userId: string): Promise<boolean> => {
       const status = await fitProfileBundle.useCases.getFitProfileStatus.execute(userId);
       return status.status === 'responded';
     },
-    meetsMinQuality: async (userId: string): Promise<boolean> => {
-      const MIN_OVERALL_SCORE = 70;
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { primaryResumeId: true },
-      });
-      if (!user?.primaryResumeId) return false;
+    meetsMinQuality: async (userId, gate): Promise<boolean> => {
+      const { min, resumeIdFromRoute } = resolveMinQualityTarget(gate);
+      let resumeId = resumeIdFromRoute;
+      if (resumeId) {
+        // Ownership stays the use case's job (it emits the precise
+        // 403/404): an unknown or un-owned id passes the gate so the
+        // handler's error isn't masked as RESUME_QUALITY_TOO_LOW.
+        const resume = await prisma.resume.findUnique({
+          where: { id: resumeId },
+          select: { userId: true },
+        });
+        if (!resume || resume.userId !== userId) return true;
+      } else {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { primaryResumeId: true },
+        });
+        resumeId = user?.primaryResumeId ?? null;
+        if (!resumeId) return false;
+      }
       const latest = await prisma.resumeQualityScoreHistory.findFirst({
-        where: { resumeId: user.primaryResumeId },
+        where: { resumeId },
         select: { overallScore: true },
         orderBy: { computedAt: 'desc' },
       });
       if (!latest) return false;
-      return latest.overallScore >= MIN_OVERALL_SCORE;
+      return latest.overallScore >= min;
     },
   });
 

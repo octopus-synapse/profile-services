@@ -94,6 +94,9 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
               lang: safeLang,
               bannerColor: safeBannerColor,
               template: safeTemplate,
+              // Part of the cache key: a tailored overlay renders different
+              // bytes than the plain resume.
+              versionId: q.versionId,
             },
           },
           () =>
@@ -103,6 +106,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
               bannerColor: safeBannerColor,
               userId,
               resumeId: q.resumeId,
+              versionId: q.versionId,
               template: safeTemplate,
             }),
         ),
@@ -141,6 +145,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
       const html = await bundle.resumeHtmlGenerator.generate({
         userId,
         resumeId: q.resumeId,
+        versionId: q.versionId,
         lang: sanitizeQueryParam(q.lang),
         template: q.template === 'ats' ? 'ats' : 'default',
       });

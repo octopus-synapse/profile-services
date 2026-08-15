@@ -18,7 +18,15 @@
 import type { PipelineStage } from '@/shared-kernel/http/pipeline';
 import type { Route } from '@/shared-kernel/http/route.types';
 
-export type DomainGateCheck = (userId: string) => Promise<boolean>;
+/** What the route declared alongside the gate — so checks can honor
+ *  per-route metadata (e.g. min-quality's `{ min, resumeParam }`) and
+ *  resolve entities out of the parsed route params. */
+export type DomainGateContext = {
+  readonly metadata: Readonly<Record<string, unknown>> | undefined;
+  readonly params: Readonly<Record<string, unknown>>;
+};
+
+export type DomainGateCheck = (userId: string, gate: DomainGateContext) => Promise<boolean>;
 
 interface DomainGateOptions {
   readonly id: 'fit-profile' | 'min-quality';
@@ -60,7 +68,10 @@ function domainGateStage(opts: DomainGateOptions): PipelineStage {
 
       let allowed = false;
       try {
-        allowed = await opts.check(ctx.user.userId);
+        allowed = await opts.check(ctx.user.userId, {
+          metadata: guard.metadata,
+          params: (ctx.params ?? {}) as Record<string, unknown>,
+        });
       } catch (err) {
         ctx.state.responseStatus = 503;
         ctx.state.responseBody = {
@@ -102,6 +113,6 @@ export function minQualityGuardStage(check: DomainGateCheck | undefined): Pipeli
     id: 'min-quality',
     check,
     rejectCode: 'RESUME_QUALITY_TOO_LOW',
-    rejectMessage: 'Your primary resume does not meet the minimum quality threshold',
+    rejectMessage: 'The resume does not meet the minimum quality threshold',
   });
 }

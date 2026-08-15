@@ -83,6 +83,37 @@ export const ComputeMatchSchema = z
     },
   });
 
+// Batch scores for a jobs-list page: one resume vs up to a page of
+// listings. Cap matches the list page size — bigger sweeps belong to
+// the recommendations worker, not a request/response cycle.
+export const ComputeMatchBatchSchema = z
+  .object({
+    resumeId: z.string().uuid().openapi({ example: '01900000-0000-7000-a000-000000000010' }),
+    jobIds: z
+      .array(z.string().uuid().openapi({ example: '01900000-0000-7000-a000-000000000030' }))
+      .min(1)
+      .max(20)
+      .openapi({ example: ['01900000-0000-7000-a000-000000000030'] }),
+  })
+  .openapi({
+    example: {
+      resumeId: '01900000-0000-7000-a000-000000000010',
+      jobIds: ['01900000-0000-7000-a000-000000000030'],
+    },
+  });
+
+export const MatchBatchScoreSchema = z.object({
+  jobId: z.string().uuid().openapi({ example: '01900000-0000-7000-a000-000000000030' }),
+  overallScore: z.number().int().min(0).max(100).openapi({ example: 84 }),
+  rank: ScoreRankSchema.openapi({ example: 'A' }),
+});
+
+// Only successes come back — a listing that failed to score (swept row,
+// provider hiccup) is simply absent and the client renders no chip.
+export const MatchBatchResponseSchema = z.object({
+  scores: z.array(MatchBatchScoreSchema),
+});
+
 export const JobMatchByJobBodySchema = z
   .object({
     resumeId: z.string().uuid(),

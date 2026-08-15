@@ -6,6 +6,7 @@
 
 import type { ExternalJobListingRecord } from '../domain/ports/external-job-listings.repository.port';
 import {
+  type AppliedCvDetails,
   type SavedExternalJobRecord,
   SavedExternalJobsRepositoryPort,
 } from '../domain/ports/saved-external-jobs.repository.port';
@@ -36,6 +37,9 @@ export class InMemorySavedExternalJobsRepository extends SavedExternalJobsReposi
       fetchedAt: listing.fetchedAt,
       hasApplied: null,
       appliedAt: null,
+      appliedResumeId: null,
+      appliedTailoredVersionId: null,
+      appliedMatchScore: null,
       createdAt: new Date(Date.now() + this.sequence),
     };
     this.rows.push(row);
@@ -53,13 +57,20 @@ export class InMemorySavedExternalJobsRepository extends SavedExternalJobsReposi
     return this.rows.find((r) => r.id === id) ?? null;
   }
 
-  async setApplied(id: string, didApply: boolean): Promise<SavedExternalJobRecord> {
+  async setApplied(
+    id: string,
+    didApply: boolean,
+    details?: AppliedCvDetails,
+  ): Promise<SavedExternalJobRecord> {
     const row = this.rows.find((r) => r.id === id);
     if (!row) throw new Error(`SavedExternalJob ${id} not found`);
     const updated: SavedExternalJobRecord = {
       ...row,
       hasApplied: didApply,
       appliedAt: didApply ? new Date() : null,
+      appliedResumeId: didApply ? (details?.resumeId ?? null) : null,
+      appliedTailoredVersionId: didApply ? (details?.tailoredVersionId ?? null) : null,
+      appliedMatchScore: didApply ? (details?.matchScore ?? null) : null,
     };
     const index = this.rows.indexOf(row);
     this.rows[index] = updated;

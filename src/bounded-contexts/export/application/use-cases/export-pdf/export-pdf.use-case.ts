@@ -18,6 +18,8 @@ export interface ExportPdfDto {
   userId?: string;
   /** Render a specific owned resume. Omitted = the primary resume. */
   resumeId?: string;
+  /** Render a tailored version of the resolved resume (must belong to it). */
+  versionId?: string;
   template?: 'default' | 'ats';
   themeStyleConfig?: Record<string, unknown>;
   /** Render a built-in sample résumé when the user has no primary
@@ -44,6 +46,7 @@ export class ExportPdfUseCase {
       bannerColor: dto.bannerColor,
       userId: dto.userId,
       resumeId: dto.resumeId,
+      versionId: dto.versionId,
       template: dto.template,
       themeStyleConfig: dto.themeStyleConfig,
       sampleFallback: dto.sampleFallback,

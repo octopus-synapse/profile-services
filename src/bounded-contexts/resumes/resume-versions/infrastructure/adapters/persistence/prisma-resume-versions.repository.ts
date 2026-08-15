@@ -84,6 +84,9 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
     label?: string;
     isTailored?: boolean;
     tailoredJobId?: string | null;
+    tailoredExternalJobId?: string | null;
+    tailoredJobTitleSnapshot?: string | null;
+    tailoredJobCompanySnapshot?: string | null;
   }): Promise<ResumeVersionRecord> {
     const created = await this.prisma.resumeVersion.create({
       data: {
@@ -93,6 +96,9 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         label: data.label ?? null,
         isTailored: data.isTailored ?? false,
         tailoredJobId: data.tailoredJobId ?? null,
+        tailoredExternalJobId: data.tailoredExternalJobId ?? null,
+        tailoredJobTitleSnapshot: data.tailoredJobTitleSnapshot ?? null,
+        tailoredJobCompanySnapshot: data.tailoredJobCompanySnapshot ?? null,
       },
       select: {
         id: true,
@@ -113,6 +119,9 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       label?: string;
       isTailored?: boolean;
       tailoredJobId?: string | null;
+      tailoredExternalJobId?: string | null;
+      tailoredJobTitleSnapshot?: string | null;
+      tailoredJobCompanySnapshot?: string | null;
     },
   ): Promise<ResumeVersionRecord> {
     // P1 #16 — two concurrent snapshot/tailor calls used to race on
@@ -138,6 +147,9 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
             label: data.label ?? null,
             isTailored: data.isTailored ?? false,
             tailoredJobId: data.tailoredJobId ?? null,
+            tailoredExternalJobId: data.tailoredExternalJobId ?? null,
+            tailoredJobTitleSnapshot: data.tailoredJobTitleSnapshot ?? null,
+            tailoredJobCompanySnapshot: data.tailoredJobCompanySnapshot ?? null,
           },
           select: {
             id: true,
@@ -276,6 +288,18 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
     };
   }
 
+  async findExternalJobById(jobId: string): Promise<JobForTailor | null> {
+    const listing = await this.prisma.externalJobListing.findUnique({ where: { id: jobId } });
+    if (!listing) return null;
+    return {
+      title: listing.title,
+      company: listing.company,
+      description: listing.description ?? '',
+      requirements: [],
+      skills: [],
+    };
+  }
+
   async findTailoredVersions(resumeId: string): Promise<TailoredVersionSummary[]> {
     const versions = await this.prisma.resumeVersion.findMany({
       where: { resumeId, isTailored: true },
@@ -287,12 +311,18 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         createdAt: true,
         tailoredJobId: true,
         tailoredJob: { select: { title: true, company: true } },
+        tailoredJobTitleSnapshot: true,
+        tailoredJobCompanySnapshot: true,
       },
     });
-    return versions.map(({ tailoredJob, ...version }) => ({
-      ...version,
-      tailoredJobTitle: tailoredJob?.title ?? null,
-      tailoredJobCompany: tailoredJob?.company ?? null,
-    }));
+    // Internal join wins while the Job row lives; the tailor-time snapshot
+    // keeps external (and deleted-job) rows labelled.
+    return versions.map(
+      ({ tailoredJob, tailoredJobTitleSnapshot, tailoredJobCompanySnapshot, ...version }) => ({
+        ...version,
+        tailoredJobTitle: tailoredJob?.title ?? tailoredJobTitleSnapshot ?? null,
+        tailoredJobCompany: tailoredJob?.company ?? tailoredJobCompanySnapshot ?? null,
+      }),
+    );
   }
 }

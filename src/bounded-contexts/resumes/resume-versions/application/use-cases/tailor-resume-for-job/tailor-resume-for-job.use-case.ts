@@ -4,6 +4,13 @@
  * snapshot keeps both the master at tailor-time ("before") and the LLM
  * diff ("after") so the diff endpoint stays accurate even if the master
  * later changes.
+ *
+ * `jobId` resolves polymorphically: internal `Job` first, then the
+ * `ExternalJobListing` mirror (JSearch) — external targets persist a
+ * bare id + title/company snapshot since the mirror row is swept after
+ * 30 days. When the target resolved, the response also carries a
+ * best-effort compatibility estimate (before/after) derived from the
+ * keywords the tailoring actually injected.
  */
 
 import {
@@ -15,24 +22,29 @@ import {
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
-  JobForTailor,
+  ResolvedTailorJob,
   ResumeForTailor,
   TailorJobInput,
+  TailorMatchEstimate,
   TailorResumeResult,
 } from '../../../domain/entities/tailor';
 import { ResumeTailorLlmPort } from '../../../domain/ports/resume-tailor-llm.port';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
+import { TailorMatchPort } from '../../../domain/ports/tailor-match.port';
+import { estimateTailoredMatch } from '../../../domain/rules/estimate-tailored-match.rules';
 
 export class TailorResumeForJobUseCase {
   constructor(
     private readonly repository: ResumeVersionsRepositoryPort,
     private readonly llm: ResumeTailorLlmPort,
     private readonly logger: LoggerPort,
+    /** Best-effort compatibility estimate; null disables the signal. */
+    private readonly match: TailorMatchPort | null = null,
   ) {}
 
   async execute(input: TailorJobInput): Promise<TailorResumeResult> {
     const resume = await this.loadOwnedResume(input.resumeId, input.userId);
-    const job = await this.resolveJob(input);
+    const resolved = await this.resolveJob(input);
 
     let tailored: Awaited<ReturnType<typeof this.llm.tailorResume>>;
     try {
@@ -47,7 +59,7 @@ export class TailorResumeForJobUseCase {
             items: section.items.map((item) => ({ id: item.id, content: item.content })),
           })),
         },
-        job,
+        job: resolved.job,
       });
     } catch (err) {
       // The LLM port can fail in many ways (rate limit, network, provider
@@ -61,7 +73,7 @@ export class TailorResumeForJobUseCase {
       throw new TailorEngineUnavailableException();
     }
 
-    const label = this.labelFor(job);
+    const label = this.labelFor(resolved.job);
 
     const snapshot = {
       master: {
@@ -83,8 +95,13 @@ export class TailorResumeForJobUseCase {
       snapshot,
       label,
       isTailored: true,
-      tailoredJobId: input.jobId ?? null,
+      tailoredJobId: resolved.internalJobId,
+      tailoredExternalJobId: resolved.externalJobId,
+      tailoredJobTitleSnapshot: resolved.job.title,
+      tailoredJobCompanySnapshot: resolved.job.company,
     });
+
+    const match = await this.estimateMatch(input, resolved, tailored.bullets);
 
     return {
       versionId: created.id,
@@ -93,6 +110,7 @@ export class TailorResumeForJobUseCase {
       summary: tailored.summary,
       jobTitle: tailored.jobTitle,
       bullets: tailored.bullets,
+      match,
     };
   }
 
@@ -103,11 +121,15 @@ export class TailorResumeForJobUseCase {
     return resume;
   }
 
-  private async resolveJob(input: TailorJobInput): Promise<JobForTailor> {
+  private async resolveJob(input: TailorJobInput): Promise<ResolvedTailorJob> {
     if (input.jobId) {
-      const job = await this.repository.findJobById(input.jobId);
-      if (!job) throw new EntityNotFoundException('Job', input.jobId);
-      return job;
+      const internal = await this.repository.findJobById(input.jobId);
+      if (internal) return { job: internal, internalJobId: input.jobId, externalJobId: null };
+
+      const external = await this.repository.findExternalJobById(input.jobId);
+      if (external) return { job: external, internalJobId: null, externalJobId: input.jobId };
+
+      throw new EntityNotFoundException('Job', input.jobId);
     }
 
     if (!input.jobDescription || input.jobDescription.trim().length < 10) {
@@ -115,12 +137,33 @@ export class TailorResumeForJobUseCase {
     }
 
     return {
-      title: input.jobTitle ?? 'Target role',
-      company: input.jobCompany ?? 'Unknown company',
-      description: input.jobDescription,
-      requirements: [],
-      skills: [],
+      job: {
+        title: input.jobTitle ?? 'Target role',
+        company: input.jobCompany ?? 'Unknown company',
+        description: input.jobDescription,
+        requirements: [],
+        skills: [],
+      },
+      internalJobId: null,
+      externalJobId: null,
     };
+  }
+
+  /** Compatibility before/after — null without a resolvable job target or
+   * when the match engine is unavailable (never blocks the tailor). */
+  private async estimateMatch(
+    input: TailorJobInput,
+    resolved: ResolvedTailorJob,
+    bullets: ReadonlyArray<{ highlights: string[] }>,
+  ): Promise<TailorMatchEstimate | null> {
+    const jobId = resolved.internalJobId ?? resolved.externalJobId;
+    if (!jobId || !this.match) return null;
+
+    const breakdown = await this.match.computeForJob(input.userId, input.resumeId, jobId);
+    if (!breakdown) return null;
+
+    const injected = bullets.flatMap((bullet) => bullet.highlights);
+    return estimateTailoredMatch(breakdown, injected);
   }
 
   private flattenBullets(resume: ResumeForTailor): Array<{ id: string; content: string }> {

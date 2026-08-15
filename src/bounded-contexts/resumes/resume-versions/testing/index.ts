@@ -41,6 +41,7 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
   >();
   private versionsByResumeId = new Map<string, string[]>();
   private jobs = new Map<string, JobForTailor>();
+  private externalJobs = new Map<string, JobForTailor>();
 
   async findResumeForSnapshot(resumeId: string): Promise<ResumeForSnapshot | null> {
     return this.snapshotResumes.get(resumeId) ?? null;
@@ -194,6 +195,10 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     return this.jobs.get(jobId) ?? null;
   }
 
+  async findExternalJobById(jobId: string): Promise<JobForTailor | null> {
+    return this.externalJobs.get(jobId) ?? null;
+  }
+
   async findTailoredVersions(resumeId: string): Promise<TailoredVersionSummary[]> {
     const ids = this.versionsByResumeId.get(resumeId) ?? [];
     return ids
@@ -239,6 +244,10 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     this.jobs.set(jobId, job);
   }
 
+  seedExternalJob(jobId: string, job: JobForTailor): void {
+    this.externalJobs.set(jobId, job);
+  }
+
   seedVersion(
     version: ResumeVersionRecord & { isTailored?: boolean; tailoredJobId?: string | null },
   ): void {
@@ -270,6 +279,7 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     this.versions.clear();
     this.versionsByResumeId.clear();
     this.jobs.clear();
+    this.externalJobs.clear();
   }
 }
 

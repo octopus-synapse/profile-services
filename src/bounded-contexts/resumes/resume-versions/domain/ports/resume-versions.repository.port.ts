@@ -29,6 +29,9 @@ export abstract class ResumeVersionsRepositoryPort {
     label?: string;
     isTailored?: boolean;
     tailoredJobId?: string | null;
+    tailoredExternalJobId?: string | null;
+    tailoredJobTitleSnapshot?: string | null;
+    tailoredJobCompanySnapshot?: string | null;
   }): Promise<ResumeVersionRecord>;
 
   /**
@@ -47,6 +50,9 @@ export abstract class ResumeVersionsRepositoryPort {
       label?: string;
       isTailored?: boolean;
       tailoredJobId?: string | null;
+      tailoredExternalJobId?: string | null;
+      tailoredJobTitleSnapshot?: string | null;
+      tailoredJobCompanySnapshot?: string | null;
     },
   ): Promise<ResumeVersionRecord>;
 
@@ -69,6 +75,9 @@ export abstract class ResumeVersionsRepositoryPort {
   abstract findResumeForTailor(resumeId: string): Promise<ResumeForTailor | null>;
 
   abstract findJobById(jobId: string): Promise<JobForTailor | null>;
+
+  /** Resolve a target against the external-listings mirror (JSearch). */
+  abstract findExternalJobById(jobId: string): Promise<JobForTailor | null>;
 
   abstract findTailoredVersions(resumeId: string): Promise<TailoredVersionSummary[]>;
 }

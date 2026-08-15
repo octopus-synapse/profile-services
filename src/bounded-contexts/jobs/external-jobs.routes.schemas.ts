@@ -96,6 +96,14 @@ export const SavedExternalJobItemSchema = z.object({
   appliedAt: IsoDateTimeSchema.nullable().openapi({
     description: 'When the user confirmed they applied; null otherwise.',
   }),
+  appliedMatchScore: z.number().int().nullable().openapi({
+    description: 'Compatibility score shown at apply time; null when not recorded.',
+    example: 84,
+  }),
+  appliedTailoredVersionId: z.string().nullable().openapi({
+    description: 'Tailored resume version that backed the application; null for master/none.',
+    example: '01900000-0000-7000-a000-000000000002',
+  }),
 });
 
 export const SavedExternalJobsListResponseSchema = PaginatedResponseSchema(
@@ -104,9 +112,31 @@ export const SavedExternalJobsListResponseSchema = PaginatedResponseSchema(
 
 // Body for POST /v1/jobs/external/saved/:id/did-apply — the client's answer
 // to the "você se candidatou?" prompt shown on return from the apply site.
-export const DidApplyExternalJobSchema = z.object({
-  didApply: z.boolean().openapi({ example: true }),
-});
+// A confirmed answer can carry the apply-flow's CV snapshot: which resume
+// (and tailored version, when the user personalized) backed the
+// application, plus the compatibility score shown at apply time.
+export const DidApplyExternalJobSchema = z
+  .object({
+    didApply: z.boolean().openapi({ example: true }),
+    resumeId: z
+      .string()
+      .uuid()
+      .optional()
+      .openapi({ example: '01900000-0000-7000-a000-000000000001' }),
+    tailoredVersionId: z
+      .string()
+      .uuid()
+      .optional()
+      .openapi({ example: '01900000-0000-7000-a000-000000000002' }),
+    matchScore: z.number().int().min(0).max(100).optional().openapi({ example: 84 }),
+  })
+  .openapi({
+    example: {
+      didApply: true,
+      resumeId: '01900000-0000-7000-a000-000000000001',
+      matchScore: 84,
+    },
+  });
 
 export const DidApplyExternalJobResponseSchema = z.object({
   savedId: z.string(),

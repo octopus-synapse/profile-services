@@ -10,6 +10,19 @@ export type TailorBullet = {
   highlights: string[];
 };
 
+/**
+ * Compatibility before/after the tailoring, when the tailor targeted a
+ * resolvable job (internal or external listing). `after` is an estimate:
+ * the keyword sub-score is re-derived from the keywords the tailoring
+ * actually injected (bullet highlights) — the other signals are unchanged,
+ * so the lift is conservative and never fabricated.
+ */
+export type TailorMatchEstimate = {
+  before: number;
+  after: number;
+  estimated: true;
+};
+
 export type TailorResumeResult = {
   versionId: string;
   versionNumber: number;
@@ -17,6 +30,7 @@ export type TailorResumeResult = {
   summary: string | null;
   jobTitle: string | null;
   bullets: TailorBullet[];
+  match: TailorMatchEstimate | null;
 };
 
 export type TailoredVersionDiff = {
@@ -59,6 +73,15 @@ export type JobForTailor = {
   description: string;
   requirements: string[];
   skills: string[];
+};
+
+/** Which store `TailorJobInput.jobId` resolved against. */
+export type ResolvedTailorJob = {
+  job: JobForTailor;
+  /** Set when the id matched an internal `Job` row. */
+  internalJobId: string | null;
+  /** Set when the id matched an `ExternalJobListing` row. */
+  externalJobId: string | null;
 };
 
 export type TailorJobInput = {

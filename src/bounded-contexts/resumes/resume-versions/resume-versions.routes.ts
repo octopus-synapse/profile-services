@@ -5,8 +5,9 @@
  * `RequireFitProfileGuard` + `RequireMinQualityGuard` chain is wired
  * via the synthesizer guard registry under ids `fit-profile` and
  * `min-quality`. The min-quality metadata (threshold + resume-param
- * name) is forwarded as `route.guards[*].metadata` and mapped to the
- * Reflector keys the guard reads.
+ * name) travels as `route.guards[*].metadata`; the pipeline stage hands
+ * it to the bootstrap's check, which gates the `:resumeId` resume at
+ * the declared threshold (see `resolveMinQualityTarget`).
  */
 
 import { z } from 'zod';

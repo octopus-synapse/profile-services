@@ -30664,6 +30664,16 @@
             "required": false,
             "name": "resumeId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Tailored ResumeVersion to overlay on the resolved resume (its summary/jobTitle/bullet rewrites). Must belong to that resume."
+            },
+            "required": false,
+            "name": "versionId",
+            "in": "query"
           }
         ],
         "responses": {
@@ -30865,6 +30875,16 @@
             },
             "required": false,
             "name": "resumeId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Tailored ResumeVersion to overlay on the resolved resume (its summary/jobTitle/bullet rewrites). Must belong to that resume."
+            },
+            "required": false,
+            "name": "versionId",
             "in": "query"
           }
         ],
@@ -40085,6 +40105,18 @@
                             "format": "date-time",
                             "description": "When the user confirmed they applied; null otherwise.",
                             "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "appliedMatchScore": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Compatibility score shown at apply time; null when not recorded.",
+                            "example": 84
+                          },
+                          "appliedTailoredVersionId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Tailored resume version that backed the application; null for master/none.",
+                            "example": "01900000-0000-7000-a000-000000000002"
                           }
                         },
                         "required": [
@@ -40103,7 +40135,9 @@
                           "postedAt",
                           "fetchedAt",
                           "hasApplied",
-                          "appliedAt"
+                          "appliedAt",
+                          "appliedMatchScore",
+                          "appliedTailoredVersionId"
                         ]
                       }
                     },
@@ -40491,11 +40525,32 @@
                   "didApply": {
                     "type": "boolean",
                     "example": true
+                  },
+                  "resumeId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "01900000-0000-7000-a000-000000000001"
+                  },
+                  "tailoredVersionId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "01900000-0000-7000-a000-000000000002"
+                  },
+                  "matchScore": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "example": 84
                   }
                 },
                 "required": [
                   "didApply"
-                ]
+                ],
+                "example": {
+                  "didApply": true,
+                  "resumeId": "01900000-0000-7000-a000-000000000001",
+                  "matchScore": 84
+                }
               }
             }
           }
@@ -46370,6 +46425,221 @@
                     "effectiveWeights",
                     "rulesVersion",
                     "computedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
+      }
+    },
+    "/api/v1/match/batch": {
+      "post": {
+        "summary": "Compute overall Match Scores for one resume vs a page of jobs",
+        "description": "Match Score API",
+        "tags": [
+          "job-match"
+        ],
+        "operationId": "post_v1_match_batch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resumeId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "01900000-0000-7000-a000-000000000010"
+                  },
+                  "jobIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000030"
+                    },
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "example": [
+                      "01900000-0000-7000-a000-000000000030"
+                    ]
+                  }
+                },
+                "required": [
+                  "resumeId",
+                  "jobIds"
+                ],
+                "example": {
+                  "resumeId": "01900000-0000-7000-a000-000000000010",
+                  "jobIds": [
+                    "01900000-0000-7000-a000-000000000030"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scores": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "jobId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "01900000-0000-7000-a000-000000000030"
+                          },
+                          "overallScore": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 84
+                          },
+                          "rank": {
+                            "type": "string",
+                            "enum": [
+                              "S",
+                              "A",
+                              "B",
+                              "C",
+                              "D",
+                              "F"
+                            ],
+                            "example": "A"
+                          }
+                        },
+                        "required": [
+                          "jobId",
+                          "overallScore",
+                          "rank"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "scores"
                   ]
                 }
               }
@@ -81123,7 +81393,8 @@
                   "jobId": {
                     "type": "string",
                     "minLength": 1,
-                    "format": "uuid"
+                    "format": "uuid",
+                    "description": "Target job id — resolves against internal jobs first, then the external-listings mirror (JSearch)."
                   },
                   "jobDescription": {
                     "type": "string",
@@ -81270,6 +81541,33 @@
                           "op"
                         ]
                       }
+                    },
+                    "match": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "before": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "after": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "estimated": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      },
+                      "required": [
+                        "before",
+                        "after",
+                        "estimated"
+                      ]
                     }
                   },
                   "required": [
@@ -81279,7 +81577,8 @@
                     "summary",
                     "jobTitle",
                     "bullets",
-                    "changes"
+                    "changes",
+                    "match"
                   ]
                 }
               }

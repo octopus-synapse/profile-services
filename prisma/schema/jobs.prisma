@@ -212,6 +212,14 @@ model SavedExternalJob {
   hasApplied Boolean?
   appliedAt  DateTime?
 
+  // Which CV backed a confirmed application (the apply-flow snapshot):
+  // the resume, the tailored version derived for this listing (when the
+  // user personalized before applying), and the compatibility score shown
+  // at apply time. Bare ids, no FK — same sweep-safety rationale as above.
+  appliedResumeId          String?
+  appliedTailoredVersionId String?
+  appliedMatchScore        Int?
+
   createdAt DateTime @default(now())
 
   @@unique([userId, externalId])

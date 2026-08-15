@@ -20,6 +20,7 @@ import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { AstHtmlRendererService } from './ast-html-renderer.service';
+import { overlayTailoredVersion } from './tailored-version-overlay';
 
 /** Map lang query param to Locale (mirrors TypstPdfGeneratorService). */
 function resolveLocale(lang?: string): Locale {
@@ -32,6 +33,9 @@ function resolveLocale(lang?: string): Locale {
 export interface ResumeHtmlOptions {
   userId?: string;
   resumeId?: string;
+  /** Preview a tailored ResumeVersion overlaid on the resume (must belong
+   *  to the resolved resume, else 404). */
+  versionId?: string;
   lang?: string;
   template?: 'default' | 'ats';
   themeStyleConfig?: Record<string, unknown>;
@@ -85,13 +89,16 @@ export class ResumeHtmlGeneratorService {
     const locale = resolveLocale(options.lang);
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
 
-    const { ast } = await this.dsl.renderResumeDsl.execute({
+    let { ast } = await this.dsl.renderResumeDsl.execute({
       resumeId,
       userId,
       target: 'html',
       locale,
       themeStyleConfig: options.themeStyleConfig,
     });
+    if (options.versionId) {
+      ast = await overlayTailoredVersion(this.prisma, ast, resumeId, options.versionId);
+    }
 
     const html = this.renderer.render(ast, { template: options.template ?? 'default' });
     this.logger.log(

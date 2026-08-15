@@ -17,10 +17,18 @@ model ResumeVersion {
   snapshot      Json // Full resume state
   label         String? // Optional version label
 
-  // Tailored-variant metadata. Both fields null on plain snapshots.
+  // Tailored-variant metadata. All fields null on plain snapshots.
   isTailored    Boolean @default(false)
   tailoredJobId String?
   tailoredJob   Job?    @relation("JobTailoredResumeVersions", fields: [tailoredJobId], references: [id], onDelete: SetNull)
+
+  // External-listing target. No FK on purpose — `ExternalJobListing` rows are
+  // swept after 30 days and a tailored version must outlive the mirror row
+  // (same pattern as `SavedExternalJob`). The title/company snapshots keep the
+  // versions list labelled for BOTH targets after the source row is gone.
+  tailoredExternalJobId      String?
+  tailoredJobTitleSnapshot   String?
+  tailoredJobCompanySnapshot String?
 
   createdAt DateTime @default(now())
 

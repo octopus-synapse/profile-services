@@ -27,8 +27,21 @@ export interface SavedExternalJobRecord {
   // client prompts on return). null = never answered, true/false = the answer.
   readonly hasApplied: boolean | null;
   readonly appliedAt: Date | null;
+  // Which CV backed a confirmed application (bare ids, sweep-safe): the
+  // resume, the tailored version derived for this listing, and the
+  // compatibility score shown at apply time.
+  readonly appliedResumeId: string | null;
+  readonly appliedTailoredVersionId: string | null;
+  readonly appliedMatchScore: number | null;
   readonly createdAt: Date;
 }
+
+/** Optional apply-flow snapshot recorded alongside a `didApply === true`. */
+export type AppliedCvDetails = {
+  resumeId?: string;
+  tailoredVersionId?: string;
+  matchScore?: number;
+};
 
 export abstract class SavedExternalJobsRepositoryPort {
   /** Snapshots the listing's display fields into a new saved row. */
@@ -46,10 +59,14 @@ export abstract class SavedExternalJobsRepositoryPort {
 
   /**
    * Records the user's self-reported answer to "você se candidatou?".
-   * `didApply === true` stamps `appliedAt`; `false` clears it. Returns the
-   * updated row.
+   * `didApply === true` stamps `appliedAt` and persists the optional CV
+   * details; `false` clears all of it. Returns the updated row.
    */
-  abstract setApplied(id: string, didApply: boolean): Promise<SavedExternalJobRecord>;
+  abstract setApplied(
+    id: string,
+    didApply: boolean,
+    details?: AppliedCvDetails,
+  ): Promise<SavedExternalJobRecord>;
 
   abstract deleteById(id: string): Promise<void>;
 

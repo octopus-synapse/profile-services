@@ -14,6 +14,10 @@ export interface PdfGeneratorOptions {
   timeout?: number;
   template?: PdfTemplate;
   resumeId?: string;
+  /** Render a tailored ResumeVersion of the resolved resume: the version's
+   *  summary/jobTitle/bullet rewrites overlay the master content. Must
+   *  belong to the resolved resume, else 404. */
+  versionId?: string;
   themeStyleConfig?: Record<string, unknown>;
   /** When set and the user has no primary résumé, render a built-in
    *  sample résumé styled with `themeStyleConfig` instead of throwing

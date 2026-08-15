@@ -15,6 +15,7 @@ import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.excep
 import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
+import { overlayTailoredVersion } from './tailored-version-overlay';
 import type { TypstCompilerService } from './typst-compiler.service';
 import type { TypstDataSerializerService } from './typst-data-serializer.service';
 
@@ -67,6 +68,9 @@ export class TypstPdfGeneratorService {
         locale,
         themeStyleConfig: options.themeStyleConfig,
       }));
+      if (options.versionId) {
+        ast = await overlayTailoredVersion(this.prisma, ast, resumeId, options.versionId);
+      }
     } else if (options.sampleFallback) {
       this.logger.log(
         `No primary résumé for user ${userId}; rendering sample preview`,

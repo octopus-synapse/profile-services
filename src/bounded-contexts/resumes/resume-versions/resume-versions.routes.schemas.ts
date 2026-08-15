@@ -5,8 +5,8 @@
  * `RequireFitProfileGuard` + `RequireMinQualityGuard` chain is wired
  * via the synthesizer guard registry under ids `fit-profile` and
  * `min-quality`. The min-quality metadata (threshold + resume-param
- * name) is forwarded as `route.guards[*].metadata` and mapped to the
- * Reflector keys the guard reads.
+ * name) travels as `route.guards[*].metadata` and is honored by the
+ * bootstrap's gate check (see `resolveMinQualityTarget`).
  */
 
 import { z } from 'zod';
@@ -24,7 +24,10 @@ export const VersionIdQuery = z
 
 export const TailorResumeBody = z
   .object({
-    jobId: z.string().uuid().min(1).optional(),
+    jobId: z.string().uuid().min(1).optional().openapi({
+      description:
+        'Target job id — resolves against internal jobs first, then the external-listings mirror (JSearch).',
+    }),
     jobDescription: z.string().min(10).optional(),
     jobTitle: z.string().max(200).optional(),
     jobCompany: z.string().max(200).optional(),
@@ -107,6 +110,16 @@ export const TailorChangeSchema = z.object({
   highlights: z.array(z.string()).optional(),
 });
 
+// Compatibility before/after the tailoring, present when `jobId` resolved
+// (internal or external). `after` re-derives only the keyword signal from
+// the keywords the tailoring actually injected — conservative, never
+// fabricated; `estimated` flags the semantics for the client.
+export const TailorMatchEstimateSchema = z.object({
+  before: z.number().int().min(0).max(100),
+  after: z.number().int().min(0).max(100),
+  estimated: z.literal(true),
+});
+
 export const TailorResumeResponseSchema = z.object({
   versionId: z.string().uuid(),
   versionNumber: z.number().int(),
@@ -115,4 +128,5 @@ export const TailorResumeResponseSchema = z.object({
   jobTitle: z.string().nullable(),
   bullets: z.array(TailorBulletSchema),
   changes: z.array(TailorChangeSchema),
+  match: TailorMatchEstimateSchema.nullable(),
 });

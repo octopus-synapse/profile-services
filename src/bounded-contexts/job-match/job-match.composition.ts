@@ -39,6 +39,7 @@ import type {
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
+import { ComputeMatchBatchUseCase } from './application/use-cases/compute-match-batch.use-case';
 import { ComputeReadinessUseCase } from './application/use-cases/compute-readiness.use-case';
 import { GetMeScoresUseCase } from './application/use-cases/get-me-scores.use-case';
 import { AiRequirementsMatcherAdapter } from './infrastructure/adapters/ai-requirements-matcher.adapter';
@@ -108,6 +109,7 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
     eventPublisher,
     logger,
   );
+  const computeMatchBatch = new ComputeMatchBatchUseCase(computeMatch, fitState, logger);
 
   // Readiness: job-independent master-resume score. Reuses the keyword +
   // fit-state adapters above; adds a quality-source read + its own
@@ -136,7 +138,7 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
     logger,
   );
 
-  return { computeMatch, computeReadiness, getMeScores };
+  return { computeMatch, computeMatchBatch, computeReadiness, getMeScores };
 }
 
 /**

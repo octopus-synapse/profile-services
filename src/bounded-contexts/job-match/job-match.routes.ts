@@ -16,10 +16,12 @@ import {
 import { toMeScoresResponseDto } from './infrastructure/presenters/me-scores.presenter';
 import type { JobMatchBundle } from './job-match.bundle';
 import {
+  ComputeMatchBatchSchema,
   ComputeMatchSchema,
   JobIdParams,
   JobMatchByJobBodySchema,
   JobMatchSimpleResponseSchema,
+  MatchBatchResponseSchema,
   MatchBreakdownResponseSchema,
   pickUserId,
   ResumeJobParams,
@@ -47,6 +49,28 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
         jobId: body.jobId,
       });
       return toMatchBreakdownResponseDto(breakdown);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/match/batch',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_READ,
+    body: ComputeMatchBatchSchema,
+    response: MatchBatchResponseSchema,
+    openapi: {
+      summary: 'Compute overall Match Scores for one resume vs a page of jobs',
+      tags: ['job-match'],
+      description: 'Match Score API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as { resumeId: string; jobIds: string[] };
+      return bundle.computeMatchBatch.execute({
+        userId: pickUserId(ctx),
+        resumeId: body.resumeId,
+        jobIds: body.jobIds,
+      });
     },
   },
   {

@@ -7,7 +7,10 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { SavedExternalJobsRepositoryPort } from '../../../domain/ports/saved-external-jobs.repository.port';
+import type {
+  AppliedCvDetails,
+  SavedExternalJobsRepositoryPort,
+} from '../../../domain/ports/saved-external-jobs.repository.port';
 
 export interface MarkExternalJobAppliedResult {
   readonly savedId: string;
@@ -22,12 +25,13 @@ export class MarkExternalJobAppliedUseCase {
     savedId: string,
     userId: string,
     didApply: boolean,
+    details?: AppliedCvDetails,
   ): Promise<MarkExternalJobAppliedResult> {
     const row = await this.saved.findById(savedId);
     if (!row || row.userId !== userId) {
       throw new EntityNotFoundException('SavedExternalJob', savedId);
     }
-    const updated = await this.saved.setApplied(savedId, didApply);
+    const updated = await this.saved.setApplied(savedId, didApply, details);
     return {
       savedId: updated.id,
       hasApplied: updated.hasApplied ?? didApply,

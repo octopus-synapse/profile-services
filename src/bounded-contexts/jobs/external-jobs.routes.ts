@@ -128,8 +128,14 @@ export const externalJobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
-      const { didApply } = DidApplyExternalJobSchema.parse(ctx.body);
-      return bc.markExternalJobApplied.execute(id, ctx.user!.userId, didApply);
+      const { didApply, resumeId, tailoredVersionId, matchScore } = DidApplyExternalJobSchema.parse(
+        ctx.body,
+      );
+      return bc.markExternalJobApplied.execute(id, ctx.user!.userId, didApply, {
+        ...(resumeId !== undefined ? { resumeId } : {}),
+        ...(tailoredVersionId !== undefined ? { tailoredVersionId } : {}),
+        ...(matchScore !== undefined ? { matchScore } : {}),
+      });
     },
   },
 ];
