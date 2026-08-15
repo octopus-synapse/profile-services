@@ -22,6 +22,8 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     response: TestResultsResponseSchema,
     openapi: {
       summary: 'Run a test suite',
+      description:
+        'Admin-only: executes the given automated test suite inside the running backend and returns its results.',
       tags: ['admin-test-runner'],
     },
     handler: async (ctx, bc) => {
@@ -38,6 +40,7 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     response: ListSuitesResponseSchema,
     openapi: {
       summary: 'List available test suites',
+      description: 'Admin-only: lists the automated test suites the runner can execute.',
       tags: ['admin-test-runner'],
     },
     handler: async (_ctx, bc) => {

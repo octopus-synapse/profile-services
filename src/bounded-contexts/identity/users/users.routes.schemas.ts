@@ -244,12 +244,14 @@ export const ConnectedAccountProviderParam = z.object({
 
 export const ConnectedAccountsResponseSchema = z
   .object({
-    accounts: z.array(
-      z.object({
-        provider: z.string(),
-        connectedAt: z.string().openapi({ description: 'ISO-8601 link timestamp.' }),
-      }),
-    ),
+    accounts: z
+      .array(
+        z.object({
+          provider: z.string(),
+          connectedAt: z.string().openapi({ description: 'ISO-8601 link timestamp.' }),
+        }),
+      )
+      .describe('OAuth accounts currently linked to the user.'),
   })
   .openapi('ConnectedAccountsResponse');
 

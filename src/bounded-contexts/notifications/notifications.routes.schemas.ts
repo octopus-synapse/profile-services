@@ -163,8 +163,11 @@ export const SetPreferenceResponseSchema = NotificationPreferenceSchema;
 // ─── Push devices ────────────────────────────────────────────────────
 export const RegisterPushDeviceBody = z
   .object({
-    expoPushToken: z.string().min(1),
-    platform: z.enum(['IOS', 'ANDROID', 'WEB']),
+    expoPushToken: z
+      .string()
+      .min(1)
+      .describe('Expo push token identifying this device installation.'),
+    platform: z.enum(['IOS', 'ANDROID', 'WEB']).describe('Platform the token was issued on.'),
   })
   .openapi('RegisterPushDeviceRequest', {
     example: { expoPushToken: 'ExponentPushToken[xxxxxxxxxxxx]', platform: 'IOS' },
@@ -173,5 +176,8 @@ export const RegisterPushDeviceBody = z
 export const PushDeviceTokenParam = z.object({ token: z.string() });
 
 export const PushDeviceResponseSchema = z
-  .object({ code: z.string().optional(), message: z.string().optional() })
+  .object({
+    code: z.string().optional().describe('Machine-readable result code for the registration.'),
+    message: z.string().optional().describe('Localized confirmation message.'),
+  })
   .openapi('PushDeviceResponse');

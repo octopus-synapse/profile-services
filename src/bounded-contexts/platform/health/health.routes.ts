@@ -68,6 +68,8 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     response: LivenessResponseSchema,
     openapi: {
       summary: 'Liveness probe — always 200 once the process is booted',
+      description:
+        'Lightweight liveness check used by load balancers; returns 200 without touching downstream dependencies.',
       tags: ['health'],
     },
     sdk: { exported: false },
@@ -86,6 +88,7 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     response: LivenessResponseSchema,
     openapi: {
       summary: 'Kubernetes-style liveness alias',
+      description: 'Alias of the liveness probe for Kubernetes-style /live conventions.',
       tags: ['health'],
     },
     sdk: { exported: false },
@@ -104,6 +107,8 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     response: ReadinessResponseSchema,
     openapi: {
       summary: 'Readiness probe — every backend must answer within 2s',
+      description:
+        'Readiness check probing the backing services; returns 503 when a dependency is unavailable.',
       tags: ['health'],
     },
     sdk: { exported: false },

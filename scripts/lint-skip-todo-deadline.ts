@@ -70,7 +70,6 @@ for (const r of ROOTS) {
     const lines = src.split('\n');
     DIRECTIVE_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
     while ((m = DIRECTIVE_RE.exec(src)) !== null) {
       const lineNum = src.slice(0, m.index).split('\n').length;
       const here = lines[lineNum - 1] || '';

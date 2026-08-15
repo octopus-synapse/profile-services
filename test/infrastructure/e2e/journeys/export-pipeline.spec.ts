@@ -157,21 +157,17 @@ describe('E2E Journey 5: Export Pipeline', () => {
         expect([200, 400, 500, 502]).toContain(response.status);
 
         if (response.status === 200) {
-          // Validate Content-Type header
-          expect(response.headers.get('content-type')).toBe('application/pdf');
-
-          // Validate Content-Disposition header
-          expect(response.headers.get('content-disposition')).toBeDefined();
-          expect(response.headers.get('content-disposition')).toContain('resume.pdf');
-
-          // Validate response is Buffer
-          expect(Buffer.isBuffer(response.body)).toBe(true);
-
-          // Validate reasonable file size (PDF should be > 5KB)
-          expect(response.body.length).toBeGreaterThan(5000);
+          // The route uploads the PDF to MinIO (private ACL) and returns a
+          // presigned download envelope, not the binary stream.
+          expect(response.headers.get('content-type')).toContain('application/json');
+          expect(typeof response.body.downloadUrl).toBe('string');
+          expect(response.body.downloadUrl).toMatch(/^https?:\/\//);
+          expect(typeof response.body.filename).toBe('string');
+          expect(response.body.filename.endsWith('.pdf')).toBe(true);
+          expect(response.body.expiresAt).toBeDefined();
         } else {
-          // Puppeteer may not be available or timeout
-          console.warn('⚠️  PDF export failed (Puppeteer unavailable?)');
+          // Typst may not be available or timeout
+          console.warn('⚠️  PDF export failed (Typst unavailable?)');
         }
       },
       60000,
@@ -190,8 +186,8 @@ describe('E2E Journey 5: Export Pipeline', () => {
         expect([200, 400, 500, 502]).toContain(response.status);
 
         if (response.status === 200) {
-          expect(response.headers.get('content-type')).toBe('application/pdf');
-          expect(Buffer.isBuffer(response.body)).toBe(true);
+          expect(response.headers.get('content-type')).toContain('application/json');
+          expect(response.body.downloadUrl).toMatch(/^https?:\/\//);
         }
       },
       60000,
@@ -208,8 +204,8 @@ describe('E2E Journey 5: Export Pipeline', () => {
         expect([200, 400, 500, 502]).toContain(response.status);
 
         if (response.status === 200) {
-          expect(response.headers.get('content-type')).toBe('application/pdf');
-          expect(Buffer.isBuffer(response.body)).toBe(true);
+          expect(response.headers.get('content-type')).toContain('application/json');
+          expect(response.body.downloadUrl).toMatch(/^https?:\/\//);
         }
       },
       60000,
@@ -226,8 +222,8 @@ describe('E2E Journey 5: Export Pipeline', () => {
         expect([200, 400, 500, 502]).toContain(response.status);
 
         if (response.status === 200) {
-          expect(response.headers.get('content-type')).toBe('application/pdf');
-          expect(Buffer.isBuffer(response.body)).toBe(true);
+          expect(response.headers.get('content-type')).toContain('application/json');
+          expect(response.body.downloadUrl).toMatch(/^https?:\/\//);
         }
       },
       60000,

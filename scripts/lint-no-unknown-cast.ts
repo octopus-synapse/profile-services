@@ -65,7 +65,6 @@ for (const file of walk(SRC)) {
   const lines = src.split('\n');
   CAST_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
   while ((m = CAST_RE.exec(src)) !== null) {
     const lineNum = src.slice(0, m.index).split('\n').length;
     const escaped = ESCAPE_RE.test(lines[lineNum - 1] || '');

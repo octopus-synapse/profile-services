@@ -33,6 +33,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: NetworkSummaryResponseSchema,
     openapi: {
       summary: 'Get network summary for authenticated user',
+      description:
+        "Aggregated counts for the authenticated user's network: connections, pending requests, followers and following.",
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -70,6 +72,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Send a connection request',
+      description:
+        'Creates a pending connection request from the authenticated user to the target user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -90,6 +94,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Accept a connection request',
+      description: 'Accepts a pending connection request addressed to the authenticated user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -110,6 +115,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Reject a connection request',
+      description: 'Rejects a pending connection request addressed to the authenticated user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -130,6 +136,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Withdraw a sent (pending) connection request',
+      description:
+        'Withdraws a pending connection request previously sent by the authenticated user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -147,6 +155,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionRemovedResponseSchema,
     openapi: {
       summary: 'Remove a connection',
+      description:
+        'Removes an accepted connection between the authenticated user and the target user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -164,6 +174,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionsListResponseSchema,
     openapi: {
       summary: 'Get accepted connections',
+      description: "Lists the authenticated user's accepted connections, paginated.",
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -181,6 +192,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: PendingRequestsListResponseSchema,
     openapi: {
       summary: 'Get pending connection requests',
+      description: 'Lists incoming pending connection requests for the authenticated user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -198,6 +210,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: PendingRequestsListResponseSchema,
     openapi: {
       summary: 'Get sent (pending) connection requests',
+      description: 'Lists outgoing pending connection requests sent by the authenticated user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -215,6 +228,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: SuggestionsListResponseSchema,
     openapi: {
       summary: 'Get connection suggestions',
+      description: 'Suggests users the authenticated user may want to connect with.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -232,6 +246,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionStatsResponseSchema,
     openapi: {
       summary: 'Get connection stats for a user',
+      description: 'Returns public connection counts for the given user.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
@@ -249,6 +264,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     response: ConnectionStatusResponseSchema,
     openapi: {
       summary: 'Check connection status',
+      description: 'Returns whether the authenticated user and the given user are connected.',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {

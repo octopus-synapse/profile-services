@@ -33,6 +33,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: FollowIdResponseSchema,
     openapi: {
       summary: 'Follow a user',
+      description: 'Makes the authenticated user follow the target user.',
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {
@@ -64,6 +65,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: UnfollowResponseSchema,
     openapi: {
       summary: 'Unfollow a user',
+      description: 'Makes the authenticated user unfollow the target user.',
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {
@@ -82,6 +84,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: FollowersResponseSchema,
     openapi: {
       summary: 'Get followers for a user',
+      description: 'Lists the users following the given user, paginated.',
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {
@@ -101,6 +104,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: FollowingResponseSchema,
     openapi: {
       summary: 'Get users followed by a user',
+      description: 'Lists the users the given user follows, paginated.',
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {
@@ -119,6 +123,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: IsFollowingResponseSchema,
     openapi: {
       summary: 'Check following relationship',
+      description: 'Returns whether the authenticated user follows the given user.',
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {
@@ -135,6 +140,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: MeSocialStatsResponseSchema,
     openapi: {
       summary: 'Get social stats for authenticated user',
+      description: "Returns the authenticated user's follower/following/connection counts.",
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {
@@ -158,6 +164,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     response: SocialStatsResponseSchema,
     openapi: {
       summary: 'Get social stats for a user',
+      description: "Returns the given user's public follower/following/connection counts.",
       tags: ['social-follow'],
     },
     handler: async (ctx, bundle) => {

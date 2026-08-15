@@ -121,8 +121,8 @@ describe('Analytics Tracking Integration', () => {
 
       expect(response.status).toBe(201);
       expect(response.body).toBeDefined();
-      expect(response.body.atsScore).toBeDefined();
-      expect(typeof response.body.atsScore).toBe('number');
+      expect(response.body.qualityScore).toBeDefined();
+      expect(typeof response.body.qualityScore).toBe('number');
     });
 
     it('should verify snapshot is stored in history', async () => {
@@ -141,7 +141,7 @@ describe('Analytics Tracking Integration', () => {
 
       const snapshot = response.body[0];
       expect(snapshot.resumeId).toBe(resumeId);
-      expect(snapshot.atsScore).toBeDefined();
+      expect(snapshot.qualityScore).toBeDefined();
     });
   });
 

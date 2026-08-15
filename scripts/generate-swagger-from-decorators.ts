@@ -417,6 +417,43 @@ function liftAllOfDescriptionToTopLevel(document: {
   }
 }
 
+/**
+ * Drop orphan `nullable: true` flags. `zod-to-openapi` emits
+ * `{ nullable: true }` with no sibling `type`/`$ref`/composition for
+ * `z.unknown().nullable()` / `z.any().nullable()` (e.g. the value schema of
+ * `z.record(...)` payloads). OpenAPI 3.0 forbids `nullable` without `type` —
+ * spectral's `oas3-valid-schema-example` rejects every example validated
+ * against such a schema — and an untyped schema already accepts `null`, so
+ * removing the orphan flag is semantics-preserving. `example`/`examples`
+ * subtrees are data, not schemas, and are left untouched.
+ */
+function stripOrphanNullable(node: unknown, inExample = false, isPropertiesMap = false): void {
+  if (Array.isArray(node)) {
+    for (const item of node) stripOrphanNullable(item, inExample);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  const record = node as Record<string, unknown>;
+  if (
+    !inExample &&
+    record.nullable === true &&
+    record.type === undefined &&
+    record.$ref === undefined &&
+    record.enum === undefined &&
+    record.oneOf === undefined &&
+    record.anyOf === undefined &&
+    record.allOf === undefined
+  ) {
+    delete record.nullable;
+  }
+  for (const [key, value] of Object.entries(record)) {
+    // Inside a `properties` map every key is a property NAME (a schema),
+    // even when the property is literally called "example"/"examples".
+    const enteringExample = !isPropertiesMap && (key === 'example' || key === 'examples');
+    stripOrphanNullable(value, inExample || enteringExample, !inExample && key === 'properties');
+  }
+}
+
 function buildResponses(route: Route): Record<string, unknown> {
   const status = buildSuccessStatus(route);
   const errors: Record<string, unknown> = {
@@ -565,6 +602,7 @@ async function generate(): Promise<void> {
       title: 'Profile Services API',
       version: '0.2.3',
       description: 'Generated from framework-free Route descriptors (Elysia + Bun runtime).',
+      contact: { name: 'Patch Careers', email: 'support@patchcareers.org' },
       'x-admin-permissions': computeAdminOnlyPermissions(routes),
     } as never,
     servers: [{ url: 'http://localhost:3010' }],
@@ -573,6 +611,7 @@ async function generate(): Promise<void> {
   applyParameterAutoDeriveExamples(document);
   applyOperationPermissionExtension(document, routes);
   liftAllOfDescriptionToTopLevel(document);
+  stripOrphanNullable(document);
 
   // Final stability pass — explicitly rebuild `paths` in alphabetical
   // order so JSON serialisation is identical across hosts regardless

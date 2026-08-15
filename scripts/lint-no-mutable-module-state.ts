@@ -67,7 +67,6 @@ for (const file of walk(SRC)) {
 
   DECL_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
   while ((m = DECL_RE.exec(src)) !== null) {
     const lineNum = src.slice(0, m.index).split('\n').length;
     offenses.push({ file: rel, line: lineNum, decl: `${m[1]} ${m[2]}` });

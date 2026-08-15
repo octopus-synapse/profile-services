@@ -78,7 +78,6 @@ for (const file of walk(SRC)) {
 
   REGISTER_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
   while ((m = REGISTER_RE.exec(src)) !== null) {
     const event = m[1];
     if (LIFECYCLE_EVENTS.has(event)) continue;

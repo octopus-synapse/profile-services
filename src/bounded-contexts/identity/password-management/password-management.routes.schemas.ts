@@ -29,7 +29,9 @@ export const RequestPasswordChangeSchema = z
   });
 
 export const ConfirmPasswordChangeSchema = z
-  .object({ code: z.string().length(6) })
+  .object({
+    code: z.string().length(6).describe('The 6-digit password-change code sent by email.'),
+  })
   .openapi('ConfirmPasswordChangeRequest', {
     description: 'Step 2: confirm the emailed 6-digit code to apply the password change.',
     example: { code: '123456' },
@@ -37,7 +39,10 @@ export const ConfirmPasswordChangeSchema = z
 
 export const PasswordChangeCodeSentResponseSchema = z
   .object({
-    code: z.string().optional(),
+    code: z
+      .string()
+      .optional()
+      .describe('Non-production only (BYPASS_2FA): the issued password-change code.'),
     message: z
       .string()
       .optional()
@@ -66,7 +71,9 @@ export const RequestEmailChangeSchema = z
   });
 
 export const ConfirmEmailChangeSchema = z
-  .object({ code: z.string().length(6) })
+  .object({
+    code: z.string().length(6).describe('The 6-digit email-change code sent to the new address.'),
+  })
   .openapi('ConfirmEmailChangeRequest', {
     description: 'Step 2: confirm the emailed 6-digit code to apply the email change.',
     example: { code: '123456' },
@@ -74,7 +81,10 @@ export const ConfirmEmailChangeSchema = z
 
 export const EmailChangeCodeSentResponseSchema = z
   .object({
-    code: z.string().optional(),
+    code: z
+      .string()
+      .optional()
+      .describe('Non-production only (BYPASS_2FA): the issued email-change code.'),
     message: z
       .string()
       .optional()

@@ -44,7 +44,10 @@ export const MessageResponseSchema = z.object({ message: z.string() });
 // code-sent responses.
 export const AccountDeletionCodeSentResponseSchema = z
   .object({
-    code: z.string().optional(),
+    code: z
+      .string()
+      .optional()
+      .describe('Non-production only (BYPASS_2FA): the issued deletion code.'),
     message: z
       .string()
       .optional()

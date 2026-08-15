@@ -92,7 +92,6 @@ for (const r of ROOTS) {
 
     LOGGER_CALL.lastIndex = 0;
     let callMatch: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
     while ((callMatch = LOGGER_CALL.exec(src)) !== null) {
       const argsStart = callMatch.index + callMatch[0].length;
       let depth = 1;
@@ -107,7 +106,6 @@ for (const r of ROOTS) {
 
       FIELD_RE.lastIndex = 0;
       let fm: RegExpExecArray | null;
-      // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
       while ((fm = FIELD_RE.exec(block)) !== null) {
         const absPos = argsStart + fm.index;
         const lineNum = src.slice(0, absPos).split('\n').length;
@@ -116,7 +114,6 @@ for (const r of ROOTS) {
       }
       INTERP_RE.lastIndex = 0;
       let im: RegExpExecArray | null;
-      // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
       while ((im = INTERP_RE.exec(block)) !== null) {
         const absPos = argsStart + im.index;
         const lineNum = src.slice(0, absPos).split('\n').length;

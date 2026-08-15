@@ -14,7 +14,12 @@ export const LoginSchema = z
      * slides for ~30 days; false/absent → session cookie cleared on browser
      * close. Ignored by mobile (Accept-Mode: tokens) since no cookie is set.
      */
-    keepSignedIn: z.boolean().optional(),
+    keepSignedIn: z
+      .boolean()
+      .optional()
+      .describe(
+        'Web/cookie clients only: true keeps a ~30-day sliding session cookie; false/absent uses a browser-session cookie. Ignored in token mode.',
+      ),
   })
   .openapi('LoginRequest', {
     description:

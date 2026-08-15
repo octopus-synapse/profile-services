@@ -37,6 +37,8 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     response: ActivityFeedResponseSchema,
     openapi: {
       summary: 'Get authenticated user activity feed',
+      description:
+        'Returns the personalized activity feed for the authenticated user (connections and follows), newest first.',
       tags: ['social-activity'],
     },
     handler: async (ctx, bundle) => {
@@ -55,6 +57,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     response: UserActivitiesResponseSchema,
     openapi: {
       summary: 'Get public activities for a user',
+      description: "Lists a user's public profile activities, newest first.",
       tags: ['social-activity'],
     },
     handler: async (ctx, bundle) => {
@@ -73,6 +76,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     response: UserActivitiesResponseSchema,
     openapi: {
       summary: 'Get user activities filtered by type',
+      description: "Lists a user's public activities restricted to a single activity type.",
       tags: ['social-activity'],
     },
     handler: async (ctx, bundle) => {

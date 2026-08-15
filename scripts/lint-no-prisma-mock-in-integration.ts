@@ -81,7 +81,6 @@ for (const r of ROOTS) {
 
     MOCK_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
     while ((m = MOCK_RE.exec(src)) !== null) {
       const line = src.slice(0, m.index).split('\n').length;
       if (ESCAPE.test(lines[line - 1] || '') || ESCAPE.test(lines[line - 2] || '')) continue;
@@ -89,7 +88,6 @@ for (const r of ROOTS) {
     }
     SPY_PRISMA_RE.lastIndex = 0;
     let s: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
     while ((s = SPY_PRISMA_RE.exec(src)) !== null) {
       const line = src.slice(0, s.index).split('\n').length;
       if (ESCAPE.test(lines[line - 1] || '') || ESCAPE.test(lines[line - 2] || '')) continue;

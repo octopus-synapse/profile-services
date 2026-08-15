@@ -80,7 +80,6 @@ for (const r of ROOTS) {
 
     DIRECTIVE_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
     while ((m = DIRECTIVE_RE.exec(src)) !== null) {
       const tail = m[1];
       const line = src.slice(0, m.index).split('\n').length;

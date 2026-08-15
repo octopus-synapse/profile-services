@@ -84,13 +84,11 @@ for (const file of walk(SRC)) {
   const deps = new Set<string>();
   IMPORT_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
   while ((m = IMPORT_RE.exec(src)) !== null) {
     const resolved = resolveImport(file, m[1]);
     if (resolved && resolved !== file) deps.add(resolved);
   }
   BARE_IMPORT_RE.lastIndex = 0;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
   while ((m = BARE_IMPORT_RE.exec(src)) !== null) {
     const resolved = resolveImport(file, m[1]);
     if (resolved && resolved !== file) deps.add(resolved);

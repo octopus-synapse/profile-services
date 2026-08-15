@@ -335,6 +335,8 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     response: ListSessionsResponseSchema,
     openapi: {
       summary: 'List active sessions (devices) for the current user.',
+      description:
+        'Lists the refresh-token sessions (devices) currently active for the authenticated user.',
       tags: ['auth'],
     },
     sdk: { exported: true, name: 'listSessions' },
@@ -352,6 +354,8 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     statusCode: 204,
     openapi: {
       summary: 'Revoke a specific session (device) by refresh-token id.',
+      description:
+        'Revokes one active session (device) by its refresh-token id, signing that device out.',
       tags: ['auth'],
     },
     sdk: { exported: true, name: 'revokeSession' },

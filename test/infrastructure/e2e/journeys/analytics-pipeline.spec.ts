@@ -33,7 +33,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   let prisma: PrismaClient;
   let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let resumeId: string;
-  let _firstSnapshotAtsScore: number;
+  let _firstSnapshotQualityScore: number;
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
@@ -109,11 +109,11 @@ describe('E2E Journey: Analytics Pipeline', () => {
 
       expect(response.status).toBe(201);
       expect(response.body).toBeDefined();
-      expect(typeof response.body.atsScore).toBe('number');
-      expect(response.body.atsScore).toBeGreaterThanOrEqual(0);
-      expect(response.body.atsScore).toBeLessThanOrEqual(100);
+      expect(typeof response.body.qualityScore).toBe('number');
+      expect(response.body.qualityScore).toBeGreaterThanOrEqual(0);
+      expect(response.body.qualityScore).toBeLessThanOrEqual(100);
 
-      _firstSnapshotAtsScore = response.body.atsScore;
+      _firstSnapshotQualityScore = response.body.qualityScore;
     });
   });
 
@@ -200,7 +200,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(201);
-      expect(typeof response.body.atsScore).toBe('number');
+      expect(typeof response.body.qualityScore).toBe('number');
     });
   });
 
@@ -240,10 +240,10 @@ describe('E2E Journey: Analytics Pipeline', () => {
 
       for (const snapshot of history) {
         expect(snapshot.resumeId).toBe(resumeId);
-        expect(snapshot.atsScore).toBeDefined();
-        expect(typeof snapshot.atsScore).toBe('number');
-        expect(snapshot.atsScore).toBeGreaterThanOrEqual(0);
-        expect(snapshot.atsScore).toBeLessThanOrEqual(100);
+        expect(snapshot.qualityScore).toBeDefined();
+        expect(typeof snapshot.qualityScore).toBe('number');
+        expect(snapshot.qualityScore).toBeGreaterThanOrEqual(0);
+        expect(snapshot.qualityScore).toBeLessThanOrEqual(100);
       }
       for (const snapshot of history) {
         expect(snapshot.createdAt || snapshot.id).toBeDefined();

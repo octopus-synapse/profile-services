@@ -8,7 +8,9 @@ export const EXAMPLE_GENERIC_ID = '01900000-0000-7000-a000-000000000001';
 export const EXAMPLE_REGULAR_USER_ID = '01900000-0000-7000-a000-000000000021';
 
 export const EXAMPLE_SLUG = 'fixture-slug';
-export const EXAMPLE_USERNAME = 'fixture-user';
+// Must satisfy the Username pattern `^[a-z0-9_]+$` (no hyphens) — spectral's
+// `oas3-valid-schema-example` validates the example against the schema.
+export const EXAMPLE_USERNAME = 'fixture_user';
 export const EXAMPLE_EMAIL = 'fixture@profile.local';
 export const EXAMPLE_URL = 'https://fixture.profile.local';
 export const EXAMPLE_LINKEDIN_URL = 'https://www.linkedin.com/in/fixture-user';

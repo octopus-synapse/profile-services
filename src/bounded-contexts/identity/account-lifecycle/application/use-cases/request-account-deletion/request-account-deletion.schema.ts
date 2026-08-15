@@ -4,8 +4,15 @@ import { z } from 'zod';
 // password). A stolen JWT cookie must not be able to start deletion on its own.
 export const RequestAccountDeletionSchema = z
   .object({
-    confirmationPhrase: z.string().min(1),
-    currentPassword: z.string().min(1).max(200),
+    confirmationPhrase: z
+      .string()
+      .min(1)
+      .describe('Literal confirmation phrase typed by the user (e.g. "DELETE MY ACCOUNT").'),
+    currentPassword: z
+      .string()
+      .min(1)
+      .max(200)
+      .describe('Current account password, re-proving ownership before deletion starts.'),
   })
   .openapi('RequestAccountDeletionRequest', {
     description:
