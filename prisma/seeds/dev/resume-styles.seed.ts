@@ -1,9 +1,12 @@
 /**
  * Resume Styles Seed — two system `ResumeStyle` rows, both ATS-safe.
  *
- * Both styles render through Typst templates that already shipped:
- *   - "ats-classic"  → templates/        (paired typst path: 'default')
- *   - "ats-compact"  → templates-ats/    (paired typst path: 'ats')
+ * User-facing names are deliberately jargon-free ("Verso" / "Prosa" — short,
+ * pronounceable in any locale); the ATS guarantees live in the Style Score,
+ * not the name. Both styles render through Typst templates that already
+ * shipped:
+ *   - "Verso" (ex ATS Classic) → templates/     (paired typst path: 'default')
+ *   - "Prosa" (ex ATS Compact) → templates-ats/ (paired typst path: 'ats')
  *
  * Both styles satisfy every criterion of the data-driven Style Score rubric
  * (see style-scoring-criteria.seed.ts), so their `styleScore` is 100 with an
@@ -34,9 +37,8 @@ const PERFECT_BREAKDOWN: Prisma.InputJsonValue = {
 export const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   {
     id: '01900000-0000-7000-8000-000000000001',
-    name: 'ATS Classic',
-    description:
-      'Single-column, neutral palette, Calibri body. Optimised for ATS parsers — safe default for most online portals.',
+    name: 'Verso',
+    description: 'Single column, comfortable spacing — a timeless, easy-to-read default.',
     typstTemplate: 'default',
     styleScore: 100,
     layoutKind: LayoutKind.SINGLE_COLUMN,
@@ -84,9 +86,8 @@ export const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   },
   {
     id: '01900000-0000-7000-8000-000000000002',
-    name: 'ATS Compact',
-    description:
-      'Single-column, dense spacing, Helvetica body. Same ATS guarantees as Classic but fits more content per page.',
+    name: 'Prosa',
+    description: 'Single column, tighter spacing — fits more content on each page.',
     typstTemplate: 'ats',
     styleScore: 100,
     layoutKind: LayoutKind.SINGLE_COLUMN,

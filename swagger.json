@@ -4,6 +4,10 @@
     "title": "Profile Services API",
     "version": "0.2.3",
     "description": "Generated from framework-free Route descriptors (Elysia + Bun runtime).",
+    "contact": {
+      "name": "Patch Careers",
+      "email": "support@patchcareers.org"
+    },
     "x-admin-permissions": [
       "admin:full_access",
       "analytics:read_all",
@@ -92,7 +96,8 @@
           "code": {
             "type": "string",
             "minLength": 6,
-            "maxLength": 6
+            "maxLength": 6,
+            "description": "The 6-digit deletion code sent to the account email."
           }
         },
         "required": [
@@ -107,7 +112,8 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "string"
+            "type": "string",
+            "description": "Non-production only (BYPASS_2FA): the issued deletion code."
           },
           "message": {
             "type": "string",
@@ -131,12 +137,14 @@
         "properties": {
           "confirmationPhrase": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Literal confirmation phrase typed by the user (e.g. \"DELETE MY ACCOUNT\")."
           },
           "currentPassword": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Current account password, re-proving ownership before deletion starts."
           }
         },
         "required": [
@@ -209,7 +217,8 @@
             "$ref": "#/components/schemas/PasswordInput"
           },
           "keepSignedIn": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Web/cookie clients only: true keeps a ~30-day sliding session cookie; false/absent uses a browser-session cookie. Ignored in token mode."
           }
         },
         "required": [
@@ -590,7 +599,8 @@
           "code": {
             "type": "string",
             "minLength": 6,
-            "maxLength": 6
+            "maxLength": 6,
+            "description": "The 6-digit email-change code sent to the new address."
           }
         },
         "required": [
@@ -605,7 +615,8 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "string"
+            "type": "string",
+            "description": "Non-production only (BYPASS_2FA): the issued email-change code."
           },
           "message": {
             "type": "string",
@@ -679,7 +690,8 @@
           "code": {
             "type": "string",
             "minLength": 6,
-            "maxLength": 6
+            "maxLength": 6,
+            "description": "The 6-digit password-change code sent by email."
           }
         },
         "required": [
@@ -694,7 +706,8 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "string"
+            "type": "string",
+            "description": "Non-production only (BYPASS_2FA): the issued password-change code."
           },
           "message": {
             "type": "string",
@@ -746,10 +759,12 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "string"
+            "type": "string",
+            "description": "Machine-readable result code for the registration."
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Localized confirmation message."
           }
         }
       },
@@ -758,7 +773,8 @@
         "properties": {
           "expoPushToken": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Expo push token identifying this device installation."
           },
           "platform": {
             "type": "string",
@@ -766,7 +782,8 @@
               "IOS",
               "ANDROID",
               "WEB"
-            ]
+            ],
+            "description": "Platform the token was issued on."
           }
         },
         "required": [
@@ -784,7 +801,7 @@
         "maxLength": 30,
         "pattern": "^[a-z0-9_]+$",
         "description": "Public handle (3-30 chars). Lowercase letters, digits, and single underscores only. Cannot start/end with `_`, contain `__`, or use a reserved name.",
-        "example": "fixture-user"
+        "example": "fixture_user"
       },
       "Phone": {
         "type": "string",
@@ -878,9 +895,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
+              "additionalProperties": {}
             },
             "description": "Generic resume sections. Each item references a SectionType by key."
           }
@@ -957,9 +972,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
+              "additionalProperties": {}
             },
             "description": "Generic resume sections. Each item references a SectionType by key."
           }
@@ -1053,7 +1066,8 @@
                 "provider",
                 "connectedAt"
               ]
-            }
+            },
+            "description": "OAuth accounts currently linked to the user."
           }
         },
         "required": [
@@ -1259,6 +1273,7 @@
     "/api/health": {
       "get": {
         "summary": "Liveness probe — always 200 once the process is booted",
+        "description": "Lightweight liveness check used by load balancers; returns 200 without touching downstream dependencies.",
         "tags": [
           "health"
         ],
@@ -1337,6 +1352,7 @@
     "/api/health/live": {
       "get": {
         "summary": "Kubernetes-style liveness alias",
+        "description": "Alias of the liveness probe for Kubernetes-style /live conventions.",
         "tags": [
           "health"
         ],
@@ -1415,6 +1431,7 @@
     "/api/health/ready": {
       "get": {
         "summary": "Readiness probe — every backend must answer within 2s",
+        "description": "Readiness check probing the backing services; returns 503 when a dependency is unavailable.",
         "tags": [
           "health"
         ],
@@ -5216,9 +5233,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -6189,9 +6204,7 @@
                         },
                         "strengthLevels": {
                           "type": "array",
-                          "items": {
-                            "nullable": true
-                          },
+                          "items": {},
                           "example": []
                         },
                         "createdAt": {
@@ -6350,9 +6363,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "strengthLevels": [
                     {
@@ -6384,9 +6395,7 @@
                         },
                         "strengthLevels": {
                           "type": "array",
-                          "items": {
-                            "nullable": true
-                          },
+                          "items": {},
                           "example": []
                         },
                         "createdAt": {
@@ -6745,23 +6754,17 @@
                           },
                           "fields": {
                             "type": "array",
-                            "items": {
-                              "nullable": true
-                            },
+                            "items": {},
                             "example": []
                           },
                           "translations": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {}
                           },
                           "validation": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {}
                           },
                           "strengthWeight": {
@@ -6936,9 +6939,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "key": "profile",
                   "titleEn": "Profile",
@@ -6984,23 +6985,17 @@
                         },
                         "fields": {
                           "type": "array",
-                          "items": {
-                            "nullable": true
-                          },
+                          "items": {},
                           "example": []
                         },
                         "translations": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {}
                         },
                         "validation": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {}
                         },
                         "strengthWeight": {
@@ -7188,9 +7183,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -7400,23 +7393,17 @@
                         },
                         "fields": {
                           "type": "array",
-                          "items": {
-                            "nullable": true
-                          },
+                          "items": {},
                           "example": []
                         },
                         "translations": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {}
                         },
                         "validation": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {}
                         },
                         "strengthWeight": {
@@ -7639,9 +7626,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "key": "profile",
                   "titleEn": "Profile",
@@ -7687,23 +7672,17 @@
                         },
                         "fields": {
                           "type": "array",
-                          "items": {
-                            "nullable": true
-                          },
+                          "items": {},
                           "example": []
                         },
                         "translations": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {}
                         },
                         "validation": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {}
                         },
                         "strengthWeight": {
@@ -8221,9 +8200,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -8948,9 +8925,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -9257,15 +9232,11 @@
                   },
                   "styleConfig": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   },
                   "sectionStyles": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   }
                 },
                 "required": [
@@ -9351,15 +9322,11 @@
                     },
                     "styleConfig": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      }
+                      "additionalProperties": {}
                     },
                     "sectionStyles": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      }
+                      "additionalProperties": {}
                     },
                     "styleScoreBreakdown": {
                       "type": "object",
@@ -9592,9 +9559,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -9796,15 +9761,11 @@
                   },
                   "styleConfig": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   },
                   "sectionStyles": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   }
                 },
                 "example": {
@@ -9872,15 +9833,11 @@
                     },
                     "styleConfig": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      }
+                      "additionalProperties": {}
                     },
                     "sectionStyles": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      }
+                      "additionalProperties": {}
                     },
                     "styleScoreBreakdown": {
                       "type": "object",
@@ -10230,9 +10187,7 @@
                           },
                           "definition": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -10241,9 +10196,7 @@
                           "uiSchema": {
                             "type": "object",
                             "nullable": true,
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -10251,9 +10204,7 @@
                           },
                           "renderHints": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -10263,9 +10214,7 @@
                             "type": "object",
                             "additionalProperties": {
                               "type": "object",
-                              "additionalProperties": {
-                                "nullable": true
-                              },
+                              "additionalProperties": {},
                               "example": {
                                 "fields": [],
                                 "translations": {}
@@ -10560,15 +10509,11 @@
                   },
                   "definition": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   },
                   "uiSchema": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   },
                   "renderHints": {
                     "type": "object",
@@ -10808,9 +10753,7 @@
                     },
                     "definition": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -10819,9 +10762,7 @@
                     "uiSchema": {
                       "type": "object",
                       "nullable": true,
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -10829,9 +10770,7 @@
                     },
                     "renderHints": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -10841,9 +10780,7 @@
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
-                        "additionalProperties": {
-                          "nullable": true
-                        },
+                        "additionalProperties": {},
                         "example": {
                           "fields": [],
                           "translations": {}
@@ -11217,9 +11154,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -11442,9 +11377,7 @@
                     },
                     "definition": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -11453,9 +11386,7 @@
                     "uiSchema": {
                       "type": "object",
                       "nullable": true,
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -11463,9 +11394,7 @@
                     },
                     "renderHints": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -11475,9 +11404,7 @@
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
-                        "additionalProperties": {
-                          "nullable": true
-                        },
+                        "additionalProperties": {},
                         "example": {
                           "fields": [],
                           "translations": {}
@@ -11783,16 +11710,12 @@
                   },
                   "definition": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   },
                   "uiSchema": {
                     "type": "object",
                     "nullable": true,
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   },
                   "renderHints": {
                     "type": "object",
@@ -11994,9 +11917,7 @@
                     },
                     "definition": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -12005,9 +11926,7 @@
                     "uiSchema": {
                       "type": "object",
                       "nullable": true,
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -12015,9 +11934,7 @@
                     },
                     "renderHints": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "additionalProperties": {},
                       "example": {
                         "fields": [],
                         "translations": {}
@@ -12027,9 +11944,7 @@
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
-                        "additionalProperties": {
-                          "nullable": true
-                        },
+                        "additionalProperties": {},
                         "example": {
                           "fields": [],
                           "translations": {}
@@ -12543,9 +12458,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "code": "fixture-slug",
                   "nameEn": "Fixture",
@@ -13177,9 +13090,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "code": "fixture-slug",
                   "nameEn": "Fixture",
@@ -13700,9 +13611,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -14385,9 +14294,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -14934,9 +14841,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -15607,9 +15512,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -16198,9 +16101,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -16951,9 +16852,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "slug": "fixture-slug",
                   "nameEn": "Fixture",
@@ -17240,6 +17139,7 @@
     "/api/v1/admin/test/run": {
       "post": {
         "summary": "Run a test suite",
+        "description": "Admin-only: executes the given automated test suite inside the running backend and returns its results.",
         "tags": [
           "admin-test-runner"
         ],
@@ -17441,6 +17341,7 @@
     "/api/v1/admin/test/suites": {
       "get": {
         "summary": "List available test suites",
+        "description": "Admin-only: lists the automated test suites the runner can execute.",
         "tags": [
           "admin-test-runner"
         ],
@@ -22392,6 +22293,7 @@
     "/api/v1/auth/sessions": {
       "get": {
         "summary": "List active sessions (devices) for the current user.",
+        "description": "Lists the refresh-token sessions (devices) currently active for the authenticated user.",
         "tags": [
           "auth"
         ],
@@ -22582,6 +22484,7 @@
     "/api/v1/auth/sessions/{id}": {
       "delete": {
         "summary": "Revoke a specific session (device) by refresh-token id.",
+        "description": "Revokes one active session (device) by its refresh-token id, signing that device out.",
         "tags": [
           "auth"
         ],
@@ -23967,9 +23870,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -24350,9 +24251,7 @@
                     {
                       "type": "object",
                       "properties": {
-                        "conversationId": {
-                          "nullable": true
-                        }
+                        "conversationId": {}
                       },
                       "required": [
                         "conversationId"
@@ -27150,6 +27049,7 @@
     "/api/v1/connections/{id}": {
       "delete": {
         "summary": "Remove a connection",
+        "description": "Removes an accepted connection between the authenticated user and the target user.",
         "tags": [
           "social-connections"
         ],
@@ -27346,6 +27246,7 @@
     "/api/v1/connections/{id}/accept": {
       "put": {
         "summary": "Accept a connection request",
+        "description": "Accepts a pending connection request addressed to the authenticated user.",
         "tags": [
           "social-connections"
         ],
@@ -27542,6 +27443,7 @@
     "/api/v1/connections/{id}/reject": {
       "put": {
         "summary": "Reject a connection request",
+        "description": "Rejects a pending connection request addressed to the authenticated user.",
         "tags": [
           "social-connections"
         ],
@@ -27738,6 +27640,7 @@
     "/api/v1/connections/{id}/withdraw": {
       "delete": {
         "summary": "Withdraw a sent (pending) connection request",
+        "description": "Withdraws a pending connection request previously sent by the authenticated user.",
         "tags": [
           "social-connections"
         ],
@@ -28122,9 +28025,7 @@
                                             },
                                             "content": {
                                               "type": "object",
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
+                                              "additionalProperties": {}
                                             }
                                           },
                                           "required": [
@@ -28596,9 +28497,7 @@
                                             },
                                             "content": {
                                               "type": "object",
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
+                                              "additionalProperties": {}
                                             }
                                           },
                                           "required": [
@@ -29106,9 +29005,7 @@
                                             },
                                             "content": {
                                               "type": "object",
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
+                                              "additionalProperties": {}
                                             }
                                           },
                                           "required": [
@@ -30092,9 +29989,7 @@
                         },
                         "props": {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          }
+                          "additionalProperties": {}
                         },
                         "occurredAt": {
                           "type": "string",
@@ -30285,12 +30180,8 @@
                                           {
                                             "type": "boolean"
                                           },
-                                          {
-                                            "nullable": true
-                                          },
-                                          {
-                                            "nullable": true
-                                          }
+                                          {},
+                                          {}
                                         ]
                                       }
                                     }
@@ -35353,9 +35244,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -36771,12 +36660,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-user"
+              "example": "fixture_user"
             },
             "required": true,
             "name": "username",
             "in": "path",
-            "example": "fixture-user"
+            "example": "fixture_user"
           }
         ],
         "responses": {
@@ -37615,12 +37504,8 @@
                               "FLUENT"
                             ]
                           },
-                          "requirementsStructured": {
-                            "nullable": true
-                          },
-                          "requirementsEnrichedByAi": {
-                            "nullable": true
-                          },
+                          "requirementsStructured": {},
+                          "requirementsEnrichedByAi": {},
                           "enrichedAt": {
                             "type": "string",
                             "nullable": true,
@@ -37980,12 +37865,8 @@
                         "FLUENT"
                       ]
                     },
-                    "requirementsStructured": {
-                      "nullable": true
-                    },
-                    "requirementsEnrichedByAi": {
-                      "nullable": true
-                    },
+                    "requirementsStructured": {},
+                    "requirementsEnrichedByAi": {},
                     "enrichedAt": {
                       "type": "string",
                       "nullable": true,
@@ -38362,12 +38243,8 @@
                                   "FLUENT"
                                 ]
                               },
-                              "requirementsStructured": {
-                                "nullable": true
-                              },
-                              "requirementsEnrichedByAi": {
-                                "nullable": true
-                              },
+                              "requirementsStructured": {},
+                              "requirementsEnrichedByAi": {},
                               "enrichedAt": {
                                 "type": "string",
                                 "nullable": true,
@@ -39483,12 +39360,8 @@
                               "FLUENT"
                             ]
                           },
-                          "requirementsStructured": {
-                            "nullable": true
-                          },
-                          "requirementsEnrichedByAi": {
-                            "nullable": true
-                          },
+                          "requirementsStructured": {},
+                          "requirementsEnrichedByAi": {},
                           "enrichedAt": {
                             "type": "string",
                             "nullable": true,
@@ -41444,12 +41317,8 @@
                               "FLUENT"
                             ]
                           },
-                          "requirementsStructured": {
-                            "nullable": true
-                          },
-                          "requirementsEnrichedByAi": {
-                            "nullable": true
-                          },
+                          "requirementsStructured": {},
+                          "requirementsEnrichedByAi": {},
                           "enrichedAt": {
                             "type": "string",
                             "nullable": true,
@@ -42088,12 +41957,8 @@
                         "FLUENT"
                       ]
                     },
-                    "requirementsStructured": {
-                      "nullable": true
-                    },
-                    "requirementsEnrichedByAi": {
-                      "nullable": true
-                    },
+                    "requirementsStructured": {},
+                    "requirementsEnrichedByAi": {},
                     "enrichedAt": {
                       "type": "string",
                       "nullable": true,
@@ -42419,12 +42284,8 @@
                         "FLUENT"
                       ]
                     },
-                    "requirementsStructured": {
-                      "nullable": true
-                    },
-                    "requirementsEnrichedByAi": {
-                      "nullable": true
-                    },
+                    "requirementsStructured": {},
+                    "requirementsEnrichedByAi": {},
                     "enrichedAt": {
                       "type": "string",
                       "nullable": true,
@@ -42792,12 +42653,8 @@
                         "FLUENT"
                       ]
                     },
-                    "requirementsStructured": {
-                      "nullable": true
-                    },
-                    "requirementsEnrichedByAi": {
-                      "nullable": true
-                    },
+                    "requirementsStructured": {},
+                    "requirementsEnrichedByAi": {},
                     "enrichedAt": {
                       "type": "string",
                       "nullable": true,
@@ -46044,12 +45901,8 @@
                               "FLUENT"
                             ]
                           },
-                          "requirementsStructured": {
-                            "nullable": true
-                          },
-                          "requirementsEnrichedByAi": {
-                            "nullable": true
-                          },
+                          "requirementsStructured": {},
+                          "requirementsEnrichedByAi": {},
                           "enrichedAt": {
                             "type": "string",
                             "nullable": true,
@@ -47457,24 +47310,16 @@
                                           {
                                             "type": "boolean"
                                           },
-                                          {
-                                            "nullable": true
-                                          },
+                                          {},
                                           {
                                             "type": "array",
-                                            "items": {
-                                              "nullable": true
-                                            }
+                                            "items": {}
                                           },
                                           {
                                             "type": "object",
-                                            "additionalProperties": {
-                                              "nullable": true
-                                            }
+                                            "additionalProperties": {}
                                           },
-                                          {
-                                            "nullable": true
-                                          }
+                                          {}
                                         ]
                                       },
                                       "createdAt": {
@@ -48724,9 +48569,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -49138,24 +48981,16 @@
                           {
                             "type": "boolean"
                           },
-                          {
-                            "nullable": true
-                          },
+                          {},
                           {
                             "type": "array",
-                            "items": {
-                              "nullable": true
-                            }
+                            "items": {}
                           },
                           {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            }
+                            "additionalProperties": {}
                           },
-                          {
-                            "nullable": true
-                          }
+                          {}
                         ]
                       }
                     }
@@ -49426,9 +49261,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "value": {
-                    "nullable": true
-                  }
+                  "value": {}
                 },
                 "example": {
                   "value": {
@@ -49462,24 +49295,16 @@
                         {
                           "type": "boolean"
                         },
-                        {
-                          "nullable": true
-                        },
+                        {},
                         {
                           "type": "array",
-                          "items": {
-                            "nullable": true
-                          }
+                          "items": {}
                         },
                         {
                           "type": "object",
-                          "additionalProperties": {
-                            "nullable": true
-                          }
+                          "additionalProperties": {}
                         },
-                        {
-                          "nullable": true
-                        }
+                        {}
                       ]
                     }
                   },
@@ -52958,9 +52783,7 @@
                             "properties": {
                               "content": {
                                 "type": "object",
-                                "additionalProperties": {
-                                  "nullable": true
-                                }
+                                "additionalProperties": {}
                               }
                             },
                             "required": [
@@ -53283,9 +53106,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -53402,9 +53223,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -53490,9 +53309,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -53723,9 +53540,7 @@
                             "properties": {
                               "content": {
                                 "type": "object",
-                                "additionalProperties": {
-                                  "nullable": true
-                                }
+                                "additionalProperties": {}
                               }
                             }
                           }
@@ -54057,9 +53872,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -54176,9 +53989,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -54264,9 +54075,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -54697,9 +54506,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -54816,9 +54623,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -54904,9 +54709,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -55228,9 +55031,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -55347,9 +55148,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -55435,9 +55234,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -55570,9 +55367,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "fullName": "Fixture User",
                   "headline": "Senior Software Engineer"
@@ -55754,9 +55549,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -55873,9 +55666,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -55961,9 +55752,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -56264,9 +56053,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -56383,9 +56170,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -56471,9 +56256,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -56785,9 +56568,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -56904,9 +56685,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -56992,9 +56771,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -57254,9 +57031,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                },
+                "additionalProperties": {},
                 "example": {
                   "fullName": "Fixture User",
                   "headline": "Senior Software Engineer"
@@ -57438,9 +57213,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -57557,9 +57330,7 @@
                           "sectionTypeKey": {
                             "type": "string"
                           },
-                          "data": {
-                            "nullable": true
-                          }
+                          "data": {}
                         },
                         "required": [
                           "id",
@@ -57645,9 +57416,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
+                                  "additionalProperties": {}
                                 }
                               }
                             }
@@ -62957,12 +62726,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-user"
+              "example": "fixture_user"
             },
             "required": true,
             "name": "username",
             "in": "path",
-            "example": "fixture-user"
+            "example": "fixture_user"
           }
         ],
         "responses": {
@@ -63258,12 +63027,8 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "contentPtBr": {
-                          "nullable": true
-                        },
-                        "contentEn": {
-                          "nullable": true
-                        },
+                        "contentPtBr": {},
+                        "contentEn": {},
                         "primaryLanguage": {
                           "type": "string"
                         },
@@ -63357,9 +63122,7 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "customTheme": {
-                          "nullable": true
-                        },
+                        "customTheme": {},
                         "styleId": {
                           "type": "string",
                           "nullable": true,
@@ -63414,9 +63177,7 @@
                                     {
                                       "type": "boolean"
                                     },
-                                    {
-                                      "nullable": true
-                                    },
+                                    {},
                                     {
                                       "type": "array",
                                       "items": {
@@ -63430,9 +63191,7 @@
                                           {
                                             "type": "boolean"
                                           },
-                                          {
-                                            "nullable": true
-                                          },
+                                          {},
                                           {
                                             "type": "array",
                                             "items": {
@@ -63446,12 +63205,8 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
@@ -63468,18 +63223,12 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
-                                          {
-                                            "nullable": true
-                                          }
+                                          {}
                                         ]
                                       }
                                     },
@@ -63496,9 +63245,7 @@
                                           {
                                             "type": "boolean"
                                           },
-                                          {
-                                            "nullable": true
-                                          },
+                                          {},
                                           {
                                             "type": "array",
                                             "items": {
@@ -63512,12 +63259,8 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
@@ -63534,24 +63277,16 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
-                                          {
-                                            "nullable": true
-                                          }
+                                          {}
                                         ]
                                       }
                                     },
-                                    {
-                                      "nullable": true
-                                    }
+                                    {}
                                   ]
                                 }
                               }
@@ -63762,12 +63497,8 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "contentPtBr": {
-                          "nullable": true
-                        },
-                        "contentEn": {
-                          "nullable": true
-                        },
+                        "contentPtBr": {},
+                        "contentEn": {},
                         "primaryLanguage": {
                           "type": "string"
                         },
@@ -63861,9 +63592,7 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "customTheme": {
-                          "nullable": true
-                        },
+                        "customTheme": {},
                         "styleId": {
                           "type": "string",
                           "nullable": true,
@@ -63918,9 +63647,7 @@
                                     {
                                       "type": "boolean"
                                     },
-                                    {
-                                      "nullable": true
-                                    },
+                                    {},
                                     {
                                       "type": "array",
                                       "items": {
@@ -63934,9 +63661,7 @@
                                           {
                                             "type": "boolean"
                                           },
-                                          {
-                                            "nullable": true
-                                          },
+                                          {},
                                           {
                                             "type": "array",
                                             "items": {
@@ -63950,12 +63675,8 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
@@ -63972,18 +63693,12 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
-                                          {
-                                            "nullable": true
-                                          }
+                                          {}
                                         ]
                                       }
                                     },
@@ -64000,9 +63715,7 @@
                                           {
                                             "type": "boolean"
                                           },
-                                          {
-                                            "nullable": true
-                                          },
+                                          {},
                                           {
                                             "type": "array",
                                             "items": {
@@ -64016,12 +63729,8 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
@@ -64038,24 +63747,16 @@
                                                 {
                                                   "type": "boolean"
                                                 },
-                                                {
-                                                  "nullable": true
-                                                },
-                                                {
-                                                  "nullable": true
-                                                }
+                                                {},
+                                                {}
                                               ]
                                             }
                                           },
-                                          {
-                                            "nullable": true
-                                          }
+                                          {}
                                         ]
                                       }
                                     },
-                                    {
-                                      "nullable": true
-                                    }
+                                    {}
                                   ]
                                 }
                               }
@@ -65150,15 +64851,11 @@
                     },
                     "styleConfig": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      }
+                      "additionalProperties": {}
                     },
                     "sectionStyles": {
                       "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      }
+                      "additionalProperties": {}
                     },
                     "styleScoreBreakdown": {
                       "type": "object",
@@ -66527,9 +66224,7 @@
                             {
                               "type": "boolean"
                             },
-                            {
-                              "nullable": true
-                            },
+                            {},
                             {
                               "type": "array",
                               "items": {
@@ -66543,12 +66238,8 @@
                                   {
                                     "type": "boolean"
                                   },
-                                  {
-                                    "nullable": true
-                                  },
-                                  {
-                                    "nullable": true
-                                  }
+                                  {},
+                                  {}
                                 ]
                               }
                             },
@@ -66565,9 +66256,7 @@
                                   {
                                     "type": "boolean"
                                   },
-                                  {
-                                    "nullable": true
-                                  },
+                                  {},
                                   {
                                     "type": "array",
                                     "items": {
@@ -66581,18 +66270,12 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {},
+                                        {}
                                       ]
                                     }
                                   },
-                                  {
-                                    "nullable": true
-                                  }
+                                  {}
                                 ]
                               }
                             },
@@ -66609,9 +66292,7 @@
                                   {
                                     "type": "boolean"
                                   },
-                                  {
-                                    "nullable": true
-                                  },
+                                  {},
                                   {
                                     "type": "object",
                                     "additionalProperties": {
@@ -66625,9 +66306,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -66641,24 +66320,16 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
-                                  {
-                                    "nullable": true
-                                  }
+                                  {}
                                 ]
                               }
                             },
@@ -66675,9 +66346,7 @@
                                   {
                                     "type": "boolean"
                                   },
-                                  {
-                                    "nullable": true
-                                  },
+                                  {},
                                   {
                                     "type": "array",
                                     "items": {
@@ -66691,12 +66360,8 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {},
+                                        {}
                                       ]
                                     }
                                   },
@@ -66713,9 +66378,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -66729,18 +66392,12 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
@@ -66757,9 +66414,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "object",
                                           "additionalProperties": {
@@ -66773,9 +66428,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -66789,30 +66442,20 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
-                                  {
-                                    "nullable": true
-                                  }
+                                  {}
                                 ]
                               }
                             },
@@ -66829,9 +66472,7 @@
                                   {
                                     "type": "boolean"
                                   },
-                                  {
-                                    "nullable": true
-                                  },
+                                  {},
                                   {
                                     "type": "array",
                                     "items": {
@@ -66845,12 +66486,8 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {},
+                                        {}
                                       ]
                                     }
                                   },
@@ -66867,9 +66504,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -66883,18 +66518,12 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
@@ -66911,9 +66540,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "object",
                                           "additionalProperties": {
@@ -66927,9 +66554,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -66943,36 +66568,24 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
-                                  {
-                                    "nullable": true
-                                  }
+                                  {}
                                 ]
                               }
                             },
-                            {
-                              "nullable": true
-                            }
+                            {}
                           ]
                         }
                       },
@@ -67031,9 +66644,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -67047,12 +66658,8 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
@@ -67069,9 +66676,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -67085,18 +66690,12 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
@@ -67113,9 +66712,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "object",
                                                 "additionalProperties": {
@@ -67129,9 +66726,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "array",
                                                       "items": {
@@ -67145,24 +66740,16 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {},
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
@@ -67179,9 +66766,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -67195,12 +66780,8 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
@@ -67217,9 +66798,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "array",
                                                       "items": {
@@ -67233,18 +66812,12 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {},
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
@@ -67261,9 +66834,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "object",
                                                       "additionalProperties": {
@@ -67277,9 +66848,7 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
+                                                          {},
                                                           {
                                                             "type": "array",
                                                             "items": {
@@ -67293,30 +66862,20 @@
                                                                 {
                                                                   "type": "boolean"
                                                                 },
-                                                                {
-                                                                  "nullable": true
-                                                                },
-                                                                {
-                                                                  "nullable": true
-                                                                }
+                                                                {},
+                                                                {}
                                                               ]
                                                             }
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
@@ -67333,9 +66892,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -67349,12 +66906,8 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
@@ -67371,9 +66924,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "array",
                                                       "items": {
@@ -67387,18 +66938,12 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {},
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
@@ -67415,9 +66960,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "object",
                                                       "additionalProperties": {
@@ -67431,9 +66974,7 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
+                                                          {},
                                                           {
                                                             "type": "array",
                                                             "items": {
@@ -67447,36 +66988,24 @@
                                                                 {
                                                                   "type": "boolean"
                                                                 },
-                                                                {
-                                                                  "nullable": true
-                                                                },
-                                                                {
-                                                                  "nullable": true
-                                                                }
+                                                                {},
+                                                                {}
                                                               ]
                                                             }
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   }
@@ -68267,9 +67796,7 @@
                                   {
                                     "type": "boolean"
                                   },
-                                  {
-                                    "nullable": true
-                                  },
+                                  {},
                                   {
                                     "type": "array",
                                     "items": {
@@ -68283,12 +67810,8 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {},
+                                        {}
                                       ]
                                     }
                                   },
@@ -68305,9 +67828,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -68321,18 +67842,12 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
@@ -68349,9 +67864,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "object",
                                           "additionalProperties": {
@@ -68365,9 +67878,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -68381,24 +67892,16 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
@@ -68415,9 +67918,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -68431,12 +67932,8 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
@@ -68453,9 +67950,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -68469,18 +67964,12 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
@@ -68497,9 +67986,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "object",
                                                 "additionalProperties": {
@@ -68513,9 +68000,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "array",
                                                       "items": {
@@ -68529,30 +68014,20 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {},
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
@@ -68569,9 +68044,7 @@
                                         {
                                           "type": "boolean"
                                         },
-                                        {
-                                          "nullable": true
-                                        },
+                                        {},
                                         {
                                           "type": "array",
                                           "items": {
@@ -68585,12 +68058,8 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {},
+                                              {}
                                             ]
                                           }
                                         },
@@ -68607,9 +68076,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "array",
                                                 "items": {
@@ -68623,18 +68090,12 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {},
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
@@ -68651,9 +68112,7 @@
                                               {
                                                 "type": "boolean"
                                               },
-                                              {
-                                                "nullable": true
-                                              },
+                                              {},
                                               {
                                                 "type": "object",
                                                 "additionalProperties": {
@@ -68667,9 +68126,7 @@
                                                     {
                                                       "type": "boolean"
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    },
+                                                    {},
                                                     {
                                                       "type": "array",
                                                       "items": {
@@ -68683,36 +68140,24 @@
                                                           {
                                                             "type": "boolean"
                                                           },
-                                                          {
-                                                            "nullable": true
-                                                          },
-                                                          {
-                                                            "nullable": true
-                                                          }
+                                                          {},
+                                                          {}
                                                         ]
                                                       }
                                                     },
-                                                    {
-                                                      "nullable": true
-                                                    }
+                                                    {}
                                                   ]
                                                 }
                                               },
-                                              {
-                                                "nullable": true
-                                              }
+                                              {}
                                             ]
                                           }
                                         },
-                                        {
-                                          "nullable": true
-                                        }
+                                        {}
                                       ]
                                     }
                                   },
-                                  {
-                                    "nullable": true
-                                  }
+                                  {}
                                 ]
                               }
                             }
@@ -69019,9 +68464,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -69248,9 +68691,7 @@
                           {
                             "type": "boolean"
                           },
-                          {
-                            "nullable": true
-                          },
+                          {},
                           {
                             "type": "array",
                             "items": {
@@ -69264,12 +68705,8 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "nullable": true
-                                }
+                                {},
+                                {}
                               ]
                             }
                           },
@@ -69286,9 +68723,7 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
+                                {},
                                 {
                                   "type": "array",
                                   "items": {
@@ -69302,18 +68737,12 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {},
+                                      {}
                                     ]
                                   }
                                 },
-                                {
-                                  "nullable": true
-                                }
+                                {}
                               ]
                             }
                           },
@@ -69330,9 +68759,7 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
+                                {},
                                 {
                                   "type": "object",
                                   "additionalProperties": {
@@ -69346,9 +68773,7 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
+                                      {},
                                       {
                                         "type": "array",
                                         "items": {
@@ -69362,24 +68787,16 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {},
+                                            {}
                                           ]
                                         }
                                       },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {}
                                     ]
                                   }
                                 },
-                                {
-                                  "nullable": true
-                                }
+                                {}
                               ]
                             }
                           },
@@ -69396,9 +68813,7 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
+                                {},
                                 {
                                   "type": "array",
                                   "items": {
@@ -69412,12 +68827,8 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {},
+                                      {}
                                     ]
                                   }
                                 },
@@ -69434,9 +68845,7 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
+                                      {},
                                       {
                                         "type": "array",
                                         "items": {
@@ -69450,18 +68859,12 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {},
+                                            {}
                                           ]
                                         }
                                       },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {}
                                     ]
                                   }
                                 },
@@ -69478,9 +68881,7 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
+                                      {},
                                       {
                                         "type": "object",
                                         "additionalProperties": {
@@ -69494,9 +68895,7 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
+                                            {},
                                             {
                                               "type": "array",
                                               "items": {
@@ -69510,30 +68909,20 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {},
+                                                  {}
                                                 ]
                                               }
                                             },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {}
                                           ]
                                         }
                                       },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {}
                                     ]
                                   }
                                 },
-                                {
-                                  "nullable": true
-                                }
+                                {}
                               ]
                             }
                           },
@@ -69550,9 +68939,7 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
+                                {},
                                 {
                                   "type": "array",
                                   "items": {
@@ -69566,12 +68953,8 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {},
+                                      {}
                                     ]
                                   }
                                 },
@@ -69588,9 +68971,7 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
+                                      {},
                                       {
                                         "type": "array",
                                         "items": {
@@ -69604,18 +68985,12 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {},
+                                            {}
                                           ]
                                         }
                                       },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {}
                                     ]
                                   }
                                 },
@@ -69632,9 +69007,7 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
+                                      {},
                                       {
                                         "type": "object",
                                         "additionalProperties": {
@@ -69648,9 +69021,7 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
+                                            {},
                                             {
                                               "type": "array",
                                               "items": {
@@ -69664,36 +69035,24 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {},
+                                                  {}
                                                 ]
                                               }
                                             },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {}
                                           ]
                                         }
                                       },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {}
                                     ]
                                   }
                                 },
-                                {
-                                  "nullable": true
-                                }
+                                {}
                               ]
                             }
                           },
-                          {
-                            "nullable": true
-                          }
+                          {}
                         ]
                       }
                     },
@@ -69752,9 +69111,7 @@
                                       {
                                         "type": "boolean"
                                       },
-                                      {
-                                        "nullable": true
-                                      },
+                                      {},
                                       {
                                         "type": "array",
                                         "items": {
@@ -69768,12 +69125,8 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {},
+                                            {}
                                           ]
                                         }
                                       },
@@ -69790,9 +69143,7 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
+                                            {},
                                             {
                                               "type": "array",
                                               "items": {
@@ -69806,18 +69157,12 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {},
+                                                  {}
                                                 ]
                                               }
                                             },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {}
                                           ]
                                         }
                                       },
@@ -69834,9 +69179,7 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
+                                            {},
                                             {
                                               "type": "object",
                                               "additionalProperties": {
@@ -69850,9 +69193,7 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
+                                                  {},
                                                   {
                                                     "type": "array",
                                                     "items": {
@@ -69866,24 +69207,16 @@
                                                         {
                                                           "type": "boolean"
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        },
-                                                        {
-                                                          "nullable": true
-                                                        }
+                                                        {},
+                                                        {}
                                                       ]
                                                     }
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {}
                                                 ]
                                               }
                                             },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {}
                                           ]
                                         }
                                       },
@@ -69900,9 +69233,7 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
+                                            {},
                                             {
                                               "type": "array",
                                               "items": {
@@ -69916,12 +69247,8 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {},
+                                                  {}
                                                 ]
                                               }
                                             },
@@ -69938,9 +69265,7 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
+                                                  {},
                                                   {
                                                     "type": "array",
                                                     "items": {
@@ -69954,18 +69279,12 @@
                                                         {
                                                           "type": "boolean"
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        },
-                                                        {
-                                                          "nullable": true
-                                                        }
+                                                        {},
+                                                        {}
                                                       ]
                                                     }
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {}
                                                 ]
                                               }
                                             },
@@ -69982,9 +69301,7 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
+                                                  {},
                                                   {
                                                     "type": "object",
                                                     "additionalProperties": {
@@ -69998,9 +69315,7 @@
                                                         {
                                                           "type": "boolean"
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        },
+                                                        {},
                                                         {
                                                           "type": "array",
                                                           "items": {
@@ -70014,30 +69329,20 @@
                                                               {
                                                                 "type": "boolean"
                                                               },
-                                                              {
-                                                                "nullable": true
-                                                              },
-                                                              {
-                                                                "nullable": true
-                                                              }
+                                                              {},
+                                                              {}
                                                             ]
                                                           }
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        }
+                                                        {}
                                                       ]
                                                     }
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {}
                                                 ]
                                               }
                                             },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {}
                                           ]
                                         }
                                       },
@@ -70054,9 +69359,7 @@
                                             {
                                               "type": "boolean"
                                             },
-                                            {
-                                              "nullable": true
-                                            },
+                                            {},
                                             {
                                               "type": "array",
                                               "items": {
@@ -70070,12 +69373,8 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {},
+                                                  {}
                                                 ]
                                               }
                                             },
@@ -70092,9 +69391,7 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
+                                                  {},
                                                   {
                                                     "type": "array",
                                                     "items": {
@@ -70108,18 +69405,12 @@
                                                         {
                                                           "type": "boolean"
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        },
-                                                        {
-                                                          "nullable": true
-                                                        }
+                                                        {},
+                                                        {}
                                                       ]
                                                     }
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {}
                                                 ]
                                               }
                                             },
@@ -70136,9 +69427,7 @@
                                                   {
                                                     "type": "boolean"
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  },
+                                                  {},
                                                   {
                                                     "type": "object",
                                                     "additionalProperties": {
@@ -70152,9 +69441,7 @@
                                                         {
                                                           "type": "boolean"
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        },
+                                                        {},
                                                         {
                                                           "type": "array",
                                                           "items": {
@@ -70168,36 +69455,24 @@
                                                               {
                                                                 "type": "boolean"
                                                               },
-                                                              {
-                                                                "nullable": true
-                                                              },
-                                                              {
-                                                                "nullable": true
-                                                              }
+                                                              {},
+                                                              {}
                                                             ]
                                                           }
                                                         },
-                                                        {
-                                                          "nullable": true
-                                                        }
+                                                        {}
                                                       ]
                                                     }
                                                   },
-                                                  {
-                                                    "nullable": true
-                                                  }
+                                                  {}
                                                 ]
                                               }
                                             },
-                                            {
-                                              "nullable": true
-                                            }
+                                            {}
                                           ]
                                         }
                                       },
-                                      {
-                                        "nullable": true
-                                      }
+                                      {}
                                     ]
                                   }
                                 }
@@ -70785,9 +70060,7 @@
                                     "definition": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -70796,9 +70069,7 @@
                                     "uiSchema": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -70807,9 +70078,7 @@
                                     "renderHints": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -70818,9 +70087,7 @@
                                     "fieldStyles": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -70835,9 +70102,7 @@
                                     "translations": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -70846,9 +70111,7 @@
                                     "examples": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -70907,9 +70170,7 @@
                                       "content": {
                                         "type": "object",
                                         "nullable": true,
-                                        "additionalProperties": {
-                                          "nullable": true
-                                        },
+                                        "additionalProperties": {},
                                         "example": {
                                           "fields": [],
                                           "translations": {}
@@ -71398,12 +70659,8 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "contentPtBr": {
-                          "nullable": true
-                        },
-                        "contentEn": {
-                          "nullable": true
-                        },
+                        "contentPtBr": {},
+                        "contentEn": {},
                         "primaryLanguage": {
                           "type": "string"
                         },
@@ -71493,9 +70750,7 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "customTheme": {
-                          "nullable": true
-                        },
+                        "customTheme": {},
                         "styleId": {
                           "type": "string",
                           "nullable": true,
@@ -71632,9 +70887,7 @@
                                   "definition": {
                                     "type": "object",
                                     "nullable": true,
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    },
+                                    "additionalProperties": {},
                                     "example": {
                                       "fields": [],
                                       "translations": {}
@@ -71643,9 +70896,7 @@
                                   "uiSchema": {
                                     "type": "object",
                                     "nullable": true,
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    },
+                                    "additionalProperties": {},
                                     "example": {
                                       "fields": [],
                                       "translations": {}
@@ -71654,9 +70905,7 @@
                                   "renderHints": {
                                     "type": "object",
                                     "nullable": true,
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    },
+                                    "additionalProperties": {},
                                     "example": {
                                       "fields": [],
                                       "translations": {}
@@ -71665,9 +70914,7 @@
                                   "fieldStyles": {
                                     "type": "object",
                                     "nullable": true,
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    },
+                                    "additionalProperties": {},
                                     "example": {
                                       "fields": [],
                                       "translations": {}
@@ -71682,9 +70929,7 @@
                                   "translations": {
                                     "type": "object",
                                     "nullable": true,
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    },
+                                    "additionalProperties": {},
                                     "example": {
                                       "fields": [],
                                       "translations": {}
@@ -71693,9 +70938,7 @@
                                   "examples": {
                                     "type": "object",
                                     "nullable": true,
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    },
+                                    "additionalProperties": {},
                                     "example": {
                                       "fields": [],
                                       "translations": {}
@@ -71754,9 +70997,7 @@
                                     "content": {
                                       "type": "object",
                                       "nullable": true,
-                                      "additionalProperties": {
-                                        "nullable": true
-                                      },
+                                      "additionalProperties": {},
                                       "example": {
                                         "fields": [],
                                         "translations": {}
@@ -72645,9 +71886,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  },
+                                  "additionalProperties": {},
                                   "example": {
                                     "fields": [],
                                     "translations": {}
@@ -77771,9 +77010,7 @@
                                 },
                                 "content": {
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  },
+                                  "additionalProperties": {},
                                   "example": {
                                     "fields": [],
                                     "translations": {}
@@ -78092,12 +77329,8 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "nullable": true
-                                }
+                                {},
+                                {}
                               ]
                             }
                           },
@@ -78393,12 +77626,8 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "nullable": true
-                                }
+                                {},
+                                {}
                               ]
                             }
                           },
@@ -79136,9 +78365,7 @@
                               "definition": {
                                 "type": "object",
                                 "nullable": true,
-                                "additionalProperties": {
-                                  "nullable": true
-                                },
+                                "additionalProperties": {},
                                 "example": {
                                   "fields": [],
                                   "translations": {}
@@ -79147,9 +78374,7 @@
                               "uiSchema": {
                                 "type": "object",
                                 "nullable": true,
-                                "additionalProperties": {
-                                  "nullable": true
-                                },
+                                "additionalProperties": {},
                                 "example": {
                                   "fields": [],
                                   "translations": {}
@@ -79158,9 +78383,7 @@
                               "renderHints": {
                                 "type": "object",
                                 "nullable": true,
-                                "additionalProperties": {
-                                  "nullable": true
-                                },
+                                "additionalProperties": {},
                                 "example": {
                                   "fields": [],
                                   "translations": {}
@@ -79169,9 +78392,7 @@
                               "fieldStyles": {
                                 "type": "object",
                                 "nullable": true,
-                                "additionalProperties": {
-                                  "nullable": true
-                                },
+                                "additionalProperties": {},
                                 "example": {
                                   "fields": [],
                                   "translations": {}
@@ -79186,9 +78407,7 @@
                               "translations": {
                                 "type": "object",
                                 "nullable": true,
-                                "additionalProperties": {
-                                  "nullable": true
-                                },
+                                "additionalProperties": {},
                                 "example": {
                                   "fields": [],
                                   "translations": {}
@@ -79197,9 +78416,7 @@
                               "examples": {
                                 "type": "object",
                                 "nullable": true,
-                                "additionalProperties": {
-                                  "nullable": true
-                                },
+                                "additionalProperties": {},
                                 "example": {
                                   "fields": [],
                                   "translations": {}
@@ -79258,9 +78475,7 @@
                                 "content": {
                                   "type": "object",
                                   "nullable": true,
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  },
+                                  "additionalProperties": {},
                                   "example": {
                                     "fields": [],
                                     "translations": {}
@@ -79546,9 +78761,7 @@
                           },
                           "definition": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -79557,9 +78770,7 @@
                           "uiSchema": {
                             "type": "object",
                             "nullable": true,
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -79567,9 +78778,7 @@
                           },
                           "renderHints": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -79577,9 +78786,7 @@
                           },
                           "fieldStyles": {
                             "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "additionalProperties": {},
                             "example": {
                               "fields": [],
                               "translations": {}
@@ -79852,9 +79059,7 @@
                 "properties": {
                   "content": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   }
                 },
                 "example": {
@@ -79891,9 +79096,7 @@
                         "content": {
                           "type": "object",
                           "nullable": true,
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {
                             "fields": [],
                             "translations": {}
@@ -80277,9 +79480,7 @@
                 "properties": {
                   "content": {
                     "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    }
+                    "additionalProperties": {}
                   }
                 },
                 "example": {
@@ -80316,9 +79517,7 @@
                         "content": {
                           "type": "object",
                           "nullable": true,
-                          "additionalProperties": {
-                            "nullable": true
-                          },
+                          "additionalProperties": {},
                           "example": {
                             "fields": [],
                             "translations": {}
@@ -81775,9 +80974,7 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "nullable": true
-                }
+                "schema": {}
               }
             }
           },
@@ -82042,12 +81239,8 @@
                               {
                                 "type": "boolean"
                               },
-                              {
-                                "nullable": true
-                              },
-                              {
-                                "nullable": true
-                              }
+                              {},
+                              {}
                             ]
                           },
                           "after": {
@@ -82061,12 +81254,8 @@
                               {
                                 "type": "boolean"
                               },
-                              {
-                                "nullable": true
-                              },
-                              {
-                                "nullable": true
-                              }
+                              {},
+                              {}
                             ]
                           },
                           "highlights": {
@@ -94284,9 +93473,7 @@
                         "preferences": {
                           "type": "object",
                           "nullable": true,
-                          "additionalProperties": {
-                            "nullable": true
-                          }
+                          "additionalProperties": {}
                         },
                         "counts": {
                           "type": "object",
@@ -95560,6 +94747,7 @@
     "/api/v1/users/me/connections": {
       "get": {
         "summary": "Get accepted connections",
+        "description": "Lists the authenticated user's accepted connections, paginated.",
         "tags": [
           "social-connections"
         ],
@@ -95870,6 +95058,7 @@
     "/api/v1/users/me/connections/pending": {
       "get": {
         "summary": "Get pending connection requests",
+        "description": "Lists incoming pending connection requests for the authenticated user.",
         "tags": [
           "social-connections"
         ],
@@ -96180,6 +95369,7 @@
     "/api/v1/users/me/connections/sent": {
       "get": {
         "summary": "Get sent (pending) connection requests",
+        "description": "Lists outgoing pending connection requests sent by the authenticated user.",
         "tags": [
           "social-connections"
         ],
@@ -96490,6 +95680,7 @@
     "/api/v1/users/me/connections/suggestions": {
       "get": {
         "summary": "Get connection suggestions",
+        "description": "Suggests users the authenticated user may want to connect with.",
         "tags": [
           "social-connections"
         ],
@@ -96983,6 +96174,7 @@
     "/api/v1/users/me/network-summary": {
       "get": {
         "summary": "Get network summary for authenticated user",
+        "description": "Aggregated counts for the authenticated user's network: connections, pending requests, followers and following.",
         "tags": [
           "social-connections"
         ],
@@ -98345,6 +97537,7 @@
     "/api/v1/users/me/social-stats": {
       "get": {
         "summary": "Get social stats for authenticated user",
+        "description": "Returns the authenticated user's follower/following/connection counts.",
         "tags": [
           "social-follow"
         ],
@@ -99932,9 +99125,7 @@
                       {
                         "$ref": "#/components/schemas/SocialUrl"
                       },
-                      {
-                        "nullable": true
-                      }
+                      {}
                     ]
                   }
                 },
@@ -100546,12 +99737,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-user"
+              "example": "fixture_user"
             },
             "required": true,
             "name": "username",
             "in": "query",
-            "example": "fixture-user"
+            "example": "fixture_user"
           }
         ],
         "responses": {
@@ -100848,12 +100039,8 @@
                                 {
                                   "type": "boolean"
                                 },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "nullable": true
-                                }
+                                {},
+                                {}
                               ]
                             }
                           },
@@ -100963,6 +100150,7 @@
     "/api/v1/users/{userId}/activities": {
       "get": {
         "summary": "Get public activities for a user",
+        "description": "Lists a user's public profile activities, newest first.",
         "tags": [
           "social-activity"
         ],
@@ -101035,9 +100223,7 @@
                           "metadata": {
                             "type": "object",
                             "nullable": true,
-                            "additionalProperties": {
-                              "nullable": true
-                            }
+                            "additionalProperties": {}
                           },
                           "entityId": {
                             "type": "string",
@@ -101246,6 +100432,7 @@
     "/api/v1/users/{userId}/activities/by-type/{type}": {
       "get": {
         "summary": "Get user activities filtered by type",
+        "description": "Lists a user's public activities restricted to a single activity type.",
         "tags": [
           "social-activity"
         ],
@@ -101328,9 +100515,7 @@
                           "metadata": {
                             "type": "object",
                             "nullable": true,
-                            "additionalProperties": {
-                              "nullable": true
-                            }
+                            "additionalProperties": {}
                           },
                           "entityId": {
                             "type": "string",
@@ -101907,6 +101092,7 @@
     "/api/v1/users/{userId}/connect": {
       "post": {
         "summary": "Send a connection request",
+        "description": "Creates a pending connection request from the authenticated user to the target user.",
         "tags": [
           "social-connections"
         ],
@@ -102103,6 +101289,7 @@
     "/api/v1/users/{userId}/connection-stats": {
       "get": {
         "summary": "Get connection stats for a user",
+        "description": "Returns public connection counts for the given user.",
         "tags": [
           "social-connections"
         ],
@@ -102221,6 +101408,7 @@
     "/api/v1/users/{userId}/feed": {
       "get": {
         "summary": "Get authenticated user activity feed",
+        "description": "Returns the personalized activity feed for the authenticated user (connections and follows), newest first.",
         "tags": [
           "social-activity"
         ],
@@ -102293,9 +101481,7 @@
                           "metadata": {
                             "type": "object",
                             "nullable": true,
-                            "additionalProperties": {
-                              "nullable": true
-                            }
+                            "additionalProperties": {}
                           },
                           "entityId": {
                             "type": "string",
@@ -102542,6 +101728,7 @@
     "/api/v1/users/{userId}/follow": {
       "delete": {
         "summary": "Unfollow a user",
+        "description": "Makes the authenticated user unfollow the target user.",
         "tags": [
           "social-follow"
         ],
@@ -102736,6 +101923,7 @@
       },
       "post": {
         "summary": "Follow a user",
+        "description": "Makes the authenticated user follow the target user.",
         "tags": [
           "social-follow"
         ],
@@ -102932,6 +102120,7 @@
     "/api/v1/users/{userId}/followers": {
       "get": {
         "summary": "Get followers for a user",
+        "description": "Lists the users following the given user, paginated.",
         "tags": [
           "social-follow"
         ],
@@ -103252,6 +102441,7 @@
     "/api/v1/users/{userId}/following": {
       "get": {
         "summary": "Get users followed by a user",
+        "description": "Lists the users the given user follows, paginated.",
         "tags": [
           "social-follow"
         ],
@@ -103572,6 +102762,7 @@
     "/api/v1/users/{userId}/is-connected": {
       "get": {
         "summary": "Check connection status",
+        "description": "Returns whether the authenticated user and the given user are connected.",
         "tags": [
           "social-connections"
         ],
@@ -103771,6 +102962,7 @@
     "/api/v1/users/{userId}/is-following": {
       "get": {
         "summary": "Check following relationship",
+        "description": "Returns whether the authenticated user follows the given user.",
         "tags": [
           "social-follow"
         ],
@@ -105215,6 +104407,7 @@
     "/api/v1/users/{userId}/social-stats": {
       "get": {
         "summary": "Get social stats for a user",
+        "description": "Returns the given user's public follower/following/connection counts.",
         "tags": [
           "social-follow"
         ],
