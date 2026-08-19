@@ -23,12 +23,20 @@ export interface CompleteOnboardingAuditLog {
   logOnboardingCompleted: (userId: string, username: string, resumeId: string) => Promise<void>;
 }
 
+/** Drops the user's cached authorization context (the permission-guard's
+ *  60s in-memory cache). Completion grants the `user` role via a raw
+ *  Prisma upsert — no `RoleAssignedEvent` fires — so without this call
+ *  every guarded route keeps 403ing until the TTL expires and the app
+ *  shows "couldn't load your profile" right after onboarding. */
+export type InvalidateAuthContextFn = (userId: string) => void;
+
 export class CompleteOnboardingUseCase {
   constructor(
     private readonly repository: OnboardingRepositoryPort,
     private readonly completionAdapter: OnboardingCompletionPort,
     private readonly logger: LoggerPort,
     private readonly auditLog: CompleteOnboardingAuditLog,
+    private readonly invalidateAuthContext?: InvalidateAuthContextFn,
   ) {}
 
   async execute(userId: string, data: unknown): Promise<CompletionResult> {
@@ -97,6 +105,8 @@ export class CompleteOnboardingUseCase {
   ): Promise<CompletionResult> {
     try {
       const result = await this.completionAdapter.executeCompletion(userId, validatedData);
+
+      this.invalidateAuthContext?.(userId);
 
       this.logger.log('Onboarding completed successfully', 'CompleteOnboardingUseCase', {
         userId,

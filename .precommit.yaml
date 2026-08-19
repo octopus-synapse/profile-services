@@ -51,8 +51,12 @@ checks:
     cmd: bun run scripts/lint-no-success-envelope.ts
   - name: no-bc-cache-ttl
     cmd: bun run scripts/lint-no-bc-cache-ttl.ts
+  - name: pii-in-logs
+    cmd: bun run scripts/lint-pii-in-logs.ts
   - name: pii-extended
     cmd: bun run scripts/lint-pii-extended.ts
+  - name: cache-direct-delete
+    cmd: bun run scripts/lint-cache-direct-delete.ts
   - name: ts-directives
     cmd: bun run scripts/lint-ts-directives.ts
   - name: no-prisma-mock-in-integration

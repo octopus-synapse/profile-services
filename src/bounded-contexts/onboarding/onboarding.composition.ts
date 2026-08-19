@@ -56,6 +56,15 @@ export interface OnboardingDeps {
    * don't wire export), the preview route throws on use.
    */
   readonly renderResumeHtml?: RenderOnboardingResumeHtmlFn;
+  /**
+   * Drops the user's cached authorization context after completion
+   * (wraps `authorization.checks.invalidateCache`). Completion grants
+   * the `user` role inside its own transaction, so without this the
+   * permission guard keeps serving the pre-completion (role-less)
+   * context for up to its 60s TTL. Optional — tests without the
+   * authorization BC skip it.
+   */
+  readonly invalidateAuthContext?: (userId: string) => void;
 }
 
 export interface OnboardingBundle {
@@ -63,10 +72,24 @@ export interface OnboardingBundle {
 }
 
 export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
-  const { prisma, logger, auditLog, cacheLock, sseStream, validateLocation, renderResumeHtml } =
-    deps;
+  const {
+    prisma,
+    logger,
+    auditLog,
+    cacheLock,
+    sseStream,
+    validateLocation,
+    renderResumeHtml,
+    invalidateAuthContext,
+  } = deps;
 
-  const useCases = buildOnboardingUseCases(prisma, logger, auditLog, validateLocation);
+  const useCases = buildOnboardingUseCases(
+    prisma,
+    logger,
+    auditLog,
+    validateLocation,
+    invalidateAuthContext,
+  );
   const progress = buildOnboardingProgressUseCases(prisma, logger);
   const resumeStyles = new ResumeStylesQueryAdapter(prisma);
   const config = new OnboardingConfigAdapter(prisma);

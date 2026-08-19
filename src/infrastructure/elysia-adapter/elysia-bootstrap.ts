@@ -787,6 +787,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     // Reject onboarding locations that aren't real geo entries.
     validateLocation: (label: string) => geo.lookup.locationExists(label),
     renderResumeHtml: renderOnboardingResumeHtml,
+    // Completion grants the `user` role via a raw Prisma upsert (no
+    // RoleAssignedEvent), so drop the permission-guard's cached auth
+    // context or every guarded route keeps 403ing for up to 60s after
+    // onboarding ("couldn't load your profile" on the Profile tab).
+    invalidateAuthContext: (userId: string) => authorization.checks.invalidateCache(userId),
   } as never) as never;
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;

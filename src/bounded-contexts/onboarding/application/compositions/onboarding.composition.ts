@@ -9,7 +9,10 @@ import { ResumeOnboardingAdapter } from '../../infrastructure/adapters/persisten
 import { ResumeSectionOnboardingAdapter } from '../../infrastructure/adapters/persistence/resume-section-onboarding.adapter';
 import { SectionTypeDefinitionAdapter } from '../../infrastructure/adapters/persistence/section-type-definition.adapter';
 import { AdvanceOnboardingStepUseCase } from '../use-cases/advance-onboarding-step/advance-onboarding-step.use-case';
-import { CompleteOnboardingUseCase } from '../use-cases/complete-onboarding/complete-onboarding.use-case';
+import {
+  CompleteOnboardingUseCase,
+  type InvalidateAuthContextFn,
+} from '../use-cases/complete-onboarding/complete-onboarding.use-case';
 import { CompleteOnboardingFromProgressUseCase } from '../use-cases/complete-onboarding-from-progress/complete-onboarding-from-progress.use-case';
 import { GetOnboardingStatusUseCase } from '../use-cases/get-onboarding-status/get-onboarding-status.use-case';
 import { GetProgressUseCase } from '../use-cases/get-progress/get-progress.use-case';
@@ -30,6 +33,7 @@ export function buildOnboardingUseCases(
   logger: LoggerPort,
   auditLog: AuditLogService,
   validateLocation?: LocationValidatorFn,
+  invalidateAuthContext?: InvalidateAuthContextFn,
 ): OnboardingUseCases {
   // Repositories
   const onboardingRepository = new OnboardingRepository(prisma, logger);
@@ -63,6 +67,7 @@ export function buildOnboardingUseCases(
     completionAdapter,
     logger,
     auditLog,
+    invalidateAuthContext,
   );
   const completeOnboardingFromProgressUseCase = new CompleteOnboardingFromProgressUseCase(
     getProgressFn,

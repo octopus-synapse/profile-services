@@ -102,6 +102,71 @@ describe('CompleteOnboardingUseCase', () => {
       );
     });
 
+    it('should invalidate the auth context after successful completion', async () => {
+      const userId = 'user-123';
+      const invalidateAuthContext = mock();
+      const withInvalidation = new CompleteOnboardingUseCase(
+        onboardingRepository,
+        mockCompletionAdapter,
+        mockLogger,
+        mockAuditLog,
+        invalidateAuthContext,
+      );
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      await withInvalidation.execute(
+        userId,
+        createOnboardingData({
+          username: 'johndoe',
+          personalInfo: { fullName: 'John Doe' },
+          professionalProfile: {
+            headline: 'Developer',
+            summary: 'A passionate developer looking to make a difference in tech',
+          },
+          resumeStyleId: null,
+          sections: [],
+        }),
+      );
+
+      expect(invalidateAuthContext).toHaveBeenCalledWith(userId);
+    });
+
+    it('should not invalidate the auth context when completion fails', async () => {
+      const userId = 'user-123';
+      const invalidateAuthContext = mock();
+      const failingAdapter: OnboardingCompletionPort = {
+        executeCompletion: mock(async () => {
+          throw new Error('tx failed');
+        }),
+      };
+      const withInvalidation = new CompleteOnboardingUseCase(
+        onboardingRepository,
+        failingAdapter,
+        mockLogger,
+        mockAuditLog,
+        invalidateAuthContext,
+      );
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      await expect(
+        withInvalidation.execute(
+          userId,
+          createOnboardingData({
+            username: 'johndoe',
+            personalInfo: { fullName: 'John Doe' },
+            professionalProfile: {
+              headline: 'Developer',
+              summary: 'A passionate developer looking to make a difference in tech',
+            },
+            resumeStyleId: null,
+            sections: [],
+          }),
+        ),
+      ).rejects.toThrow('tx failed');
+
+      expect(invalidateAuthContext).not.toHaveBeenCalled();
+    });
+
     it('should throw EntityNotFoundException if user does not exist', async () => {
       const userId = 'invalid-user';
       const onboardingData = createOnboardingData({
