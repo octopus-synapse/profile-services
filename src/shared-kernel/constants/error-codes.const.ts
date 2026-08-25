@@ -1,3 +1,12 @@
+/**
+ * Generic HTTP-level error codes (transport fallbacks).
+ *
+ * NOT the catalog of user-facing codes — that is `ErrorCode` from
+ * `@packages/i18n` (every `DomainException.code`, 360+ entries, both
+ * locales) plus `ValidationCode` for request validation. Prefer those
+ * unions; this 8-entry set exists only for framework-level envelopes
+ * that carry no domain meaning.
+ */
 export const ERROR_CODES = {
   UNKNOWN: 'UNKNOWN',
   INTERNAL_ERROR: 'INTERNAL_ERROR',

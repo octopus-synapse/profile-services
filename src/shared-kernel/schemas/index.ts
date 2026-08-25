@@ -5,9 +5,9 @@
  * Consumers import schemas directly and create validators on-demand.
  *
  * @example
- * import { LoginCredentialsSchema, validate } from '@/shared-kernel';
+ * import { EmailSchema, validate } from '@/shared-kernel';
  *
- * const result = validate(LoginCredentialsSchema, data);
+ * const result = validate(EmailSchema, data);
  */
 
 export * from './auth';

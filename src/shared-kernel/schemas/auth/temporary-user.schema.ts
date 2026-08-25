@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
-import { RegisterCredentialsSchema } from './register.schema';
+import { EmailSchema, FullNameSchema, PasswordSchema } from '../primitives';
 
 /**
  * Temporary User Schema
@@ -11,7 +11,15 @@ import { RegisterCredentialsSchema } from './register.schema';
  * Default TTL: 24 hours (86400 seconds)
  * Max TTL: 7 days (604800 seconds)
  */
-export const CreateTemporaryUserSchema = RegisterCredentialsSchema.extend({
+// Credentials subset shared with the sign-up contract — built from the
+// same primitives so the rules can't drift.
+const CredentialsSchema = z.object({
+  email: EmailSchema,
+  password: PasswordSchema,
+  name: FullNameSchema.optional(),
+});
+
+export const CreateTemporaryUserSchema = CredentialsSchema.extend({
   /**
    * Time-to-live in seconds (default: 24 hours)
    * After this time, the user and all associated data will be deleted

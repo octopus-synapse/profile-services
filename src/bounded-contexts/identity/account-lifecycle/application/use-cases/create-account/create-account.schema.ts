@@ -1,14 +1,13 @@
 import { z } from 'zod';
-import { EmailSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
+import { EmailSchema, FullNameSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
 
 // LGPD: explicit consent required at signup. Versions must match current
 // TOS_VERSION / PRIVACY_POLICY_VERSION.
 export const CreateAccountSchema = z
   .object({
-    name: z
-      .string()
-      .optional()
-      .openapi({ description: 'Display name (optional). Defaults to email handle.' }),
+    // Optional on the wire (defaults to the email handle) but, when sent,
+    // held to the same 2-100 rule every other name field uses.
+    name: FullNameSchema.optional(),
     email: EmailSchema,
     password: PasswordSchema,
     acceptedTosVersion: z
