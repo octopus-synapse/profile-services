@@ -28,10 +28,6 @@ const replacements: Array<[string, string]> = [
     '@/bounded-contexts/identity/authorization/seeds/seed.runner',
   ],
   [
-    '@/bounded-contexts/platform/i18n/application/zod-issue-to-code.mapper',
-    '@/bounded-contexts/platform/i18n/application/zod-issue-to-code.mapper',
-  ],
-  [
     '@/bounded-contexts/platform/feature-flags/domain/feature-flag-graph.service',
     '@/bounded-contexts/platform/feature-flags/domain/feature-flag-graph.service',
   ],

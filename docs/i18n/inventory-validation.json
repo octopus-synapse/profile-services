@@ -19,8 +19,8 @@
     "invalid_string(validation=uuid) → UUID_INVALID",
     "invalid_string(validation=cuid) → CUID_INVALID",
     "invalid_string(validation=datetime) → DATETIME_INVALID",
-    "invalid_string(validation=regex) → REGEX_MISMATCH",
-    "invalid_enum_value → INVALID_ENUM_VALUE",
+    "invalid_string(validation=regex) → PATTERN_MISMATCH",
+    "invalid_enum_value → ENUM_INVALID",
     "unrecognized_keys → UNRECOGNIZED_KEYS",
     "custom → require explicit code via { params: { code: \"...\" } }"
   ],

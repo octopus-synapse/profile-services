@@ -110,12 +110,6 @@ const renames: Rename[] = [
     to: 'src/shared-kernel/http/error.mapper.ts',
   },
 
-  // i18n mapper
-  {
-    from: 'src/bounded-contexts/platform/i18n/application/zod-issue-to-code.ts',
-    to: 'src/bounded-contexts/platform/i18n/application/zod-issue-to-code.mapper.ts',
-  },
-
   // Onboarding rules
   {
     from: 'src/bounded-contexts/onboarding/domain/config/onboarding-validation.ts',

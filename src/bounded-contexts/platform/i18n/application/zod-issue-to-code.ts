@@ -26,7 +26,10 @@ export function zodIssueToCode(issue: ZodIssue): ConvertedIssue {
 
   switch (code) {
     case 'invalid_type': {
-      const expected = (issue as { expected?: string }).expected ?? 'unknown';
+      const { expected = 'unknown', received } = issue as { expected?: string; received?: string };
+      // A missing required key surfaces as `invalid_type` with
+      // `received: 'undefined'` — that's "required", not a type mismatch.
+      if (received === 'undefined') return { ...base, code: 'REQUIRED', params: {} };
       return {
         ...base,
         code: typeToCode(expected),
@@ -42,6 +45,9 @@ export function zodIssueToCode(issue: ZodIssue): ConvertedIssue {
       };
       const minimum = Number(i.minimum);
       if (i.type === 'string') {
+        // `.min(1)` is Zod's idiom for "non-empty" — render it as REQUIRED,
+        // never as "minimum of 1 characters". Any larger minimum is a real
+        // length rule and carries `{min}` for the template.
         if (minimum === 1) return { ...base, code: 'REQUIRED', params: {} };
         return { ...base, code: 'STRING_TOO_SHORT', params: { min: minimum } };
       }
