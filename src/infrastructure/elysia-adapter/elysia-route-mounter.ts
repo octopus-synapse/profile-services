@@ -12,6 +12,7 @@
 import type Elysia from 'elysia';
 import type { Observable } from 'rxjs';
 import { ZodError } from 'zod';
+import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import type { PipelineStage } from '@/shared-kernel/http/pipeline';
 import type { HttpMethod, Route, RouteKind } from '@/shared-kernel/http/route.types';
@@ -21,6 +22,7 @@ import {
   isSuccessMessage,
   renderSuccessMessageForRequest,
 } from '@/shared-kernel/http/success-message';
+import { mapZodErrorToHttp } from '@/shared-kernel/http/zod-error.mapper';
 import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge.util';
 import { runPipeline } from './elysia-pipeline';
 import { PayloadTooLargeException, parseMultipart } from './multipart-bridge';
@@ -43,6 +45,13 @@ export interface RouteGroupBinding<TBundle> {
 export interface MountOptions {
   readonly prefix?: string;
   readonly pipeline?: readonly PipelineStage[];
+  /**
+   * Translation port for request-validation (ZodError) 400s. Optional so
+   * adapter-level specs can mount without the i18n composition; production
+   * bootstrap always passes it — without it, `fields[].message` falls back
+   * to Zod's raw English issue text.
+   */
+  readonly i18n?: TranslationPort;
 }
 
 async function buildHttpCtx(route: Route, ec: ElysiaCtx): Promise<HttpCtx> {
@@ -123,16 +132,25 @@ export function mountRoutes<TBundle>(
         ctx = await buildHttpCtx(route, ec);
       } catch (err) {
         if (err instanceof ZodError) {
-          ec.set.status = 400;
           ec.set.headers['content-type'] = 'application/json';
+          if (options.i18n) {
+            const mapped = mapZodErrorToHttp(err, options.i18n, ec.headers['accept-language']);
+            ec.set.status = mapped.status;
+            Object.assign(ec.set.headers, mapped.headers);
+            return mapped.body;
+          }
+          // No i18n wired (adapter specs only): raw Zod issues, same shape.
+          ec.set.status = 400;
           return {
             statusCode: 400,
             code: 'VALIDATION_ERROR',
             message: 'Request validation failed',
-            severity: 'toast',
+            severity: 'inline',
+            params: {},
             fields: err.issues.map((issue) => ({
-              path: issue.path.map(String).join('.'),
+              path: issue.path,
               code: issue.code,
+              params: {},
               message: issue.message,
             })),
           };

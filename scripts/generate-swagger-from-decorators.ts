@@ -232,22 +232,62 @@ function applyParameterAutoDeriveExamples(document: {
 
 // Standard error envelope (`ErrorResponseSchema` shape). Rendered as
 // plain OpenAPI so the generator stays self-contained and the
-// `has-4xx-response` Spectral rule clears for every route.
+// `has-4xx-response` Spectral rule clears for every route. Registered
+// ONCE under `components.schemas.ErrorResponse` and `$ref`'d from every
+// 4xx response, so the SDK gets a single `ErrorResponse` type (with
+// `fields[]`) instead of ~1.3k inlined copies.
+const ERROR_RESPONSE_SCHEMA_NAME = 'ErrorResponse';
 const ERROR_RESPONSE_SCHEMA = {
   type: 'object',
   required: ['statusCode', 'code', 'message', 'severity'],
   properties: {
-    statusCode: { type: 'integer' },
-    code: { type: 'string' },
-    message: { type: 'string' },
-    severity: { type: 'string', enum: ['toast', 'modal', 'banner', 'inline', 'silent'] },
+    statusCode: { type: 'integer', description: 'HTTP status code, mirrored in the body' },
+    code: { type: 'string', description: 'Stable SCREAMING_SNAKE_CASE error code' },
+    message: { type: 'string', description: 'Message already localized via Accept-Language' },
+    severity: {
+      type: 'string',
+      enum: ['toast', 'modal', 'banner', 'inline', 'silent'],
+      description: 'UX routing hint for the client',
+    },
+    params: {
+      type: 'object',
+      additionalProperties: true,
+      description: 'Interpolation params the message was rendered with',
+    },
+    fields: {
+      type: 'array',
+      description:
+        'Per-field detail (request validation, password policy…). Render `message` under the input at `path`.',
+      items: {
+        type: 'object',
+        required: ['path', 'code', 'message'],
+        properties: {
+          path: {
+            type: 'array',
+            items: { oneOf: [{ type: 'string' }, { type: 'integer' }] },
+            description: 'Field path segments, e.g. ["name"] or ["items", 0, "url"]',
+          },
+          code: { type: 'string', description: 'Stable validation code (VALIDATION_DICTIONARY)' },
+          params: {
+            type: 'object',
+            additionalProperties: true,
+            description: 'Interpolation params, e.g. { min: 2 }',
+          },
+          message: { type: 'string', description: 'Localized message for this field' },
+        },
+      },
+    },
   },
 } as const;
 
 function buildErrorResponse(description: string): Record<string, unknown> {
   return {
     description,
-    content: { 'application/json': { schema: ERROR_RESPONSE_SCHEMA } },
+    content: {
+      'application/json': {
+        schema: { $ref: `#/components/schemas/${ERROR_RESPONSE_SCHEMA_NAME}` },
+      },
+    },
   };
 }
 
@@ -607,6 +647,10 @@ async function generate(): Promise<void> {
     } as never,
     servers: [{ url: 'http://localhost:3010' }],
   });
+
+  document.components ??= {};
+  document.components.schemas ??= {};
+  document.components.schemas[ERROR_RESPONSE_SCHEMA_NAME] = ERROR_RESPONSE_SCHEMA;
 
   applyParameterAutoDeriveExamples(document);
   applyOperationPermissionExtension(document, routes);

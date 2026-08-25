@@ -1225,7 +1225,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     health,
     platformConfig,
   ] as const) {
-    mountRoutes(app, { bundle: bc.useCases, routes: bc.routes }, { prefix: '/api', pipeline });
+    mountRoutes(
+      app,
+      { bundle: bc.useCases, routes: bc.routes },
+      { prefix: '/api', pipeline, i18n: i18n.translation },
+    );
   }
 
   // BCs whose composition functions return raw useCases instead of
@@ -1299,7 +1303,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     mountRoutes(
       app,
       { bundle: e.bundle as never, routes: e.routes as never },
-      { prefix: '/api', pipeline },
+      { prefix: '/api', pipeline, i18n: i18n.translation },
     );
   }
 
@@ -1308,23 +1312,23 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   mountRoutes(
     app,
     { bundle: featureFlags.sseBundle, routes: featureFlags.sseRoutes },
-    { prefix: '/api', pipeline },
+    { prefix: '/api', pipeline, i18n: i18n.translation },
   );
   mountRoutes(
     app,
     { bundle: notifications.sseBundle, routes: notifications.sseRoutes },
-    { prefix: '/api', pipeline },
+    { prefix: '/api', pipeline, i18n: i18n.translation },
   );
   mountRoutes(
     app,
     { bundle: resumeAnalytics.sseBundle, routes: [] as never },
-    { prefix: '/api', pipeline },
+    { prefix: '/api', pipeline, i18n: i18n.translation },
   );
   if (social.sseBundle) {
     mountRoutes(
       app,
       { bundle: social.sseBundle, routes: social.sseRoutes },
-      { prefix: '/api', pipeline },
+      { prefix: '/api', pipeline, i18n: i18n.translation },
     );
   }
 
@@ -1338,7 +1342,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   mountRoutes(
     app,
     { bundle: wellKnown.useCases, routes: wellKnown.routes },
-    { prefix: '', pipeline },
+    { prefix: '', pipeline, i18n: i18n.translation },
   );
 
   // --- Run lifecycles.init in order ---
