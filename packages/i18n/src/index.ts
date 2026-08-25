@@ -31,6 +31,7 @@ export type {
   SuccessMessageTemplate,
 } from './success-messages';
 export { renderSuccessMessage, SUCCESS_MESSAGE_DICTIONARY } from './success-messages';
-
 export type { Locale, LocalizedDictionary, LocalizedMessages, LocalizedRecord } from './types';
 export { DEFAULT_LOCALE, LOCALES } from './types';
+export type { ValidationCode } from './validation';
+export { VALIDATION_DICTIONARY } from './validation';

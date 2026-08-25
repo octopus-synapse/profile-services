@@ -100,6 +100,7 @@ No `findAll*`. The `get*` variant wraps the `find*` query so the
   - `NOTIFICATION_DICTIONARY` — notification templates → `i18n-notification-parity.spec.ts`
   - `SUCCESS_MESSAGE_DICTIONARY` — 2xx confirmations → `i18n-success-message-parity.spec.ts`
   - `STATIC_STEP_DICTIONARY` — onboarding step content → `i18n-static-step-parity.spec.ts`
+  - `VALIDATION_DICTIONARY` — zod issue codes (400 `fields[]`, via `zodIssueToCode`) + `params: { code }` custom refinements → `i18n-validation-parity.spec.ts`
 
   Entity content (section types, field translations) uses
   `createLocalizedSchema(SCHEMA, LOCALES)` on the write path and has

@@ -34,11 +34,24 @@ export interface DomainExceptionOptions {
   readonly cause?: unknown;
 }
 
+/**
+ * Per-field detail an exception can attach. Localized by the HTTP mapper
+ * into `ErrorEnvelope.fields[]` — the same shape request-validation (Zod)
+ * failures use, so the frontend has ONE inline-error contract.
+ */
+export interface DomainFieldError {
+  readonly path: ReadonlyArray<string | number>;
+  readonly code: string;
+  readonly params?: Readonly<Record<string, DomainCodeParam>>;
+}
+
 export abstract class DomainException extends Error {
   abstract readonly code: string;
   abstract readonly statusHint: number;
   readonly severity: ErrorSeverity = 'toast';
   readonly suggestedAction?: SuggestedAction;
+  /** Optional per-field detail — see `DomainFieldError`. */
+  readonly fieldErrors?: ReadonlyArray<DomainFieldError>;
 
   constructor(message: string, options: DomainExceptionOptions = {}) {
     // ES2022 `Error` accepts `{ cause }`; pass through verbatim so
@@ -96,6 +109,7 @@ const FRAMEWORK_FIELDS = new Set([
   'statusHint',
   'severity',
   'suggestedAction',
+  'fieldErrors',
   'message',
   'name',
   'stack',

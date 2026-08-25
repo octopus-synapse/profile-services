@@ -140,6 +140,52 @@ export function discoverErrorCodes(sourceRoot: string): Set<string> {
   return codes;
 }
 
+// ─── Validation code discovery ─────────────────────────────────────────
+
+// Quoted SCREAMING_SNAKE literals only — `code: issue.code` style
+// pass-throughs must never register as emitted codes.
+const RETURN_CODE_LITERAL_RE = /\b(?:code:|return)\s*['"]([A-Z][A-Z0-9_]*)['"]/g;
+// Custom refinements: `params: { code: 'X' }` inline, or a rule table
+// (`PASSWORD_RULES`) whose entries carry `code: 'X'` and are spread into
+// `params` by a `superRefine`. Both are quoted literals — same regex.
+const CUSTOM_REFINEMENT_CODE_RE = /\bcode:\s*['"]([A-Z][A-Z0-9_]*)['"]/g;
+
+/**
+ * Codes the request-validation path can emit:
+ *
+ *   1. Every `code: 'X'` literal inside `zodIssueToCode` (the mapper's
+ *      exhaustive switch over ZodIssueCode).
+ *   2. Every quoted `code: 'X'` literal under `shared-kernel/schemas/**`
+ *      (custom-refinement `params: { code }` or a rule table spread into
+ *      one) — the mapper forwards those verbatim.
+ */
+export function discoverValidationCodes(sourceRoot: string): Set<string> {
+  const codes = new Set<string>();
+  const mapper = path.join(
+    sourceRoot,
+    'bounded-contexts/platform/i18n/application/zod-issue-to-code.ts',
+  );
+  collect(fs.readFileSync(mapper, 'utf8'), RETURN_CODE_LITERAL_RE, codes);
+  // Only `*.schema.ts` — the `*.types.ts` siblings declare string-literal
+  // unions (`code: 'A' | 'B'`) that are contracts, not emitters.
+  for (const file of listSourceFiles(path.join(sourceRoot, 'shared-kernel/schemas'), {
+    filter: (name) => name.endsWith('.schema.ts'),
+  })) {
+    collect(fs.readFileSync(file, 'utf8'), CUSTOM_REFINEMENT_CODE_RE, codes);
+  }
+  return codes;
+}
+
+function collect(src: string, re: RegExp, into: Set<string>): void {
+  re.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while (true) {
+    m = re.exec(src);
+    if (!m) break;
+    into.add(m[1]);
+  }
+}
+
 // ─── Prisma enum discovery ─────────────────────────────────────────────
 
 /**

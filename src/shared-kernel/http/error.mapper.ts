@@ -13,7 +13,10 @@
  */
 
 import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
-import type { ErrorEnvelope } from '@/bounded-contexts/platform/i18n/domain/error-envelope';
+import type {
+  ErrorEnvelope,
+  FieldError,
+} from '@/bounded-contexts/platform/i18n/domain/error-envelope';
 import {
   MissingTranslationError,
   type TranslationPort,
@@ -78,5 +81,31 @@ export function mapDomainErrorToHttp(
     suggestedAction: error.suggestedAction,
     params,
   };
+  // Per-field detail (e.g. PASSWORD_WEAK → one entry per failed rule).
+  // Localized through the same `localizeDomainCode` primitive; a missing
+  // catalog entry here is a bug and surfaces as a 500 like the top-level.
+  if (error.fieldErrors && error.fieldErrors.length > 0) {
+    let fields: FieldError[];
+    try {
+      fields = error.fieldErrors.map((f) => {
+        const fieldParams = (f.params ?? {}) as ErrorEnvelope['params'];
+        const loc = localizeDomainCode({ code: f.code, params: f.params }, i18n, locale);
+        return { path: f.path, code: f.code, params: fieldParams, message: loc.message };
+      });
+    } catch (err) {
+      if (err instanceof MissingTranslationError) {
+        const missing: ErrorEnvelope = {
+          statusCode: 500,
+          code: 'INTERNAL_TRANSLATION_MISSING',
+          message: `Missing translation for "${err.code}" in "${locale}"`,
+          severity: 'silent',
+          params: { code: err.code, locale },
+        };
+        return { status: 500, headers, body: missing };
+      }
+      throw err;
+    }
+    return { status, headers, body: { ...envelope, fields } };
+  }
   return { status, headers, body: envelope };
 }

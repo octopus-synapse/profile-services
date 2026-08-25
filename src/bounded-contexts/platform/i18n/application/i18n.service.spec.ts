@@ -16,6 +16,11 @@ describe('I18nService', () => {
     expect(msg).toBe('A conta está desativada');
   });
 
+  it('resolves validation codes with {min}/{max} params', () => {
+    expect(i18n.translate('STRING_TOO_SHORT', { min: 2 }, 'pt-BR')).toBe('Mínimo de 2 caracteres');
+    expect(i18n.translate('REQUIRED', {}, 'en')).toBe('This field is required');
+  });
+
   it('throws MissingTranslationError for an unknown code', () => {
     expect(() => i18n.translate('DEFINITELY_NOT_A_REAL_CODE_XYZ', {}, 'en')).toThrow(
       MissingTranslationError,

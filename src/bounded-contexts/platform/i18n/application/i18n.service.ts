@@ -11,7 +11,12 @@
  * kept intact so the gap surfaces in staging, not silently in prod.
  */
 
-import { ERROR_DICTIONARY, type ErrorCode } from '@packages/i18n';
+import {
+  ERROR_DICTIONARY,
+  type ErrorCode,
+  VALIDATION_DICTIONARY,
+  type ValidationCode,
+} from '@packages/i18n';
 import { LoggerPort } from '@/shared-kernel/logger';
 import {
   type Locale,
@@ -22,8 +27,20 @@ import {
 
 const PLACEHOLDER_RE = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
 
-function isKnownCode(code: string): code is ErrorCode {
-  return Object.hasOwn(ERROR_DICTIONARY, code);
+type KnownCode = ErrorCode | ValidationCode;
+
+// Two catalogs, one lookup: domain-exception codes and request-validation
+// codes (zod issues → `fields[]`). Key-sets are disjoint by spec, so order
+// is irrelevant; ERROR first only because it's the hot path.
+function lookup(code: string): Readonly<Record<string, string>> | undefined {
+  if (Object.hasOwn(ERROR_DICTIONARY, code)) return ERROR_DICTIONARY[code as ErrorCode];
+  if (Object.hasOwn(VALIDATION_DICTIONARY, code))
+    return VALIDATION_DICTIONARY[code as ValidationCode];
+  return undefined;
+}
+
+function isKnownCode(code: string): code is KnownCode {
+  return lookup(code) !== undefined;
 }
 
 export class I18nService extends TranslationPort {
@@ -32,8 +49,9 @@ export class I18nService extends TranslationPort {
   }
 
   translate(code: string, params: TranslationParams, locale: Locale): string {
-    if (!isKnownCode(code)) throw new MissingTranslationError(code, locale);
-    const template = ERROR_DICTIONARY[code][locale];
+    const entry = lookup(code);
+    if (!entry) throw new MissingTranslationError(code, locale);
+    const template = entry[locale];
     return this.interpolate(template, params, code, locale);
   }
 
@@ -63,12 +81,14 @@ export class I18nService extends TranslationPort {
 
   /** Test / tooling helper — raw template for a code in a locale. */
   rawTemplate(code: string, locale: Locale): string | undefined {
-    if (!isKnownCode(code)) return undefined;
-    return ERROR_DICTIONARY[code][locale];
+    return lookup(code)?.[locale];
   }
 
-  /** Test / tooling helper — sorted list of every code the dictionary knows. */
-  allCodes(): ErrorCode[] {
-    return Object.keys(ERROR_DICTIONARY).sort() as ErrorCode[];
+  /** Test / tooling helper — sorted list of every code the catalogs know. */
+  allCodes(): KnownCode[] {
+    return [
+      ...Object.keys(ERROR_DICTIONARY),
+      ...Object.keys(VALIDATION_DICTIONARY),
+    ].sort() as KnownCode[];
   }
 }

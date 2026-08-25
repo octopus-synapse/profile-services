@@ -3,6 +3,7 @@
  */
 import {
   DomainException,
+  type DomainFieldError,
   UnauthorizedException,
   ValidationException,
 } from '@/shared-kernel/exceptions';
@@ -10,12 +11,26 @@ import {
 /**
  * Weak Password Exception
  *
- * Thrown when password doesn't meet strength requirements.
+ * Thrown when password doesn't meet strength requirements. Carries one
+ * `fieldErrors` entry per failed rule so the HTTP envelope's `fields[]`
+ * tells the user *which* rule failed (localized), not just PASSWORD_WEAK.
  */
 export class WeakPasswordException extends ValidationException {
   override readonly code: string = 'PASSWORD_WEAK';
-  constructor(violations: string[]) {
-    super('Password does not meet security requirements', { password: violations });
+  override readonly fieldErrors: ReadonlyArray<DomainFieldError>;
+
+  constructor(
+    violations: ReadonlyArray<{
+      readonly code: string;
+      readonly params?: Readonly<Record<string, string | number>>;
+    }>,
+  ) {
+    super('Password does not meet security requirements');
+    this.fieldErrors = violations.map((v) => ({
+      path: ['password'],
+      code: v.code,
+      params: v.params ?? {},
+    }));
   }
 }
 

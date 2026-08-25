@@ -6,11 +6,12 @@
  *   - packages/i18n/src/errors.ts          → ERROR_DICTIONARY
  *   - packages/i18n/src/enums.ts           → ENUM_DICTIONARY
  *   - packages/i18n/src/notifications.ts   → NOTIFICATION_DICTIONARY
+ *   - packages/i18n/src/validation.ts      → VALIDATION_DICTIONARY
  *   - src/shared-kernel/constants/success-messages.const.ts → SUCCESS_MESSAGES
  *   - prisma/schema/*.prisma               → enum definitions
  *
  * Writes (at repo root, committed):
- *   - dictionaries.json    { errors, enums, notifications, success }
+ *   - dictionaries.json    { errors, enums, notifications, success, validation }
  *   - enums.json           { EnumName: [values...] }   (from Prisma schema)
  *   - error-codes.json     [ErrorCode strings sorted]
  *
@@ -24,7 +25,12 @@
 
 import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ENUM_DICTIONARY, ERROR_DICTIONARY, NOTIFICATION_DICTIONARY } from '../packages/i18n/src';
+import {
+  ENUM_DICTIONARY,
+  ERROR_DICTIONARY,
+  NOTIFICATION_DICTIONARY,
+  VALIDATION_DICTIONARY,
+} from '../packages/i18n/src';
 import { SUCCESS_MESSAGES } from '../src/shared-kernel/constants/success-messages.const';
 
 const REPO_ROOT = resolve(__dirname, '..');
@@ -86,12 +92,14 @@ function main(): void {
     NOTIFICATION_DICTIONARY as unknown as Record<string, unknown>,
   );
   const success = buildSuccessDictionary();
+  const validation = sortObjectKeys(VALIDATION_DICTIONARY as unknown as Record<string, unknown>);
 
   const dictionaries = {
     errors,
     enums: enumsI18n,
     notifications,
     success,
+    validation,
   };
 
   const enumsFromPrisma = extractPrismaEnums();
@@ -106,6 +114,7 @@ function main(): void {
       `${Object.keys(enumsI18n).length} enum labels, ` +
       `${Object.keys(notifications).length} notification templates, ` +
       `${Object.keys(success).length} success messages, ` +
+      `${Object.keys(validation).length} validation messages, ` +
       `${Object.keys(enumsFromPrisma).length} prisma enums`,
   );
 }
