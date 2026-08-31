@@ -215,6 +215,10 @@ services:
       - ./prisma:/app/prisma:delegated
       - ./prisma.config.ts:/app/prisma.config.ts:delegated
       - ./tsconfig.json:/app/tsconfig.json:delegated
+      # OpenAPI document served by /api/docs. Single-file bind mount:
+      # a host-side `swagger:generate` swaps the inode, so the container
+      # sees the fresh document only after a restart — fine for dev.
+      - ./swagger.json:/app/swagger.json:delegated
       - ./scripts:/app/scripts:delegated
       - ./bunfig.toml:/app/bunfig.toml:delegated
       # `config/` holds the bunfig.{integration,e2e,static-analysis}.toml

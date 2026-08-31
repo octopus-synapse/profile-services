@@ -88,6 +88,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/prisma.config.ts ./prisma.config.
 RUN mkdir -p /app/generated /app/logs /app/data && chown -R nestjs:nodejs /app/generated /app/logs /app/data
 COPY --from=builder --chown=nestjs:nodejs /app/fonts /usr/share/fonts/resume-fonts
 
+# OpenAPI document served by /api/docs (read at boot by the docs BC).
+COPY --chown=nestjs:nodejs swagger.json ./swagger.json
+
 COPY --chown=nestjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 

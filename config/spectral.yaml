@@ -36,19 +36,21 @@ rules:
 
   # ─── House rule 1: paths must start with /api/v1/ ────────────────
   # The generator emits `/api/<route.path>` so allowed prefixes are
-  # `/api/v1/`, `/api/health` (probes), and `/api/metrics` (Prometheus).
+  # `/api/v1/`, `/api/health` (probes), `/api/metrics` (Prometheus),
+  # and `/api/docs` (Scalar UI + the served OpenAPI document — meta
+  # endpoints, deliberately unversioned).
   # `/.well-known/*` (AASA / assetlinks deep-link manifests) is exempt:
   # Apple/Google crawlers require those at the domain root, so the
   # bootstrap mounts them without the `/api` prefix on purpose.
   v1-prefix-required:
-    description: All API paths must live under /api/v1/, /api/health, /api/metrics, or /.well-known/.
-    message: '"{{path}}" does not start with /api/v1/, /api/health, /api/metrics, or /.well-known/.'
+    description: All API paths must live under /api/v1/, /api/health, /api/metrics, /api/docs, or /.well-known/.
+    message: '"{{path}}" does not start with /api/v1/, /api/health, /api/metrics, /api/docs, or /.well-known/.'
     severity: error
     given: $.paths.*~
     then:
       function: pattern
       functionOptions:
-        match: '^(/api/(v\d+/|health|metrics)|/\.well-known/).*'
+        match: '^(/api/(v\d+/|health|metrics|docs)|/\.well-known/).*'
 
   # ─── House rule 2: operation summary >= 10 chars ─────────────────
   summary-min-length:

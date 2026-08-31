@@ -1268,6 +1268,74 @@
         }
       }
     },
+    "/api/docs": {
+      "get": {
+        "summary": "Interactive API reference (Scalar UI)",
+        "description": "Human-facing HTML page rendering the OpenAPI document with the Scalar API reference. Not an API endpoint — exists for developers, not clients.",
+        "tags": [
+          "docs"
+        ],
+        "operationId": "get_docs",
+        "responses": {
+          "200": {
+            "description": "Binary response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public"
+      }
+    },
+    "/api/docs/openapi.json": {
+      "get": {
+        "summary": "OpenAPI 3.0 document (raw JSON)",
+        "description": "The build-time swagger.json the SDK generator consumes, served verbatim for the Scalar UI and any external tooling.",
+        "tags": [
+          "docs"
+        ],
+        "operationId": "get_docs_openapi_json",
+        "responses": {
+          "200": {
+            "description": "Binary response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public"
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Liveness probe — always 200 once the process is booted",
@@ -70281,6 +70349,9 @@
     },
     {
       "name": "config"
+    },
+    {
+      "name": "docs"
     },
     {
       "name": "dsl"

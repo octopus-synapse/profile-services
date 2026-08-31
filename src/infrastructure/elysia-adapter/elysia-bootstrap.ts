@@ -113,6 +113,7 @@ import { platformRoutes } from '@/bounded-contexts/platform/common/platform.rout
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
 import { buildS3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.composition';
 import { buildConfigComposition } from '@/bounded-contexts/platform/config/config.composition';
+import { buildDocsComposition } from '@/bounded-contexts/platform/docs/docs.composition';
 import { buildFeatureFlagsComposition } from '@/bounded-contexts/platform/feature-flags/feature-flags.composition';
 import { RedisFlagCache } from '@/bounded-contexts/platform/feature-flags/infrastructure/cache/redis-flag-cache.service';
 import { SseFlagStream } from '@/bounded-contexts/platform/feature-flags/infrastructure/sse/sse-flag-stream.service';
@@ -1334,6 +1335,15 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // Health endpoint to prove the server is up.
   // `/api/health[/live|/ready]` are mounted via the health BC's Route descriptors above.
+
+  // Interactive API reference — `/api/docs` (Scalar UI) +
+  // `/api/docs/openapi.json` (the build-time swagger.json, verbatim).
+  const docs = buildDocsComposition(logger);
+  mountRoutes(
+    app,
+    { bundle: docs.useCases, routes: docs.routes },
+    { prefix: '/api', pipeline, i18n: i18n.translation },
+  );
 
   // V2 D75: Mobile Universal Links / App Links discovery files.
   // Mounted at the **root** path (no `/api` prefix) because Apple's
