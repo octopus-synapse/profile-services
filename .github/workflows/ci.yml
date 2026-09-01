@@ -8,6 +8,18 @@ on:
       - ".release-please-manifest.json"
       - "*.md"
       - "docs/**"
+  # Deploy is gated on this workflow's verdict (deploy.yml listens for a
+  # successful `workflow_run` on main), so CI has to actually run on the push
+  # — until now it only ran on pull requests and main shipped ungated.
+  # `paths-ignore` doubles as the deploy filter: a docs-only push produces no
+  # CI run at all, so nothing deploys.
+  push:
+    branches: [main]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - ".release-please-manifest.json"
+      - "*.md"
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:
@@ -42,8 +54,8 @@ jobs:
       prisma: ${{ steps.filter.outputs.prisma }}
       swagger: ${{ steps.filter.outputs.swagger }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
         id: filter
         with:
           filters: |
@@ -55,6 +67,13 @@ jobs:
               # tier that listed only the binary lockfile.
               - 'bun.lock'
               - 'tsconfig*.json'
+              # The image definition itself. Without these a Dockerfile or
+              # entrypoint change skipped the `build` tier entirely, so a
+              # broken image only surfaced at deploy time — and the deploy is
+              # now gated on this workflow, which made that a production gap.
+              - 'Dockerfile'
+              - 'docker-entrypoint.sh'
+              - 'infra/deploy/**'
             tests:
               - 'test/**'
             prisma:
@@ -78,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
       - name: Install Spectral
@@ -142,7 +161,7 @@ jobs:
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: octopus-synapse/octopus-workflows/.github/actions/verify-attestation@v1
 
   build:

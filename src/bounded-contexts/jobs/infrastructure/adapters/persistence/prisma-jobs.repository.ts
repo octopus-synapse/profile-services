@@ -104,7 +104,7 @@ export class PrismaJobsRepository extends JobsRepositoryPort {
     const where = this.buildListingWhere(filters);
     return paginate<Job>(this.prisma.job, {
       page: filters.page,
-      pageSize: filters.limit ? Math.min(filters.limit, 100) : undefined,
+      limit: filters.limit ? Math.min(filters.limit, 100) : undefined,
       where,
       orderBy: { createdAt: 'desc' },
     });
@@ -117,7 +117,7 @@ export class PrismaJobsRepository extends JobsRepositoryPort {
   ): Promise<PaginatedResult<Job>> {
     return paginate<Job>(this.prisma.job, {
       page,
-      pageSize: Math.min(pageSize, 100),
+      limit: Math.min(pageSize, 100),
       where: { authorId },
       orderBy: { createdAt: 'desc' },
     });

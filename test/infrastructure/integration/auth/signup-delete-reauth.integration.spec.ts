@@ -20,6 +20,7 @@ import {
   getPrisma,
   getRequest,
   uniqueTestEmail,
+  uniqueTestIp,
 } from '../setup';
 
 const PASSWORD = 'CorrectPassword123!';
@@ -33,12 +34,19 @@ describe('P1 #3 — POST /v1/accounts rate-limit', () => {
     await closeApp();
   });
 
+  // This spec ASSERTS throttling, so it cannot share the default `anon`
+  // bucket: Bun runs describes concurrently and a neighbour's
+  // `clearAuthRateLimits()` firing midway through would reset the counter
+  // and let all 12 requests through (the CI-only "expected >= 1, got 0").
+  // Its own IP means its own bucket.
+  const RATE_LIMIT_IP = uniqueTestIp();
+
   beforeEach(async () => {
     // Reset the IP-keyed bucket so the test gets a clean budget.
     // Without this the previous suite's signups leak into this one
     // and either every request succeeds (if the budget is high) or
     // every one 429s (if it was already exhausted).
-    await clearAuthRateLimits();
+    await clearAuthRateLimits(RATE_LIMIT_IP);
   });
 
   it('caps concurrent signups from the same IP', async () => {
@@ -51,6 +59,7 @@ describe('P1 #3 — POST /v1/accounts rate-limit', () => {
     const { successes } = await runInParallel(TOTAL, async (i) =>
       getRequest()
         .post('/api/v1/accounts')
+        .set('X-Forwarded-For', RATE_LIMIT_IP)
         .send({
           email: uniqueTestEmail(`signup-rl-${i}`),
           password: PASSWORD,

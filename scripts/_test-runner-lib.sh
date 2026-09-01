@@ -556,6 +556,22 @@ tr_run_tests() {
         shards=$total
     fi
 
+    # Bring the schema up to date before anything touches the database.
+    # `--fresh` drops the volumes, so without this the pre-seed hit an
+    # empty database and died with Prisma P2021 ("table does not exist") —
+    # `test:e2e:fresh` and `test:integration:fresh` could not complete at
+    # all. The CI runner (`run-e2e-ci.sh`) always did this step; the local
+    # path never did, and only worked because a previous run had left a
+    # migrated volume behind. Forward-only and idempotent, so it is a
+    # cheap no-op on an already-current database.
+    if ! tr_should_exec_in_container; then
+        log_info "Applying migrations..."
+        if ! bunx prisma migrate deploy --config ./prisma.config.ts > /dev/null; then
+            log_error "Migration deploy failed"
+            return 1
+        fi
+    fi
+
     # Pre-seed once before fanning out workers so they don't fight over
     # catalog upserts at boot. Skipped when sharding is disabled, the
     # caller has nothing to seed, or we're in docker-exec mode (where

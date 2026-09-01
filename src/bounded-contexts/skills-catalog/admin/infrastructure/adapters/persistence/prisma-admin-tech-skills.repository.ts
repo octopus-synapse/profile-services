@@ -23,7 +23,7 @@ export class PrismaAdminTechSkillsRepository extends AdminTechSkillsRepositoryPo
     if (query.isActive !== undefined) where.isActive = query.isActive;
     return paginate<TechSkill>(this.prisma.techSkill, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       where,
       orderBy: { order: 'asc' },
     });

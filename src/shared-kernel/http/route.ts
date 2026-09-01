@@ -156,6 +156,20 @@ export interface Route<
   readonly openapi: OpenApiMeta;
   readonly sdk?: SdkMeta;
 
+  /**
+   * Opt this route out of the runtime contract probe, with a reason.
+   *
+   * The probe is stateless: it calls each endpoint with the `.openapi({
+   * example })` values declared on the route. That cannot work when the happy
+   * path needs a row the probe did not create — a one-shot exchange id, a
+   * saved job, a resume owned by the persona. Those routes were simply red
+   * forever, which is worse than being explicitly listed: a permanent failure
+   * teaches everyone to ignore the suite.
+   *
+   * Use it ONLY for that. A route that fails because its schema is wrong must
+   * be fixed, not annotated.
+   */
+  readonly contract?: { readonly probe: false; readonly reason: string };
   readonly kind?: RouteKind;
   readonly skip?: readonly PipelineStageName[];
   readonly middleware?: readonly RouteMiddleware[];

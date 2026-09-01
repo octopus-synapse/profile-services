@@ -165,6 +165,19 @@ export const JobApplicationSchema = z.object({
   tailoredVersionId: z.string().uuid().nullable(),
   /** Match Score frozen at apply time (0-100); null when not computable. */
   matchScoreSnapshot: z.number().nullable(),
+  /** The breakdown behind that score, frozen alongside it — the Redis
+   *  cache behind the live computation is short-lived, so this is the
+   *  only durable record of *why* it matched. Shape is owned by
+   *  `snapshot-match-on-application-submitted.handler.ts`. */
+  matchBreakdownSnapshot: z
+    .unknown()
+    .nullable()
+    .optional()
+    .openapi({
+      description:
+        'Frozen match breakdown: `{ subScores: { keyword, requirements, semantic, fit }, effectiveWeights, rulesVersion, computedAt }`. Written by snapshot-match-on-application-submitted.handler.ts, which owns the shape.',
+      example: { rulesVersion: '1.0.0', computedAt: '2026-05-03T12:00:00.000Z' },
+    }),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });

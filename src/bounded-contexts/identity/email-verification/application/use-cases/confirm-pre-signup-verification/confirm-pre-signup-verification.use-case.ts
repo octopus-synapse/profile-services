@@ -1,10 +1,7 @@
 import { LoggerPort } from '@/shared-kernel';
 import { hashToken } from '@/shared-kernel/crypto/token-hash';
 import { InvalidVerificationTokenException } from '../../../domain/exceptions';
-import {
-  PreSignupVerificationStorePort,
-  RegistrationTokenIssuerPort,
-} from '../../../domain/ports';
+import { PreSignupVerificationStorePort, RegistrationTokenIssuerPort } from '../../../domain/ports';
 import type {
   ConfirmPreSignupVerificationCommand,
   ConfirmPreSignupVerificationPort,
@@ -17,7 +14,7 @@ import { PRE_SIGNUP_CODE_TTL_MINUTES } from '../start-pre-signup-verification/st
  * this many wrong codes, so a distributed sweep can't grind one e-mail's
  * 10^6 keyspace across many IPs within the TTL.
  */
-export const PRE_SIGNUP_MAX_ATTEMPTS = 5;
+export const PRE_SIGNUP_MAX_ATTEMPTS = 5; // lint-allow-magic-number: the budget itself, named here
 
 export class ConfirmPreSignupVerificationUseCase implements ConfirmPreSignupVerificationPort {
   constructor(
@@ -46,7 +43,9 @@ export class ConfirmPreSignupVerificationUseCase implements ConfirmPreSignupVeri
       // wall-clock time, never resets on a failed guess.
       const remainingSeconds = Math.max(
         1,
-        Math.ceil((challenge.createdAtMs + PRE_SIGNUP_CODE_TTL_MINUTES * 60 * 1000 - Date.now()) / 1000),
+        Math.ceil(
+          (challenge.createdAtMs + PRE_SIGNUP_CODE_TTL_MINUTES * 60 * 1000 - Date.now()) / 1000,
+        ),
       );
       await this.store.set(
         email,

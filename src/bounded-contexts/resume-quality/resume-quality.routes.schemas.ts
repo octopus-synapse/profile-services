@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import { ResumeIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ScoreRankSchema } from '@/shared-kernel/scoring/rank';
 
 export const ResumeIdParams = ResumeIdParamSchema;
 
@@ -33,6 +34,8 @@ export const ResumeQualityResponseSchema = z.object({
   id: z.string(),
   resumeId: z.string().uuid(),
   overallScore: z.number().int().min(0).max(100),
+  /** Letter grade for `overallScore` (S/A/B/C/D/F), from the shared ladder. */
+  rank: ScoreRankSchema,
   completenessScore: z.number().int().min(0).max(100),
   contentQualityScore: z.number().int().min(0).max(100).nullable(),
   issues: z.array(QualityIssueSchema),

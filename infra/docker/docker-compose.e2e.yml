@@ -15,13 +15,20 @@ services:
       service: redis
     container_name: profile-redis-e2e
 
-  # Object storage for resume/banner exports. Internal-only (no host
-  # ports) so it never collides with a locally-running dev MinIO; the
-  # backend reaches it over the compose network at `minio:9000`.
+  # Object storage for resume/banner exports.
+  #
+  # This used to be internal-only, which quietly broke the export specs:
+  # the suite runs `bun test` on the HOST (against localhost:5433/6380),
+  # so `minio:9000` on the compose network was unreachable and
+  # `S3UploadService` disabled itself ("MinIO config invalid"). The host
+  # mapping uses 9100, not 9000, so a locally-running dev MinIO still
+  # doesn't collide.
   minio:
     image: minio/minio:${MINIO_VERSION:-RELEASE.2024-10-13T13-34-11Z}
     container_name: profile-minio-e2e
     command: server /data --console-address ":9001"
+    ports:
+      - "${E2E_MINIO_PORT:-9100}:9000"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
@@ -50,8 +57,16 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
 
+  # A containerized backend, which the suite does NOT use: `bun test` runs
+  # on the host and talks to localhost:5433/6380. It stayed in the default
+  # set anyway, and with `pull_policy: always` pointing at a long-dead
+  # registry path (`ghcr.io/ilelo/...`) every `up` aborted on the failed
+  # pull — taking Postgres with it, so a clean `run-e2e.sh --fresh` could
+  # not start at all. Behind a profile it is opt-in:
+  #   docker compose -f ... --profile containerized-backend up -d
   profile-services:
-    image: ${PROFILE_SERVICES_IMAGE:-ghcr.io/ilelo/profile-services:latest}
+    profiles: ["containerized-backend"]
+    image: ${PROFILE_SERVICES_IMAGE:-ghcr.io/octopus-synapse/profile-services:latest}
     pull_policy: ${PULL_POLICY:-always}
     container_name: profile-services-e2e
     ports:

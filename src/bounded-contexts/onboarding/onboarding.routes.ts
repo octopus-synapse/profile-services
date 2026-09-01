@@ -353,6 +353,10 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/session/resume-preview',
     auth: { kind: 'jwt' },
     query: ResumePreviewQuery,
+    contract: {
+      probe: false,
+      reason: 'Requires a styleId of a style that exists; a static example UUID cannot satisfy it.',
+    },
     response: OnboardingResumePreviewResponseSchema,
     openapi: {
       summary: 'Render a live résumé preview from saved progress in a candidate style',

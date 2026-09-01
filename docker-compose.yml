@@ -44,7 +44,10 @@ services:
     ports: !override []
 
   backend:
-    image: ${DOCKER_IMAGE:-ghcr.io/octopus-synapse/profile-services:${IMAGE_TAG:-latest}}
+    # No `:latest` fallback on purpose: the deploy publishes only immutable
+    # `main-<sha>` tags, so an unset IMAGE_TAG means "I don't know what to
+    # run" — fail loudly instead of resurrecting whatever `latest` points at.
+    image: ${DOCKER_IMAGE:-ghcr.io/octopus-synapse/profile-services:${IMAGE_TAG:?IMAGE_TAG is required (set it in .env)}}
     container_name: profile-backend
     restart: unless-stopped
     # Pass every var the deploy writes to .env (CD writes it from ENV_VARS).

@@ -50,6 +50,7 @@ export async function loadRoutes(srcDir: string): Promise<CollectedRoute[]> {
 }
 
 export function isHappyPathProbable(route: Route): boolean {
+  if (route.contract?.probe === false) return false;
   if (route.method !== 'GET') return false;
   if (route.kind === 'sse' || route.kind === 'stream') return false;
   if (!route.response) return false;
@@ -57,6 +58,7 @@ export function isHappyPathProbable(route: Route): boolean {
 }
 
 export function isMutationProbable(route: Route): boolean {
+  if (route.contract?.probe === false) return false;
   if (route.method !== 'POST' && route.method !== 'PUT' && route.method !== 'PATCH') return false;
   if (route.kind === 'multipart') return false;
   if (!route.body) return false;

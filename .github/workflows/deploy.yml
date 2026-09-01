@@ -1,0 +1,395 @@
+name: Deploy
+
+# The only deploy path. Replaces cd.yml (SSH — dead since the provider's
+# firewall started blocking inbound SSH), rollback.yml (same cause) and
+# fast-deploy.yml, which this file absorbs.
+#
+# Two ways in:
+#   - automatic: CI concludes successfully on main → build HEAD and ship it.
+#   - manual: the Actions button. Leave `image_tag` empty to build HEAD;
+#     set it to a previously published tag to ROLL BACK to that image.
+#
+# Build runs on a GitHub runner and pushes to GHCR. Deploy runs on a
+# SELF-HOSTED runner on the VPS itself (label profile-vps): inbound SSH is
+# firewalled, so the box polls outward and runs `docker compose` locally.
+#
+# Images are tagged `main-<short-sha>` and nothing else — no moving `:latest`.
+# Every tag is immutable, so every past deploy stays a valid rollback target.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Existing tag to roll back to (e.g. main-aba1811). Empty = build HEAD."
+        required: false
+        type: string
+      dry_run:
+        description: "Render the .env and report what would change, without deploying."
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  prepare:
+    name: Resolve target
+    runs-on: ubuntu-latest
+    # On `workflow_run` the deploy is gated on the CI verdict for that commit
+    # AND on the `AUTO_DEPLOY` repository variable being "true". The variable is
+    # the pause switch: unset it during an incident, or while landing a change
+    # to this workflow, and main stops shipping on its own without anyone
+    # editing YAML. Manual dispatch ignores it — that is the break-glass path.
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && vars.AUTO_DEPLOY == 'true')
+    outputs:
+      sha: ${{ steps.r.outputs.sha }}
+      image_tag: ${{ steps.r.outputs.image_tag }}
+      is_rollback: ${{ steps.r.outputs.is_rollback }}
+      dry_run: ${{ inputs.dry_run == true }}
+    steps:
+      - id: r
+        env:
+          # On a `workflow_run` event `github.sha` points at the DEFAULT BRANCH,
+          # not at the commit CI actually validated. `head_sha` is the real one.
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          REQUESTED_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REQUESTED_TAG}" ]; then
+            if ! printf '%s' "$REQUESTED_TAG" | grep -qE '^[a-z0-9][a-z0-9._-]{0,127}$'; then
+              echo "::error::invalid image tag: ${REQUESTED_TAG}"; exit 1
+            fi
+            echo "image_tag=${REQUESTED_TAG}" >> "$GITHUB_OUTPUT"
+            echo "is_rollback=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=main-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+            echo "is_rollback=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build & push
+    needs: prepare
+    # A rollback targets an image that already exists — rebuilding it would
+    # defeat the point of pinning an immutable tag.
+    if: needs.prepare.outputs.is_rollback == 'false'
+    runs-on: ubuntu-latest
+    # Rapid pushes: keep only the newest build. The deploy job below is NOT
+    # cancellable — a container swap must never be interrupted halfway.
+    concurrency:
+      group: production-build
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ needs.prepare.outputs.image_tag }}
+          secrets: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          cache-from: |
+            type=gha
+            type=registry,ref=ghcr.io/octopus-synapse/profile-services:cache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=ghcr.io/octopus-synapse/profile-services:cache,mode=max
+
+  deploy:
+    name: Deploy to VPS
+    needs: [prepare, build]
+    # `always()` so a rollback (build skipped) still reaches this job, while a
+    # genuine build failure still stops it.
+    if: always() && needs.prepare.result == 'success' && needs.build.result != 'failure' && needs.build.result != 'cancelled'
+    runs-on: [self-hosted, profile-vps]
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    env:
+      DEPLOY_PATH: /opt/profile-services
+      IMAGE_TAG: ${{ needs.prepare.outputs.image_tag }}
+      IS_ROLLBACK: ${{ needs.prepare.outputs.is_rollback }}
+      DRY_RUN: ${{ needs.prepare.outputs.dry_run }}
+      COMPOSE: -f docker-compose.yml -f infra/docker/docker-compose.datadog.yml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - name: Login to ghcr.io
+        # The run's own GITHUB_TOKEN carries packages:write and can pull this
+        # repo's images — no long-lived PAT to rotate.
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Sync compose files
+        run: |
+          set -euo pipefail
+          mkdir -p "$DEPLOY_PATH/infra/docker/datadog"
+          cp docker-compose.yml "$DEPLOY_PATH/docker-compose.yml"
+          cp -R infra/docker/compose "$DEPLOY_PATH/infra/docker/"
+          cp -R infra/docker/postgres "$DEPLOY_PATH/infra/docker/"
+          cp infra/docker/docker-compose.datadog.yml "$DEPLOY_PATH/infra/docker/docker-compose.datadog.yml"
+          cp -R infra/docker/datadog/conf.d "$DEPLOY_PATH/infra/docker/datadog/"
+
+      - name: Render .env from template
+        # Skipped on rollback: rolling an image back must not also roll config
+        # forward. The .env already on the box is left exactly as it is.
+        if: env.IS_ROLLBACK == 'false'
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          IP_HASH_SALT: ${{ secrets.IP_HASH_SALT }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+          INTERNAL_API_TOKEN: ${{ secrets.INTERNAL_API_TOKEN }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          JSEARCH_RAPIDAPI_KEY: ${{ secrets.JSEARCH_RAPIDAPI_KEY }}
+          JSEARCH_RAPIDAPI_HOST: ${{ secrets.JSEARCH_RAPIDAPI_HOST }}
+          LOGO_DEV_SECRET_KEY: ${{ secrets.LOGO_DEV_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          TEMPLATE="$PWD/infra/deploy/env.prod.template"
+          # Comment lines are stripped first — the header documents the
+          # `${SECRET}` convention, and scanning it would demand a secret
+          # literally named SECRET.
+          NEEDED="$(grep -v '^[[:space:]]*#' "$TEMPLATE" \
+            | grep -oE '\$\{[A-Z_][A-Z0-9_]*\}' | tr -d '${}' | sort -u)"
+
+          # Fail before touching anything if a secret is missing or empty.
+          MISSING=""
+          for v in $NEEDED; do
+            [ -n "$(printenv "$v" || true)" ] || MISSING="$MISSING $v"
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::error::missing/empty secrets:${MISSING}"; exit 1
+          fi
+
+          # Substitute ONLY the template's own placeholders, so a `$` inside a
+          # secret value is never re-expanded.
+          SUBST="$(printf '${%s} ' $NEEDED)"
+          envsubst "$SUBST" < "$TEMPLATE" > "$DEPLOY_PATH/.env.new"
+          if grep -q '\${' "$DEPLOY_PATH/.env.new"; then
+            echo "::error::unresolved placeholder left in rendered .env"; exit 1
+          fi
+          # IMAGE_TAG is appended, never templated — a rollback rewrites this
+          # one line without re-rendering the rest.
+          printf 'IMAGE_TAG=%s\n' "$IMAGE_TAG" >> "$DEPLOY_PATH/.env.new"
+
+      - name: Compare rendered .env against live config
+        # The safety net for stale GitHub secrets: prints per-key MATCH/DIFFER
+        # by sha256, never a value. A value that would change is reported
+        # loudly — on a dry run that is the whole point of the run.
+        if: env.IS_ROLLBACK == 'false'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          [ -f .env ] || { echo "no existing .env — first render, nothing to compare"; exit 0; }
+          keys() { grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' "$1" | tr -d '=' | sort -u; }
+          val()  { grep -m1 "^$2=" "$1" | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'; }
+
+          { echo "### Config diff"; echo "| Key | Change |"; echo "|---|---|"; } >> "$GITHUB_STEP_SUMMARY"
+          CHANGED=0
+          for k in $(keys .env.new); do
+            if ! grep -q "^$k=" .env; then
+              echo "  + $k (new)"; echo "| \`$k\` | added |" >> "$GITHUB_STEP_SUMMARY"; CHANGED=1; continue
+            fi
+            a="$(val .env "$k" | sha256sum | cut -c1-12)"
+            b="$(val .env.new "$k" | sha256sum | cut -c1-12)"
+            if [ "$a" != "$b" ]; then
+              echo "  ~ $k CHANGED ($a -> $b)"
+              echo "| \`$k\` | changed |" >> "$GITHUB_STEP_SUMMARY"; CHANGED=1
+            fi
+          done
+          for k in $(keys .env); do
+            grep -q "^$k=" .env.new || { echo "  - $k (dropped)"; echo "| \`$k\` | DROPPED |" >> "$GITHUB_STEP_SUMMARY"; CHANGED=1; }
+          done
+          [ "$CHANGED" = 0 ] && echo "  = config identical"
+          exit 0
+
+      - name: Stop here (dry run)
+        if: env.DRY_RUN == 'true'
+        run: |
+          rm -f "$DEPLOY_PATH/.env.new"
+          echo "Dry run — nothing deployed, .env left untouched."
+
+      - name: Swap in the new .env
+        if: env.DRY_RUN != 'true' && env.IS_ROLLBACK == 'false'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          [ -f .env ] && cp .env .env.bak
+          mv .env.new .env
+          chmod 600 .env
+
+      - name: Pin image tag (rollback)
+        if: env.DRY_RUN != 'true' && env.IS_ROLLBACK == 'true'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          touch .env
+          if grep -q '^IMAGE_TAG=' .env; then
+            sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${IMAGE_TAG}|" .env
+          else
+            printf 'IMAGE_TAG=%s\n' "$IMAGE_TAG" >> .env
+          fi
+
+      - name: Pull images
+        if: env.DRY_RUN != 'true'
+        working-directory: /opt/profile-services
+        run: docker compose $COMPOSE pull backend datadog-agent
+
+      - name: Back up the database
+        # The image rollback below restores CODE, never SCHEMA — a destructive
+        # migration has no way back without this. The whole database is ~21 MB
+        # and a compressed dump ~1 MB, so it costs seconds and a rounding
+        # error of disk. Keeps 14 dumps; a daily cron on the host covers the
+        # risks that have nothing to do with deploying.
+        if: env.DRY_RUN != 'true' && env.IS_ROLLBACK == 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p /opt/backups
+          STAMP="$(date -u +%Y%m%d-%H%M%S)"
+          OUT="/opt/backups/profile_predeploy_${STAMP}_${IMAGE_TAG}.dump"
+          docker exec -i profile-postgres \
+            pg_dump -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-profile}" -Fc > "$OUT"
+          # A pg_dump that fails mid-stream still leaves a file behind, so
+          # size is the check that it is actually restorable.
+          [ -s "$OUT" ] || { echo "::error::backup is empty — refusing to migrate"; exit 1; }
+          echo "backup: $OUT ($(du -h "$OUT" | cut -f1))"
+          ls -1t /opt/backups/profile_predeploy_*.dump 2>/dev/null | tail -n +15 | xargs -r rm --
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
+      - name: Migrate + seed
+        id: migrate
+        # Explicit, and BEFORE the swap: a bad migration fails the deploy with
+        # the old container still serving. Previously this ran inside the
+        # entrypoint and swallowed its own errors, so a broken migration just
+        # started the API against a stale schema (the v0.2.7 failure).
+        #
+        # Rollback skips it — rolling an image back must never migrate forward.
+        #
+        # `-T` AND `</dev/null` are both needed: `docker compose run` drains
+        # stdin even with -T, and would eat the rest of this script.
+        if: env.DRY_RUN != 'true' && env.IS_ROLLBACK == 'false'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          docker compose $COMPOSE run --rm -T backend ./migrate-and-seed.sh </dev/null \
+            | tee /tmp/migrate.log
+          # Recorded so the smoke test knows whether an automatic rollback is
+          # safe: rolling the image back under a schema that just moved
+          # forward is usually worse than the failure being recovered from.
+          if grep -qi 'No pending migrations' /tmp/migrate.log; then
+            echo "applied=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "applied=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Recreate backend
+        if: env.DRY_RUN != 'true'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          docker compose $COMPOSE up -d datadog-agent
+          # --force-recreate: compose compares images by NAME, so without it a
+          # container already running would be left in place.
+          docker compose $COMPOSE up -d --force-recreate backend
+
+      - name: Wait for health
+        if: env.DRY_RUN != 'true'
+        run: |
+          for i in $(seq 1 40); do
+            s="$(docker inspect profile-backend --format '{{.State.Health.Status}}' 2>/dev/null || echo none)"
+            echo "attempt ${i}: health=${s}"
+            [ "$s" = "healthy" ] && { echo "✅ backend healthy"; exit 0; }
+            sleep 5
+          done
+          echo "::error::backend did not become healthy in time"
+          docker logs profile-backend --tail 80 || true
+          exit 1
+
+      - name: Smoke test (public URL)
+        # The container healthcheck calls itself from inside the container, so
+        # it stays green while TLS, Caddy or DNS are broken and nobody can
+        # actually reach the API. This hits the real address from outside.
+        id: smoke
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          URL="https://backend.patchcareers.org/api/health"
+          for i in $(seq 1 12); do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "$URL" || echo 000)"
+            echo "attempt ${i}: ${URL} -> ${code}"
+            [ "$code" = "200" ] && { echo "✅ reachable from the public internet"; exit 0; }
+            sleep 5
+          done
+          echo "::error::${URL} did not answer 200"
+          exit 1
+
+      - name: Roll back (smoke test failed)
+        # Only when this deploy did NOT migrate. With a migration applied,
+        # putting the old image back means running old code against a new
+        # schema — frequently worse than the outage being recovered from. In
+        # that case stop, keep everything as it is, and hand over the command.
+        if: failure() && steps.smoke.outcome == 'failure' && steps.migrate.outputs.applied != 'true'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          PREV="$(grep -m1 '^IMAGE_TAG=' .env.bak 2>/dev/null | cut -d= -f2- || true)"
+          if [ -z "$PREV" ] || [ "$PREV" = "$IMAGE_TAG" ]; then
+            echo "::error::no previous tag recorded — roll back manually"; exit 1
+          fi
+          echo "::warning::smoke test failed; rolling back to ${PREV}"
+          sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${PREV}|" .env
+          docker compose $COMPOSE up -d --force-recreate backend
+          echo "Rolled back to ${PREV}."
+
+      - name: Migration applied — not rolling back automatically
+        if: failure() && steps.smoke.outcome == 'failure' && steps.migrate.outputs.applied == 'true'
+        run: |
+          echo "::error::Smoke test failed AFTER a migration was applied, so the image was left in place — old code against a new schema is its own outage."
+          echo "Pre-deploy dump: $(ls -1t /opt/backups/profile_predeploy_*.dump | head -1)"
+          echo "To roll back deliberately: gh workflow run deploy.yml -f image_tag=<previous main-sha>"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "| Property | Value |"
+            echo "|---|---|"
+            echo "| Image | \`ghcr.io/${{ github.repository }}:${IMAGE_TAG}\` |"
+            echo "| Commit | \`${{ needs.prepare.outputs.sha }}\` |"
+            echo "| Rollback | \`${IS_ROLLBACK}\` |"
+            echo "| Dry run | \`${DRY_RUN}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Logout ghcr.io
+        if: always()
+        run: docker logout ghcr.io || true

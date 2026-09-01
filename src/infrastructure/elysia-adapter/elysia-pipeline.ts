@@ -128,10 +128,15 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
     }),
     errorMapperStage(deps),
   ];
-  if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));
+  if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter, 'ip'));
   // P1 #2 / #12 — auth-lockout sits after rate-limit, before authExtractor.
   if (deps.loginAttempts) stages.push(authLockoutStage({ attempts: deps.loginAttempts }));
   if (deps.authExtractor) stages.push(authExtractorStage(deps.authExtractor));
+  // Second rate-limit pass: `keyStrategy: 'userId'` guards can only be
+  // charged once `authExtractor` has put the caller on the context.
+  if (deps.rateLimiter && deps.authExtractor) {
+    stages.push(rateLimitStage(deps.rateLimiter, 'userId'));
+  }
   if (deps.permissionChecker) {
     stages.push(
       permissionGuardStage(deps.permissionChecker, {
@@ -260,13 +265,37 @@ export function authExtractorStage(extractor: AuthExtractorPort): PipelineStage 
   };
 }
 
-export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
+/**
+ * `guards: [{ id: 'rate-limit', metadata: { keyStrategy } }]` — which
+ * identity the budget is charged to.
+ *
+ * The pipeline runs this stage twice: once before `authExtractor` (for
+ * `'ip'`, the default) and once after it (for `'userId'`, which needs
+ * `ctx.user` to exist). Each pass ignores guards belonging to the other,
+ * so a route is still charged exactly once.
+ */
+type RateLimitKeying = 'ip' | 'userId';
+
+function guardKeying(meta: Record<string, unknown>): RateLimitKeying {
+  return meta.keyStrategy === 'userId' || meta.keyStrategy === 'user' ? 'userId' : 'ip';
+}
+
+export function rateLimitStage(
+  limiter: CacheRateLimiter,
+  keying: RateLimitKeying = 'ip',
+): PipelineStage {
   return {
+    // Both passes share the stage name so `route.skip: ['rateLimit']`
+    // keeps turning rate limiting off entirely, as it always has.
     name: 'rateLimit',
     async run(ctx, next) {
       const route = ctx.state.__route as Route | undefined;
       const guard = route?.guards?.find((g) => g.id === 'rate-limit' || g.id === 'throttle');
       if (!guard) return next();
+      // Not this pass's business — the other one will charge it.
+      if (guardKeying((guard.metadata ?? {}) as Record<string, unknown>) !== keying) {
+        return next();
+      }
       // Tests opt out per-request to exercise non-rate-limit paths
       // without burning budget. Bypass is honored only in NODE_ENV=test.
       if (process.env.NODE_ENV === 'test' && ctx.headers['x-e2e-bypass-rate-limit'] === 'true') {
@@ -290,7 +319,19 @@ export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
       const ttlSeconds =
         rawTtl === undefined ? 60 : rawTtl >= 1000 ? Math.floor(rawTtl / 1000) : rawTtl;
       const ttl = ttlSeconds;
-      const key = `${ctx.ip ?? 'anon'}:${route?.method}:${route?.path}`;
+      // P0-#4 intent restored: routes that declare `keyStrategy: 'userId'`
+      // ("keyed by userId since the route is jwt-gated") were being charged
+      // per IP, because this stage ran before `authExtractor` and simply
+      // ignored the field. Everyone behind one NAT shared a 5/60s 2FA
+      // budget, while an attacker holding a stolen session could reset it
+      // by rotating IPs. The userId pass runs after auth, so `ctx.user` is
+      // there; `anon` remains the fallback for an unauthenticated request
+      // that somehow reaches a user-keyed route.
+      const identity =
+        keying === 'userId'
+          ? `user:${(ctx.user as { userId?: string } | undefined)?.userId ?? ctx.ip ?? 'anon'}`
+          : (ctx.ip ?? 'anon');
+      const key = `${identity}:${route?.method}:${route?.path}`;
       const result = await limiter.check(key, { ttl, limit });
       ctx.state.responseHeaders = {
         ...((ctx.state.responseHeaders as Record<string, string> | undefined) ?? {}),

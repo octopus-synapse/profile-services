@@ -22,8 +22,12 @@ export type CompaniesSearchResponse = z.infer<typeof CompaniesSearchResponseSche
 
 /** Query for `GET /v1/companies/search`. Two chars minimum — short brands
  *  (XP, C6, 3M, GE) are real autocomplete targets. */
-export const CompaniesSearchQuerySchema = z.object({
-  q: z.string().trim().min(2).max(80),
-  limit: z.coerce.number().int().min(1).max(25).optional(),
-});
+export const CompaniesSearchQuerySchema = z
+  .object({
+    q: z.string().trim().min(2).max(80),
+    limit: z.coerce.number().int().min(1).max(25).optional(),
+  })
+  // `q` is required, so without an example the contract prober calls this
+  // with no query at all and gets a 400 it reads as a broken endpoint.
+  .openapi({ example: { q: 'acme' } });
 export type CompaniesSearchQuery = z.infer<typeof CompaniesSearchQuerySchema>;

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test';
-import { signState } from './signed-state-cookie';
 import {
   issueRegistrationToken,
   REGISTRATION_TOKEN_TTL_MS,
   verifyRegistrationToken,
 } from './registration-token';
+import { signState } from './signed-state-cookie';
 
 const SECRET = 'a-test-secret-at-least-32-characters-long';
 

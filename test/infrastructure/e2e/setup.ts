@@ -14,6 +14,25 @@ import { CleanupHelper } from './helpers/cleanup.helper';
 setDefaultTimeout(15000);
 
 /**
+ * Object storage for the export specs.
+ *
+ * `.env.test` blanks `MINIO_*` so the integration suite runs with
+ * `S3UploadService` disabled — cheap, and it needs no bucket. The e2e
+ * stack, though, ships a real MinIO (`infra/docker/docker-compose.e2e.yml`,
+ * host-mapped on 9100 with the bucket pre-created by `minio-init`), and
+ * the export journey asserts a presigned download URL. Without these the
+ * service disabled itself and `GET /v1/export/resume/docx` could never
+ * return one.
+ *
+ * Assigned only when unset, so CI (which points at its own container)
+ * and anyone with a bespoke stack keep control.
+ */
+process.env.MINIO_ENDPOINT ||= `http://localhost:${process.env.E2E_MINIO_PORT ?? '9100'}`;
+process.env.MINIO_ACCESS_KEY ||= 'minioadmin';
+process.env.MINIO_SECRET_KEY ||= 'minioadmin';
+process.env.MINIO_BUCKET ||= 'profile-uploads';
+
+/**
  * Global rate-limit reset. `.env.test` keeps `RATE_LIMIT_ENABLED=true`
  * (security specs need the gate live), but each test fixture signs up
  * 1–3 fresh users — without resetting the buckets between specs the

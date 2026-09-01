@@ -115,6 +115,10 @@ export const externalJobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
   {
     method: 'POST',
     path: '/v1/jobs/external/saved/:id/did-apply',
+    contract: {
+      probe: false,
+      reason: 'Marks a SavedExternalJob the probe persona has not saved, so the example id 404s.',
+    },
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParamSchema,

@@ -6,6 +6,10 @@
 
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { JsonObjectSchema } from '@/shared-kernel/schemas/primitives/json-object.schema';
+
+export { JsonObjectSchema };
+
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 extendZodWithOpenApi(z);
@@ -27,10 +31,6 @@ export const JsonNodeLevel1Schema = z.union([
   z.array(JsonNodeLevel2Schema),
   z.record(z.string(), JsonNodeLevel2Schema),
 ]);
-export const JsonObjectSchema = z
-  .record(z.string(), z.unknown())
-  .openapi({ example: { fields: [], translations: {} } });
-
 export const SectionTypeTranslationSchema = z.object({
   title: z.string(),
   description: z.string().optional(),

@@ -35,6 +35,7 @@ import { seedTechSkills } from '../../../prisma/seeds/dev/tech-skill.seed';
 import { seedOnboardingSteps } from '../../../prisma/seeds/shared/onboarding-step.seed';
 import { seedSectionTypes } from '../../../prisma/seeds/shared/section-type.seed';
 import { seedSpokenLanguages } from '../../../prisma/seeds/shared/spoken-language.seed';
+import { seedStyleScoringCriteria } from '../../../prisma/seeds/shared/style-scoring-criteria.seed';
 import { createTestRequest, type TestRequest } from './test-request';
 
 export interface TestApp {
@@ -159,9 +160,17 @@ export async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
   const tasks: Array<Promise<unknown>> = [
     seedSpokenLanguages(prisma),
     seedTechSkills(prisma),
-    seedSectionTypes(prisma),
-    seedOnboardingSteps(prisma),
+    // `OnboardingStep.sectionTypeKey` is a foreign key to `SectionType`,
+    // so these two cannot race: when the step seed won, it failed with
+    // P2003 on `OnboardingStep_sectionTypeKey_fkey` and took the whole
+    // pre-seed (and therefore the e2e run) down. It only ever passed by
+    // luck of scheduling.
+    seedSectionTypes(prisma).then(() => seedOnboardingSteps(prisma)),
     seedResumeStyles(prisma, adminId),
+    // The `styleScore` rubric is data-driven: with no `StyleScoringCriterion`
+    // rows every style scores 0, so admin create/update was rejected with
+    // 422 STYLE_BELOW_ATS_THRESHOLD no matter how ATS-safe the config was.
+    seedStyleScoringCriteria(prisma),
   ];
   await Promise.all(tasks);
   await seedDreddFixtures(prisma, adminId);

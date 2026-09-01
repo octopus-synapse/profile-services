@@ -92,7 +92,10 @@ COPY --from=builder --chown=nestjs:nodejs /app/fonts /usr/share/fonts/resume-fon
 COPY --chown=nestjs:nodejs swagger.json ./swagger.json
 
 COPY --chown=nestjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+# Also invoked directly by the deploy workflow, as an explicit step before the
+# container is recreated (`docker compose run --rm -T backend ./migrate-and-seed.sh`).
+COPY --chown=nestjs:nodejs infra/deploy/migrate-and-seed.sh ./migrate-and-seed.sh
+RUN chmod +x ./docker-entrypoint.sh ./migrate-and-seed.sh
 
 RUN bun install -g prisma@7
 

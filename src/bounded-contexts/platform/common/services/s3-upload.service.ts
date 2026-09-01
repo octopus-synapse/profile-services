@@ -33,6 +33,16 @@ interface ParsedEndpoint {
 }
 
 function parseEndpoint(url: string): ParsedEndpoint {
+  // `new URL('host:9000')` does NOT fail — it reads `host:` as the protocol
+  // and leaves `hostname` empty, so MinioClient then throws a bare "Invalid
+  // endPoint" and the service silently disables itself. Production ran that
+  // way with `MINIO_ENDPOINT=srv1073054.hstgr.cloud:9000`: every avatar,
+  // company logo, post image and resume-export download was failing while
+  // the only symptom was one unexplained log line at boot.
+  //
+  // The scheme is guaranteed by `OptionalUrl` in config.schema.ts, which
+  // rejects the schemeless form at boot rather than letting it degrade
+  // something quietly down here.
   const u = new URL(url);
   const useSSL = u.protocol === 'https:';
   const port = u.port ? Number(u.port) : useSSL ? 443 : 80;
@@ -123,8 +133,13 @@ export class S3UploadService {
           bucket,
         });
       } catch (error) {
-        this.logger.error('Failed to initialize MinIO client', {
+        // Name the endpoint: this failure disables every upload and
+        // presigned download in the process, and without it the only clue
+        // is a bare stack trace at boot.
+        this.logger.error('Failed to initialize MinIO client — uploads disabled', {
           context: 'S3UploadService',
+          endpoint,
+          bucket,
           stack: error instanceof Error ? error.stack : undefined,
         });
         this._isEnabled = false;

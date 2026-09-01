@@ -30,6 +30,7 @@ import {
   getPrisma,
   getRequest,
   uniqueTestId,
+  uniqueTestIp,
 } from '../setup';
 
 interface TfaActor {
@@ -194,13 +195,18 @@ describe('2FA Security - Bug Discovery Tests', () => {
       'should lock out after 5 failed 2FA attempts',
       async () => {
         await getApp();
-        // Clear rate limit state from previous tests to ensure clean state
-        await clearRateLimitState();
+        // This test ASSERTS throttling, so it needs a bucket no other spec
+        // can touch. Bun runs describes concurrently, and the bare
+        // `clearRateLimitState()` used here before wiped `ratelimit:*` —
+        // every spec's bucket. A neighbour's reset landing midway through
+        // the 10 attempts meant no request ever hit the cap.
+        const ip = uniqueTestIp();
+        await clearRateLimitState(ip);
 
         const actor = await freshUserWith2fa('2fa-brute');
 
         // Login to trigger 2FA
-        await getRequest().post('/api/v1/auth/login').send({
+        await getRequest().post('/api/v1/auth/login').set('X-Forwarded-For', ip).send({
           email: actor.email,
           password: 'FreshPass123!',
         });
@@ -208,10 +214,13 @@ describe('2FA Security - Bug Discovery Tests', () => {
         // Try 10 wrong codes
         const results: number[] = [];
         for (let i = 0; i < 10; i++) {
-          const response = await getRequest().post('/api/v1/auth/login/verify-2fa').send({
-            userId: actor.userId,
-            code: '000000', // Wrong code
-          });
+          const response = await getRequest()
+            .post('/api/v1/auth/login/verify-2fa')
+            .set('X-Forwarded-For', ip)
+            .send({
+              userId: actor.userId,
+              code: '000000', // Wrong code
+            });
           results.push(response.status);
         }
 
@@ -221,8 +230,8 @@ describe('2FA Security - Bug Discovery Tests', () => {
         // This assertion should FAIL if there's no rate limiting
         expect(hasRateLimit).toBe(true);
 
-        // Reset rate limits so we don't leak throttle state to siblings.
-        await clearRateLimitState();
+        // Scoped reset: this spec's own bucket, never the global pattern.
+        await clearRateLimitState(ip);
       },
       { timeout: 15000 },
     ); // 15 second timeout for this rate-limited test

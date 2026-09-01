@@ -21,7 +21,7 @@ export class PrismaAdminSpokenLanguagesRepository extends AdminSpokenLanguagesRe
     if (query.isActive !== undefined) where.isActive = query.isActive;
     return paginate<SpokenLanguage>(this.prisma.spokenLanguage, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       where,
       orderBy: { order: 'asc' },
     });

@@ -19,7 +19,7 @@ import type {
 import { RESEND_COOLDOWN_SECONDS } from '../send-verification-email/send-verification-email.use-case';
 
 /** The code's lifetime — also the challenge's cache TTL. */
-export const PRE_SIGNUP_CODE_TTL_MINUTES = 15;
+export const PRE_SIGNUP_CODE_TTL_MINUTES = 15; // lint-allow-magic-number: the TTL itself, named here
 
 export class StartPreSignupVerificationUseCase implements StartPreSignupVerificationPort {
   constructor(

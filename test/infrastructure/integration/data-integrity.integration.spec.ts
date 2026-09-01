@@ -10,7 +10,7 @@
  * NOTE: Uses Generic Sections API - the standard way to manage resume content.
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import {
   authHeader,
@@ -30,31 +30,32 @@ function unwrapData<T>(body: ApiResponse<T>): T {
   return (body.data ?? body) as T;
 }
 
+interface DataIntegrityCtx {
+  readonly accessToken: string;
+  readonly userId: string;
+  readonly sectionTypeKey: string;
+  readonly sectionTypeId: string;
+}
+
 describe('Data Integrity Integration', () => {
-  let accessToken: string;
-  let userId: string;
+  // Everything a test needs is created BY that test and lives in its own
+  // local, never in suite-level `let`s. Bun runs describes concurrently, so
+  // a shared `beforeEach` reassigning `testSectionTypeKey` mid-flight made
+  // one test post its items under another test's section type — the
+  // intermittent "preserve section item order" failure, which passed or
+  // failed purely on scheduling.
+  const createdSectionTypeIds: string[] = [];
+  const createdUserIds: string[] = [];
 
-  // Custom section type for testing
-  let testSectionTypeKey: string;
-  let testSectionTypeId: string;
-
-  beforeAll(async () => {
-    await getApp();
-  });
-
-  beforeEach(async () => {
+  async function freshCtx(): Promise<DataIntegrityCtx> {
     await clearAuthRateLimits();
     const auth = await createTestUserAndLogin();
-    accessToken = auth.accessToken;
-    userId = auth.userId;
-
-    // Create a custom section type for testing
     const prisma = getPrisma();
-    testSectionTypeKey = `data_integrity_${randomUUID().slice(0, 8)}_v1`;
+    const key = `data_integrity_${randomUUID().slice(0, 8)}_v1`;
     const sectionType = await prisma.sectionType.create({
       data: {
-        key: testSectionTypeKey,
-        slug: testSectionTypeKey,
+        key,
+        slug: key,
         title: 'Data Integrity Test Section',
         description: 'Section for data integrity tests',
         semanticKind: 'CUSTOM',
@@ -74,32 +75,41 @@ describe('Data Integrity Integration', () => {
         },
       },
     });
-    testSectionTypeId = sectionType.id;
+    createdSectionTypeIds.push(sectionType.id);
+    createdUserIds.push(auth.userId);
+    return {
+      accessToken: auth.accessToken,
+      userId: auth.userId,
+      sectionTypeKey: key,
+      sectionTypeId: sectionType.id,
+    };
+  }
+
+  beforeAll(async () => {
+    await getApp();
   });
 
   afterAll(async () => {
     const prisma = getPrisma();
-    if (testSectionTypeId) {
+    if (createdSectionTypeIds.length > 0) {
       await prisma.resumeSection.deleteMany({
-        where: { sectionTypeId: testSectionTypeId },
+        where: { sectionTypeId: { in: createdSectionTypeIds } },
       });
-      await prisma.sectionType.deleteMany({ where: { id: testSectionTypeId } });
+      await prisma.sectionType.deleteMany({ where: { id: { in: createdSectionTypeIds } } });
     }
-    if (userId) {
-      await prisma.resumeShare.deleteMany({
-        where: { resume: { userId } },
-      });
-      await prisma.resumeVersion.deleteMany({
-        where: { resume: { userId } },
-      });
-      await prisma.resume.deleteMany({ where: { userId } });
-      await prisma.user.deleteMany({ where: { id: userId } });
+    if (createdUserIds.length > 0) {
+      const where = { resume: { userId: { in: createdUserIds } } };
+      await prisma.resumeShare.deleteMany({ where });
+      await prisma.resumeVersion.deleteMany({ where });
+      await prisma.resume.deleteMany({ where: { userId: { in: createdUserIds } } });
+      await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
     }
     await closeApp();
   });
 
   describe('BUG-013: Cascade Delete Behavior', () => {
     it('should delete related section items when resume is deleted', async () => {
+      const { accessToken, sectionTypeKey } = await freshCtx();
       const prisma = getPrisma();
 
       // Create resume
@@ -114,7 +124,7 @@ describe('Data Integrity Integration', () => {
 
       // Add section item using generic sections API
       await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/sections/${testSectionTypeKey}/items`)
+        .post(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(accessToken))
         .send({
           content: {
@@ -140,6 +150,7 @@ describe('Data Integrity Integration', () => {
 
   describe('BUG-014: Share and Version Cleanup', () => {
     it('should cleanup shares when resume is deleted', async () => {
+      const { accessToken } = await freshCtx();
       const prisma = getPrisma();
 
       // Create resume
@@ -202,10 +213,11 @@ describe('Data Integrity Integration', () => {
 
   describe('BUG-016: Referential Integrity', () => {
     it('should not allow section item for non-existent resume', async () => {
+      const { accessToken, sectionTypeKey } = await freshCtx();
       const fakeResumeId = '00000000-0000-4000-a000-000000000000';
 
       const response = await getRequest()
-        .post(`/api/v1/resumes/${fakeResumeId}/sections/${testSectionTypeKey}/items`)
+        .post(`/api/v1/resumes/${fakeResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(accessToken))
         .send({
           content: {
@@ -223,6 +235,7 @@ describe('Data Integrity Integration', () => {
       // This tests that if part of an operation fails,
       // the entire operation should be rolled back.
       // Implementation depends on transaction-wrapped endpoints.
+      const { accessToken } = await freshCtx();
 
       const response = await getRequest()
         .post('/api/v1/resumes')
@@ -240,6 +253,8 @@ describe('Data Integrity Integration', () => {
 
   describe('BUG-018: Order Preservation', () => {
     it('should preserve section item order', async () => {
+      const { accessToken, sectionTypeKey } = await freshCtx();
+
       // Create resume
       const createRes = await getRequest()
         .post('/api/v1/resumes')
@@ -254,7 +269,7 @@ describe('Data Integrity Integration', () => {
       const titles = ['First', 'Second', 'Third'];
       for (const title of titles) {
         await getRequest()
-          .post(`/api/v1/resumes/${resumeId}/sections/${testSectionTypeKey}/items`)
+          .post(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items`)
           .set(authHeader(accessToken))
           .send({
             content: {
@@ -279,7 +294,7 @@ describe('Data Integrity Integration', () => {
         }>;
       }>(getRes.body);
       const sections = body.sections ?? [];
-      const testSection = sections.find((s) => s.sectionType?.key === testSectionTypeKey);
+      const testSection = sections.find((s) => s.sectionType?.key === sectionTypeKey);
 
       if (testSection?.items) {
         expect(testSection.items.length).toBeGreaterThanOrEqual(3);

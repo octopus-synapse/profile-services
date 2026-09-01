@@ -18,6 +18,10 @@ jobs:
       test-name: "E2E"
       db-name: "e2e_test_db"
       timeout: 20
+      # The export journey asserts a presigned download URL, which needs
+      # real object storage. Without it `S3UploadService` disables itself
+      # and `GET /v1/export/resume/docx` can never return one.
+      needs-object-storage: true
       # `BCRYPT_COST=4`  → bcrypt drops from ~80ms to ~6ms; matches
       #                    the local `.env.test`.
       # `SHARDS=2`       → GitHub-hosted runners are 2 vCPUs; 3+ shards

@@ -107,7 +107,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
       // endpoint deliberately reveals existence, so the per-IP budget is
       // tight — 15/min covers a human correcting typos on the e-mail
       // step several times over, while a scripted sweep starves.
-      { id: 'rate-limit', metadata: { points: 15, duration: 60, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 15, duration: 60, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
       { id: 'multi-step-flow' },
     ],
     openapi: {

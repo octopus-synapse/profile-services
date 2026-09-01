@@ -9,10 +9,7 @@
  */
 
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import type {
-  PreSignupChallenge,
-  PreSignupVerificationStorePort,
-} from '../../../domain/ports';
+import type { PreSignupChallenge, PreSignupVerificationStorePort } from '../../../domain/ports';
 
 const KEY_PREFIX = 'pre-signup-verification:';
 

@@ -165,6 +165,10 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
   {
     method: 'POST',
     path: '/v1/resumes/:resumeId/duplicate',
+    contract: {
+      probe: false,
+      reason: 'Needs a resume the probe persona actually owns; the example id resolves to nothing.',
+    },
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_CREATE,
