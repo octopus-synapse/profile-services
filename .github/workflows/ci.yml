@@ -8,6 +8,18 @@ on:
       - ".release-please-manifest.json"
       - "*.md"
       - "docs/**"
+  # Deploy is gated on this workflow's verdict (deploy.yml listens for a
+  # successful `workflow_run` on main), so CI has to actually run on the push
+  # — until now it only ran on pull requests and main shipped ungated.
+  # `paths-ignore` doubles as the deploy filter: a docs-only push produces no
+  # CI run at all, so nothing deploys.
+  push:
+    branches: [main]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - ".release-please-manifest.json"
+      - "*.md"
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:

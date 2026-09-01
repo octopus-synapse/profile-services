@@ -1,21 +1,19 @@
 #!/bin/sh
 # Production container entrypoint.
 #
-# Order matters: schema must exist before seeding, and both must run before
-# the API serves traffic that reads reference data (e.g. the onboarding
-# session resolver needs section-type field translations).
+# migrate + seed live in ./migrate-and-seed.sh, which the deploy workflow runs
+# as an explicit step BEFORE recreating this container. That is where a bad
+# migration should fail — loudly, with the deploy going red and the old
+# container still serving.
 #
-# migrate + seed are best-effort: a failure is logged loudly but does NOT
-# abort startup, so a migration/seed hiccup can never take the whole API
-# offline. `prisma migrate deploy` and the deploy seed are both idempotent.
+# Prod therefore sets RUN_MIGRATIONS_ON_BOOT=false. Anywhere else (a dev box,
+# a bare `docker compose up`) the boot path still self-heals, best-effort: a
+# failure is logged but must never take the whole API offline.
 
-echo "[entrypoint] prisma migrate deploy…"
-bunx prisma migrate deploy --config ./prisma.config.ts \
-  || echo "[entrypoint] WARNING: migrate failed; continuing"
-
-echo "[entrypoint] seeding reference catalogs…"
-bun dist/seed.deploy.js \
-  || echo "[entrypoint] WARNING: deploy seed failed; continuing"
+if [ "${RUN_MIGRATIONS_ON_BOOT:-true}" != "false" ]; then
+  echo "[entrypoint] migrate + seed on boot (best-effort)…"
+  ./migrate-and-seed.sh || echo "[entrypoint] WARNING: migrate/seed failed; continuing"
+fi
 
 echo "[entrypoint] starting API…"
 exec bun --bun dist/main.js
