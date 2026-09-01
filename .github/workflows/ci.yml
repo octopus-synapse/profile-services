@@ -67,6 +67,13 @@ jobs:
               # tier that listed only the binary lockfile.
               - 'bun.lock'
               - 'tsconfig*.json'
+              # The image definition itself. Without these a Dockerfile or
+              # entrypoint change skipped the `build` tier entirely, so a
+              # broken image only surfaced at deploy time — and the deploy is
+              # now gated on this workflow, which made that a production gap.
+              - 'Dockerfile'
+              - 'docker-entrypoint.sh'
+              - 'infra/deploy/**'
             tests:
               - 'test/**'
             prisma:
