@@ -5,3 +5,4 @@
  */
 
 export { EmailServicePort, EmailVerificationSender } from './email-verification.sender';
+export { SignedRegistrationTokenIssuer } from './signed-registration-token.issuer';

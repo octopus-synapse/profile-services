@@ -20,12 +20,19 @@ import {
   InMemoryAccountLifecycleRepository,
   InMemoryPasswordHasher,
 } from '../../../testing';
+import type { RegistrationTokenVerifierPort } from '../../../domain/ports';
 import type { CreateAccountCommand } from '../../ports';
 import { AcceptConsentUseCase } from '../accept-consent/accept-consent.use-case';
 import { CreateAccountUseCase } from './create-account.use-case';
 
 const TOS_VERSION = '1.0.0';
 const PRIVACY_VERSION = '1.0.0';
+
+// Accepts only the well-known test token, vouching for the e-mail after ':'.
+const stubVerifier: RegistrationTokenVerifierPort = {
+  verify: (token: string) =>
+    token.startsWith('valid-token:') ? token.slice('valid-token:'.length) : null,
+};
 
 type StoredConsent = {
   userId: string;
@@ -115,6 +122,7 @@ describe('CreateAccountUseCase', () => {
       eventBus,
       acceptConsent,
       versionConfig,
+      stubVerifier,
       stubLogger,
     );
   });
@@ -236,5 +244,49 @@ describe('CreateAccountUseCase', () => {
     });
 
     expect(useCase.execute(command)).rejects.toThrow('consent_version_mismatch');
+  });
+
+  it('creates the account already verified with a valid registration token', async () => {
+    const command = baseCommand({
+      email: 'verified@example.com',
+      password: VALID_PASSWORD,
+      emailVerificationToken: 'valid-token:verified@example.com',
+    });
+
+    const result = await useCase.execute(command);
+
+    const signals = await repository.findIdentitySignalsByEmail('verified@example.com');
+    expect(result.email).toBe('verified@example.com');
+    expect(signals).toEqual({ emailVerified: true, hasPassword: true });
+  });
+
+  it('rejects a registration token that vouches for a DIFFERENT e-mail', async () => {
+    const command = baseCommand({
+      email: 'mallory@example.com',
+      password: VALID_PASSWORD,
+      emailVerificationToken: 'valid-token:victim@example.com',
+    });
+
+    expect(useCase.execute(command)).rejects.toThrow('Invalid or expired registration token');
+    expect(await repository.findByEmail('mallory@example.com')).toBeNull();
+  });
+
+  it('rejects an invalid registration token instead of silently downgrading', async () => {
+    const command = baseCommand({
+      email: 'jane@example.com',
+      password: VALID_PASSWORD,
+      emailVerificationToken: 'garbage',
+    });
+
+    expect(useCase.execute(command)).rejects.toThrow('Invalid or expired registration token');
+  });
+
+  it('still creates an unverified account when no token is sent (legacy flow)', async () => {
+    const command = baseCommand({ email: 'legacy@example.com', password: VALID_PASSWORD });
+
+    await useCase.execute(command);
+
+    const signals = await repository.findIdentitySignalsByEmail('legacy@example.com');
+    expect(signals).toEqual({ emailVerified: false, hasPassword: true });
   });
 });

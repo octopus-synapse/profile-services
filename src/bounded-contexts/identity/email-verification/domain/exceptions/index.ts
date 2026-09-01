@@ -1,4 +1,5 @@
 export {
+  EmailAlreadyRegisteredException,
   EmailAlreadyVerifiedException,
   EmailNotVerifiedException,
   InvalidVerificationTokenException,

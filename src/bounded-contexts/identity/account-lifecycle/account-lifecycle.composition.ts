@@ -28,6 +28,7 @@ import {
   DeactivateAccountUseCase,
   GetConsentHistoryUseCase,
   GetConsentStatusUseCase,
+  IdentifyAccountUseCase,
   RequestAccountDeletionUseCase,
 } from './application/use-cases';
 import { ExportDataUseCase } from './application/use-cases/export-data/export-data.use-case';
@@ -38,6 +39,7 @@ import {
   DataExportRepository,
   PrismaAccountLifecycleRepository,
   PrismaConsentRepository,
+  SignedRegistrationTokenVerifier,
 } from './infrastructure/adapters';
 
 export { AccountLifecycleUseCases };
@@ -74,8 +76,11 @@ export function buildAccountLifecycleUseCases(
     eventBus,
     acceptConsent,
     versionConfig,
+    // Same secret the email-verification BC signs with (shared-kernel helper).
+    new SignedRegistrationTokenVerifier(config.env.JWT_SECRET),
     logger,
   );
+  const identifyAccount = new IdentifyAccountUseCase(repository);
   const deactivateAccount = new DeactivateAccountUseCase(repository, eventBus, logger);
   const requestAccountDeletion = new RequestAccountDeletionUseCase(
     repository,
@@ -95,6 +100,7 @@ export function buildAccountLifecycleUseCases(
 
   return {
     createAccount,
+    identifyAccount,
     createSession,
     deactivateAccount,
     requestAccountDeletion,

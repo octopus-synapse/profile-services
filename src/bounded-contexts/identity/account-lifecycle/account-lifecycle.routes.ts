@@ -29,12 +29,14 @@ import {
   ConsentStatusResponseSchema,
   CreateAccountResponseSchema,
   GdprExportResponseSchema,
+  IdentifyAccountResponseSchema,
   MessageResponseSchema,
 } from './account-lifecycle.routes.schemas';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
 import { ConfirmAccountDeletionSchema } from './application/use-cases/confirm-account-deletion/confirm-account-deletion.schema';
 import { CreateAccountSchema } from './application/use-cases/create-account/create-account.schema';
 import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.schema';
+import { IdentifyAccountSchema } from './application/use-cases/identify-account/identify-account.schema';
 import { RequestAccountDeletionSchema } from './application/use-cases/request-account-deletion/request-account-deletion.schema';
 import { toConsentHistoryResponseDto } from './infrastructure/presenters/get-consent-history.presenter';
 
@@ -71,6 +73,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         password: dto.password,
         acceptedTosVersion: dto.acceptedTosVersion,
         acceptedPrivacyVersion: dto.acceptedPrivacyVersion,
+        emailVerificationToken: dto.emailVerificationToken,
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
       });
@@ -89,6 +92,37 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         email: result.email,
         message: 'Account created successfully.',
       };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/auth/identify',
+    // A lookup, not a resource creation — override the mounter's auto-201.
+    statusCode: 200,
+    auth: { kind: 'public' },
+    body: IdentifyAccountSchema,
+    response: IdentifyAccountResponseSchema,
+    guards: [
+      // Account-enumeration mitigation (see IdentifyAccountPort): the
+      // endpoint deliberately reveals existence, so the per-IP budget is
+      // tight — 15/min covers a human correcting typos on the e-mail
+      // step several times over, while a scripted sweep starves.
+      { id: 'rate-limit', metadata: { points: 15, duration: 60, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Identify which auth branch an e-mail should take',
+      tags: ['accounts'],
+      description:
+        'Identifier-first entry point for the unified "sign in or create account" surface. ' +
+        'Returns whether the e-mail has an account and, when it does, whether the e-mail is ' +
+        'verified (unverified accounts resume the verification flow) and whether a password ' +
+        'exists (OAuth-only accounts are pointed at the social sign-in).',
+    },
+    sdk: { exported: true, name: 'identify' },
+    handler: async (ctx, bc) => {
+      const dto = ctx.body as z.infer<typeof IdentifyAccountSchema>;
+      return bc.identifyAccount.execute({ email: dto.email });
     },
   },
   {

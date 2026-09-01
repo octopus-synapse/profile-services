@@ -46,6 +46,22 @@ export class VerificationTokenAlreadySentException extends DomainException {
 }
 
 /**
+ * Email Already Registered Exception
+ *
+ * Thrown when the pre-signup verification flow is started for an e-mail
+ * that already has an account. Reuses the `ACCOUNT_ALREADY_EXISTS`
+ * dictionary code (same user-facing meaning as the signup collision) so
+ * no new i18n surface is introduced; kept BC-local to avoid a domain
+ * import across bounded contexts.
+ */
+export class EmailAlreadyRegisteredException extends ConflictException {
+  override readonly code: string = 'ACCOUNT_ALREADY_EXISTS';
+  constructor(email: string) {
+    super(`An account with email ${email} already exists`);
+  }
+}
+
+/**
  * Email Not Verified Exception
  *
  * Raised by EmailVerifiedGuard when a protected endpoint is accessed by an

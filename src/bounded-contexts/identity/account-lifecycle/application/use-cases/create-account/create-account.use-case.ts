@@ -10,10 +10,12 @@ import { AccountCreatedEvent } from '../../../domain/events';
 import {
   AccountAlreadyExistsException,
   ConsentVersionMismatchException,
+  InvalidRegistrationTokenException,
 } from '../../../domain/exceptions';
 import {
   AccountLifecycleRepositoryPort,
   PasswordHasherPort,
+  RegistrationTokenVerifierPort,
   VersionConfigPort,
 } from '../../../domain/ports';
 import { AcceptConsentUseCase } from '../accept-consent/accept-consent.use-case';
@@ -25,6 +27,7 @@ export class CreateAccountUseCase implements CreateAccountPort {
     private readonly eventBus: EventBusPort,
     private readonly acceptConsent: AcceptConsentUseCase,
     private readonly versionConfig: VersionConfigPort,
+    private readonly registrationTokenVerifier: RegistrationTokenVerifierPort,
     private readonly logger: LoggerPort,
   ) {}
 
@@ -35,9 +38,24 @@ export class CreateAccountUseCase implements CreateAccountPort {
       password,
       acceptedTosVersion,
       acceptedPrivacyVersion,
+      emailVerificationToken,
       ipAddress,
       userAgent,
     } = command;
+
+    // Identifier-first signup: the token proves this exact e-mail passed
+    // the pre-signup verification step, so the account is born verified.
+    // A present-but-bad token FAILS the signup instead of silently
+    // downgrading — the client believes the e-mail is verified and would
+    // otherwise strand the user in a state it doesn't render.
+    let emailVerified = false;
+    if (emailVerificationToken !== undefined) {
+      const verifiedEmail = this.registrationTokenVerifier.verify(emailVerificationToken);
+      if (verifiedEmail === null || verifiedEmail !== email) {
+        throw new InvalidRegistrationTokenException();
+      }
+      emailVerified = true;
+    }
 
     // LGPD: reject signup if the client didn't acknowledge the current legal versions.
     const currentTos = this.versionConfig.getTosVersion();
@@ -63,6 +81,7 @@ export class CreateAccountUseCase implements CreateAccountPort {
       name: name || null,
       email,
       passwordHash,
+      emailVerified,
     });
 
     // LGPD: persist the two consents with audit trail (IP + user agent).

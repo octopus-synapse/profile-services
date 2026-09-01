@@ -12,9 +12,16 @@
 import type { Route } from '@/shared-kernel/http/route.types';
 import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
+import type { z } from 'zod';
 import {
+  ConfirmPreSignupVerificationSchema,
+  StartPreSignupVerificationSchema,
+} from './application/use-cases/start-pre-signup-verification/start-pre-signup-verification.schema';
+import {
+  ConfirmPreSignupVerificationResponseSchema,
   ResendCooldownResponseSchema,
   SendVerificationResponseSchema,
+  StartPreSignupVerificationResponseSchema,
   VerifyEmailResponseSchema,
 } from './email-verification.routes.schemas';
 import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.schema';
@@ -46,6 +53,68 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
       const { token } = ctx.body as { token: string };
       const result = await bc.verifyEmail.execute({ token });
       return { email: result.email, message: 'Email has been verified successfully.' };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/auth/email-verification/start',
+    auth: { kind: 'public' },
+    statusCode: 200,
+    body: StartPreSignupVerificationSchema,
+    response: StartPreSignupVerificationResponseSchema,
+    guards: [
+      // Sends an e-mail per hit — cap hard. 5/5min per IP covers a human
+      // (first send + a couple of resends after the 60s cooldown) while a
+      // spammer burning our sender reputation starves. The use case adds a
+      // per-e-mail 60s cooldown on top.
+      { id: 'rate-limit', metadata: { points: 5, duration: 300, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Start pre-signup e-mail verification (identifier-first)',
+      tags: ['email-verification'],
+      description:
+        'Sends a 6-digit code to an e-mail that has no account yet — step 2 of the unified ' +
+        '"sign in or create account" flow (e-mail → code → password). Rejects e-mails that ' +
+        'already have an account; the code lives 15 minutes and resends respect a 60s cooldown.',
+    },
+    sdk: { exported: true, name: 'startPreSignupVerification' },
+    handler: async (ctx, bc) => {
+      const dto = ctx.body as z.infer<typeof StartPreSignupVerificationSchema>;
+      const result = await bc.startPreSignupVerification.execute({ email: dto.email });
+      const { testCode, ...cooldown } = result;
+      const { message } = renderSuccessMessageForRequest(
+        { code: 'EMAIL_VERIFICATION_SENT' },
+        ctx.headers['accept-language'],
+      );
+      return { code: 'EMAIL_VERIFICATION_SENT' as const, message, cooldown, testCode };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/auth/email-verification/confirm',
+    auth: { kind: 'public' },
+    statusCode: 200,
+    body: ConfirmPreSignupVerificationSchema,
+    response: ConfirmPreSignupVerificationResponseSchema,
+    guards: [
+      // Same bar as /verify: 6-digit keyspace, 15min TTL — 3/5min per IP,
+      // and the use case burns the challenge after 5 wrong codes total.
+      { id: 'rate-limit', metadata: { points: 3, duration: 300, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Confirm pre-signup e-mail verification code',
+      tags: ['email-verification'],
+      description:
+        'Checks the 6-digit code sent by /start and, on success, returns the registration ' +
+        'token `POST /v1/accounts` accepts as `emailVerificationToken` — the account is then ' +
+        'created with the e-mail already verified.',
+    },
+    sdk: { exported: true, name: 'confirmPreSignupVerification' },
+    handler: async (ctx, bc) => {
+      const dto = ctx.body as z.infer<typeof ConfirmPreSignupVerificationSchema>;
+      return bc.confirmPreSignupVerification.execute({ email: dto.email, code: dto.code });
     },
   },
   {

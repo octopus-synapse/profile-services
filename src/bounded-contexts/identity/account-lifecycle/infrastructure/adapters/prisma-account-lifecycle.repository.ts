@@ -1,5 +1,10 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AccountData, AccountLifecycleRepositoryPort, CreateAccountData } from '../../domain/ports';
+import {
+  AccountData,
+  AccountIdentitySignals,
+  AccountLifecycleRepositoryPort,
+  CreateAccountData,
+} from '../../domain/ports';
 
 export class PrismaAccountLifecycleRepository implements AccountLifecycleRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
@@ -50,6 +55,18 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
     return user !== null;
   }
 
+  async findIdentitySignalsByEmail(email: string): Promise<AccountIdentitySignals | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: { emailVerified: true, passwordHash: true },
+    });
+    if (!user) return null;
+    return {
+      emailVerified: user.emailVerified !== null,
+      hasPassword: user.passwordHash !== null,
+    };
+  }
+
   async findPasswordHashById(userId: string): Promise<string | null> {
     const row = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -69,7 +86,8 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
         name: data.name,
         passwordHash: data.passwordHash,
         isActive: true,
-        emailVerified: null,
+        // Identifier-first signup arrives with the e-mail pre-verified.
+        emailVerified: data.emailVerified ? new Date() : null,
       },
       select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });

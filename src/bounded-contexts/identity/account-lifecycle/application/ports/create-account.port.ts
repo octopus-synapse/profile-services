@@ -11,6 +11,8 @@ export interface CreateAccountCommand {
   // LGPD: explicit consent captured at signup (versions sent by client must match current TOS/Privacy versions).
   acceptedTosVersion: string;
   acceptedPrivacyVersion: string;
+  /** Identifier-first flow: proof from the pre-signup confirm step that this e-mail was verified. */
+  emailVerificationToken?: string;
   // Audit trail for the consent records.
   ipAddress?: string;
   userAgent?: string;

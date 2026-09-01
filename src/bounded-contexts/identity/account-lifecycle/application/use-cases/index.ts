@@ -6,5 +6,6 @@ export * from './ensure-consent-accepted';
 export * from './export-data';
 export * from './get-consent-history';
 export * from './get-consent-status';
+export * from './identify-account';
 export * from './reactivate-account';
 export * from './request-account-deletion';

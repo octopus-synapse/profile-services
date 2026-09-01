@@ -728,6 +728,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     emailService as never,
     config as never,
     eventBus as never,
+    cache as never,
     logger,
   ) as never;
   const passwordManagement = buildPasswordManagementUseCases(

@@ -39,6 +39,30 @@ export const AcceptConsentRequestSchema = z
 // ─── Response schemas ────────────────────────────────────────────────
 export const MessageResponseSchema = z.object({ message: z.string() });
 
+// Identifier-first entry point: three routing signals, nothing more.
+// `emailVerified` / `hasPassword` are present only when `exists` — an
+// unknown e-mail answers `{ exists: false }` alone.
+export const IdentifyAccountResponseSchema = z
+  .object({
+    exists: z
+      .boolean()
+      .openapi({ description: 'Whether an account is registered under this e-mail.', example: true }),
+    emailVerified: z.boolean().optional().openapi({
+      description:
+        'Present only when the account exists — false means the client should resume the e-mail verification flow instead of asking for a password.',
+      example: true,
+    }),
+    hasPassword: z.boolean().optional().openapi({
+      description:
+        'Present only when the account exists — false means an OAuth-only sign-up, so the client should point at the social sign-in instead of a password field.',
+      example: true,
+    }),
+  })
+  .openapi('IdentifyAccountResponse', {
+    description:
+      'Routing signals for the unified "sign in or create account" surface: sign-up, resume-verification, OAuth-only or password step.',
+  });
+
 // Step 1 of the code-confirmed account deletion returns the resend cooldown
 // (and, in non-prod BYPASS_2FA, the issued code) — mirrors the credential-change
 // code-sent responses.

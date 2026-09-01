@@ -17,6 +17,11 @@ export const CreateAccountSchema = z
     acceptedPrivacyVersion: z.string().min(1).openapi({
       description: 'Current privacy policy version the user has accepted (LGPD consent).',
     }),
+    emailVerificationToken: z.string().min(1).optional().openapi({
+      description:
+        'Identifier-first flow: the registration token from POST /v1/auth/email-verification/confirm. When present and valid for this e-mail, the account is created with the e-mail already verified.',
+      example: 'cHJlLXNpZ251cA.1735689600000.signature',
+    }),
   })
   .openapi('CreateAccountRequest', {
     description:

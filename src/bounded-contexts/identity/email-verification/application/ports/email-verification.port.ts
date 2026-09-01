@@ -6,12 +6,16 @@
  * `useFactory` so route handlers receive a single typed dependency.
  */
 
+import type { ConfirmPreSignupVerificationPort } from './confirm-pre-signup-verification.port';
 import type { GetResendCooldownPort } from './get-resend-cooldown.port';
 import type { SendVerificationEmailPort } from './send-verification-email.port';
+import type { StartPreSignupVerificationPort } from './start-pre-signup-verification.port';
 import type { VerifyEmailPort } from './verify-email.port';
 
 export abstract class EmailVerificationUseCases {
   abstract readonly sendVerificationEmail: SendVerificationEmailPort;
   abstract readonly getResendCooldown: GetResendCooldownPort;
   abstract readonly verifyEmail: VerifyEmailPort;
+  abstract readonly startPreSignupVerification: StartPreSignupVerificationPort;
+  abstract readonly confirmPreSignupVerification: ConfirmPreSignupVerificationPort;
 }

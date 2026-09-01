@@ -34,3 +34,23 @@ export const SendVerificationResponseSchema = z.object({
 });
 
 export const ResendCooldownResponseSchema = ResendCooldownShape;
+
+// Pre-signup start mirrors the authenticated send's shape so the client
+// renders both flows with the same component.
+export const StartPreSignupVerificationResponseSchema = SendVerificationResponseSchema;
+
+export const ConfirmPreSignupVerificationResponseSchema = z
+  .object({
+    email: z
+      .string()
+      .openapi({ description: 'The e-mail this token vouches for.', example: 'jane@example.com' }),
+    registrationToken: z.string().openapi({
+      description:
+        'HMAC-signed continuation token proving the e-mail was verified; send as `emailVerificationToken` on POST /v1/accounts within 30 minutes.',
+      example: 'cHJlLXNpZ251cA.1735689600000.signature',
+    }),
+  })
+  .openapi('ConfirmPreSignupVerificationResponse', {
+    description:
+      'Successful pre-signup confirmation: carry the registration token into the signup call.',
+  });

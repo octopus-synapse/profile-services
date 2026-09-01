@@ -21,6 +21,22 @@ export class AccountAlreadyExistsException extends ConflictException {
 }
 
 /**
+ * Invalid Registration Token Exception
+ *
+ * Thrown when signup receives an `emailVerificationToken` that is
+ * invalid, expired, or vouches for a different e-mail. Reuses the
+ * `INVALID_VERIFICATION_TOKEN` dictionary code (same user-facing
+ * meaning as the verify flow's failure) — no new i18n surface.
+ */
+export class InvalidRegistrationTokenException extends DomainException {
+  readonly code = 'INVALID_VERIFICATION_TOKEN';
+  readonly statusHint = 400;
+  constructor() {
+    super('Invalid or expired registration token');
+  }
+}
+
+/**
  * Account Deactivated Exception
  *
  * Thrown when trying to perform actions on a deactivated account.

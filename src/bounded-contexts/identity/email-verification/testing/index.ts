@@ -9,6 +9,8 @@
 import type {
   CreatePurposeTokenInput,
   EmailVerificationRepositoryPort,
+  PreSignupChallenge,
+  PreSignupVerificationStorePort,
   PurposeTokenData,
   UserVerificationStatus,
   VerificationEmailSenderPort,
@@ -291,3 +293,29 @@ export const DEFAULT_EXPIRED_TOKEN: VerificationTokenData = {
   token: 'expired-token-456',
   expiresAt: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
 };
+
+// ═══════════════════════════════════════════════════════════════
+// IN-MEMORY PRE-SIGNUP VERIFICATION STORE
+// ═══════════════════════════════════════════════════════════════
+
+export class InMemoryPreSignupVerificationStore implements PreSignupVerificationStorePort {
+  private challenges = new Map<string, { challenge: PreSignupChallenge; expiresAtMs: number }>();
+
+  async set(email: string, challenge: PreSignupChallenge, ttlSeconds: number): Promise<void> {
+    this.challenges.set(email, { challenge, expiresAtMs: Date.now() + ttlSeconds * 1000 });
+  }
+
+  async find(email: string): Promise<PreSignupChallenge | null> {
+    const entry = this.challenges.get(email);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAtMs) {
+      this.challenges.delete(email);
+      return null;
+    }
+    return entry.challenge;
+  }
+
+  async delete(email: string): Promise<void> {
+    this.challenges.delete(email);
+  }
+}

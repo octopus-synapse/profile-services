@@ -23,10 +23,12 @@ import type {
 import type { ConfirmAccountDeletionPort } from './confirm-account-deletion.port';
 import type { CreateAccountPort } from './create-account.port';
 import type { DeactivateAccountPort } from './deactivate-account.port';
+import type { IdentifyAccountPort } from './identify-account.port';
 import type { RequestAccountDeletionPort } from './request-account-deletion.port';
 
 export abstract class AccountLifecycleUseCases {
   abstract readonly createAccount: CreateAccountPort;
+  abstract readonly identifyAccount: IdentifyAccountPort;
   abstract readonly createSession: CreateSessionPort;
   abstract readonly deactivateAccount: DeactivateAccountPort;
   abstract readonly requestAccountDeletion: RequestAccountDeletionPort;

@@ -79,6 +79,12 @@
             "type": "string",
             "minLength": 1,
             "description": "Current privacy policy version the user has accepted (LGPD consent)."
+          },
+          "emailVerificationToken": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Identifier-first flow: the registration token from POST /v1/auth/email-verification/confirm. When present and valid for this e-mail, the account is created with the e-mail already verified.",
+            "example": "cHJlLXNpZ251cA.1735689600000.signature"
           }
         },
         "required": [
@@ -178,6 +184,64 @@
         "description": "6-digit numeric TOTP code from the authenticator app.",
         "example": "123456"
       },
+      "ConfirmPreSignupVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The e-mail this token vouches for.",
+            "example": "jane@example.com"
+          },
+          "registrationToken": {
+            "type": "string",
+            "description": "HMAC-signed continuation token proving the e-mail was verified; send as `emailVerificationToken` on POST /v1/accounts within 30 minutes.",
+            "example": "cHJlLXNpZ251cA.1735689600000.signature"
+          }
+        },
+        "required": [
+          "email",
+          "registrationToken"
+        ],
+        "description": "Successful pre-signup confirmation: carry the registration token into the signup call."
+      },
+      "ConfirmPreSignupVerificationRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "description": "The 6-digit code received by e-mail.",
+            "example": "123456"
+          }
+        },
+        "required": [
+          "email",
+          "code"
+        ],
+        "description": "Pre-signup confirmation payload: e-mail + the 6-digit code; success returns the registration token signup consumes.",
+        "example": {
+          "email": "jane.doe@example.com",
+          "code": "123456"
+        }
+      },
+      "StartPreSignupVerificationRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "description": "Pre-signup verification payload: the e-mail to receive the 6-digit code before any account exists.",
+        "example": {
+          "email": "jane.doe@example.com"
+        }
+      },
       "PasswordMessageResponse": {
         "type": "object",
         "properties": {
@@ -204,6 +268,45 @@
         "description": "Forgot-password trigger. Always returns the same generic success message regardless of whether the email exists, to avoid account enumeration.",
         "example": {
           "email": "user@example.com"
+        }
+      },
+      "IdentifyAccountResponse": {
+        "type": "object",
+        "properties": {
+          "exists": {
+            "type": "boolean",
+            "description": "Whether an account is registered under this e-mail.",
+            "example": true
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "description": "Present only when the account exists — false means the client should resume the e-mail verification flow instead of asking for a password.",
+            "example": true
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "description": "Present only when the account exists — false means an OAuth-only sign-up, so the client should point at the social sign-in instead of a password field.",
+            "example": true
+          }
+        },
+        "required": [
+          "exists"
+        ],
+        "description": "Routing signals for the unified \"sign in or create account\" surface: sign-up, resume-verification, OAuth-only or password step."
+      },
+      "IdentifyAccountRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "description": "Identifier-first lookup payload: the e-mail typed on the unified \"sign in or create account\" surface.",
+        "example": {
+          "email": "jane.doe@example.com"
         }
       },
       "PasswordInput": {
@@ -13151,6 +13254,52 @@
         ]
       }
     },
+    "/api/v1/auth/email-verification/confirm": {
+      "post": {
+        "summary": "Confirm pre-signup e-mail verification code",
+        "description": "Checks the 6-digit code sent by /start and, on success, returns the registration token `POST /v1/accounts` accepts as `emailVerificationToken` — the account is then created with the e-mail already verified.",
+        "tags": [
+          "email-verification"
+        ],
+        "operationId": "confirmPreSignupVerification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPreSignupVerificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmPreSignupVerificationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
     "/api/v1/auth/email-verification/resend-status": {
       "get": {
         "summary": "Get verification email resend cooldown",
@@ -13289,6 +13438,84 @@
         ]
       }
     },
+    "/api/v1/auth/email-verification/start": {
+      "post": {
+        "summary": "Start pre-signup e-mail verification (identifier-first)",
+        "description": "Sends a 6-digit code to an e-mail that has no account yet — step 2 of the unified \"sign in or create account\" flow (e-mail → code → password). Rejects e-mails that already have an account; the code lives 15 minutes and resends respect a 60s cooldown.",
+        "tags": [
+          "email-verification"
+        ],
+        "operationId": "startPreSignupVerification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartPreSignupVerificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "cooldown": {
+                      "type": "object",
+                      "properties": {
+                        "secondsUntilResendAllowed": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "cooldownSeconds": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "secondsUntilResendAllowed",
+                        "cooldownSeconds"
+                      ]
+                    },
+                    "testCode": {
+                      "type": "string",
+                      "example": "123456"
+                    }
+                  },
+                  "required": [
+                    "cooldown"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
     "/api/v1/auth/email-verification/verify": {
       "post": {
         "summary": "Verify email with token",
@@ -13401,6 +13628,52 @@
         "x-auth": "public",
         "x-guards": [
           "throttle"
+        ]
+      }
+    },
+    "/api/v1/auth/identify": {
+      "post": {
+        "summary": "Identify which auth branch an e-mail should take",
+        "description": "Identifier-first entry point for the unified \"sign in or create account\" surface. Returns whether the e-mail has an account and, when it does, whether the e-mail is verified (unverified accounts resume the verification flow) and whether a password exists (OAuth-only accounts are pointed at the social sign-in).",
+        "tags": [
+          "accounts"
+        ],
+        "operationId": "identify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentifyAccountRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentifyAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
         ]
       }
     },

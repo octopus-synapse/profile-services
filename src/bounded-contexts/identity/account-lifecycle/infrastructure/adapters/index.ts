@@ -3,3 +3,4 @@ export { BcryptPasswordHasher } from './bcrypt-password.hasher';
 export { DataExportRepository } from './data-export.repository';
 export { PrismaAccountLifecycleRepository } from './prisma-account-lifecycle.repository';
 export { ConfigVersionAdapter, PrismaConsentRepository } from './prisma-consent.repository';
+export { SignedRegistrationTokenVerifier } from './signed-registration-token.verifier';

@@ -10,6 +10,7 @@
 
 import type {
   AccountData,
+  AccountIdentitySignals,
   AccountLifecycleRepositoryPort,
   CreateAccountData,
 } from '../domain/ports/account-lifecycle-repository.port';
@@ -38,6 +39,7 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
   private accounts = new Map<string, AccountData>();
   private emailIndex = new Map<string, string>(); // email -> userId
   private passwordHashes = new Map<string, string>(); // userId -> bcrypt hash
+  private verifiedEmails = new Set<string>(); // userIds with emailVerified set
   private accountCounter = 0;
 
   async findById(userId: string): Promise<AccountData | null> {
@@ -63,6 +65,25 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
     return this.emailIndex.has(email);
   }
 
+  async findIdentitySignalsByEmail(email: string): Promise<AccountIdentitySignals | null> {
+    const userId = this.emailIndex.get(email);
+    if (!userId) return null;
+    return {
+      emailVerified: this.verifiedEmails.has(userId),
+      hasPassword: Boolean(this.passwordHashes.get(userId)),
+    };
+  }
+
+  /** Test helper — mark the account's e-mail as verified. */
+  markEmailVerified(userId: string): void {
+    this.verifiedEmails.add(userId);
+  }
+
+  /** Test helper — simulate an OAuth-only account (no password set). */
+  removePasswordHash(userId: string): void {
+    this.passwordHashes.delete(userId);
+  }
+
   async create(data: CreateAccountData): Promise<AccountData> {
     this.accountCounter++;
     const account: AccountData = {
@@ -75,6 +96,7 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
     this.accounts.set(account.id, account);
     this.emailIndex.set(account.email, account.id);
     this.passwordHashes.set(account.id, data.passwordHash);
+    if (data.emailVerified) this.verifiedEmails.add(account.id);
     return account;
   }
 
