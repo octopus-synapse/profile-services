@@ -34,14 +34,16 @@ interface ParsedEndpoint {
 
 function parseEndpoint(url: string): ParsedEndpoint {
   // `new URL('host:9000')` does NOT fail — it reads `host:` as the protocol
-  // and leaves `hostname` empty, so MinioClient then throws "Invalid
+  // and leaves `hostname` empty, so MinioClient then throws a bare "Invalid
   // endPoint" and the service silently disables itself. Production ran that
   // way with `MINIO_ENDPOINT=srv1073054.hstgr.cloud:9000`: every avatar,
   // company logo, post image and resume-export download was failing while
-  // the only symptom was one log line at boot. Default the scheme so the
-  // bare `host:port` form works as operators reasonably expect.
-  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(url) ? url : `http://${url}`;
-  const u = new URL(withScheme);
+  // the only symptom was one unexplained log line at boot.
+  //
+  // The scheme is guaranteed by `OptionalUrl` in config.schema.ts, which
+  // rejects the schemeless form at boot rather than letting it degrade
+  // something quietly down here.
+  const u = new URL(url);
   const useSSL = u.protocol === 'https:';
   const port = u.port ? Number(u.port) : useSSL ? 443 : 80;
   return { endPoint: u.hostname, port, useSSL };

@@ -21,7 +21,7 @@ export class PrismaAdminProgrammingLanguagesRepository extends AdminProgrammingL
     if (query.isActive !== undefined) where.isActive = query.isActive;
     return paginate<ProgrammingLanguage>(this.prisma.programmingLanguage, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       where,
       orderBy: { order: 'asc' },
     });

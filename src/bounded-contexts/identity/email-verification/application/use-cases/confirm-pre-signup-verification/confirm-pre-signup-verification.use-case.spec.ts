@@ -31,7 +31,11 @@ describe('ConfirmPreSignupVerificationUseCase', () => {
   beforeEach(async () => {
     store = new InMemoryPreSignupVerificationStore();
     useCase = new ConfirmPreSignupVerificationUseCase(store, stubIssuer, stubLogger);
-    await store.set(EMAIL, { codeHash: hashToken(CODE), attempts: 0, createdAtMs: Date.now() }, 900);
+    await store.set(
+      EMAIL,
+      { codeHash: hashToken(CODE), attempts: 0, createdAtMs: Date.now() },
+      900,
+    );
   });
 
   it('issues the registration token and burns the challenge on the right code', async () => {

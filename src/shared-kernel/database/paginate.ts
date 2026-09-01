@@ -13,16 +13,8 @@ import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types
 
 interface PaginateOptions<TWhere, TOrderBy> {
   page?: number;
-  /** Page size. `pageSize` accepted as alias for backwards compatibility. */
+  /** Page size. */
   limit?: number;
-  /**
-   * @deprecated use `limit`.
-   * @removeBy 2026-08-31
-   * P2-143 — alias retained because section-types + jobs admin DTOs
-   * still ship `pageSize` to clients. Removal blocked on a coordinated
-   * frontend update; tracked under the duplication-audit follow-up.
-   */
-  pageSize?: number;
   where?: TWhere;
   orderBy?: TOrderBy;
   include?: Record<string, unknown>;
@@ -39,7 +31,7 @@ export async function paginate<T, TWhere = unknown, TOrderBy = unknown>(
   options: PaginateOptions<TWhere, TOrderBy>,
 ): Promise<PaginatedResponse<T>> {
   const page = Math.max(1, Math.floor(options.page ?? 1));
-  const limit = Math.max(1, Math.floor(options.limit ?? options.pageSize ?? 20));
+  const limit = Math.max(1, Math.floor(options.limit ?? 20));
   const skip = (page - 1) * limit;
 
   const findArgs: Record<string, unknown> = { where: options.where, skip, take: limit };

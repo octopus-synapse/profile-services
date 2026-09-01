@@ -31,7 +31,7 @@ export class PrismaAdminCollaborationsRepository extends AdminCollaborationsRepo
   async listCollaborations(query: ListCollaborationsQuery) {
     return paginate<AdminCollaborationView>(this.prisma.resumeCollaborator, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       orderBy: { invitedAt: 'desc' },
       include: {
         user: { select: { id: true, name: true, email: true } },

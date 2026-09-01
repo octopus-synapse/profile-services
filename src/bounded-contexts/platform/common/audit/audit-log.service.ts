@@ -183,23 +183,6 @@ export class AuditLogService {
   }
 
   /**
-   * @deprecated Strict is now the default for `log()`. Kept as a
-   * source-compat facade per Q52 in the duplication audit; remove
-   * after callers migrate.
-   * @removeBy 2026-08-31
-   */
-  async logStrict(
-    userId: string,
-    action: AuditAction,
-    entityType: string,
-    entityId: string,
-    changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
-    request?: RequestMetadataSource,
-  ): Promise<void> {
-    return this.log(userId, action, entityType, entityId, changes, request);
-  }
-
-  /**
    * Log username change with validation context
    */
   async logUsernameChange(

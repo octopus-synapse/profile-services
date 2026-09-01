@@ -1,4 +1,8 @@
-export type { AccountData, AccountIdentitySignals, CreateAccountData } from './account-lifecycle-repository.port';
+export type {
+  AccountData,
+  AccountIdentitySignals,
+  CreateAccountData,
+} from './account-lifecycle-repository.port';
 export { AccountLifecycleRepositoryPort } from './account-lifecycle-repository.port';
 export { AuditLoggerPort } from './audit-logger.port';
 

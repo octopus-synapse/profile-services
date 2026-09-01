@@ -41,9 +41,23 @@ const BooleanString = z
  * URL validator runs, which is the conventional shell semantics
  * ("unset variable").
  */
+// `.url()` is not enough on its own: it defers to `new URL()`, which happily
+// parses `host:9000` by reading `host:` as the protocol and leaving the
+// hostname empty. Production carried `MINIO_ENDPOINT=srv1073054.hstgr.cloud:9000`
+// through this validator untouched, and the breakage surfaced far downstream
+// as MinioClient refusing to initialise — every upload and presigned download
+// dead, with one unexplained log line as the only clue. Demand the scheme
+// here, where a bad value is reported at boot alongside every other config
+// problem instead of degrading something silently.
 const OptionalUrl = z.preprocess(
   (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
-  z.string().url().optional(),
+  z
+    .string()
+    .url()
+    .refine((v) => /^https?:\/\//i.test(v), {
+      message: 'must start with http:// or https://',
+    })
+    .optional(),
 );
 
 const PortNumber = z
@@ -278,12 +292,6 @@ export const EnvConfigSchema = z
     // legitimate large-response webhooks; the default 5 MB matches the
     // adapter's compiled-in `DEFAULT_MAX_RESPONSE_BYTES`.
     SAFE_FETCH_MAX_BYTES: z.coerce.number().int().positive().default(5_000_000),
-
-    // --- Attestation witness ---
-    ATTESTATION_WITNESS_STORAGE_PATH: z.string().optional(),
-    ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY: z.string().optional(),
-    ATTESTATION_WITNESS_KEY_ID: z.string().optional(),
-    ATTESTATION_WITNESS_CHECK_SCRIPT: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') return;

@@ -13,6 +13,7 @@ import { AccountAlreadyExistsException } from '../../../domain/exceptions';
 import type {
   AuditLoggerPort,
   ConsentRepositoryPort,
+  RegistrationTokenVerifierPort,
   VersionConfigPort,
 } from '../../../domain/ports';
 import {
@@ -20,7 +21,6 @@ import {
   InMemoryAccountLifecycleRepository,
   InMemoryPasswordHasher,
 } from '../../../testing';
-import type { RegistrationTokenVerifierPort } from '../../../domain/ports';
 import type { CreateAccountCommand } from '../../ports';
 import { AcceptConsentUseCase } from '../accept-consent/accept-consent.use-case';
 import { CreateAccountUseCase } from './create-account.use-case';

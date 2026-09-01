@@ -158,8 +158,12 @@ jobs:
             if curl -sf http://localhost:9100/minio/health/live > /dev/null; then
               echo "MinIO is ready."
               # The upload has to have a target bucket to land in.
+              # `--entrypoint` is required: the image's entrypoint IS `mc`, so
+              # without it `/bin/sh` arrives as an argument to mc itself
+              # ("`/bin/sh` is not a recognized command").
               docker run --rm --network host \
-                minio/mc:RELEASE.2024-10-08T09-37-26Z /bin/sh -c "
+                --entrypoint /bin/sh \
+                minio/mc:RELEASE.2024-10-08T09-37-26Z -c "
                   mc alias set local http://localhost:9100 minioadmin minioadmin &&
                   mc mb local/profile-uploads --ignore-existing &&
                   mc anonymous set download local/profile-uploads"

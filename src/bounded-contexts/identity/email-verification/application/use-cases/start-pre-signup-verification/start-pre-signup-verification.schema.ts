@@ -22,7 +22,7 @@ export const ConfirmPreSignupVerificationSchema = z
     email: EmailSchema,
     code: z
       .string()
-      .regex(/^\d{6}$/, 'Code must be 6 digits')
+      .regex(/^\d{6}$/, 'Code must be 6 digits') // lint-allow-magic-number: 6 is the wire format, not a tunable
       .openapi({ description: 'The 6-digit code received by e-mail.', example: '123456' }),
   })
   .openapi('ConfirmPreSignupVerificationRequest', {

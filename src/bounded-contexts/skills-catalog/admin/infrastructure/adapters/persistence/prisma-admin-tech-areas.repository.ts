@@ -26,7 +26,7 @@ export class PrismaAdminTechAreasRepository extends AdminTechAreasRepositoryPort
     if (query.isActive !== undefined) where.isActive = query.isActive;
     return paginate<TechArea>(this.prisma.techArea, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       where,
       orderBy: { order: 'asc' },
     });

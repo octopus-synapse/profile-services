@@ -44,9 +44,10 @@ export const MessageResponseSchema = z.object({ message: z.string() });
 // unknown e-mail answers `{ exists: false }` alone.
 export const IdentifyAccountResponseSchema = z
   .object({
-    exists: z
-      .boolean()
-      .openapi({ description: 'Whether an account is registered under this e-mail.', example: true }),
+    exists: z.boolean().openapi({
+      description: 'Whether an account is registered under this e-mail.',
+      example: true,
+    }),
     emailVerified: z.boolean().optional().openapi({
       description:
         'Present only when the account exists — false means the client should resume the e-mail verification flow instead of asking for a password.',

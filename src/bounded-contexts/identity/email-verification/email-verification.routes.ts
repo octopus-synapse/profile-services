@@ -9,10 +9,10 @@
  * registry lives in `email-verification.module.ts`.
  */
 
+import type { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
-import type { z } from 'zod';
 import {
   ConfirmPreSignupVerificationSchema,
   StartPreSignupVerificationSchema,
@@ -59,6 +59,8 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     method: 'POST',
     path: '/v1/auth/email-verification/start',
     auth: { kind: 'public' },
+    // Sends a code; creates no addressable resource — override the
+    // mounter's auto-201, matching the sibling /send route.
     statusCode: 200,
     body: StartPreSignupVerificationSchema,
     response: StartPreSignupVerificationResponseSchema,
@@ -67,7 +69,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
       // (first send + a couple of resends after the 60s cooldown) while a
       // spammer burning our sender reputation starves. The use case adds a
       // per-e-mail 60s cooldown on top.
-      { id: 'rate-limit', metadata: { points: 5, duration: 300, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 5, duration: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -94,13 +96,15 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     method: 'POST',
     path: '/v1/auth/email-verification/confirm',
     auth: { kind: 'public' },
+    // Verifies a code and hands back a token; creates nothing — same 200
+    // as the sibling /verify route.
     statusCode: 200,
     body: ConfirmPreSignupVerificationSchema,
     response: ConfirmPreSignupVerificationResponseSchema,
     guards: [
       // Same bar as /verify: 6-digit keyspace, 15min TTL — 3/5min per IP,
       // and the use case burns the challenge after 5 wrong codes total.
-      { id: 'rate-limit', metadata: { points: 3, duration: 300, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 3, duration: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
       { id: 'multi-step-flow' },
     ],
     openapi: {

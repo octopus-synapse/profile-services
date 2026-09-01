@@ -22,7 +22,7 @@ export class PrismaAdminTechNichesRepository extends AdminTechNichesRepositoryPo
     if (query.isActive !== undefined) where.isActive = query.isActive;
     return paginate<TechNiche>(this.prisma.techNiche, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       where,
       orderBy: { order: 'asc' },
     });

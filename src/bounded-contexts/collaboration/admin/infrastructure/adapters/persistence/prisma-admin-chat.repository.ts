@@ -43,7 +43,7 @@ export class PrismaAdminChatRepository extends AdminChatRepositoryPort {
   async listConversations(query: ListConversationsQuery) {
     return paginate<AdminChatConversationView>(this.prisma.conversation, {
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize,
       orderBy: { lastMessageAt: 'desc' },
       include: {
         participant1: { select: { id: true, name: true, email: true } },
