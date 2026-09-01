@@ -86,22 +86,22 @@ jobs:
       group: production-build
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.prepare.outputs.sha }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
       - name: Login to ghcr.io
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
       - name: Build and push
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           push: true
@@ -132,7 +132,7 @@ jobs:
       DRY_RUN: ${{ needs.prepare.outputs.dry_run }}
       COMPOSE: -f docker-compose.yml -f infra/docker/docker-compose.datadog.yml
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.prepare.outputs.sha }}
 
@@ -260,7 +260,31 @@ jobs:
         working-directory: /opt/profile-services
         run: docker compose $COMPOSE pull backend datadog-agent
 
+      - name: Back up the database
+        # The image rollback below restores CODE, never SCHEMA — a destructive
+        # migration has no way back without this. The whole database is ~21 MB
+        # and a compressed dump ~1 MB, so it costs seconds and a rounding
+        # error of disk. Keeps 14 dumps; a daily cron on the host covers the
+        # risks that have nothing to do with deploying.
+        if: env.DRY_RUN != 'true' && env.IS_ROLLBACK == 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p /opt/backups
+          STAMP="$(date -u +%Y%m%d-%H%M%S)"
+          OUT="/opt/backups/profile_predeploy_${STAMP}_${IMAGE_TAG}.dump"
+          docker exec -i profile-postgres \
+            pg_dump -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-profile}" -Fc > "$OUT"
+          # A pg_dump that fails mid-stream still leaves a file behind, so
+          # size is the check that it is actually restorable.
+          [ -s "$OUT" ] || { echo "::error::backup is empty — refusing to migrate"; exit 1; }
+          echo "backup: $OUT ($(du -h "$OUT" | cut -f1))"
+          ls -1t /opt/backups/profile_predeploy_*.dump 2>/dev/null | tail -n +15 | xargs -r rm --
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
       - name: Migrate + seed
+        id: migrate
         # Explicit, and BEFORE the swap: a bad migration fails the deploy with
         # the old container still serving. Previously this ran inside the
         # entrypoint and swallowed its own errors, so a broken migration just
@@ -272,7 +296,18 @@ jobs:
         # stdin even with -T, and would eat the rest of this script.
         if: env.DRY_RUN != 'true' && env.IS_ROLLBACK == 'false'
         working-directory: /opt/profile-services
-        run: docker compose $COMPOSE run --rm -T backend ./migrate-and-seed.sh </dev/null
+        run: |
+          set -euo pipefail
+          docker compose $COMPOSE run --rm -T backend ./migrate-and-seed.sh </dev/null \
+            | tee /tmp/migrate.log
+          # Recorded so the smoke test knows whether an automatic rollback is
+          # safe: rolling the image back under a schema that just moved
+          # forward is usually worse than the failure being recovered from.
+          if grep -qi 'No pending migrations' /tmp/migrate.log; then
+            echo "applied=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "applied=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Recreate backend
         if: env.DRY_RUN != 'true'
@@ -296,6 +331,49 @@ jobs:
           echo "::error::backend did not become healthy in time"
           docker logs profile-backend --tail 80 || true
           exit 1
+
+      - name: Smoke test (public URL)
+        # The container healthcheck calls itself from inside the container, so
+        # it stays green while TLS, Caddy or DNS are broken and nobody can
+        # actually reach the API. This hits the real address from outside.
+        id: smoke
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          URL="https://backend.patchcareers.org/api/health"
+          for i in $(seq 1 12); do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "$URL" || echo 000)"
+            echo "attempt ${i}: ${URL} -> ${code}"
+            [ "$code" = "200" ] && { echo "✅ reachable from the public internet"; exit 0; }
+            sleep 5
+          done
+          echo "::error::${URL} did not answer 200"
+          exit 1
+
+      - name: Roll back (smoke test failed)
+        # Only when this deploy did NOT migrate. With a migration applied,
+        # putting the old image back means running old code against a new
+        # schema — frequently worse than the outage being recovered from. In
+        # that case stop, keep everything as it is, and hand over the command.
+        if: failure() && steps.smoke.outcome == 'failure' && steps.migrate.outputs.applied != 'true'
+        working-directory: /opt/profile-services
+        run: |
+          set -euo pipefail
+          PREV="$(grep -m1 '^IMAGE_TAG=' .env.bak 2>/dev/null | cut -d= -f2- || true)"
+          if [ -z "$PREV" ] || [ "$PREV" = "$IMAGE_TAG" ]; then
+            echo "::error::no previous tag recorded — roll back manually"; exit 1
+          fi
+          echo "::warning::smoke test failed; rolling back to ${PREV}"
+          sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${PREV}|" .env
+          docker compose $COMPOSE up -d --force-recreate backend
+          echo "Rolled back to ${PREV}."
+
+      - name: Migration applied — not rolling back automatically
+        if: failure() && steps.smoke.outcome == 'failure' && steps.migrate.outputs.applied == 'true'
+        run: |
+          echo "::error::Smoke test failed AFTER a migration was applied, so the image was left in place — old code against a new schema is its own outage."
+          echo "Pre-deploy dump: $(ls -1t /opt/backups/profile_predeploy_*.dump | head -1)"
+          echo "To roll back deliberately: gh workflow run deploy.yml -f image_tag=<previous main-sha>"
 
       - name: Summary
         if: always()
