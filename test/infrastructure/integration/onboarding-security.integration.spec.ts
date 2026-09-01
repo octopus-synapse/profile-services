@@ -60,9 +60,13 @@ describe('Onboarding Security & Race Integration', () => {
         });
       expect(res.status).toBe(400);
       // Field-level error should mention the username path so the client
-      // can localize / highlight without parsing strings.
-      const fields = (res.body as { fields?: Array<{ path: string }> }).fields ?? [];
-      expect(fields.some((f) => f.path === 'username')).toBe(true);
+      // can localize / highlight without parsing strings. `path` is a
+      // SEGMENT ARRAY (`['username']`) — that is the contract in
+      // `FieldError` and the shape the client normalises against; comparing
+      // it to the bare string can never hold.
+      const fields =
+        (res.body as { fields?: Array<{ path: ReadonlyArray<string | number> }> }).fields ?? [];
+      expect(fields.some((f) => f.path[0] === 'username')).toBe(true);
     });
 
     it('rejects hyphenated usernames (regex contract)', async () => {

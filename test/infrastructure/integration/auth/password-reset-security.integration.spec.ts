@@ -24,7 +24,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import { freshInDbUser } from '../../shared';
-import { clearAuthRateLimits, getApp } from '../setup';
+import { clearAuthRateLimits, getApp, uniqueTestIp } from '../setup';
 
 describe('Password Reset Security - Bug Discovery Tests', () => {
   beforeEach(async () => {
@@ -39,13 +39,21 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
     it('should rate limit forgot-password requests', async () => {
       const app = await getApp();
       const testUser = await freshInDbUser(app);
+      // Own bucket: this test ASSERTS throttling, and the shared `anon`
+      // budget is reset by every neighbouring spec's `beforeEach`. A reset
+      // landing mid-loop meant no request ever reached the cap.
+      const ip = uniqueTestIp();
+      await clearAuthRateLimits(ip);
 
       // Send 15 password reset requests rapidly
       const results: number[] = [];
       for (let i = 0; i < 15; i++) {
-        const response = await app.request.post('/api/v1/auth/forgot-password').send({
-          email: testUser.email,
-        });
+        const response = await app.request
+          .post('/api/v1/auth/forgot-password')
+          .set('X-Forwarded-For', ip)
+          .send({
+            email: testUser.email,
+          });
         results.push(response.status);
       }
 

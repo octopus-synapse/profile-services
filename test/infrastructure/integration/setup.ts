@@ -300,22 +300,44 @@ export async function clearUserCacheState(_userId?: string): Promise<void> {
  * userId-keyed buckets (e.g. password change with currentPassword)
  * stay live so specs exercising those throttles still get coverage.
  */
-export async function clearAuthRateLimits(): Promise<void> {
+/**
+ * The bucket every request without `X-Forwarded-For` lands in: the
+ * pipeline keys rate limits by `${ctx.ip ?? 'anon'}:METHOD:/path`.
+ */
+export const ANON_RATE_LIMIT_IP = 'anon';
+
+export async function clearAuthRateLimits(ip: string = ANON_RATE_LIMIT_IP): Promise<void> {
   await Promise.all([
-    clearRateLimitState('*:POST:/v1/accounts'),
-    clearRateLimitState('*:POST:/v1/auth/login'),
-    clearRateLimitState('*:POST:/v1/auth/login/verify-2fa'),
-    clearRateLimitState('*:POST:/v1/auth/email-verification/verify'),
-    clearRateLimitState('*:POST:/v1/auth/password/reset'),
+    clearRateLimitState(`${ip}:POST:/v1/accounts`),
+    clearRateLimitState(`${ip}:POST:/v1/auth/login`),
+    clearRateLimitState(`${ip}:POST:/v1/auth/login/verify-2fa`),
+    clearRateLimitState(`${ip}:POST:/v1/auth/email-verification/verify`),
+    clearRateLimitState(`${ip}:POST:/v1/auth/password/reset`),
     // The actual route is `/v1/auth/reset-password` (singular) — the
     // path lives in password-management.routes.ts. Both spellings live
     // in the codebase historically; we clear both to be safe.
-    clearRateLimitState('*:POST:/v1/auth/reset-password'),
-    clearRateLimitState('*:POST:/v1/auth/forgot-password'),
+    clearRateLimitState(`${ip}:POST:/v1/auth/reset-password`),
+    clearRateLimitState(`${ip}:POST:/v1/auth/forgot-password`),
     // Account-deletion re-auth gate: 3/60s per userId (two-step flow).
-    clearRateLimitState('*:POST:/v1/accounts/delete/request'),
-    clearRateLimitState('*:POST:/v1/accounts/delete/confirm'),
+    clearRateLimitState(`${ip}:POST:/v1/accounts/delete/request`),
+    clearRateLimitState(`${ip}:POST:/v1/accounts/delete/confirm`),
   ]);
+}
+
+/**
+ * A private-range IP no other spec will use, so a test that *asserts*
+ * throttling gets a bucket of its own.
+ *
+ * Bun runs describes concurrently and `clearAuthRateLimits()` used to
+ * wipe `*:METHOD:/path` — every IP's bucket, not just the caller's. A
+ * neighbour's `beforeEach` firing midway through a throttle assertion
+ * reset the counter and every request sailed through (the CI-only
+ * "expected >= 1 rate-limited, received 0"). Pair this with
+ * `clearAuthRateLimits(ip)` and the spec is immune to its neighbours.
+ */
+export function uniqueTestIp(): string {
+  const n = Math.floor(Math.random() * 0x100_0000);
+  return `10.${(n >> 16) & 0xff}.${(n >> 8) & 0xff}.${n & 0xff}`;
 }
 
 export function getCacheService(): {
