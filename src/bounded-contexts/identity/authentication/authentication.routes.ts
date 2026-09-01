@@ -234,6 +234,11 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
   {
     method: 'POST',
     path: '/v1/auth/session/tokens',
+    contract: {
+      probe: false,
+      reason:
+        'Exchanges a one-shot sessionExchangeId minted by login; a stateless probe has no valid id to present.',
+    },
     auth: { kind: 'public' },
     body: SessionTokensRequestSchema,
     statusCode: 200,

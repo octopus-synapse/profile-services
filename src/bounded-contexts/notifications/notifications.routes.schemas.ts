@@ -46,7 +46,23 @@ export const NOTIFICATION_TYPES = [
   'MATCH_RECOMMENDATIONS_READY',
   'RESUME_QUALITY_IMPROVED',
   'RESUME_QUALITY_REGRESSED',
+  // Push-only in the client, but a preference row still exists for it and
+  // GET /v1/notifications/preferences returns it — leaving it out made the
+  // response fail its own schema on the 17th entry.
+  'MESSAGE_RECEIVED',
 ] as const satisfies readonly NotificationType[];
+
+/**
+ * `satisfies` rejects a value that is not a NotificationType, but says
+ * nothing about one that is MISSING — which is exactly how the list fell a
+ * type behind the Prisma enum. This fails to compile instead.
+ */
+export const NOTIFICATION_TYPES_COVER_PRISMA_ENUM: Exclude<
+  NotificationType,
+  (typeof NOTIFICATION_TYPES)[number]
+> extends never
+  ? true
+  : never = true;
 
 export const PaginationQuery = z.object({
   cursor: z.string().optional(),

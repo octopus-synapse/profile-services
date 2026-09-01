@@ -6289,14 +6289,49 @@
                   "typstTemplate": "#set page(margin: 1in)\n#text(weight: \"bold\")[Resume]",
                   "layoutKind": "SINGLE_COLUMN",
                   "styleConfig": {
-                    "fontFamily": "Inter",
-                    "accentColor": "#0ea5e9"
+                    "version": "1.0.0",
+                    "layout": {
+                      "type": "single-column",
+                      "paperSize": "a4",
+                      "margins": "normal",
+                      "pageBreakBehavior": "auto"
+                    },
+                    "tokens": {
+                      "typography": {
+                        "fontFamily": {
+                          "heading": "calibri",
+                          "body": "calibri"
+                        },
+                        "fontSize": "base",
+                        "headingStyle": "bold"
+                      },
+                      "colors": {
+                        "colors": {
+                          "primary": "#111111",
+                          "secondary": "#444444",
+                          "background": "#FFFFFF",
+                          "surface": "#F9FAFB",
+                          "text": {
+                            "primary": "#1A1A1A",
+                            "secondary": "#444444",
+                            "accent": "#222222"
+                          },
+                          "border": "#CCCCCC",
+                          "divider": "#E5E7EB"
+                        },
+                        "borderRadius": "sm",
+                        "shadows": "none"
+                      },
+                      "spacing": {
+                        "density": "comfortable",
+                        "sectionGap": "md",
+                        "itemGap": "md",
+                        "contentPadding": "md"
+                      }
+                    },
+                    "sections": []
                   },
-                  "sectionStyles": {
-                    "experience": {
-                      "spacing": 1.2
-                    }
-                  }
+                  "sectionStyles": {}
                 }
               }
             }
@@ -6324,6 +6359,17 @@
                       "type": "integer",
                       "minimum": 0,
                       "maximum": 100
+                    },
+                    "styleRank": {
+                      "type": "string",
+                      "enum": [
+                        "S",
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
                     },
                     "layoutKind": {
                       "type": "string",
@@ -6436,6 +6482,7 @@
                     "name",
                     "description",
                     "styleScore",
+                    "styleRank",
                     "layoutKind",
                     "typstTemplate",
                     "isSystem",
@@ -6647,6 +6694,17 @@
                       "minimum": 0,
                       "maximum": 100
                     },
+                    "styleRank": {
+                      "type": "string",
+                      "enum": [
+                        "S",
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
                     "layoutKind": {
                       "type": "string",
                       "enum": [
@@ -6758,6 +6816,7 @@
                     "name",
                     "description",
                     "styleScore",
+                    "styleRank",
                     "layoutKind",
                     "typstTemplate",
                     "isSystem",
@@ -25309,6 +25368,13 @@
                             "type": "number",
                             "nullable": true
                           },
+                          "matchBreakdownSnapshot": {
+                            "description": "Frozen match breakdown: `{ subScores: { keyword, requirements, semantic, fit }, effectiveWeights, rulesVersion, computedAt }`. Written by snapshot-match-on-application-submitted.handler.ts, which owns the shape.",
+                            "example": {
+                              "rulesVersion": "1.0.0",
+                              "computedAt": "2026-05-03T12:00:00.000Z"
+                            }
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time",
@@ -28960,6 +29026,13 @@
                     "matchScoreSnapshot": {
                       "type": "number",
                       "nullable": true
+                    },
+                    "matchBreakdownSnapshot": {
+                      "description": "Frozen match breakdown: `{ subScores: { keyword, requirements, semantic, fit }, effectiveWeights, rulesVersion, computedAt }`. Written by snapshot-match-on-application-submitted.handler.ts, which owns the shape.",
+                      "example": {
+                        "rulesVersion": "1.0.0",
+                        "computedAt": "2026-05-03T12:00:00.000Z"
+                      }
                     },
                     "createdAt": {
                       "type": "string",
@@ -34211,7 +34284,8 @@
                               "FIT_PROFILE_EXPIRY_REMINDER",
                               "MATCH_RECOMMENDATIONS_READY",
                               "RESUME_QUALITY_IMPROVED",
-                              "RESUME_QUALITY_REGRESSED"
+                              "RESUME_QUALITY_REGRESSED",
+                              "MESSAGE_RECEIVED"
                             ]
                           },
                           "actorId": {
@@ -34593,7 +34667,8 @@
                               "FIT_PROFILE_EXPIRY_REMINDER",
                               "MATCH_RECOMMENDATIONS_READY",
                               "RESUME_QUALITY_IMPROVED",
-                              "RESUME_QUALITY_REGRESSED"
+                              "RESUME_QUALITY_REGRESSED",
+                              "MESSAGE_RECEIVED"
                             ]
                           },
                           "enabled": {
@@ -34699,7 +34774,8 @@
                 "FIT_PROFILE_EXPIRY_REMINDER",
                 "MATCH_RECOMMENDATIONS_READY",
                 "RESUME_QUALITY_IMPROVED",
-                "RESUME_QUALITY_REGRESSED"
+                "RESUME_QUALITY_REGRESSED",
+                "MESSAGE_RECEIVED"
               ],
               "example": "POST_LIKED"
             },
@@ -34774,7 +34850,8 @@
                         "FIT_PROFILE_EXPIRY_REMINDER",
                         "MATCH_RECOMMENDATIONS_READY",
                         "RESUME_QUALITY_IMPROVED",
-                        "RESUME_QUALITY_REGRESSED"
+                        "RESUME_QUALITY_REGRESSED",
+                        "MESSAGE_RECEIVED"
                       ]
                     },
                     "enabled": {
@@ -34942,7 +35019,8 @@
                               "FIT_PROFILE_EXPIRY_REMINDER",
                               "MATCH_RECOMMENDATIONS_READY",
                               "RESUME_QUALITY_IMPROVED",
-                              "RESUME_QUALITY_REGRESSED"
+                              "RESUME_QUALITY_REGRESSED",
+                              "MESSAGE_RECEIVED"
                             ]
                           },
                           "label": {
@@ -42958,9 +43036,15 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "template": {
+                        "targetRoleId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "example": "role-software-engineer"
+                        },
+                        "targetRoleLabel": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Software Engineer"
                         },
                         "summary": {
                           "type": "string",
@@ -43197,7 +43281,6 @@
                         "linkedin",
                         "github",
                         "website",
-                        "template",
                         "summary",
                         "currentCompanyLogo",
                         "twitter",
@@ -43374,9 +43457,15 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "template": {
+                        "targetRoleId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "example": "role-software-engineer"
+                        },
+                        "targetRoleLabel": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Software Engineer"
                         },
                         "summary": {
                           "type": "string",
@@ -43613,7 +43702,6 @@
                         "linkedin",
                         "github",
                         "website",
-                        "template",
                         "summary",
                         "currentCompanyLogo",
                         "twitter",
@@ -44170,6 +44258,17 @@
                             "minimum": 0,
                             "maximum": 100
                           },
+                          "styleRank": {
+                            "type": "string",
+                            "enum": [
+                              "S",
+                              "A",
+                              "B",
+                              "C",
+                              "D",
+                              "F"
+                            ]
+                          },
                           "layoutKind": {
                             "type": "string",
                             "enum": [
@@ -44205,6 +44304,7 @@
                           "name",
                           "description",
                           "styleScore",
+                          "styleRank",
                           "layoutKind",
                           "typstTemplate",
                           "isSystem",
@@ -44319,6 +44419,17 @@
                       "minimum": 0,
                       "maximum": 100
                     },
+                    "styleRank": {
+                      "type": "string",
+                      "enum": [
+                        "S",
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
                     "layoutKind": {
                       "type": "string",
                       "enum": [
@@ -44430,6 +44541,7 @@
                     "name",
                     "description",
                     "styleScore",
+                    "styleRank",
                     "layoutKind",
                     "typstTemplate",
                     "isSystem",
@@ -44602,6 +44714,18 @@
                           "targetRole": {
                             "type": "string"
                           },
+                          "targetRoleId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
+                            "example": "role-software-engineer"
+                          },
+                          "targetRoleLabel": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Human-readable desired role label used by Readiness scoring.",
+                            "example": "Software Engineer"
+                          },
                           "isPublic": {
                             "type": "boolean"
                           },
@@ -44627,18 +44751,6 @@
                           "jobTitle": {
                             "type": "string",
                             "nullable": true
-                          },
-                          "targetRoleId": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
-                            "example": "role-software-engineer"
-                          },
-                          "targetRoleLabel": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "Human-readable desired role label used by Readiness scoring.",
-                            "example": "Software Engineer"
                           },
                           "summary": {
                             "type": "string",
@@ -44796,6 +44908,18 @@
                     },
                     "targetRole": {
                       "type": "string"
+                    },
+                    "targetRoleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
+                      "example": "role-software-engineer"
+                    },
+                    "targetRoleLabel": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable desired role label used by Readiness scoring.",
+                      "example": "Software Engineer"
                     },
                     "isPublic": {
                       "type": "boolean"
@@ -48190,6 +48314,10 @@
                                     "semanticKind": {
                                       "type": "string"
                                     },
+                                    "groupKey": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
                                     "version": {
                                       "type": "integer"
                                     },
@@ -48588,6 +48716,16 @@
                         "language": {
                           "type": "string"
                         },
+                        "targetRoleId": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "role-software-engineer"
+                        },
+                        "targetRoleLabel": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Software Engineer"
+                        },
                         "isPublic": {
                           "type": "boolean"
                         },
@@ -48800,6 +48938,10 @@
                                   },
                                   "semanticKind": {
                                     "type": "string"
+                                  },
+                                  "groupKey": {
+                                    "type": "string",
+                                    "nullable": true
                                   },
                                   "version": {
                                     "type": "integer"
@@ -49375,6 +49517,18 @@
                     "targetRole": {
                       "type": "string"
                     },
+                    "targetRoleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
+                      "example": "role-software-engineer"
+                    },
+                    "targetRoleLabel": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable desired role label used by Readiness scoring.",
+                      "example": "Software Engineer"
+                    },
                     "isPublic": {
                       "type": "boolean"
                     },
@@ -49418,6 +49572,10 @@
                               },
                               "semanticKind": {
                                 "type": "string"
+                              },
+                              "groupKey": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "title": {
                                 "type": "string"
@@ -49618,6 +49776,18 @@
                     },
                     "targetRole": {
                       "type": "string"
+                    },
+                    "targetRoleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
+                      "example": "role-software-engineer"
+                    },
+                    "targetRoleLabel": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable desired role label used by Readiness scoring.",
+                      "example": "Software Engineer"
                     },
                     "isPublic": {
                       "type": "boolean"
@@ -52411,6 +52581,18 @@
                     "targetRole": {
                       "type": "string"
                     },
+                    "targetRoleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
+                      "example": "role-software-engineer"
+                    },
+                    "targetRoleLabel": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable desired role label used by Readiness scoring.",
+                      "example": "Software Engineer"
+                    },
                     "isPublic": {
                       "type": "boolean"
                     },
@@ -52528,6 +52710,18 @@
                     "targetRole": {
                       "type": "string"
                     },
+                    "targetRoleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Soft reference to the desired RoleTitle used by Readiness scoring.",
+                      "example": "role-software-engineer"
+                    },
+                    "targetRoleLabel": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable desired role label used by Readiness scoring.",
+                      "example": "Software Engineer"
+                    },
                     "isPublic": {
                       "type": "boolean"
                     },
@@ -52571,6 +52765,10 @@
                               },
                               "semanticKind": {
                                 "type": "string"
+                              },
+                              "groupKey": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "title": {
                                 "type": "string"
@@ -52765,6 +52963,17 @@
                       "minimum": 0,
                       "maximum": 100
                     },
+                    "rank": {
+                      "type": "string",
+                      "enum": [
+                        "S",
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
                     "completenessScore": {
                       "type": "integer",
                       "minimum": 0,
@@ -52856,6 +53065,7 @@
                     "id",
                     "resumeId",
                     "overallScore",
+                    "rank",
                     "completenessScore",
                     "contentQualityScore",
                     "issues",
@@ -52954,6 +53164,17 @@
                       "minimum": 0,
                       "maximum": 100
                     },
+                    "rank": {
+                      "type": "string",
+                      "enum": [
+                        "S",
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "F"
+                      ]
+                    },
                     "completenessScore": {
                       "type": "integer",
                       "minimum": 0,
@@ -53045,6 +53266,7 @@
                     "id",
                     "resumeId",
                     "overallScore",
+                    "rank",
                     "completenessScore",
                     "contentQualityScore",
                     "issues",
@@ -53497,6 +53719,10 @@
                               },
                               "semanticKind": {
                                 "type": "string"
+                              },
+                              "groupKey": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "version": {
                                 "type": "integer"
@@ -66233,11 +66459,23 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "portfolio": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://enzo.dev"
+                    },
                     "usernameChangeAvailableAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
                       "description": "When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
+                    "usernameUpdatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                       "example": "2026-05-07T00:00:00.000Z"
                     },
                     "createdAt": {
@@ -66427,11 +66665,23 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "portfolio": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://enzo.dev"
+                    },
                     "usernameChangeAvailableAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
                       "description": "When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
+                    "usernameUpdatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                       "example": "2026-05-07T00:00:00.000Z"
                     },
                     "createdAt": {
@@ -66500,11 +66750,23 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "portfolio": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "https://enzo.dev"
+                        },
                         "usernameChangeAvailableAt": {
                           "type": "string",
                           "nullable": true,
                           "format": "date-time",
                           "description": "When the user may next change their username, or null if they can change it now. The first change after sign-up is always free; later changes are gated once every `cooldownDays` (see GET /v1/users/username/rules).",
+                          "example": "2026-05-07T00:00:00.000Z"
+                        },
+                        "usernameUpdatedAt": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time",
+                          "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                           "example": "2026-05-07T00:00:00.000Z"
                         },
                         "createdAt": {

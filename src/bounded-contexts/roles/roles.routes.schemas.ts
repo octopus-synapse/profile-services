@@ -32,9 +32,12 @@ export type RolesSearchResponse = z.infer<typeof RolesSearchResponseSchema>;
  *  (defaults to `pt` in the use case); when it under-fills the limit the
  *  other language tops the list up so EN titles still surface for pt-BR
  *  users (and vice versa). */
-export const RolesSearchQuerySchema = z.object({
-  q: z.string().trim().min(2).max(80),
-  lang: z.nativeEnum(RoleTitleLang).optional(),
-  limit: z.coerce.number().int().min(1).max(25).optional(),
-});
+export const RolesSearchQuerySchema = z
+  .object({
+    q: z.string().trim().min(2).max(80),
+    lang: z.nativeEnum(RoleTitleLang).optional(),
+    limit: z.coerce.number().int().min(1).max(25).optional(),
+  })
+  // See CompaniesSearchQuerySchema — `q` is required.
+  .openapi({ example: { q: 'engineer' } });
 export type RolesSearchQuery = z.infer<typeof RolesSearchQuerySchema>;

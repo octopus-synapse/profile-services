@@ -6,7 +6,7 @@ import type {
   StyleDetailDto,
   StyleListResponseDto,
   StyleSummaryDto,
-} from '../dto/resume-style.schema';
+} from '../../resume-styles.routes.schemas';
 
 export function toSummaryResponseDto(s: StyleSummary): StyleSummaryDto {
   return {

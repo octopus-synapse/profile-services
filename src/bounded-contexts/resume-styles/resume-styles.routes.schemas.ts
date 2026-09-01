@@ -11,6 +11,7 @@ import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ScoreRankSchema } from '@/shared-kernel/scoring/rank';
 
 export const IdParams = IdParamSchema;
 export const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
@@ -45,13 +46,48 @@ export const CreateStyleBodySchema = z
       description: 'Clean single-column layout with generous whitespace.',
       typstTemplate: '#set page(margin: 1in)\n#text(weight: "bold")[Resume]',
       layoutKind: 'SINGLE_COLUMN',
+      // A full DSL config, not a sketch: `styleScore` is recomputed from this
+      // by the ATS rubric and a create below STYLE_SCORE_MIN (80) is rejected
+      // with 422. The old example predated the DSL entirely
+      // (`{ fontFamily, accentColor }`), so it scored ~0 and the documented
+      // example could not have worked. Mirrors the seeded ATS Classic style.
       styleConfig: {
-        fontFamily: 'Inter',
-        accentColor: '#0ea5e9',
+        version: '1.0.0',
+        layout: {
+          type: 'single-column',
+          paperSize: 'a4',
+          margins: 'normal',
+          pageBreakBehavior: 'auto',
+        },
+        tokens: {
+          typography: {
+            fontFamily: { heading: 'calibri', body: 'calibri' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
+          colors: {
+            colors: {
+              primary: '#111111',
+              secondary: '#444444',
+              background: '#FFFFFF',
+              surface: '#F9FAFB',
+              text: { primary: '#1A1A1A', secondary: '#444444', accent: '#222222' },
+              border: '#CCCCCC',
+              divider: '#E5E7EB',
+            },
+            borderRadius: 'sm',
+            shadows: 'none',
+          },
+          spacing: {
+            density: 'comfortable',
+            sectionGap: 'md',
+            itemGap: 'md',
+            contentPadding: 'md',
+          },
+        },
+        sections: [],
       },
-      sectionStyles: {
-        experience: { spacing: 1.2 },
-      },
+      sectionStyles: {},
     },
   });
 
@@ -92,6 +128,8 @@ export const StyleSummaryResponseSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   styleScore: z.number().int().min(0).max(100),
+  /** Letter grade for `styleScore` (S/A/B/C/D/F), from the shared ladder. */
+  styleRank: ScoreRankSchema,
   layoutKind: LayoutKindSchema,
   typstTemplate: z.string(),
   isSystem: z.boolean(),
@@ -130,6 +168,16 @@ export const StyleListResponseSchema = z.object({
   hasNext: z.boolean(),
   hasPrev: z.boolean(),
 });
+
+/**
+ * Presenter-facing types. These live with the ROUTE schemas on purpose: a
+ * parallel copy under `infrastructure/dto/` drifted apart from these and
+ * gained `styleRank` while the contract did not, so the API returned a field
+ * its own schema rejected. One definition, one contract.
+ */
+export type StyleSummaryDto = z.infer<typeof StyleSummaryResponseSchema>;
+export type StyleDetailDto = z.infer<typeof StyleDetailResponseSchema>;
+export type StyleListResponseDto = z.infer<typeof StyleListResponseSchema>;
 
 export const ApplyStyleResponseSchema = z.null();
 export const DeleteStyleResponseSchema = z.null();

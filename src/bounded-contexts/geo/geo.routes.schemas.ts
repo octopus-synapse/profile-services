@@ -31,11 +31,15 @@ export type GeoLocationsResponse = z.infer<typeof GeoLocationsResponseSchema>;
  *  `country` / `state` are ISO codes that scope a state/city search so the
  *  cascading single-input UX can keep narrowing without re-scanning the
  *  whole dataset. */
-export const GeoLocationsQuerySchema = z.object({
-  q: z.string().trim().min(1).max(80),
-  level: z.enum(['country', 'state', 'city', 'all']).optional(),
-  country: z.string().trim().min(2).max(3).optional(),
-  state: z.string().trim().min(1).max(3).optional(),
-  limit: z.coerce.number().int().min(1).max(25).optional(),
-});
+export const GeoLocationsQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(80),
+    level: z.enum(['country', 'state', 'city', 'all']).optional(),
+    country: z.string().trim().min(2).max(3).optional(),
+    state: z.string().trim().min(1).max(3).optional(),
+    limit: z.coerce.number().int().min(1).max(25).optional(),
+  })
+  // See CompaniesSearchQuerySchema: `q` is required, so the prober needs an
+  // example or it probes with an empty query and reads the 400 as a failure.
+  .openapi({ example: { q: 'sao paulo' } });
 export type GeoLocationsQuery = z.infer<typeof GeoLocationsQuerySchema>;

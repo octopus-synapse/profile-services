@@ -104,7 +104,9 @@ export const PublicResumeSchema = z.object({
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
-  template: z.string().nullable(),
+  /** Role picked from the taxonomy (see resume.prisma). */
+  targetRoleId: z.string().nullable().optional().openapi({ example: 'role-software-engineer' }),
+  targetRoleLabel: z.string().nullable().optional().openapi({ example: 'Software Engineer' }),
   summary: z.string().nullable(),
   currentCompanyLogo: z.string().nullable(),
   twitter: z.string().nullable(),
