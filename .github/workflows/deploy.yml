@@ -393,3 +393,34 @@ jobs:
       - name: Logout ghcr.io
         if: always()
         run: docker logout ghcr.io || true
+
+  notify:
+    name: E-mail on failure
+    needs: [prepare, build, deploy]
+    # Active alert on any red job — GitHub's own notification is easy to miss.
+    # Green deploys stay silent. Runs on a GitHub runner so it still fires
+    # when the self-hosted box is the thing that broke mid-job.
+    if: always() && contains(needs.*.result, 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send failure e-mail via Resend
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          IMAGE_TAG: ${{ needs.prepare.outputs.image_tag }}
+          SHA: ${{ needs.prepare.outputs.sha }}
+        run: |
+          set -euo pipefail
+          [ -n "$RESEND_API_KEY" ] || { echo "::warning::RESEND_API_KEY not set — no e-mail sent"; exit 0; }
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          payload=$(jq -n \
+            --arg from "Patch Careers Deploys <noreply@patchcareers.org>" \
+            --arg to "efpatti.dev@gmail.com" \
+            --arg subject "❌ Deploy falhou: ${{ github.repository }} (${IMAGE_TAG:-?})" \
+            --arg html "<p>O deploy de <b>${{ github.repository }}</b> falhou.</p><p>Imagem: <code>${IMAGE_TAG:-?}</code><br>Commit: <code>${SHA:-?}</code></p><p><a href=\"$RUN_URL\">Abrir o run</a></p>" \
+            '{from: $from, to: [$to], subject: $subject, html: $html}')
+          curl -fsS -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          echo "alert e-mail sent"
