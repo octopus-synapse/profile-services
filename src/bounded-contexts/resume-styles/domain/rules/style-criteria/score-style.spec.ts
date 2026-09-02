@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { LayoutKind } from '@prisma/client';
-import { SYSTEM_STYLES } from '../../../../../../prisma/seeds/dev/resume-styles.seed';
+import { SYSTEM_STYLES } from '../../../../../../prisma/seeds/shared/resume-styles.seed';
 import { STYLE_SCORING_CRITERIA_V1 } from '../../../../../../prisma/seeds/shared/style-scoring-criteria.seed';
 import type { StyleIssueSeverity, StyleScoringCriterionDef } from '../../types';
 import { scoreStyle } from './score-style';

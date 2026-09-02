@@ -1,18 +1,23 @@
 /**
- * Resume Styles Seed — two system `ResumeStyle` rows, both ATS-safe.
+ * Resume Styles Seed — two system `ResumeStyle` rows, both ATS-safe. SHARED
+ * bucket: it runs on every deploy, so production actually has styles (they
+ * used to live in dev/ and prod's catalog was empty — the onboarding style
+ * step degraded to a raw form there).
  *
- * User-facing names are deliberately jargon-free ("Verso" / "Prosa" — short,
- * pronounceable in any locale); the ATS guarantees live in the Style Score,
- * not the name. Both styles render through Typst templates that already
- * shipped:
- *   - "Verso" (ex ATS Classic) → templates/     (paired typst path: 'default')
- *   - "Prosa" (ex ATS Compact) → templates-ats/ (paired typst path: 'ats')
+ * User-facing names are deliberately descriptive — the name says what the
+ * template LOOKS like, the preview sells it, and the ATS guarantee lives in
+ * the Style Score (both score 100). Ex "Verso"/"Prosa", renamed because the
+ * poetry said nothing:
+ *   - "Clássico" (ex Verso) → templates/     (typst path: 'default')
+ *   - "Compacto" (ex Prosa) → templates-ats/ (typst path: 'ats')
  *
  * Both styles satisfy every criterion of the data-driven Style Score rubric
  * (see style-scoring-criteria.seed.ts), so their `styleScore` is 100 with an
  * empty issue list. The breakdown mirrors the rubric's bucket weights.
  *
- * Plan reference: scoring refactor — Style Score taxonomy + 2-style MVP.
+ * `ResumeStyle.authorId` is a required FK, and prod has no dev admin — the
+ * seed owns a passwordless "system" author (find-or-create by email, never
+ * loginable) so the bucket invariant (idempotent, self-sufficient) holds.
  */
 
 import { LayoutKind, type Prisma, type PrismaClient } from '@prisma/client';
@@ -37,8 +42,8 @@ const PERFECT_BREAKDOWN: Prisma.InputJsonValue = {
 export const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   {
     id: '01900000-0000-7000-8000-000000000001',
-    name: 'Verso',
-    description: 'Single column, comfortable spacing — a timeless, easy-to-read default.',
+    name: 'Clássico',
+    description: 'Coluna única com respiro — atemporal e fácil de ler.',
     typstTemplate: 'default',
     styleScore: 100,
     layoutKind: LayoutKind.SINGLE_COLUMN,
@@ -86,8 +91,8 @@ export const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   },
   {
     id: '01900000-0000-7000-8000-000000000002',
-    name: 'Prosa',
-    description: 'Single column, tighter spacing — fits more content on each page.',
+    name: 'Compacto',
+    description: 'Coluna única mais densa — cabe mais conteúdo por página.',
     typstTemplate: 'ats',
     styleScore: 100,
     layoutKind: LayoutKind.SINGLE_COLUMN,
@@ -137,7 +142,27 @@ export const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   },
 ];
 
-export async function seedResumeStyles(prisma: PrismaClient, adminId: string): Promise<void> {
+const SYSTEM_AUTHOR_EMAIL = 'system@patchcareers.org';
+
+/** The catalog's owner row: passwordless (never loginable), inactive-by-use,
+ *  exists only so the required `authorId` FK has a stable target in prod. */
+async function ensureSystemAuthor(prisma: PrismaClient): Promise<string> {
+  const existing = await prisma.user.findUnique({ where: { email: SYSTEM_AUTHOR_EMAIL } });
+  if (existing) return existing.id;
+  const created = await prisma.user.create({
+    data: {
+      email: SYSTEM_AUTHOR_EMAIL,
+      name: 'Patch Careers',
+      emailVerified: new Date(),
+      passwordHash: null,
+    },
+  });
+  return created.id;
+}
+
+export async function seedResumeStyles(prisma: PrismaClient): Promise<void> {
+  const authorId = await ensureSystemAuthor(prisma);
+
   // Clean up legacy system rows (pre-rename) so the set always lands at
   // exactly the styles defined here. Idempotent: re-runs touch nothing.
   await prisma.resumeStyle.deleteMany({
@@ -158,7 +183,7 @@ export async function seedResumeStyles(prisma: PrismaClient, adminId: string): P
         styleConfig: style.styleConfig,
         styleScoreBreakdown: style.styleScoreBreakdown,
         styleScore: style.styleScore,
-        authorId: adminId,
+        authorId,
         isSystem: true,
       },
       create: {
@@ -170,7 +195,7 @@ export async function seedResumeStyles(prisma: PrismaClient, adminId: string): P
         styleConfig: style.styleConfig,
         styleScoreBreakdown: style.styleScoreBreakdown,
         styleScore: style.styleScore,
-        authorId: adminId,
+        authorId,
         isSystem: true,
       },
     });

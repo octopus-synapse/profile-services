@@ -14,7 +14,6 @@ import { seedE2EOnboardingUser } from './e2e-onboarding-user.seed';
 import { seedE2ETestUser } from './e2e-test-user.seed';
 import { seedEnzoferracini } from './enzoferracini.seed';
 import { seedJobs } from './job.seed';
-import { seedResumeStyles } from './resume-styles.seed';
 import { seedTechSkills } from './tech-skill.seed';
 import { seedUsernames } from './username.seed';
 
@@ -22,8 +21,8 @@ export async function runDevSeeds(
   prisma: PrismaClient,
   { adminId }: { adminId: string },
 ): Promise<void> {
-  // Catalogs that need the admin owner / external data.
-  await seedResumeStyles(prisma, adminId);
+  // Catalogs that need the admin owner / external data. (Resume styles moved
+  // to the shared bucket — prod needs them too.)
   await seedTechSkills(prisma);
   await seedJobs(prisma, adminId);
   await seedUsernames(prisma);

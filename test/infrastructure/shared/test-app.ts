@@ -30,9 +30,9 @@ import { seedAuthorization } from '@/bounded-contexts/identity/authorization/see
 import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
 import type { CachePort } from '@/shared-kernel/cache';
 import { seedDreddFixtures } from '../../../prisma/seeds/dev/dredd-fixtures.seed';
-import { seedResumeStyles } from '../../../prisma/seeds/dev/resume-styles.seed';
 import { seedTechSkills } from '../../../prisma/seeds/dev/tech-skill.seed';
 import { seedOnboardingSteps } from '../../../prisma/seeds/shared/onboarding-step.seed';
+import { seedResumeStyles } from '../../../prisma/seeds/shared/resume-styles.seed';
 import { seedSectionTypes } from '../../../prisma/seeds/shared/section-type.seed';
 import { seedSpokenLanguages } from '../../../prisma/seeds/shared/spoken-language.seed';
 import { seedStyleScoringCriteria } from '../../../prisma/seeds/shared/style-scoring-criteria.seed';
@@ -166,7 +166,7 @@ export async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
     // pre-seed (and therefore the e2e run) down. It only ever passed by
     // luck of scheduling.
     seedSectionTypes(prisma).then(() => seedOnboardingSteps(prisma)),
-    seedResumeStyles(prisma, adminId),
+    seedResumeStyles(prisma),
     // The `styleScore` rubric is data-driven: with no `StyleScoringCriterion`
     // rows every style scores 0, so admin create/update was rejected with
     // 422 STYLE_BELOW_ATS_THRESHOLD no matter how ATS-safe the config was.

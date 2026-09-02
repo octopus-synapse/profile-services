@@ -12,6 +12,7 @@ import type { PrismaClient } from '@prisma/client';
 import { seedAuthorization } from './authorization.seed';
 import { seedFitQuestions } from './fit-questions.seed';
 import { seedOnboardingSteps } from './onboarding-step.seed';
+import { seedResumeStyles } from './resume-styles.seed';
 import { seedSectionGroups } from './section-group.seed';
 import { seedSectionTypes } from './section-type.seed';
 import { seedSpokenLanguages } from './spoken-language.seed';
@@ -22,6 +23,9 @@ export async function runSharedSeeds(prisma: PrismaClient): Promise<void> {
   await seedAuthorization();
   // Data-driven Style Score rubric (before any styles consume it).
   await seedStyleScoringCriteria(prisma);
+  // System resume styles ("Clássico"/"Compacto") — needed in prod too, or the
+  // onboarding style step has an empty catalog.
+  await seedResumeStyles(prisma);
   // Psychometric fit-question pool.
   await seedFitQuestions(prisma);
   // Spoken languages catalog.

@@ -68,6 +68,11 @@ const ALLOWLIST = new Set([
   // window regardless). This is the store's primitive, not cross-cutting
   // entity invalidation — `CacheInvalidationPort` would be the wrong tool.
   'src/bounded-contexts/identity/authentication/infrastructure/adapters/cache-session-exchange.adapter.ts',
+  // Same construction as the session-exchange store above: the cache IS
+  // the primary store for pre-signup challenges (no User row exists yet),
+  // and `delete()` retires a consumed/superseded challenge — the store's
+  // own lifecycle, not entity invalidation.
+  'src/bounded-contexts/identity/email-verification/infrastructure/adapters/persistence/cache-pre-signup-verification.store.ts',
 ]);
 
 const PATTERN = /\b(?:cache|cachePort|this\.cache)\.(?:delete|deletePattern)\s*\(/;
