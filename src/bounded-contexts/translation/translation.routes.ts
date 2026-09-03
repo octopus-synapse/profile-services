@@ -10,15 +10,10 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { TranslationService } from './application/services';
 import { TRANSLATION_FLAG_KEY } from './domain/translation-flags.const';
-import type { SourceLanguage, TranslationLanguage } from './domain/types/translation.types';
 import {
-  BatchTranslationResponseSchema,
   HealthResponseSchema,
   LanguageDetectionsResponseSchema,
-  TranslateBatchSchema,
   TranslateSimpleSchema,
-  TranslateTextSchema,
-  TranslationResultSchema,
 } from './translation.routes.schemas';
 
 /**
@@ -61,31 +56,6 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   },
   {
     method: 'POST',
-    path: '/v1/translation/text',
-    statusCode: 201,
-    auth: { kind: 'jwt' },
-    guards: LLM_ROUTE_GUARDS,
-    permission: Permission.RESUME_READ,
-    body: TranslateTextSchema,
-    response: TranslationResultSchema,
-    openapi: {
-      summary: 'Translate a single text',
-      tags: ['translation'],
-      description: 'Translation API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, service) => {
-      const dto = ctx.body as z.infer<typeof TranslateTextSchema>;
-      const result = await service.translate(
-        dto.text,
-        dto.sourceLanguage as SourceLanguage,
-        dto.targetLanguage as TranslationLanguage,
-      );
-      return result;
-    },
-  },
-  {
-    method: 'POST',
     path: '/v1/translation/detect',
     auth: { kind: 'jwt' },
     guards: LLM_ROUTE_GUARDS,
@@ -102,73 +72,6 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const detections = await service.detectLanguage(dto.text);
       return { detections };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/v1/translation/batch',
-    statusCode: 201,
-    auth: { kind: 'jwt' },
-    guards: LLM_ROUTE_GUARDS,
-    permission: Permission.RESUME_READ,
-    body: TranslateBatchSchema,
-    response: BatchTranslationResponseSchema,
-    openapi: {
-      summary: 'Translate multiple texts in batch',
-      tags: ['translation'],
-      description: 'Translation API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, service) => {
-      const dto = ctx.body as z.infer<typeof TranslateBatchSchema>;
-      const result = await service.translateBatch(
-        dto.texts,
-        dto.sourceLanguage as SourceLanguage,
-        dto.targetLanguage as TranslationLanguage,
-      );
-      return result;
-    },
-  },
-  {
-    method: 'POST',
-    path: '/v1/translation/pt-to-en',
-    statusCode: 201,
-    auth: { kind: 'jwt' },
-    guards: LLM_ROUTE_GUARDS,
-    permission: Permission.RESUME_READ,
-    body: TranslateSimpleSchema,
-    response: TranslationResultSchema,
-    openapi: {
-      summary: 'Translate Portuguese to English',
-      tags: ['translation'],
-      description: 'Translation API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, service) => {
-      const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
-      const result = await service.translatePtToEn(dto.text);
-      return result;
-    },
-  },
-  {
-    method: 'POST',
-    path: '/v1/translation/en-to-pt',
-    statusCode: 201,
-    auth: { kind: 'jwt' },
-    guards: LLM_ROUTE_GUARDS,
-    permission: Permission.RESUME_READ,
-    body: TranslateSimpleSchema,
-    response: TranslationResultSchema,
-    openapi: {
-      summary: 'Translate English to Portuguese',
-      tags: ['translation'],
-      description: 'Translation API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, service) => {
-      const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
-      const result = await service.translateEnToPt(dto.text);
-      return result;
     },
   },
 ];

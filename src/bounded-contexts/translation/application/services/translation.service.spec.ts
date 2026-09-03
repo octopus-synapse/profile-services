@@ -12,7 +12,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { ResumeTranslationService } from './resume-translation.service';
 import { TranslationService } from './translation.service';
-import type { TranslationBatchService } from './translation-batch.service';
 import type { TranslationCoreService } from './translation-core.service';
 
 describe('TranslationService (Facade)', () => {
@@ -22,7 +21,6 @@ describe('TranslationService (Facade)', () => {
     checkServiceHealth: ReturnType<typeof mock>;
     isAvailable: ReturnType<typeof mock>;
   };
-  let fakeBatchService: { translateBatch: ReturnType<typeof mock> };
   let fakeResumeService: {
     translateToEnglish: ReturnType<typeof mock>;
     translateToPortuguese: ReturnType<typeof mock>;
@@ -37,15 +35,6 @@ describe('TranslationService (Facade)', () => {
       isAvailable: mock(() => true),
     };
 
-    fakeBatchService = {
-      translateBatch: mock((texts: string[]) =>
-        Promise.resolve({
-          translations: texts.map((t) => ({ original: t, translated: `[batch] ${t}` })),
-          failed: [],
-        }),
-      ),
-    };
-
     fakeResumeService = {
       translateToEnglish: mock((data: Record<string, unknown>) =>
         Promise.resolve({ ...data, _translated: 'en' }),
@@ -57,7 +46,6 @@ describe('TranslationService (Facade)', () => {
 
     service = new TranslationService(
       fakeCoreService as unknown as TranslationCoreService,
-      fakeBatchService as unknown as TranslationBatchService,
       fakeResumeService as unknown as ResumeTranslationService,
     );
   });
@@ -68,33 +56,6 @@ describe('TranslationService (Facade)', () => {
 
       expect(fakeCoreService.translate).toHaveBeenCalledWith('Hello', 'en', 'pt');
       expect(result.translated).toBe('[translated] Hello');
-    });
-  });
-
-  describe('translatePtToEn', () => {
-    it('should delegate with pt->en languages', async () => {
-      await service.translatePtToEn('Olá');
-
-      expect(fakeCoreService.translate).toHaveBeenCalledWith('Olá', 'pt', 'en');
-    });
-  });
-
-  describe('translateEnToPt', () => {
-    it('should delegate with en->pt languages', async () => {
-      await service.translateEnToPt('Hello');
-
-      expect(fakeCoreService.translate).toHaveBeenCalledWith('Hello', 'en', 'pt');
-    });
-  });
-
-  describe('translateBatch', () => {
-    it('should delegate to batch service', async () => {
-      const texts = ['Hello', 'World'];
-
-      const result = await service.translateBatch(texts, 'en', 'pt');
-
-      expect(fakeBatchService.translateBatch).toHaveBeenCalledWith(texts, 'en', 'pt');
-      expect(result.translations).toHaveLength(2);
     });
   });
 

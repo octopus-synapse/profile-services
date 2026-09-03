@@ -16,22 +16,15 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import {
   ResumeTranslationService,
-  TranslationBatchService,
   TranslationCoreService,
   TranslationService,
 } from './application/services';
 import { translationRoutes } from './translation.routes';
 
-export {
-  ResumeTranslationService,
-  TranslationBatchService,
-  TranslationCoreService,
-  TranslationService,
-};
+export { ResumeTranslationService, TranslationCoreService, TranslationService };
 
 export interface TranslationCompositionExtras {
   readonly core: TranslationCoreService;
-  readonly batch: TranslationBatchService;
   readonly resume: ResumeTranslationService;
 }
 
@@ -40,15 +33,13 @@ export function buildTranslationComposition(
   logger: LoggerPort,
 ): BoundedContextComposition<TranslationService> & TranslationCompositionExtras {
   const core = new TranslationCoreService(translationLlm, logger);
-  const batch = new TranslationBatchService(translationLlm);
   const resume = new ResumeTranslationService(translationLlm);
-  const useCases = new TranslationService(core, batch, resume);
+  const useCases = new TranslationService(core, resume);
 
   return {
     useCases,
     routes: translationRoutes,
     core,
-    batch,
     resume,
   };
 }

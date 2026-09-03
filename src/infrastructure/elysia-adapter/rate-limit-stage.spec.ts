@@ -32,7 +32,7 @@ function makeCtx(route: Route): HttpCtx {
 
 describe('rateLimitStage — window unit', () => {
   it('enforces the translation LLM routes at 30 requests per 3600 s, not 3 s', async () => {
-    const route = translationRoutes.find((r) => r.path === '/v1/translation/text') as Route;
+    const route = translationRoutes.find((r) => r.path === '/v1/translation/detect') as Route;
     expect(route.guards?.some((g) => g.id === 'rate-limit')).toBe(true);
 
     const { limiter, check } = makeLimiter();

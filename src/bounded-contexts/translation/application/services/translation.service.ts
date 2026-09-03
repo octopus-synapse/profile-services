@@ -1,37 +1,30 @@
 /**
  * Translation Service (Facade)
- * Provides unified API for translation operations
- * Delegates to specialized services for implementation
+ *
+ * What the HTTP surface and other bounded contexts call. The raw text/batch
+ * endpoints and their use cases are gone (no client; a general-purpose
+ * translator billed to any account was the wrong shape); what remains is
+ * health, language detection, single-text translation for internal callers,
+ * and the whole-object resume translation the bilingual write-through uses.
  */
 
 import type {
-  BatchTranslationResult,
   LanguageDetectionResult,
   SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../domain/types/translation.types';
 import { ResumeTranslationService } from './resume-translation.service';
-import { TranslationBatchService } from './translation-batch.service';
 import { TranslationCoreService } from './translation-core.service';
 
 export class TranslationService {
   constructor(
     private readonly coreService: TranslationCoreService,
-    private readonly batchService: TranslationBatchService,
     private readonly resumeService: ResumeTranslationService,
   ) {}
 
   async checkServiceHealth(): Promise<boolean> {
     return this.coreService.checkServiceHealth();
-  }
-
-  async translatePtToEn(text: string): Promise<TranslationResult> {
-    return this.coreService.translate(text, 'pt', 'en');
-  }
-
-  async translateEnToPt(text: string): Promise<TranslationResult> {
-    return this.coreService.translate(text, 'en', 'pt');
   }
 
   async translate(
@@ -44,14 +37,6 @@ export class TranslationService {
 
   async detectLanguage(text: string): Promise<LanguageDetectionResult[]> {
     return this.coreService.detectLanguage(text);
-  }
-
-  async translateBatch(
-    texts: string[],
-    sourceLanguage: SourceLanguage,
-    targetLanguage: TranslationLanguage,
-  ): Promise<BatchTranslationResult> {
-    return this.batchService.translateBatch(texts, sourceLanguage, targetLanguage);
   }
 
   async translateResumeToEnglish(

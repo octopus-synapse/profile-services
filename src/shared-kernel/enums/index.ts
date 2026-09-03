@@ -38,10 +38,4 @@ export {
   ThemeModeSchema,
   themeModeFromKebab,
   themeModeToKebab,
-  type UILanguage,
-  type UILanguageKebab,
-  UILanguageKebabSchema, // UI Language
-  UILanguageSchema,
-  uiLanguageFromKebab,
-  uiLanguageToKebab,
 } from './platform.enum';
