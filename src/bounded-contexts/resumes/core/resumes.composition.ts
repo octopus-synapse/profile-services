@@ -31,6 +31,7 @@ import { InvalidateCacheOnResumeDelete } from '../application/handlers/invalidat
 import { InvalidateCacheOnResumeUpdate } from '../application/handlers/invalidate-cache-on-resume-update.handler';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
 import { buildResumesUseCases } from './application/resumes.composition';
+import type { DuplicateTranslationHooks } from './application/use-cases/duplicate-resume-for-user/duplicate-resume-for-user.use-case';
 import { ResumesRepository } from './resumes.repository';
 import {
   genericResumeSectionsRoutes,
@@ -84,11 +85,18 @@ export function buildResumesCoreComposition(
   eventPublisher: ResumeEventPublisher,
   cacheInvalidation: CacheInvalidationService,
   logger: LoggerPort,
+  translation: DuplicateTranslationHooks | null = null,
 ): BoundedContextComposition<ResumesUseCases> & ResumesCoreCompositionExtras {
   const repository = new ResumesRepository(prisma, logger);
   const service = new ResumesService(repository, eventPublisher);
 
-  const useCases = buildResumesUseCases(repository, versionService, eventPublisher, logger);
+  const useCases = buildResumesUseCases(
+    repository,
+    versionService,
+    eventPublisher,
+    logger,
+    translation,
+  );
 
   // Resume Management (elevated permissions) bundle.
   const managementUseCases = buildResumeManagementUseCases(prisma, eventPublisher);

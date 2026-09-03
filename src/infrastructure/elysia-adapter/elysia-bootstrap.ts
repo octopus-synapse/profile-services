@@ -155,6 +155,7 @@ import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import { buildCorsAllowlist } from '@/shared-kernel/http/cors-allowlist';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import {
   DatadogTelemetryService,
   initOpenTelemetry,
@@ -731,6 +732,13 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     resumeEvents as never,
     cacheInvalidation as never,
     logger,
+    // Decision 19: a copy in the other language is translated for real.
+    // (`translation` is composed further down; the closures resolve it lazily.)
+    {
+      ensureLocale: (resumeId: string, locale: Locale) =>
+        translation.ensureLocale(resumeId, locale),
+      deriveNow: (resumeId: string) => translation.deriveNow(resumeId),
+    },
   ) as never;
   const adminSectionTypes = buildAdminSectionTypesComposition(prisma as never, logger);
   const timeCapsule = buildTimeCapsuleComposition(

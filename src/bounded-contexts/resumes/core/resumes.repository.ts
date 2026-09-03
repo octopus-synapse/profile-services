@@ -2,8 +2,10 @@ import { Prisma, Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, LoggerPort, type UpdateResumeData } from '@/shared-kernel';
 import type { DomainException } from '@/shared-kernel/exceptions';
+import { resolveResumeProse, resolveStoredItem } from '@/shared-kernel/i18n/translation-envelope';
 import { enforceQuotaInTx } from '@/shared-kernel/persistence/quota-guard';
 import { runInTransaction } from '@/shared-kernel/persistence/transaction';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeAccessDeniedException, ResumeNotFoundException } from '../domain/exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
@@ -121,18 +123,35 @@ export class ResumesRepository extends ResumesRepositoryPort {
       });
       if (!source) throw new ResumeNotFoundException();
 
+      // Decision 19: a copy in the other language is born canonical in it —
+      // its text is the source's translated version (derived envelopes
+      // merged over the canonical fields; the caller ensured they exist),
+      // and the envelopes are dropped since they would describe the wrong
+      // direction. A same-language copy keeps them: same text, same hashes.
+      const sourceLocale = parseLocale(source.language);
+      const targetLocale = parseLocale(overrides.language ?? source.language);
+      const crossing = targetLocale !== sourceLocale;
+      const prose = resolveResumeProse(
+        { summary: source.summary, headline: source.headline, jobTitle: source.jobTitle },
+        source.translations,
+        sourceLocale,
+        targetLocale,
+      );
+
       const copy = await tx.resume.create({
         data: {
           userId,
           title: overrides.title,
-          language: overrides.language ?? source.language,
+          language: targetLocale,
+          translations: crossing ? Prisma.DbNull : jsonOrDbNull(source.translations),
+          headline: prose.headline,
           styleId: overrides.styleId ?? source.styleId,
           techPersona: source.techPersona,
           techArea: source.techArea,
           primaryStack: source.primaryStack,
           experienceYears: source.experienceYears,
           fullName: source.fullName,
-          jobTitle: source.jobTitle,
+          jobTitle: prose.jobTitle,
           // The target role is content, not publish state: readiness keys
           // off `targetRoleLabel`, so a copy without it silently lost its
           // market-relative coverage.
@@ -143,7 +162,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
           linkedin: source.linkedin,
           github: source.github,
           website: source.website,
-          summary: source.summary,
+          summary: prose.summary,
           currentCompanyLogo: source.currentCompanyLogo,
           twitter: source.twitter,
           medium: source.medium,
@@ -187,7 +206,17 @@ export class ResumesRepository extends ResumesRepositoryPort {
           await tx.sectionItem.createMany({
             data: items.map((item) => ({
               resumeSectionId: copiedSection.id,
-              content: jsonOrDbNull(item.content),
+              content: jsonOrDbNull(
+                crossing
+                  ? (resolveStoredItem(
+                      asRecord(item.content),
+                      item.translations,
+                      sourceLocale,
+                      targetLocale,
+                    ).content as Prisma.JsonObject)
+                  : item.content,
+              ),
+              translations: crossing ? Prisma.DbNull : jsonOrDbNull(item.translations),
               isVisible: item.isVisible,
               order: item.order,
             })),
@@ -272,4 +301,9 @@ export class ResumesRepository extends ResumesRepositoryPort {
       where: { userId },
     });
   }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
 }

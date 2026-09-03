@@ -123,4 +123,51 @@ describe('DuplicateResumeForUserUseCase', () => {
       ResumeSlotLimitReachedException,
     );
   });
+
+  describe('translation hooks (decision 19)', () => {
+    function withHooks(ensureLocale = mock(async () => undefined)) {
+      const repository = new RepoWithSections();
+      const eventPublisher = new InMemoryResumesEventPublisher();
+      const hooks = { ensureLocale, deriveNow: mock(async () => undefined) };
+      const useCase = new DuplicateResumeForUserUseCase(
+        repository,
+        eventPublisher,
+        buildLogger(),
+        hooks,
+      );
+      repository.seedResume({ id: 'master', userId: 'u1', title: 'Master', language: 'pt-BR' });
+      return { useCase, hooks };
+    }
+
+    it("makes the target version exist on the source first, then derives the copy's other version", async () => {
+      const { useCase, hooks } = withHooks();
+
+      const copy = await useCase.execute('u1', 'master', { title: 'EN', language: 'en' });
+
+      expect(hooks.ensureLocale).toHaveBeenCalledWith('master', 'en');
+      expect(hooks.deriveNow).toHaveBeenCalledWith(copy.id);
+    });
+
+    it('does nothing extra for a same-language copy', async () => {
+      const { useCase, hooks } = withHooks();
+
+      await useCase.execute('u1', 'master', { title: 'PT', language: 'pt-BR' });
+      await useCase.execute('u1', 'master', { title: 'Same' });
+
+      expect(hooks.ensureLocale).not.toHaveBeenCalled();
+      expect(hooks.deriveNow).not.toHaveBeenCalled();
+    });
+
+    it('still copies when translating the source fails — the copy is a courtesy, not a gate', async () => {
+      const failing = mock(async () => {
+        throw new Error('llm down');
+      });
+      const { useCase, hooks } = withHooks(failing);
+
+      const copy = await useCase.execute('u1', 'master', { title: 'EN', language: 'en' });
+
+      expect(copy.id).not.toBe('master');
+      expect(hooks.deriveNow).toHaveBeenCalledWith(copy.id);
+    });
+  });
 });

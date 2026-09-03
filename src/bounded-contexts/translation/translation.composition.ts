@@ -19,6 +19,7 @@ import type {
 } from '@/shared-kernel/composition';
 import type { SseEvent, SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import {
   ResumeTranslationService,
   TranslationCoreService,
@@ -72,6 +73,8 @@ export interface BuildTranslationDeps {
 export interface TranslationComposition extends BoundedContextComposition<TranslationBundle> {
   /** Enqueue a derivation without the debounce — used right after onboarding commits. */
   readonly deriveNow: (resumeId: string) => Promise<void>;
+  /** Run the derivation into `locale` NOW, in-process — used before a cross-language duplicate reads it. */
+  readonly ensureLocale: (resumeId: string, locale: Locale) => Promise<void>;
 }
 
 export function buildTranslationComposition(deps: BuildTranslationDeps): TranslationComposition {
@@ -125,6 +128,9 @@ export function buildTranslationComposition(deps: BuildTranslationDeps): Transla
     routes: translationRoutes,
     eventHandlers,
     workers,
+    ensureLocale: async (resumeId, locale) => {
+      await translateResume.execute(resumeId, { locale });
+    },
     deriveNow: (resumeId) =>
       queue.enqueue<ResumeTranslationJobData>(
         RESUME_TRANSLATION_QUEUE,

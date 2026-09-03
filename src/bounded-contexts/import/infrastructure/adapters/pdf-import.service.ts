@@ -3,6 +3,7 @@ import { PDFParse } from 'pdf-parse';
 import { type ExtractedResume, LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { detectLocale } from '@/shared-kernel/i18n/detect-locale';
 import {
   PdfBufferRequiredException,
   PdfNoTextException,
@@ -44,7 +45,7 @@ export class PdfImportService {
 
     const extracted = await this.llm.extractResumeFromText(text);
 
-    const resumeId = await this.persistResume(userId, extracted);
+    const resumeId = await this.persistResume(userId, extracted, text);
 
     this.logger.log(`PDF import for ${userId} → resume ${resumeId}`, 'PdfImportService');
     return { userId, resumeId, extracted };
@@ -55,12 +56,19 @@ export class PdfImportService {
    * persistence minimal — sections/items are the onboarding review step's
    * job. This stores just the top-level scalars so the user can open a draft.
    */
-  private async persistResume(userId: string, extracted: ExtractedResume): Promise<string> {
+  private async persistResume(
+    userId: string,
+    extracted: ExtractedResume,
+    text: string,
+  ): Promise<string> {
+    // ADR-003 §10 / decision 18: the language is read off the PDF's own text,
+    // never assumed. Undetectable leaves the column default.
+    const language = detectLocale(text);
     const resume = await this.prisma.resume.create({
       data: {
         userId,
         title: extracted.fullName ? `${extracted.fullName}'s CV` : 'Imported CV',
-        language: 'en',
+        ...(language ? { language } : {}),
         fullName: extracted.fullName,
         jobTitle: extracted.jobTitle,
         summary: extracted.summary,

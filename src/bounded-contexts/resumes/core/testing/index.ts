@@ -162,7 +162,10 @@ export class InMemoryResumesRepository extends ResumesRepositoryPort {
       createdAt: input.createdAt ?? new Date(),
       updatedAt: input.updatedAt ?? new Date(),
     };
-    this.resumes.set(resume.id, resume);
+    // The canonical language rides along as the Prisma row carries it
+    // (column default pt-BR); `ResumeEntity` does not type it.
+    const language = typeof input.language === 'string' ? input.language : 'pt-BR';
+    this.resumes.set(resume.id, { ...resume, language } as ResumeEntity);
   }
 
   getResume(id: string): ResumeEntity | undefined {

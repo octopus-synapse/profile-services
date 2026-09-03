@@ -1,4 +1,5 @@
 import type { LoggerPort } from '@/shared-kernel';
+import { type Locale, normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { sanitizeHtmlContent } from '@/shared-kernel/validation';
 import {
   ResumeNotFoundException,
@@ -24,11 +25,24 @@ export interface DuplicateResumeInput {
   readonly include?: readonly DuplicateResumeSectionFilter[];
 }
 
+/**
+ * What the translation context lends this use case (decision 19): make the
+ * other language version of the source exist before the copy reads it, and
+ * derive the copy's own other version afterwards. Both are courtesies — a
+ * refused run (flag off, monthly cap) still yields a copy, in the source's
+ * words, marked as canonical in the requested language.
+ */
+export interface DuplicateTranslationHooks {
+  readonly ensureLocale: (resumeId: string, locale: Locale) => Promise<void>;
+  readonly deriveNow: (resumeId: string) => Promise<void>;
+}
+
 export class DuplicateResumeForUserUseCase {
   constructor(
     private readonly repository: ResumesRepositoryPort,
     private readonly eventPublisher: ResumeEventPublisher,
     private readonly logger: LoggerPort,
+    private readonly translation: DuplicateTranslationHooks | null = null,
   ) {}
 
   async execute(
@@ -54,6 +68,18 @@ export class DuplicateResumeForUserUseCase {
     }
 
     const title = sanitizeHtmlContent(data.title, { allowedTags: [] });
+    const target = normalizeLocale(data.language);
+    const crossing = target !== null && target !== normalizeLocale(source.language);
+    if (crossing && this.translation) {
+      try {
+        await this.translation.ensureLocale(sourceResumeId, target);
+      } catch (error) {
+        this.logger.warn(
+          `Duplicate ${sourceResumeId} → ${target}: translating the source failed, copying as written (${error instanceof Error ? error.message : 'unknown'})`,
+          'DuplicateResumeForUserUseCase',
+        );
+      }
+    }
 
     const resume = await this.repository.duplicateResumeForUserWithQuota(
       userId,
@@ -74,6 +100,9 @@ export class DuplicateResumeForUserUseCase {
       newTitle: resume.title ?? '',
     });
 
+    if (crossing && this.translation) {
+      await this.translation.deriveNow(resume.id);
+    }
     return resume;
   }
 }
