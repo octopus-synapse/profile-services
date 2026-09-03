@@ -10,11 +10,6 @@
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
-import {
-  type AdminCatalogUseCases,
-  buildAdminCatalogUseCases,
-} from './admin/admin-catalog.composition';
-import { adminCatalogRoutes } from './admin/admin-catalog.routes';
 import { buildSkillsUseCases, type SkillsUseCases } from './skills/skills.composition';
 import { skillsRoutes } from './skills/skills.routes';
 import {
@@ -30,10 +25,6 @@ import {
 import { techSkillsQueryRoutes, techSkillsSyncRoutes } from './tech-skills/tech-skills.routes';
 
 export interface SkillsCatalogCompositions {
-  readonly admin: {
-    readonly useCases: AdminCatalogUseCases;
-    readonly routes: typeof adminCatalogRoutes;
-  };
   readonly skills: {
     readonly useCases: SkillsUseCases;
     readonly routes: typeof skillsRoutes;
@@ -58,10 +49,6 @@ export function buildSkillsCatalogCompositions(
   const techSkillsServices = buildTechSkillsServices(prisma, cache, logger);
 
   return {
-    admin: {
-      useCases: buildAdminCatalogUseCases(prisma, logger),
-      routes: adminCatalogRoutes,
-    },
     skills: {
       useCases: buildSkillsUseCases(prisma, logger),
       routes: skillsRoutes,

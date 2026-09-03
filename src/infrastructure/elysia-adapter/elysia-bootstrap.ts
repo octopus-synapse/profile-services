@@ -135,7 +135,6 @@ import { buildResumeVersionsComposition } from '@/bounded-contexts/resumes/resum
 import { buildAdminSectionTypesComposition } from '@/bounded-contexts/resumes/section-types/application/admin-section-types.composition';
 import { buildTimeCapsuleComposition } from '@/bounded-contexts/resumes/time-capsule/time-capsule.composition';
 import { buildRolesComposition } from '@/bounded-contexts/roles/roles.composition';
-import { buildAdminCatalogUseCases } from '@/bounded-contexts/skills-catalog/admin/admin-catalog.composition';
 import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalog/skills-catalog.composition';
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
@@ -778,7 +777,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // Skills catalog (parent + sub-BCs).
   const skillsCatalog = buildSkillsCatalogCompositions(prisma as never, cache as never, logger);
-  const skillsCatalogAdmin = buildAdminCatalogUseCases(prisma as never, logger);
 
   // Translation — provider is the BC AI's TranslationLlmPort (OpenAI).
   // Bilingual write-through (ADR-003): the BC declares its event handlers
@@ -1013,7 +1011,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   void timeCapsule;
   void translation;
   void skillsCatalog;
-  void skillsCatalogAdmin;
   void onboarding;
 
   // Health BC — descriptor-driven `/api/health[/live|/ready]`.
@@ -1220,7 +1217,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       bundle: (resumesCore as { genericSections: { useCases: unknown } }).genericSections.useCases,
       routes: (resumesCore as { genericSections: { routes: unknown } }).genericSections.routes,
     },
-    { bundle: skillsCatalog.admin.useCases, routes: skillsCatalog.admin.routes },
     { bundle: skillsCatalog.skills.useCases, routes: skillsCatalog.skills.routes },
     {
       bundle: skillsCatalog.spokenLanguages.useCases,
