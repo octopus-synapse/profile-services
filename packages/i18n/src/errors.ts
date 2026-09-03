@@ -214,10 +214,6 @@ export const ERROR_DICTIONARY = {
     en: 'Account deletion requires explicit confirmation',
     'pt-BR': 'A exclusão da conta exige confirmação explícita',
   },
-  DUPLICATE_SKILL_NAME: {
-    en: 'A skill with this name already exists on the resume',
-    'pt-BR': 'Já existe uma habilidade com esse nome no currículo',
-  },
   DSL_CYCLIC_REFERENCE: {
     en: 'DSL has a cyclic reference',
     'pt-BR': 'A DSL possui uma referência cíclica',

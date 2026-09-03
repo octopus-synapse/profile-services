@@ -10,8 +10,6 @@
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
-import { buildSkillsUseCases, type SkillsUseCases } from './skills/skills.composition';
-import { skillsRoutes } from './skills/skills.routes';
 import {
   buildSpokenLanguagesService,
   type SpokenLanguagesService,
@@ -25,10 +23,6 @@ import {
 import { techSkillsQueryRoutes, techSkillsSyncRoutes } from './tech-skills/tech-skills.routes';
 
 export interface SkillsCatalogCompositions {
-  readonly skills: {
-    readonly useCases: SkillsUseCases;
-    readonly routes: typeof skillsRoutes;
-  };
   readonly spokenLanguages: {
     readonly useCases: SpokenLanguagesService;
     readonly routes: typeof spokenLanguagesRoutes;
@@ -49,10 +43,6 @@ export function buildSkillsCatalogCompositions(
   const techSkillsServices = buildTechSkillsServices(prisma, cache, logger);
 
   return {
-    skills: {
-      useCases: buildSkillsUseCases(prisma, logger),
-      routes: skillsRoutes,
-    },
     spokenLanguages: {
       useCases: buildSpokenLanguagesService(prisma, cache),
       routes: spokenLanguagesRoutes,

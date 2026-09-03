@@ -244,10 +244,6 @@
       "en": "Invalid DSL",
       "pt-BR": "DSL inválida"
     },
-    "DUPLICATE_SKILL_NAME": {
-      "en": "A skill with this name already exists on the resume",
-      "pt-BR": "Já existe uma habilidade com esse nome no currículo"
-    },
     "DUPLICATED_SECTION_FIELD_KEY": {
       "en": "Duplicated section field key",
       "pt-BR": "Chave de campo da seção duplicada"

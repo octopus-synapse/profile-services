@@ -1213,7 +1213,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       bundle: (resumesCore as { genericSections: { useCases: unknown } }).genericSections.useCases,
       routes: (resumesCore as { genericSections: { routes: unknown } }).genericSections.routes,
     },
-    { bundle: skillsCatalog.skills.useCases, routes: skillsCatalog.skills.routes },
     {
       bundle: skillsCatalog.spokenLanguages.useCases,
       routes: skillsCatalog.spokenLanguages.routes,
