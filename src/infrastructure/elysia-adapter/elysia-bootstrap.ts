@@ -89,7 +89,6 @@ import {
   type OnboardingDeps,
 } from '@/bounded-contexts/onboarding/onboarding.composition';
 import { onboardingRoutes } from '@/bounded-contexts/onboarding/onboarding.routes';
-import { onboardingAdminRoutes } from '@/bounded-contexts/onboarding/onboarding-admin.routes';
 import { buildAuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.composition';
 import { AuditLogServiceAdapter } from '@/bounded-contexts/platform/common/audit/audit-log-port.adapter';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
@@ -1199,7 +1198,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       // mounting the bare `onboardingRoutes` import — so every
       // `/v1/admin/onboarding/*` endpoint (steps CRUD, config, stats) 404'd
       // in production while looking perfectly wired in the composition.
-      routes: [...onboardingRoutes, ...onboardingAdminRoutes],
+      routes: onboardingRoutes,
     },
     {
       bundle: (resumesCore as { useCases: unknown }).useCases ?? resumesCore,

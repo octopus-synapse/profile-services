@@ -31,9 +31,7 @@ import { OnboardingConfigAdapter } from './infrastructure/adapters/onboarding-co
 import { OnboardingProgressRepository } from './infrastructure/adapters/persistence/onboarding-progress.repository';
 import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persistence/section-type-definition.adapter';
 import { ResumeStylesQueryAdapter } from './infrastructure/adapters/resume-styles-query.adapter';
-import { AdminOnboardingService } from './infrastructure/services/admin-onboarding.service';
 import { onboardingRoutes } from './onboarding.routes';
-import { onboardingAdminRoutes } from './onboarding-admin.routes';
 
 export { OnboardingHttpBundle };
 
@@ -97,7 +95,6 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
   const resumeStyles = new ResumeStylesQueryAdapter(prisma);
   const config = new OnboardingConfigAdapter(prisma);
   const sectionTypes = new SectionTypeDefinitionAdapter(prisma);
-  const admin = new AdminOnboardingService(prisma);
   // Standalone use case wired directly into the HTTP bundle — keeps the
   // existing `OnboardingUseCases` abstract bundle (consumed by other
   // contexts and tests) untouched.
@@ -127,7 +124,6 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
     sectionTypes,
     cacheLock,
     sseStream,
-    admin,
     activateExtras,
     renderOnboardingPreview,
     ...(onResumeReady ? { onResumeReady } : {}),
@@ -148,7 +144,7 @@ export function buildOnboardingComposition(
 
   return {
     useCases: bundle.httpBundle,
-    routes: [...onboardingRoutes, ...onboardingAdminRoutes],
+    routes: onboardingRoutes,
     lifecycles: [],
   };
 }
