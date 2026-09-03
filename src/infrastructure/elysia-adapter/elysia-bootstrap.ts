@@ -418,7 +418,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // NotificationsUseCases); jobs (needs ResumeAnalyticsFacade +
   // EventPublisherPort); notifications (needs CachePort/QueuePort/CronPort
   // adapters instantiated). They land as those services migrate.
-  const uiMetadata = buildUiMetadataComposition(prisma as never, logger);
+  const uiMetadata = buildUiMetadataComposition();
   const realtime = buildRealtimeComposition({ eventBus, logger });
   for (const l of realtime.lifecycles ?? []) lifecycles.push(l);
   const dsl = buildDslComposition(prisma as never, logger);
