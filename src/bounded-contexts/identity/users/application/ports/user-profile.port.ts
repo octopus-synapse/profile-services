@@ -1,3 +1,4 @@
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 /**
  * User Profile Port
  *
@@ -86,7 +87,10 @@ export type UpdateProfileData = {
 // ============================================================================
 
 export abstract class UserProfileRepositoryPort {
-  abstract findUserByUsername(username: string): Promise<{
+  abstract findUserByUsername(
+    username: string,
+    locale?: Locale,
+  ): Promise<{
     id: string;
     username: string | null;
     name: string | null;
@@ -99,7 +103,10 @@ export abstract class UserProfileRepositoryPort {
     github: string | null;
   } | null>;
 
-  abstract findResumeByUserId(userId: string): Promise<Record<string, unknown> | null>;
+  abstract findResumeByUserId(
+    userId: string,
+    locale?: Locale,
+  ): Promise<Record<string, unknown> | null>;
 
   abstract findUserProfileById(userId: string): Promise<UserProfile | null>;
 
@@ -119,7 +126,7 @@ export abstract class UserProfileRepositoryPort {
 
 export abstract class UserProfileUseCases {
   abstract readonly getPublicProfileUseCase: {
-    execute: (username: string) => Promise<PublicProfileData>;
+    execute: (username: string, locale?: Locale) => Promise<PublicProfileData>;
   };
   abstract readonly getProfileUseCase: { execute: (userId: string) => Promise<UserProfile> };
   abstract readonly updateProfileUseCase: {

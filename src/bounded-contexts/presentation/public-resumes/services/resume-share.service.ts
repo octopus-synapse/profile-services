@@ -3,7 +3,9 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { resolveResumeProse, resolveStoredItem } from '@/shared-kernel/i18n/translation-envelope';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
+import { type Locale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumePublishedEvent } from '../../domain/events';
 import {
   ResumeAccessDeniedException,
@@ -172,16 +174,13 @@ export class ResumeShareService {
     });
   }
 
-  async getResumeWithCache(resumeId: string) {
-    const cacheKey = publicResumeCacheKey(resumeId);
-
-    // Try cache first
-    const cached = await this.cache.get<unknown>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    // Fetch from database
+  /**
+   * The public payload in ONE language (ADR-003 §12): `locale` omitted means
+   * the résumé's own. Items and résumé prose resolve through the translation
+   * envelopes, falling back to the canonical text so a reader never sees a
+   * hole; the cache is keyed by résumé + locale.
+   */
+  async getResumeWithCache(resumeId: string, locale?: Locale) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
@@ -192,7 +191,7 @@ export class ResumeShareService {
             },
             items: {
               orderBy: { order: 'asc' },
-              select: { content: true },
+              select: { content: true, translations: true },
             },
           },
         },
@@ -203,16 +202,35 @@ export class ResumeShareService {
       return null;
     }
 
-    const { resumeSections, ...resumeData } = resume;
+    const canonical = parseLocale(resume.language);
+    const target = locale ?? canonical;
+    const cacheKey = publicResumeCacheKey(resumeId, target);
+    const cached = await this.cache.get<unknown>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const { resumeSections, translations, ...resumeData } = resume;
     const sections = toGenericSections(
-      resumeSections as Array<{
-        sectionType: { semanticKind: string };
-        items: Array<{ content: unknown }>;
-      }>,
+      resumeSections.map((section) => ({
+        sectionType: section.sectionType,
+        items: section.items.map((item) => ({
+          content: resolveStoredItem(asRecord(item.content), item.translations, canonical, target)
+            .content,
+        })),
+      })),
+    );
+    const prose = resolveResumeProse(
+      { summary: resume.summary, headline: resume.headline, jobTitle: resume.jobTitle },
+      translations,
+      canonical,
+      target,
     );
 
     const resumeToCache = {
       ...resumeData,
+      ...prose,
+      contentLocale: target,
       sections: sections.map((section) => ({
         semanticKind: section.semanticKind,
         items: section.items.map((item) => item.content),
@@ -314,4 +332,9 @@ export class ResumeShareService {
   private isValidSlug(slug: string): boolean {
     return /^[a-zA-Z0-9-]+$/.test(slug);
   }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
 }

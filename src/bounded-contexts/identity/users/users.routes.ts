@@ -21,6 +21,7 @@ import {
   UpdatePreferencesSchema,
   UpdateUsernameSchema,
 } from '@/shared-kernel/schemas/user/user-profile.schema';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import { USERNAME_UPDATE_COOLDOWN_DAYS } from './domain/value-objects/username-rules.const';
 import {
@@ -37,6 +38,7 @@ import {
   OneClickApplyConfigResponseSchema,
   OneClickApplyConfigSchema,
   PermissionsListResponseSchema,
+  PublicProfileLocaleQuery,
   PublicUsersListQuery,
   PublicUsersListResponseSchema,
   UpdateBasicPreferencesResponseSchema,
@@ -65,6 +67,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=60' },
     params: UsernameParam,
+    query: PublicProfileLocaleQuery,
     response: PublicProfileDataSchema,
     openapi: {
       summary: "Get a user's public profile by username",
@@ -74,7 +77,11 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { username } = ctx.params as { username: string };
-      const data = await bundle.profile.getPublicProfileUseCase.execute(username);
+      const { locale } = ctx.query as { locale?: string };
+      const data = await bundle.profile.getPublicProfileUseCase.execute(
+        username,
+        normalizeLocale(locale) ?? undefined,
+      );
       return { user: data.user, resume: data.resume };
     },
   },

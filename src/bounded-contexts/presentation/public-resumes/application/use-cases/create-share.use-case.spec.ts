@@ -47,15 +47,11 @@ class StubShareRepository implements ShareRepositoryPort {
 }
 
 type ResumeRecord = { id: string; userId: string };
-type ResumeWithSections = Awaited<ReturnType<ResumeReadRepositoryPort['findByIdWithSections']>>;
 
 class StubResumeReadRepository implements ResumeReadRepositoryPort {
   findById = mock(
     async (_id: string): Promise<ResumeRecord | null> => ({ id: 'resume-456', userId: 'user-123' }),
   );
-  async findByIdWithSections(_id: string): Promise<ResumeWithSections> {
-    throw new Error('not used in test');
-  }
 }
 
 describe('CreateShareUseCase', () => {

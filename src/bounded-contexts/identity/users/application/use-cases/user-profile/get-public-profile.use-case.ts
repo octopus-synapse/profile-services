@@ -1,4 +1,5 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import type { PublicProfileData } from '../../ports/user-profile.port';
 import { UserProfileRepositoryPort } from '../../ports/user-profile.port';
 
@@ -11,14 +12,15 @@ import { UserProfileRepositoryPort } from '../../ports/user-profile.port';
 export class GetPublicProfileUseCase {
   constructor(private readonly repository: UserProfileRepositoryPort) {}
 
-  async execute(username: string): Promise<PublicProfileData> {
-    const foundUser = await this.repository.findUserByUsername(username);
+  /** `locale` picks the language version of the résumé prose (ADR-003 §12); omitted = as written. */
+  async execute(username: string, locale?: Locale): Promise<PublicProfileData> {
+    const foundUser = await this.repository.findUserByUsername(username, locale);
 
     if (!foundUser) {
       throw new EntityNotFoundException('Public profile');
     }
 
-    const userResume = await this.repository.findResumeByUserId(foundUser.id);
+    const userResume = await this.repository.findResumeByUserId(foundUser.id, locale);
 
     // The repository only returns rows where username is already set — we
     // defensively coerce to string to satisfy the DTO's non-nullable shape

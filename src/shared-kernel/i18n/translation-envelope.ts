@@ -117,3 +117,77 @@ export function resolveItemForLocale(
     meta: { contentLocale: locale, origin: envelope.origin, translationState: state },
   };
 }
+
+/**
+ * The canonical values of the keys an envelope translated — what its hash
+ * was taken over. The reader does not know the field policy, so staleness is
+ * judged by the worker's own hash against the subset the envelope names.
+ */
+export function subsetNamedBy(
+  content: Record<string, unknown>,
+  translations: unknown,
+  locale: Locale,
+): Record<string, unknown> | null {
+  const entry = envelopeFor(translations, locale);
+  if (!entry?.data) return null;
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(entry.data)) {
+    const value = content[key];
+    if (typeof value === 'string' && value.trim()) out[key] = value;
+    else if (Array.isArray(value)) out[key] = value.filter((v) => typeof v === 'string');
+  }
+  return out;
+}
+
+/**
+ * `resolveItemForLocale` for a stored row: the envelope's own hash decides
+ * freshness. Every reader of item content — sections API, DSL render, public
+ * share payload — goes through here so they cannot disagree (ADR-003 §12).
+ */
+export function resolveStoredItem(
+  content: Record<string, unknown>,
+  translations: unknown,
+  canonicalLocale: Locale,
+  locale: Locale,
+): { content: Record<string, unknown>; meta: ResolvedItemMeta } {
+  const subset = subsetNamedBy(content, translations, locale);
+  return resolveItemForLocale(
+    content,
+    translations,
+    canonicalLocale,
+    locale,
+    subset ? hashSource(subset) : null,
+  );
+}
+
+export interface ResumeProse {
+  readonly summary: string | null;
+  readonly headline: string | null;
+  readonly jobTitle: string | null;
+}
+
+/**
+ * Résumé-level prose (summary / headline / jobTitle) for `locale`: the
+ * canonical locale returns the columns; the other locale merges the résumé
+ * envelope over them, falling back to the canonical text per field so a
+ * reader never sees a hole.
+ */
+export function resolveResumeProse(
+  prose: ResumeProse,
+  translations: unknown,
+  canonicalLocale: Locale,
+  locale: Locale,
+): ResumeProse {
+  if (locale === canonicalLocale) return prose;
+  const envelope = envelopeFor<Partial<Record<keyof ResumeProse, unknown>>>(translations, locale);
+  if (!envelope) return prose;
+  const pickText = (key: keyof ResumeProse): string | null => {
+    const value = envelope.data[key];
+    return typeof value === 'string' && value.trim() ? value : prose[key];
+  };
+  return {
+    summary: pickText('summary'),
+    headline: pickText('headline'),
+    jobTitle: pickText('jobTitle'),
+  };
+}

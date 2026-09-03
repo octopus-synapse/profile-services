@@ -10,6 +10,7 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { CacheService } from '../cache.service';
 
 // --- Types ---
@@ -68,6 +69,7 @@ export class CacheWarmingService {
           fullName: true,
           jobTitle: true,
           summary: true,
+          language: true,
           profileViews: true,
           accentColor: true,
 
@@ -84,7 +86,11 @@ export class CacheWarmingService {
       for (const resume of resumes) {
         if (resume.slug) {
           try {
-            await this.cache.set(publicResumeCacheKey(resume.id), resume, CACHE_TTL.POPULAR_RESUME);
+            await this.cache.set(
+              publicResumeCacheKey(resume.id, parseLocale(resume.language)),
+              resume,
+              CACHE_TTL.POPULAR_RESUME,
+            );
             warmed++;
           } catch (error) {
             this.stats.errors++;
@@ -124,6 +130,7 @@ export class CacheWarmingService {
           fullName: true,
           jobTitle: true,
           summary: true,
+          language: true,
           profileViews: true,
           accentColor: true,
 
@@ -133,7 +140,11 @@ export class CacheWarmingService {
       });
 
       if (resume) {
-        await this.cache.set(publicResumeCacheKey(resume.id), resume, CACHE_TTL.PUBLIC_RESUME);
+        await this.cache.set(
+          publicResumeCacheKey(resume.id, parseLocale(resume.language)),
+          resume,
+          CACHE_TTL.PUBLIC_RESUME,
+        );
         this.stats.itemsWarmed++;
         this.logger.debug(`Warmed cache for resume: ${slug}`, 'CacheWarmingService');
       }

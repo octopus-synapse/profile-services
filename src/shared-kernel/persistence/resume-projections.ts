@@ -62,6 +62,7 @@ export const RESUME_PUBLIC_VISIBLE_INCLUDE = {
           order: true,
           isVisible: true,
           content: true,
+          translations: true,
           createdAt: true,
           updatedAt: true,
         },

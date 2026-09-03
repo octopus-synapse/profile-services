@@ -1,5 +1,7 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { resolveResumeProse } from '@/shared-kernel/i18n/translation-envelope';
+import { type Locale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import type {
   PublicUserListItem,
   UpdateProfileData,
@@ -13,8 +15,30 @@ import { UserProfileRepositoryPort } from '../../../application/ports/user-profi
  * that never finished onboarding, until they are dropped.
  */
 const PROSE_FROM_RESUME = {
-  primaryResume: { select: { headline: true, summary: true } },
+  primaryResume: {
+    select: { headline: true, summary: true, jobTitle: true, language: true, translations: true },
+  },
 } as const;
+
+type ProseRow = {
+  headline: string | null;
+  summary: string | null;
+  jobTitle: string | null;
+  language: string;
+  translations: unknown;
+};
+
+/** The primary résumé's prose in `locale` (ADR-003 §12), or as written. */
+function proseOf(row: ProseRow | null | undefined, locale: Locale | undefined) {
+  if (!row) return null;
+  const canonical = parseLocale(row.language);
+  return resolveResumeProse(
+    { summary: row.summary, headline: row.headline, jobTitle: row.jobTitle },
+    row.translations,
+    canonical,
+    locale ?? canonical,
+  );
+}
 
 export class UserProfileRepository extends UserProfileRepositoryPort {
   constructor(
@@ -24,7 +48,7 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
     super();
   }
 
-  async findUserByUsername(username: string) {
+  async findUserByUsername(username: string, locale?: Locale) {
     const row = await this.prisma.user.findUnique({
       where: { username },
       select: {
@@ -44,15 +68,22 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
     });
     if (!row) return null;
     const { primaryResume, ...user } = row;
+    const prose = proseOf(primaryResume, locale);
     return {
       ...user,
-      headline: primaryResume?.headline ?? user.headline,
-      bio: primaryResume?.summary ?? user.bio,
+      headline: prose?.headline ?? user.headline,
+      bio: prose?.summary ?? user.bio,
     };
   }
 
-  async findResumeByUserId(userId: string): Promise<Record<string, unknown> | null> {
-    return this.resumesRepository.findResumeByUserId(userId);
+  async findResumeByUserId(
+    userId: string,
+    locale?: Locale,
+  ): Promise<Record<string, unknown> | null> {
+    const resume = await this.resumesRepository.findResumeByUserId(userId);
+    if (!resume) return null;
+    const prose = proseOf(resume, locale);
+    return { ...resume, ...prose, contentLocale: locale ?? parseLocale(resume.language) };
   }
 
   async findUserProfileById(userId: string): Promise<UserProfile | null> {

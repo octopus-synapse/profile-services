@@ -21,8 +21,6 @@ const makeShare = (overrides: Partial<ShareEntity>): ShareEntity => ({
   ...overrides,
 });
 
-type ResumeWithSections = Awaited<ReturnType<ResumeReadRepositoryPort['findByIdWithSections']>>;
-
 class StubShareRepository implements ShareRepositoryPort {
   findByResumeId = mock(
     async (resumeId: string): Promise<ShareEntity[]> => [
@@ -61,9 +59,6 @@ class StubResumeReadRepository implements ResumeReadRepositoryPort {
       userId: 'user-123',
     }),
   );
-  async findByIdWithSections(_id: string): Promise<ResumeWithSections> {
-    throw new Error('not used in test');
-  }
 }
 
 describe('ListUserSharesUseCase', () => {

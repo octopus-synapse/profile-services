@@ -233,6 +233,15 @@ export const PublicUsersListResponseSchema = z.object({
   hasPrev: z.boolean(),
 });
 
+/** `?locale=` for the public profile: which language version of the résumé prose (ADR-003 §12). */
+export const PublicProfileLocaleQuery = z.object({
+  locale: z.string().optional().openapi({
+    description:
+      "Language version of the résumé prose: `pt-BR` or `en`. Omitted = the résumé's own language.",
+    example: 'en',
+  }),
+});
+
 export const PublicUsersListQuery = z.object({
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(500).optional(),

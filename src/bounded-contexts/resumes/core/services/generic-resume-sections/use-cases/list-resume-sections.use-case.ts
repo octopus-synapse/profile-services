@@ -1,5 +1,5 @@
 import type { Locale } from '@packages/i18n';
-import { hashSource, resolveItemForLocale } from '@/shared-kernel/i18n/translation-envelope';
+import { resolveStoredItem } from '@/shared-kernel/i18n/translation-envelope';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeOwnershipPolicy } from '../policies/resume-ownership.policy';
 import {
@@ -46,38 +46,13 @@ function resolveItem(
   target: Locale,
 ): SectionItemDto {
   const content = (item.content ?? {}) as Record<string, unknown>;
-  // The hash the worker stored was over the translatable subset; the reader
-  // does not know the policy, so staleness is judged by the worker's own
-  // hash carried on the envelope against the subset it names.
-  const subset = subsetNamedBy(content, item.translations, target);
-  const { content: resolved, meta } = resolveItemForLocale(
+  const { content: resolved, meta } = resolveStoredItem(
     content,
     item.translations,
     canonical,
     target,
-    subset ? hashSource(subset) : null,
   );
   void section;
   // The raw map is for `?locale=all`; a resolved read hides it.
   return { ...item, content: resolved, translations: null, ...meta } as SectionItemDto;
-}
-
-/** The canonical values of the keys the envelope translated — what its hash was taken over. */
-function subsetNamedBy(
-  content: Record<string, unknown>,
-  translations: unknown,
-  locale: Locale,
-): Record<string, unknown> | null {
-  const entry =
-    translations && typeof translations === 'object'
-      ? (translations as Record<string, { data?: Record<string, unknown> }>)[locale]
-      : undefined;
-  if (!entry?.data) return null;
-  const out: Record<string, unknown> = {};
-  for (const key of Object.keys(entry.data)) {
-    const value = content[key];
-    if (typeof value === 'string' && value.trim()) out[key] = value;
-    else if (Array.isArray(value)) out[key] = value.filter((v) => typeof v === 'string');
-  }
-  return out;
 }

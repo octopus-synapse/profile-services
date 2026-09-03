@@ -35511,6 +35511,16 @@
             "name": "username",
             "in": "path",
             "example": "fixture_user"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Language version of the résumé prose: `pt-BR` or `en`. Omitted = the résumé's own language.",
+              "example": "en"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
           }
         ],
         "responses": {
@@ -35717,6 +35727,16 @@
             "name": "slug",
             "in": "path",
             "example": "fixture-slug"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Language version of the résumé: `pt-BR` or `en`. Omitted = the résumé's own language.",
+              "example": "en"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
           }
         ],
         "responses": {
@@ -36132,6 +36152,16 @@
             "name": "slug",
             "in": "path",
             "example": "fixture-slug"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Language version of the résumé: `pt-BR` or `en`. Omitted = the résumé's own language.",
+              "example": "en"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
           }
         ],
         "responses": {

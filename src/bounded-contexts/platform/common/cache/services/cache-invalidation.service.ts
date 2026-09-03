@@ -12,7 +12,7 @@ import {
   CacheInvalidationPort,
   type InvalidateResumeInput,
 } from '@/shared-kernel/cache/cache-invalidation.port';
-import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
+import { publicResumeCacheKeyPattern } from '@/shared-kernel/cache/public-resume-cache-key';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 // --- Service ---
@@ -31,14 +31,15 @@ export class CacheInvalidationService extends CacheInvalidationPort {
    */
   async invalidateResume(params: InvalidateResumeInput): Promise<void> {
     // `slug` is accepted for callers' convenience but the public payload is
-    // keyed by résumé id only (`publicResumeCacheKey`).
+    // keyed by résumé id + locale (`publicResumeCacheKey`); every language
+    // version goes at once.
     const { resumeId, userId } = params;
 
     await Promise.all([
       this.safeDelete(`resume:${resumeId}`),
       this.safeDelete(`user:${userId}:resumes`),
       this.safeDeletePattern(`analytics:*:${resumeId}`),
-      this.safeDelete(publicResumeCacheKey(resumeId)),
+      this.safeDeletePattern(publicResumeCacheKeyPattern(resumeId)),
     ]);
 
     this.logger.debug(`Cache invalidated for resume: ${resumeId}`, 'CacheInvalidationService');

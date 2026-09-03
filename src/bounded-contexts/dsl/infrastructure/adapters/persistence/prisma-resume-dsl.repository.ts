@@ -9,6 +9,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { resolveResumeProse, resolveStoredItem } from '@/shared-kernel/i18n/translation-envelope';
 import type {
   GenericResume,
   GenericResumeSection,
@@ -16,6 +17,7 @@ import type {
 } from '@/shared-kernel/schemas/sections';
 import {
   type Locale,
+  parseLocale,
   type TranslationsJson,
   tryResolveTranslation,
 } from '@/shared-kernel/utils/locale-resolver.util';
@@ -26,7 +28,10 @@ type PrismaResumeData = {
   id: string;
   userId: string;
   title?: string | null;
+  language?: string | null;
+  translations?: unknown;
   summary?: string | null;
+  headline?: string | null;
   fullName?: string | null;
   jobTitle?: string | null;
   phone?: string | null;
@@ -50,6 +55,7 @@ type PrismaResumeData = {
       order: number;
       isVisible: boolean;
       content: unknown;
+      translations?: unknown;
       createdAt: Date;
       updatedAt: Date;
     }>;
@@ -103,6 +109,20 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
 
   /** The single canonical Prisma → GenericResume transformation. */
   private normalizeToGenericResume(resume: PrismaResumeData, locale: Locale): GenericResume {
+    // ADR-003 §12: the document renders in ONE language. Section titles come
+    // from the type's translations; the person's own text comes from the
+    // item/résumé envelopes, falling back to the canonical text per field.
+    const canonical = parseLocale(resume.language ?? undefined);
+    const prose = resolveResumeProse(
+      {
+        summary: resume.summary ?? null,
+        headline: resume.headline ?? null,
+        jobTitle: resume.jobTitle ?? null,
+      },
+      resume.translations,
+      canonical,
+      locale,
+    );
     const sections: GenericResumeSection[] = (resume.resumeSections ?? [])
       .filter((section) => section.isVisible)
       .sort((a, b) => a.order - b.order)
@@ -131,7 +151,12 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
               id: item.id,
               order: item.order,
               isVisible: item.isVisible,
-              content: this.asRecord(item.content),
+              content: resolveStoredItem(
+                this.asRecord(item.content),
+                item.translations,
+                canonical,
+                locale,
+              ).content,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
             })),
@@ -142,9 +167,9 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
       id: resume.id,
       userId: resume.userId,
       title: resume.title ?? null,
-      summary: resume.summary ?? null,
+      summary: prose.summary,
       fullName: resume.fullName ?? null,
-      jobTitle: resume.jobTitle ?? null,
+      jobTitle: prose.jobTitle,
       phone: resume.phone ?? null,
       location: resume.location ?? null,
       linkedin: resume.linkedin ?? null,

@@ -44,6 +44,9 @@ describe('TypstPdfGeneratorService', () => {
     user: {
       findUnique: mock().mockResolvedValue({ primaryResumeId: 'resume-123' }),
     },
+    resume: {
+      findUnique: mock().mockResolvedValue({ language: 'pt-BR' }),
+    },
   };
 
   const mockRenderResumeDslUseCase = {
@@ -148,16 +151,26 @@ describe('TypstPdfGeneratorService', () => {
       });
     });
 
-    it('should default locale to pt-br', async () => {
+    it("defaults the locale to the résumé's own language (ADR-003 §12)", async () => {
+      mockPrisma.resume.findUnique.mockResolvedValueOnce({ language: 'en' });
       await service.generate({ userId: 'user-1' });
 
       expect(mockRenderResumeDslUseCase.execute).toHaveBeenCalledWith({
         resumeId: 'resume-123',
         userId: 'user-1',
         target: 'pdf',
-        locale: 'pt-BR',
+        locale: 'en',
         themeStyleConfig: undefined,
       });
+    });
+
+    it('falls back to pt-BR when the résumé has no readable language', async () => {
+      mockPrisma.resume.findUnique.mockResolvedValueOnce(null);
+      await service.generate({ userId: 'user-1' });
+
+      expect(mockRenderResumeDslUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ locale: 'pt-BR' }),
+      );
     });
 
     it('should serialize AST and pass to compiler', async () => {

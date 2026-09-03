@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeShareAccessDeniedException, ShareNotFoundException } from '../domain/exceptions';
 import { PublicResumesHttpBundle } from './application/ports/public-resumes.bundle';
 import {
@@ -29,6 +30,7 @@ import {
   AliasListResponseSchema,
   CreateShareSchema,
   PNG_HEADERS,
+  PublicLocaleQuery,
   PublicResumeResponseSchema,
   pickHeader,
   pickIp,
@@ -49,6 +51,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=300' },
     params: SlugParam,
+    query: PublicLocaleQuery,
     response: PublicResumeResponseSchema,
     openapi: {
       summary: 'Get public resume by share slug',
@@ -59,10 +62,12 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { slug } = ctx.params as { slug: string };
       const password = pickHeader(ctx.headers, 'x-share-password');
+      const { locale } = ctx.query as { locale?: string };
       const { resume, share } = await bundle.accessResume.execute({
         slug,
         password,
         mode: 'view',
+        locale: normalizeLocale(locale) ?? undefined,
         ip: pickIp(ctx.headers),
         userAgent: pickHeader(ctx.headers, 'user-agent'),
         referer: pickHeader(ctx.headers, 'referer'),
@@ -76,6 +81,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=300' },
     params: SlugParam,
+    query: PublicLocaleQuery,
     response: PublicResumeResponseSchema,
     openapi: {
       summary: 'Download public resume by share slug',
@@ -86,10 +92,12 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { slug } = ctx.params as { slug: string };
       const password = pickHeader(ctx.headers, 'x-share-password');
+      const { locale } = ctx.query as { locale?: string };
       const { resume, share } = await bundle.accessResume.execute({
         slug,
         password,
         mode: 'download',
+        locale: normalizeLocale(locale) ?? undefined,
         ip: pickIp(ctx.headers),
         userAgent: pickHeader(ctx.headers, 'user-agent'),
         referer: pickHeader(ctx.headers, 'referer'),

@@ -15,6 +15,14 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const SlugParam = z.object({ slug: z.string() });
+/** `?locale=` for a public read: which language version to serve (ADR-003 §12). */
+export const PublicLocaleQuery = z.object({
+  locale: z.string().optional().openapi({
+    description:
+      "Language version of the résumé: `pt-BR` or `en`. Omitted = the résumé's own language.",
+    example: 'en',
+  }),
+});
 export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
 export const ShareIdParam = z.object({ shareId: z.string().uuid() });
 export const AliasIdParam = z.object({ aliasId: z.string().uuid() });

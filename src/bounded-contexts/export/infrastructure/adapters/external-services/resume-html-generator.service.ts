@@ -26,12 +26,11 @@ import { overlayTailoredVersion } from './tailored-version-overlay';
 /**
  * `?lang=` → `Locale`. Delegates the spelling rules to the shared
  * normalizer (ADR-003 §11) so `pt-br`, `PT_BR` and `pt` stop being three
- * different answers. The default stays `pt-BR` — an export with no `lang`
- * keeps rendering what it rendered before. ADR-003 §12 replaces that
- * default with the resume's own `primaryLanguage`.
+ * different answers. No `lang` means the document's own language
+ * (ADR-003 §12): a résumé written in English exports in English.
  */
-function resolveLocale(lang?: string): Locale {
-  return normalizeLocale(lang) ?? 'pt-BR';
+function resolveLocale(lang: string | undefined, resumeLanguage: string | null): Locale {
+  return normalizeLocale(lang) ?? normalizeLocale(resumeLanguage ?? undefined) ?? 'pt-BR';
 }
 
 export interface ResumeHtmlOptions {
@@ -90,8 +89,8 @@ export class ResumeHtmlGeneratorService {
     const userId = options.userId;
     if (!userId) throw new TypstUserIdRequiredException();
 
-    const locale = resolveLocale(options.lang);
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
+    const locale = resolveLocale(options.lang, await this.findResumeLanguage(resumeId));
 
     let { ast } = await this.dsl.renderResumeDsl.execute({
       resumeId,
@@ -119,5 +118,13 @@ export class ResumeHtmlGeneratorService {
     });
     if (!user?.primaryResumeId) throw new EntityNotFoundException('Resume');
     return user.primaryResumeId;
+  }
+
+  private async findResumeLanguage(resumeId: string): Promise<string | null> {
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { language: true },
+    });
+    return resume?.language ?? null;
   }
 }

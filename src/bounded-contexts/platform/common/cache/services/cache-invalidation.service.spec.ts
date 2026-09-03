@@ -1,6 +1,6 @@
 import { describe, expect, it, mock } from 'bun:test';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
-import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
+import { publicResumeCacheKeyPattern } from '@/shared-kernel/cache/public-resume-cache-key';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { CacheInvalidationService } from './cache-invalidation.service';
 
@@ -15,14 +15,15 @@ function makeCache() {
 }
 
 describe('CacheInvalidationService.invalidateResume', () => {
-  it('drops the public payload under the shared key builder, never a slug-spelled key', async () => {
-    const { cache, deleted } = makeCache();
+  it('drops every language version of the public payload, never a slug-spelled key', async () => {
+    const { cache, deleted, patterns } = makeCache();
     const service = new CacheInvalidationService(cache, stubLogger);
 
     await service.invalidateResume({ resumeId: 'resume-1', slug: 'my-slug', userId: 'user-1' });
 
-    expect(deleted).toContain(publicResumeCacheKey('resume-1'));
+    expect(patterns).toContain(publicResumeCacheKeyPattern('resume-1'));
+    expect(patterns).toContain('public:resume:resume-1:*');
     expect(deleted).not.toContain('public:resume:my-slug');
-    expect(deleted.filter((k) => k.startsWith('public:resume:'))).toHaveLength(1);
+    expect(deleted.filter((k) => k.startsWith('public:resume:'))).toHaveLength(0);
   });
 });

@@ -93,8 +93,15 @@ describe('GetPublicProfileUseCase', () => {
       github: 'johndoe',
     });
     expect(result.resume).toEqual(mockResumeProjection);
-    expect(repository.findUserByUsername).toHaveBeenCalledWith('johndoe');
-    expect(repository.findResumeByUserId).toHaveBeenCalledWith('user-1');
+    expect(repository.findUserByUsername).toHaveBeenCalledWith('johndoe', undefined);
+    expect(repository.findResumeByUserId).toHaveBeenCalledWith('user-1', undefined);
+  });
+
+  it('passes the requested language version down to both reads (ADR-003 §12)', async () => {
+    await useCase.execute('johndoe', 'en');
+
+    expect(repository.findUserByUsername).toHaveBeenCalledWith('johndoe', 'en');
+    expect(repository.findResumeByUserId).toHaveBeenCalledWith('user-1', 'en');
   });
 
   it('throws EntityNotFoundException when user is not found', async () => {

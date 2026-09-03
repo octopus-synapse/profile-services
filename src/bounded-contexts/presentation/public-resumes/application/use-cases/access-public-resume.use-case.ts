@@ -15,6 +15,7 @@
 
 import type { LoggerPort } from '@/shared-kernel';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import {
   PublicResumeNotFoundException,
   ShareLinkExpiredException,
@@ -29,6 +30,8 @@ export interface AccessPublicResumeInput {
   readonly slug: string;
   readonly password: string | undefined;
   readonly mode: AccessMode;
+  /** Language version to serve; omitted = the résumé's own (ADR-003 §12). */
+  readonly locale?: Locale;
   readonly ip: string;
   readonly userAgent: string | undefined;
   readonly referer: string | undefined;
@@ -51,7 +54,7 @@ export interface ShareRecord {
 export interface PublicResumeShareLoader {
   getBySlug(slug: string): Promise<ShareRecord | null>;
   verifyPassword(plain: string, hash: string): Promise<boolean>;
-  getResumeWithCache(resumeId: string): Promise<unknown>;
+  getResumeWithCache(resumeId: string, locale?: Locale): Promise<unknown>;
 }
 
 export class AccessPublicResumeUseCase {
@@ -78,7 +81,7 @@ export class AccessPublicResumeUseCase {
     // we successfully resolved it. Publishing before the read meant a
     // load failure (cache miss, repo timeout) still counted as a view
     // in analytics — phantom traffic.
-    const resume = await this.shares.getResumeWithCache(share.resumeId);
+    const resume = await this.shares.getResumeWithCache(share.resumeId, input.locale);
 
     this.publishAccessEvent(share, input);
 
