@@ -205,8 +205,21 @@ jobs:
     uses: ./.github/workflows/ci.static-analysis.security.yml
     secrets: inherit
 
+  # Whole `test/static-analysis` tree (architecture, contracts, i18n parity,
+  # onboarding keys, shared analyzers, security). Pre-commit runs the same
+  # command as the `static` check; this is the server-side copy of it.
+  static-analysis:
+    needs: [should-skip, detect-changes, verify-attestation]
+    if: |
+      always() &&
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.verify-attestation.result == 'success' &&
+      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.tests == 'true')
+    uses: ./.github/workflows/ci.static-analysis.yml
+    secrets: inherit
+
   status:
-    needs: [verify-attestation, build, integration, e2e, security, openapi-contract]
+    needs: [verify-attestation, build, integration, e2e, security, static-analysis, openapi-contract]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -217,6 +230,11 @@ jobs:
           integration: ${{ needs.integration.result }}
           e2e: ${{ needs.e2e.result }}
           security: ${{ needs.security.result }}
+      - name: Static-analysis gate
+        if: needs.static-analysis.result == 'failure'
+        run: |
+          echo "::error::Static-analysis suite failed (test/static-analysis)."
+          exit 1
       - name: OpenAPI contract gate
         if: needs.openapi-contract.result == 'failure'
         run: |

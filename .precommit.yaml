@@ -39,6 +39,12 @@ checks:
   - name: contract
     cmd: bun test ./test/static-analysis/contracts
     runner: bun
+  # The whole static-analysis tree (i18n parity, onboarding keys, shared
+  # analyzers, security) — `arch` and `contract` above are subsets kept for
+  # their attestation names; `i18n/*` and `onboarding/*` ran nowhere before.
+  - name: static
+    cmd: bun test --config=config/bunfig.static-analysis.toml
+    runner: bun
   - name: no-prisma-push
     cmd: bun run scripts/lint-no-prisma-push.ts
   - name: no-passthrough
