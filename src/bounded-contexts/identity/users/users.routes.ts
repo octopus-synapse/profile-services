@@ -232,7 +232,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     guards: [
       { id: 'allow-unverified-email' },
       { id: 'skip-tos-check' },
-      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 30, durationSeconds: 60, keyStrategy: 'userId' } },
     ],
     query: CheckUsernameQuery,
     response: CheckUsernameResponseSchema,
@@ -266,7 +266,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     guards: [
       { id: 'allow-unverified-email' },
       { id: 'skip-tos-check' },
-      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 30, durationSeconds: 60, keyStrategy: 'userId' } },
     ],
     body: ValidateUsernameRequestBodySchema,
     response: ValidateUsernameResponseSchema,

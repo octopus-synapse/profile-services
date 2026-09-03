@@ -40,6 +40,25 @@ export interface GuardSpec {
   readonly metadata?: Record<string, unknown>;
 }
 
+/**
+ * Metadata for `guards: [{ id: 'rate-limit', metadata: {...} }]`.
+ *
+ * `durationSeconds` is named for its unit on purpose: the field used to be
+ * `duration`, and the pipeline guessed "≥ 1000 means milliseconds" to
+ * accommodate a Nest-throttler shape — so a `3600` one-hour window was
+ * enforced as 3 seconds. There is no guessing now: the number is seconds,
+ * and a guard without it is a route misconfiguration the pipeline rejects.
+ */
+export type RateLimitGuardMetadata = {
+  /** Requests allowed per window. */
+  readonly points: number;
+  /** Window length in seconds. */
+  readonly durationSeconds: number;
+  /** Which identity the budget is charged to. `'user'` and `'userId'` are
+   *  synonyms (both key by the authenticated user). */
+  readonly keyStrategy: 'ip' | 'user' | 'userId';
+};
+
 /** HTTP status code override. By default the synthesizer picks 201 for
  *  POST and 200 for everything else. Routes that need a specific code
  *  (204 No Content, 202 Accepted, …) declare it here. */

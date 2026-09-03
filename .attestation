@@ -1,158 +1,158 @@
 {
   "version": "3",
-  "tree_hash": "9166b7095412dd888055342bd57d37955deea102",
+  "tree_hash": "a2b77df6c9e673de52ac9a4c3b4e4ab14df80079",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 210
+      "time_ms": 221
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 1546
+      "time_ms": 1398
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 4117
+      "time_ms": 4275
     },
     "lint": {
       "status": "ok",
-      "time_ms": 1482
+      "time_ms": 1479
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 899
+      "time_ms": 1136
     },
     "unit": {
       "status": "ok",
-      "time_ms": 4485,
-      "passed": 3155,
+      "time_ms": 4381,
+      "passed": 3158,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 2392,
-      "passed": 75,
+      "time_ms": 2429,
+      "passed": 78,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 1453,
+      "time_ms": 1556,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 198
+      "time_ms": 205
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 193
+      "time_ms": 199
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 189
+      "time_ms": 196
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 186
+      "time_ms": 193
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 183
+      "time_ms": 190
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 137
+      "time_ms": 147
     },
     "pii-in-logs": {
       "status": "ok",
-      "time_ms": 135
+      "time_ms": 141
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 159
+      "time_ms": 167
     },
     "cache-direct-delete": {
       "status": "ok",
-      "time_ms": 171
+      "time_ms": 250
     },
     "ts-directives": {
       "status": "ok",
-      "time_ms": 197
+      "time_ms": 190
     },
     "no-prisma-mock-in-integration": {
       "status": "ok",
-      "time_ms": 127
+      "time_ms": 136
     },
     "no-db-helpers-in-unit": {
       "status": "ok",
-      "time_ms": 157
+      "time_ms": 156
     },
     "skip-todo-deadline": {
       "status": "ok",
-      "time_ms": 235
+      "time_ms": 133
     },
     "e2e-cleanup": {
       "status": "ok",
-      "time_ms": 123
+      "time_ms": 127
     },
     "cron-wrapper": {
       "status": "ok",
-      "time_ms": 121
+      "time_ms": 124
     },
     "ws-validate": {
       "status": "ok",
-      "time_ms": 119
+      "time_ms": 121
     },
     "no-mutable-module-state": {
       "status": "ok",
-      "time_ms": 117
+      "time_ms": 242
     },
     "no-process-env-in-domain": {
       "status": "ok",
-      "time_ms": 157
+      "time_ms": 116
     },
     "deprecated-removeby": {
       "status": "ok",
-      "time_ms": 217
+      "time_ms": 241
     },
     "no-unknown-cast": {
       "status": "ok",
-      "time_ms": 122
+      "time_ms": 130
     },
     "pagination-adhoc": {
       "status": "ok",
-      "time_ms": 104
+      "time_ms": 109
     },
     "file-size": {
       "status": "ok",
-      "time_ms": 95
+      "time_ms": 203
     },
     "no-cyclic-imports": {
       "status": "ok",
-      "time_ms": 229
+      "time_ms": 463
     },
     "boolean-trap": {
       "status": "ok",
-      "time_ms": 335
+      "time_ms": 446
     },
     "jsdoc-params": {
       "status": "ok",
-      "time_ms": 92
+      "time_ms": 139
     },
     "no-console-in-features": {
       "status": "ok",
-      "time_ms": 190
+      "time_ms": 137
     },
     "magic-numbers": {
       "status": "ok",
-      "time_ms": 813
+      "time_ms": 824
     }
   },
-  "timestamp": "2026-09-03T04:19:52Z",
+  "timestamp": "2026-09-03T04:23:31Z",
   "git_user": "efpatti.dev@gmail.com"
 }

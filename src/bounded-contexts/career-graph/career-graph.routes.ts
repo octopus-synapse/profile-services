@@ -25,7 +25,7 @@ export const careerGraphRoutes: ReadonlyArray<Route<CareerGraphUseCases>> = [
     guards: [
       {
         id: 'rate-limit',
-        metadata: { points: 30, duration: 3600, keyStrategy: 'user' },
+        metadata: { points: 30, durationSeconds: 3600, keyStrategy: 'user' },
       },
     ],
     openapi: {

@@ -30,7 +30,7 @@ import type { HttpCtx } from '@/shared-kernel/http/context';
 import { mapDomainErrorToHttp } from '@/shared-kernel/http/error.mapper';
 import type { NextFn, PipelineStage } from '@/shared-kernel/http/pipeline';
 import { mapPrismaErrorToHttp } from '@/shared-kernel/http/prisma-error.mapper';
-import type { Route } from '@/shared-kernel/http/route.types';
+import type { GuardSpec, RateLimitGuardMetadata, Route } from '@/shared-kernel/http/route.types';
 import {
   authLockoutStage,
   type LoginAttemptsLookup,
@@ -276,8 +276,31 @@ export function authExtractorStage(extractor: AuthExtractorPort): PipelineStage 
  */
 type RateLimitKeying = 'ip' | 'userId';
 
-function guardKeying(meta: Record<string, unknown>): RateLimitKeying {
+function guardKeying(meta: RateLimitGuardMetadata): RateLimitKeying {
   return meta.keyStrategy === 'userId' || meta.keyStrategy === 'user' ? 'userId' : 'ip';
+}
+
+/**
+ * A rate-limit guard must say how many `points` per how many
+ * `durationSeconds`. Anything else is a misconfigured route descriptor —
+ * fail the request loudly rather than fall back to a default window the
+ * author did not ask for.
+ */
+function readRateLimitGuardMetadata(
+  guard: GuardSpec,
+  route: Route | undefined,
+): RateLimitGuardMetadata {
+  const meta = (guard.metadata ?? {}) as Partial<RateLimitGuardMetadata>;
+  if (typeof meta.points !== 'number' || typeof meta.durationSeconds !== 'number') {
+    throw new Error(
+      `rate-limit guard on ${route?.method} ${route?.path} needs numeric { points, durationSeconds }`,
+    );
+  }
+  return {
+    points: meta.points,
+    durationSeconds: meta.durationSeconds,
+    keyStrategy: meta.keyStrategy ?? 'ip',
+  };
 }
 
 export function rateLimitStage(
@@ -290,10 +313,11 @@ export function rateLimitStage(
     name: 'rateLimit',
     async run(ctx, next) {
       const route = ctx.state.__route as Route | undefined;
-      const guard = route?.guards?.find((g) => g.id === 'rate-limit' || g.id === 'throttle');
+      const guard = route?.guards?.find((g) => g.id === 'rate-limit');
       if (!guard) return next();
+      const meta = readRateLimitGuardMetadata(guard, route);
       // Not this pass's business — the other one will charge it.
-      if (guardKeying((guard.metadata ?? {}) as Record<string, unknown>) !== keying) {
+      if (guardKeying(meta) !== keying) {
         return next();
       }
       // Tests opt out per-request to exercise non-rate-limit paths
@@ -301,24 +325,8 @@ export function rateLimitStage(
       if (process.env.NODE_ENV === 'test' && ctx.headers['x-e2e-bypass-rate-limit'] === 'true') {
         return next();
       }
-      const meta = (guard.metadata ?? {}) as Record<string, unknown>;
-      // Accept three shapes: `{ttl, limit}`, `{default: {ttl, limit}}`
-      // (Nest throttler), `{points, duration}` (legacy decorator).
-      const nested = (meta.default as Record<string, unknown> | undefined) ?? {};
-      const rawTtl =
-        (typeof meta.ttl === 'number' ? meta.ttl : undefined) ??
-        (typeof nested.ttl === 'number' ? nested.ttl : undefined) ??
-        (typeof meta.duration === 'number' ? meta.duration : undefined);
-      const limit =
-        (typeof meta.limit === 'number' ? meta.limit : undefined) ??
-        (typeof nested.limit === 'number' ? nested.limit : undefined) ??
-        (typeof meta.points === 'number' ? meta.points : undefined) ??
-        60;
-      // `{default: {ttl: 60000}}` is Nest throttler ms; everything else
-      // is seconds. Heuristic: values ≥ 1000 are ms.
-      const ttlSeconds =
-        rawTtl === undefined ? 60 : rawTtl >= 1000 ? Math.floor(rawTtl / 1000) : rawTtl;
-      const ttl = ttlSeconds;
+      const ttl = meta.durationSeconds;
+      const limit = meta.points;
       // P0-#4 intent restored: routes that declare `keyStrategy: 'userId'`
       // ("keyed by userId since the route is jwt-gated") were being charged
       // per IP, because this stage ran before `authExtractor` and simply

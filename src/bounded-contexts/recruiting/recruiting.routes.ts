@@ -49,7 +49,7 @@ export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> =
     guards: [
       {
         id: 'rate-limit',
-        metadata: { points: 20, duration: 3600, keyStrategy: 'user' },
+        metadata: { points: 20, durationSeconds: 3600, keyStrategy: 'user' },
       },
     ],
     openapi: {

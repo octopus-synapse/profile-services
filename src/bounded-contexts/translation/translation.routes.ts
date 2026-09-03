@@ -34,7 +34,7 @@ import {
  * hour and `isAvailable()` never reaches the provider.
  */
 const LLM_ROUTE_GUARDS = [
-  { id: 'rate-limit', metadata: { points: 30, duration: 3600, keyStrategy: 'user' } },
+  { id: 'rate-limit', metadata: { points: 30, durationSeconds: 3600, keyStrategy: 'user' } },
   { id: 'feature-flag', metadata: { key: TRANSLATION_FLAG_KEY } },
 ] as const;
 

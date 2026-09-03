@@ -3,10 +3,9 @@
  * `ChangePasswordController`, `ResetPasswordController`, and
  * `ForgotPasswordController`.
  *
- * The forgot-password endpoint declares its per-route throttler limit
- * via `Route.guards: [{ id: 'throttle', metadata: { default: { … } } }]`
- * — the BC's module wires `RouteThrottlerGuard` (a thin adapter over
- * `ThrottlerGuard` from `@nestjs/throttler`) into the registry.
+ * The forgot-password endpoint declares its per-route budget via
+ * `Route.guards: [{ id: 'rate-limit', metadata: { points, durationSeconds, keyStrategy } }]`
+ * like every other rate-limited route (see `RateLimitGuardMetadata`).
  */
 
 import { z } from 'zod';

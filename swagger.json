@@ -13686,7 +13686,7 @@
         },
         "x-auth": "public",
         "x-guards": [
-          "throttle"
+          "rate-limit"
         ]
       }
     },

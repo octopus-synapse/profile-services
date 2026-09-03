@@ -62,7 +62,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     guards: [
       // P0-#4: refresh is brute-forceable by an attacker who steals a near-
       // expired refresh token and tries to roll it; cap per IP.
-      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 30, durationSeconds: 60, keyStrategy: 'ip' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -114,7 +114,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
       // impractical (43k/day) while leaving headroom for the contract
       // test pool (3 specs × 3 personas + 1 mutation probe ≈ 10/run,
       // multiplied by retries/parallel boots) so CI doesn't 429 itself.
-      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 30, durationSeconds: 60, keyStrategy: 'ip' } },
       // P1 #2 — pipeline-level fast-path: a locked email reaches the
       // login handler today only to throw `AccountLockedException`
       // from the use-case. The stage rejects with 423 + Retry-After
@@ -185,7 +185,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     guards: [
       {
         id: 'rate-limit',
-        metadata: { points: 5, duration: 60, keyStrategy: 'ip' },
+        metadata: { points: 5, durationSeconds: 60, keyStrategy: 'ip' },
       },
       { id: 'multi-step-flow' },
     ],
@@ -247,7 +247,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
       // The exchange id itself is opaque + one-shot, but cap per-IP
       // to keep brute-force scanning (and downstream JWT signing
       // churn) inexpensive at the edge.
-      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 30, durationSeconds: 60, keyStrategy: 'ip' } },
     ],
     openapi: {
       summary: 'Exchange a one-shot sessionExchangeId for a token pair (mobile)',

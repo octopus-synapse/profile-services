@@ -40,7 +40,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
       // keyspace per token. Tighten to 3/5min and surface a tighter
       // ceiling on a botnet-scale attack. A real user typing the code
       // wrong twice still has a free attempt within the same window.
-      { id: 'rate-limit', metadata: { points: 3, duration: 300, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 3, durationSeconds: 300, keyStrategy: 'ip' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -69,7 +69,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
       // (first send + a couple of resends after the 60s cooldown) while a
       // spammer burning our sender reputation starves. The use case adds a
       // per-e-mail 60s cooldown on top.
-      { id: 'rate-limit', metadata: { points: 5, duration: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -104,7 +104,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     guards: [
       // Same bar as /verify: 6-digit keyspace, 15min TTL — 3/5min per IP,
       // and the use case burns the challenge after 5 wrong codes total.
-      { id: 'rate-limit', metadata: { points: 3, duration: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
+      { id: 'rate-limit', metadata: { points: 3, durationSeconds: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
       { id: 'multi-step-flow' },
     ],
     openapi: {

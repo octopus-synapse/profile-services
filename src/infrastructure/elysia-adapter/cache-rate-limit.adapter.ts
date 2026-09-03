@@ -7,7 +7,8 @@
  *
  * The Elysia pipeline stage (see `elysia-pipeline.ts`) consumes this
  * to produce a 429 response when the budget is exhausted. Per-route
- * overrides come through `Route.guards: [{ id: 'rate-limit', metadata: { ttl, limit } }]`.
+ * overrides come through
+ * `Route.guards: [{ id: 'rate-limit', metadata: { points, durationSeconds, keyStrategy } }]`.
  */
 
 import type { CachePort } from '@/shared-kernel/cache/cache.port';

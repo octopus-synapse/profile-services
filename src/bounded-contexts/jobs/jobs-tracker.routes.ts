@@ -106,7 +106,7 @@ export const jobsTrackerRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     guards: [
       {
         id: 'rate-limit',
-        metadata: { points: 5, duration: 600, keyStrategy: 'user' },
+        metadata: { points: 5, durationSeconds: 600, keyStrategy: 'user' },
       },
       { id: 'external-api' },
     ],

@@ -73,7 +73,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
       // P0-#4: TOTP is 6 digits per 30s window; without a cap an attacker
       // with a stolen session could enumerate ~1M codes / second. Keyed by
       // userId since the route is jwt-gated.
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -128,7 +128,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     body: Disable2faSchema,
     guards: [
       // P0-#4: keyed by userId since the route is jwt-gated.
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
     ],
     openapi: {
       summary: 'Disable 2FA',

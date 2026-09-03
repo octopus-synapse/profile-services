@@ -3,10 +3,9 @@
  * `ChangePasswordController`, `ResetPasswordController`, and
  * `ForgotPasswordController`.
  *
- * The forgot-password endpoint declares its per-route throttler limit
- * via `Route.guards: [{ id: 'throttle', metadata: { default: { … } } }]`
- * — the BC's module wires `RouteThrottlerGuard` (a thin adapter over
- * `ThrottlerGuard` from `@nestjs/throttler`) into the registry.
+ * The forgot-password endpoint declares its per-route budget via
+ * `Route.guards: [{ id: 'rate-limit', metadata: { points, durationSeconds, keyStrategy } }]`
+ * like every other rate-limited route (see `RateLimitGuardMetadata`).
  */
 
 import type { Route } from '@/shared-kernel/http/route.types';
@@ -33,7 +32,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     body: ForgotPasswordSchema,
     statusCode: 200,
     response: PasswordMessageResponseSchema,
-    guards: [{ id: 'throttle', metadata: { default: { limit: 5, ttl: 60000 } } }],
+    guards: [{ id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'ip' } }],
     openapi: {
       summary: 'Request password reset',
       tags: ['password-management'],
@@ -56,7 +55,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     guards: [
       // P0-#4: keyed by userId since the route is jwt-gated; same user can't
       // brute-force their own currentPassword.
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -84,7 +83,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     statusCode: 200,
     response: PasswordChangeCodeSentResponseSchema,
     guards: [
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -122,7 +121,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     body: ConfirmPasswordChangeSchema,
     response: PasswordMessageResponseSchema,
     guards: [
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -145,7 +144,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     statusCode: 200,
     response: EmailChangeCodeSentResponseSchema,
     guards: [
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -181,7 +180,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     body: ConfirmEmailChangeSchema,
     response: PasswordMessageResponseSchema,
     guards: [
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -208,7 +207,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
       // throttle the DoS angle (each call does a DB lookup + bcrypt
       // re-hash on success). Tightened from 5/min to 5/hour per IP so
       // an attacker can't sustain bcrypt churn against the route.
-      { id: 'rate-limit', metadata: { points: 5, duration: 3600, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 3600, keyStrategy: 'ip' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {

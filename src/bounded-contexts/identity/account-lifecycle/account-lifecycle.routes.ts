@@ -56,7 +56,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
       // intact (bots typically fire dozens per minute, so 10/600s still
       // crushes them) while letting CI re-runs and the contract harness
       // probe POST /v1/accounts without flaking.
-      { id: 'rate-limit', metadata: { points: 10, duration: 600, keyStrategy: 'ip' } },
+      { id: 'rate-limit', metadata: { points: 10, durationSeconds: 600, keyStrategy: 'ip' } },
     ],
     openapi: {
       summary: 'Create new account',
@@ -107,7 +107,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
       // endpoint deliberately reveals existence, so the per-IP budget is
       // tight — 15/min covers a human correcting typos on the e-mail
       // step several times over, while a scripted sweep starves.
-      { id: 'rate-limit', metadata: { points: 15, duration: 60, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
+      { id: 'rate-limit', metadata: { points: 15, durationSeconds: 60, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
       { id: 'multi-step-flow' },
     ],
     openapi: {
@@ -157,7 +157,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     guards: [
       { id: 'skip-tos-check' },
       // P0-#8 follow-up: rate-limit re-auth attempts.
-      { id: 'rate-limit', metadata: { points: 3, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 3, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     response: AccountDeletionCodeSentResponseSchema,
@@ -201,7 +201,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     body: ConfirmAccountDeletionSchema,
     guards: [
       { id: 'skip-tos-check' },
-      { id: 'rate-limit', metadata: { points: 3, duration: 60, keyStrategy: 'userId' } },
+      { id: 'rate-limit', metadata: { points: 3, durationSeconds: 60, keyStrategy: 'userId' } },
       { id: 'multi-step-flow' },
     ],
     response: MessageResponseSchema,
