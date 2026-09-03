@@ -45,6 +45,8 @@ export const CreateResumeSchema = z.object({
   /** Canonical (authored) locale — `pt-BR` or `en` (ADR-003). */
   language: z.enum(['pt-BR', 'en']).optional(),
   summary: BioSchema.optional(),
+  /** One-line professional headline — lives on the résumé (ADR-003 §7). */
+  headline: z.string().trim().max(120).nullable().optional(),
   isPublic: z.boolean().default(false), // Personal info
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),

@@ -6,23 +6,22 @@
 
 ## Contexto
 
-O profile-services possui 16 bounded contexts com estruturas inconsistentes:
+O profile-services possui bounded contexts com estruturas inconsistentes.
+Lista em 2026-09-03 (após a remoção de superfície sem consumidor —
+[ADR-005](./ADR-005-remocao-de-superficie-sem-consumidor.md)):
 
-- **identity** (authentication, authorization, two-factor-auth, users)
-- **resumes** (sections, themes, versioning)
-- **export** (PDF/DOCX generation)
-- **import** (resume import)
-- **skills-catalog** (tech-skills, spoken-languages)
-- **onboarding**
-- **integration** (GitHub)
-- **collaboration** (chat, sharing)
-- **social** (profiles, follows)
-- **ats-validation**
-- **presentation**
-- **translation**
-- **analytics**
-- **platform** (health, monitoring)
-- **dsl** (domain-specific language)
+- **identity** (account-lifecycle, authentication, authorization, email-verification, oauth, password-management, two-factor-auth, users)
+- **resumes** (core, resume-versions, section-types, time-capsule, variants)
+- **resume-quality**, **resume-styles**, **dsl** (render)
+- **export** (PDF/DOCX/HTML), **import** (PDF, LinkedIn)
+- **translation** (perfis bilíngues — [ADR-003](./ADR-003-perfis-bilingues.md))
+- **onboarding**, **fit-profile**, **roles**, **skills-catalog**, **geo**, **companies**
+- **jobs**, **job-match**, **automation** (inerte atrás de flag)
+- **collaboration** (chat, compartilhamento), **presentation** (currículos públicos), **notifications**
+- **ai** (adapters de LLM), **platform** (common, config, docs, feature-flags, health, i18n, jobs, metrics, prisma, realtime, test-runner, ui-metadata, webhooks, well-known)
+
+Removidos em 2026-09: feed, social, analytics, integration (GitHub), badges,
+career-graph, success-stories, recruiting, ats-validation.
 
 ### Problemas Identificados
 

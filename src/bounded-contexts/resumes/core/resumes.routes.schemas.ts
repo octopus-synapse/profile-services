@@ -77,6 +77,11 @@ export const CreateResumeBody = z
     summary: BioSchema.optional().openapi({
       description: 'Optional long-form summary shown at the top of the resume.',
     }),
+    headline: z.string().trim().max(120).nullable().optional().openapi({
+      description:
+        'One-line professional headline (ADR-003 §7: lives on the résumé, not the user).',
+      example: 'Backend engineer · distributed systems',
+    }),
     isPublic: z
       .boolean()
       .optional()

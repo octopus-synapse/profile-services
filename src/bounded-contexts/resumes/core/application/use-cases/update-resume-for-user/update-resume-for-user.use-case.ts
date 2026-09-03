@@ -27,6 +27,7 @@ export class UpdateResumeForUserUseCase {
       ...data,
       title: sanitizeContent(data.title),
       summary: sanitizeContent(data.summary),
+      headline: data.headline == null ? data.headline : sanitizeContent(data.headline),
     };
 
     const resume = await this.repository.updateResumeForUser(id, userId, sanitizedData);

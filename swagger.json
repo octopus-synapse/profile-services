@@ -939,6 +939,13 @@
           "summary": {
             "$ref": "#/components/schemas/Bio"
           },
+          "headline": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 120,
+            "description": "One-line professional headline (ADR-003 §7: lives on the résumé, not the user).",
+            "example": "Backend engineer · distributed systems"
+          },
           "isPublic": {
             "type": "boolean",
             "description": "Whether the resume is publicly viewable via its slug."
@@ -1023,6 +1030,13 @@
           },
           "summary": {
             "$ref": "#/components/schemas/Bio"
+          },
+          "headline": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 120,
+            "description": "One-line professional headline (ADR-003 §7: lives on the résumé, not the user).",
+            "example": "Backend engineer · distributed systems"
           },
           "isPublic": {
             "type": "boolean",
