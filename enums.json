@@ -1,20 +1,4 @@
 {
-  "ActivityType": [
-    "ACHIEVEMENT_EARNED",
-    "CONNECTED_USER",
-    "FOLLOWED_USER",
-    "PROFILE_UPDATED",
-    "RESUME_CREATED",
-    "RESUME_PUBLISHED",
-    "RESUME_SHARED",
-    "RESUME_UPDATED",
-    "SKILL_ADDED",
-    "THEME_PUBLISHED"
-  ],
-  "AnalyticsEvent": [
-    "DOWNLOAD",
-    "VIEW"
-  ],
   "ApplyMode": [
     "AUTO_APPLY",
     "ONE_CLICK",
@@ -66,22 +50,10 @@
     "USER_LOGIN",
     "USER_LOGOUT"
   ],
-  "BadgeKind": [
-    "CONTRIBUTOR",
-    "EVENT_SPEAKER",
-    "FIRST_BUILD",
-    "INTERVIEWS_5",
-    "MENTORED_10"
-  ],
   "CollaboratorRole": [
     "ADMIN",
     "EDITOR",
     "VIEWER"
-  ],
-  "ConnectionStatus": [
-    "ACCEPTED",
-    "PENDING",
-    "REJECTED"
   ],
   "ConsentDocumentType": [
     "MARKETING_CONSENT",
@@ -154,8 +126,6 @@
   ],
   "ImportSource": [
     "DOCX",
-    "GITHUB",
-    "JSON",
     "LINKEDIN",
     "PDF"
   ],
@@ -238,22 +208,12 @@
   ],
   "NotificationType": [
     "APPLICATION_STALE",
-    "COMMENT_REPLIED",
-    "CONNECTION_ACCEPTED",
-    "CONNECTION_RECOMMENDATION",
-    "CONNECTION_REQUEST",
     "FIT_PROFILE_EXPIRED",
     "FIT_PROFILE_EXPIRY_REMINDER",
-    "FOLLOW_NEW",
     "MATCH_RECOMMENDATIONS_READY",
     "MESSAGE_RECEIVED",
-    "POST_BOOKMARKED",
-    "POST_COMMENTED",
-    "POST_LIKED",
-    "POST_REPOSTED",
     "RESUME_QUALITY_IMPROVED",
-    "RESUME_QUALITY_REGRESSED",
-    "SKILL_DECAY"
+    "RESUME_QUALITY_REGRESSED"
   ],
   "OpenSourceRole": [
     "CONTRIBUTOR",
@@ -275,11 +235,6 @@
     "HYBRID",
     "ONSITE",
     "REMOTE"
-  ],
-  "ReportStatus": [
-    "DISMISSED",
-    "PENDING",
-    "REVIEWED"
   ],
   "RoleSeniority": [
     "INTERN",
@@ -321,12 +276,6 @@
     "PLATFORM",
     "SOFT_SKILL",
     "TOOL"
-  ],
-  "SuccessStoryStatus": [
-    "ARCHIVED",
-    "DRAFT",
-    "PENDING_REVIEW",
-    "PUBLISHED"
   ],
   "TechAreaType": [
     "DATA",
