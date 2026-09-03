@@ -52,23 +52,66 @@ candidatura (mantida, inerte atrás de `automation.enabled`).
 cada `verify:arch`. Não reprova — impede que o entulho volte a crescer sem
 ninguém ver.
 
-## Auditoria da plataforma (sem consumidor no app em 2026-09-03)
+## Segunda leva (2026-09-03): a auditoria decidida rota a rota
 
-Listadas, não removidas — dependem de decisão do dono:
+O relatório de órfãs foi refeito comparando cada hook **e** cada função do
+SDK contra o app inteiro (o relatório antigo só via hooks, e marcava como
+órfãs rotas chamadas pela função direta — `postV1AuthForgotPassword` — ou
+por código escrito à mão, como o upload multipart da foto). O dono decidiu
+grupo a grupo.
 
-| Grupo | Rotas | Observação |
+### Removido
+
+| Grupo | Rotas | Por quê |
 | --- | --- | --- |
-| `ui-metadata` | `/v1/me/menu`, `/v1/pages/*` | `/v1/enums/:key` passou a ser usado (labels de enum) |
-| `test-runner` (admin) | 2 | ferramenta interna |
-| `webhooks` | 5 | nenhum integrador cadastrado |
-| `common` `/v1/enums/export-formats`, `config/password-policy` | 2 | |
-| `jobs` | 21 de 22 hooks | só a busca é usada pelo app |
-| `users` | 18 de 27 | admin e listagens |
-| `chat` | 4 de 11 | moderação/admin |
-| `notifications` | 2 de 9 | preferências por canal, digest |
-| `techSkillsQuery`, `spokenLanguages`, `mec*`, `search` | — | usados por dentro (scoring, onboarding) mas não pelo app |
+| `ui-metadata`: `/v1/me/menu`, `/v1/pages/*` | 3 | o app compõe a própria navegação e telas |
+| `webhooks` | 5 | nenhum integrador, duas tabelas dropadas |
+| `test-runner` (admin) | 2 | rodar teste é CI, não rota HTTP; era o único código de aplicação que abria shell |
+| Export LaTeX, JSON e zip | 3 | ficam PDF e DOCX |
+| Moderação admin do chat | 2 | ler conversa alheia não fica de reserva |
+| Preferência `weeklyDigest` | — | o digest saiu com o analytics |
+| Admin de catálogos (skills, nichos, áreas, línguas) | 25 | `prisma/seeds/**` é a fonte |
+| Admin de onboarding | 8 | idem |
+| Admin de tipos de seção (BC inteiro) | 6 | idem, e criar seção pela rota pulava os portões de tradução |
+| Admin de perguntas de fit | 5 | idem |
+| Admin de estilos de currículo | 3 | idem |
+| Admin de colaborações | 3 | não há colaboração em uso para moderar |
+| `/admin/alerts`, `/admin/dashboard/metrics`, `/admin/metrics/overview` | 3 | a primeira contava perfis-sombra removidos; as outras duplicam o Datadog |
+| Onboarding legado (`POST /v1/onboarding`, progress, status, previous, restart, save) | 7 | o fluxo por sessão substituiu |
+| Árvore duplicada do catálogo (`/v1/tech-areas`, `/v1/tech-niches`, `/v1/tech-skills`) | 6 | o mesmo dado que `/v1/tech-skills/*` |
+| `/v1/resumes/:id/skills` | 4 | escreviam itens de seção, que é o que o editor faz |
+| `/v1/i18n/dictionary/*` e `/v1/enums/{export-formats,user-roles,section-types}` | 6 | o app carrega os dicionários gerados e lê rótulo em `/v1/enums/:key` |
+| Fit por vaga, apagar meu fit, listar respostas | 4 | o questionário que o app usa fica |
+| DSL (`/v1/dsl/*`) | 4 | o motor continua, chamado por dentro pelo export |
+| Currículo: `manage/*`, `:id/full`, `thumbnail.svg` | 5 | miniatura vem da pré-visualização em PDF |
+| Chat: silenciar e fixar conversa | 2 | conforto de lista longa sem volume |
+| Busca: similar e sugestões | 2 | a busca global fica |
 
-Relatório completo: `pnpm exec vitest run apps/client/src/static-analysis/orphan-hooks-report.spec.ts`.
+### Mantido, com o motivo
+
+| Grupo | Rotas | Por quê |
+| --- | --- | --- |
+| `/v1/users/manage/*` | 7 | único caminho de suporte sem SQL em produção |
+| Feature flags admin | 4 | desligar tradução ou automação sem deploy |
+| Permissão extra por usuário | 3 | o guard de permissão lê essas linhas; sem as rotas ninguém as cria |
+| MEC | 11 | dado real caro de reconstruir; Formação vai autocompletar |
+| Upload | 3 | a foto de perfil usa a rota por um multipart escrito à mão |
+| Currículo público por link + QR | 10 | par do compartilhamento que fica |
+| Colaboração | 9 | mantida no backend por decisão do dono |
+| Importação PDF/LinkedIn, versões, 2FA, consentimento | 19 | esperam tela, já no plano |
+| Health, docs, métricas Prometheus, well-known, realtime | 10 | infraestrutura |
+
+Resultado: as órfãs caíram de 250 em 341 hooks (73 %) para 143 em 255
+(56 %), e o que sobra é ou infraestrutura, ou uso interno, ou tela
+planejada.
+
+### Buracos que a auditoria abriu, não fechou
+
+- **Consentimento LGPD não é gravado.** O diálogo do cadastro é um checkbox
+  local; `POST /v1/consent` nunca é chamado. Ligar os dois entrou no plano.
+- **Validação de username perdeu cobertura de integração.** Ela era afirmada
+  por `PUT /v1/onboarding/progress`; deve ser repontada para
+  `PATCH /v1/users/username` e `POST /v1/users/username/validate`.
 
 ## Consequências
 
