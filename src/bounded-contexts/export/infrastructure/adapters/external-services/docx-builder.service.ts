@@ -71,7 +71,10 @@ export class DocxBuilderService {
         items: Array.isArray(section.items) ? (section.items as Array<{ content: unknown }>) : [],
       })),
     };
-    return { user, resume };
+    // The summary paragraph is the résumé's own prose (ADR-003 §7); the user
+    // column is only a fallback for accounts that never finished onboarding.
+    const summary = typeof resumeData.summary === 'string' ? resumeData.summary : null;
+    return { user: { ...user, bio: summary }, resume };
   }
 
   private normalizeUser(user: Record<string, unknown>): DocxUserData {

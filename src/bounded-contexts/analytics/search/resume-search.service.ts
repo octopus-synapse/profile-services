@@ -269,10 +269,16 @@ export class ResumeSearchService {
           OR: [
             { name: { contains: trimmed, ...insensitive } },
             { username: { contains: trimmed, ...insensitive } },
-            { bio: { contains: trimmed, ...insensitive } },
+            { primaryResume: { summary: { contains: trimmed, ...insensitive } } },
           ],
         },
-        select: { id: true, name: true, username: true, bio: true, photoURL: true },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          photoURL: true,
+          primaryResume: { select: { summary: true } },
+        },
         take: safeLimit,
       }),
       this.prisma.job.findMany({
@@ -298,7 +304,7 @@ export class ResumeSearchService {
     const userItems: GlobalSearchItem[] = userRows.map((u) => ({
       id: u.id,
       title: u.name ?? u.username ?? 'User',
-      snippet: u.bio ? u.bio.slice(0, 160) : undefined,
+      snippet: u.primaryResume?.summary ? u.primaryResume.summary.slice(0, 160) : undefined,
       href: u.username ? `/u/${u.username}` : `/users/${u.id}`,
     }));
     const jobItems: GlobalSearchItem[] = jobRows.map((j) => ({

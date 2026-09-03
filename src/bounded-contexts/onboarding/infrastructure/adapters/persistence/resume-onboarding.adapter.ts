@@ -47,6 +47,7 @@ export class ResumeOnboardingAdapter {
       phone: personalInfo.phone,
       location: personalInfo.location,
       jobTitle: deriveJobTitle(data) ?? professionalProfile.headline,
+      headline: professionalProfile.headline ?? null,
       summary: professionalProfile.summary,
       linkedin: professionalProfile.linkedin,
       github: professionalProfile.github,
@@ -56,7 +57,7 @@ export class ResumeOnboardingAdapter {
       // null-written) when the request gave us nothing to go on, so the
       // default still applies on create and an existing value survives an
       // onboarding re-run.
-      ...(authoredLocale ? { language: authoredLocale, primaryLanguage: authoredLocale } : {}),
+      ...(authoredLocale ? { language: authoredLocale } : {}),
     };
 
     const selectedStyleId = await this.resolveStyleId(tx, resumeStyleId ?? null);

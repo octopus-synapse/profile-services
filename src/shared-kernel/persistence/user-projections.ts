@@ -20,12 +20,3 @@ export const USER_SUMMARY_SELECT = {
   username: true,
   photoURL: true,
 } as const;
-
-/**
- * Summary plus bio and headline. Used by profile cards and search hits.
- */
-export const USER_WITH_BIO_SELECT = {
-  ...USER_SUMMARY_SELECT,
-  bio: true,
-  headline: true,
-} as const;

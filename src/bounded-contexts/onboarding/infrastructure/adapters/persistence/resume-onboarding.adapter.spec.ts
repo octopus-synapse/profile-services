@@ -48,13 +48,12 @@ function adapter() {
 }
 
 describe('ResumeOnboardingAdapter — authored language (ADR-003 §10)', () => {
-  it('writes language and primaryLanguage when the request named a locale', async () => {
+  it('writes language when the request named a locale', async () => {
     const { tx, calls } = buildTx(null);
 
     await adapter().upsertResumeWithTx(tx, 'user-1', DATA, 'en');
 
     expect(calls[0]?.create.language).toBe('en');
-    expect(calls[0]?.create.primaryLanguage).toBe('en');
   });
 
   it('records pt-BR in the canonical spelling, not the legacy column default', async () => {
@@ -63,16 +62,14 @@ describe('ResumeOnboardingAdapter — authored language (ADR-003 §10)', () => {
     await adapter().upsertResumeWithTx(tx, 'user-1', DATA, 'pt-BR');
 
     expect(calls[0]?.create.language).toBe('pt-BR');
-    expect(calls[0]?.create.primaryLanguage).toBe('pt-BR');
   });
 
-  it('omits both columns when the locale is unknown, so the default stands', async () => {
+  it('omits the column when the locale is unknown, so the default stands', async () => {
     const { tx, calls } = buildTx(null);
 
     await adapter().upsertResumeWithTx(tx, 'user-1', DATA, null);
 
     expect(calls[0]?.create).not.toHaveProperty('language');
-    expect(calls[0]?.create).not.toHaveProperty('primaryLanguage');
   });
 
   it('does not clobber an existing resume language on an onboarding re-run', async () => {

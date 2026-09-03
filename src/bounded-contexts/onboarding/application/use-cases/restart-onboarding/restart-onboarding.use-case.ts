@@ -100,8 +100,10 @@ export class RestartOnboardingUseCase {
             location: userData?.location ?? '',
           },
           professionalProfile: {
-            headline: userData?.headline ?? resume?.jobTitle ?? '',
-            summary: userData?.bio ?? '',
+            // Prose comes back from the résumé (ADR-003 §7); the user columns
+            // are the fallback for accounts that never finished onboarding.
+            headline: resume?.headline ?? userData?.headline ?? resume?.jobTitle ?? '',
+            summary: resume?.summary ?? userData?.bio ?? '',
             linkedin: userData?.linkedin ?? '',
             github: userData?.github ?? '',
             website: userData?.website ?? '',

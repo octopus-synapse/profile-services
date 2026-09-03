@@ -7,6 +7,15 @@ import type {
 } from '../../../application/ports/user-profile.port';
 import { UserProfileRepositoryPort } from '../../../application/ports/user-profile.port';
 
+/**
+ * Prose (`headline`, `bio`) is read from the primary résumé (ADR-003 §7: it is
+ * the thing with a locale). The `User` columns stay as a fallback for accounts
+ * that never finished onboarding, until they are dropped.
+ */
+const PROSE_FROM_RESUME = {
+  primaryResume: { select: { headline: true, summary: true } },
+} as const;
+
 export class UserProfileRepository extends UserProfileRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,
@@ -16,7 +25,7 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
   }
 
   async findUserByUsername(username: string) {
-    return this.prisma.user.findUnique({
+    const row = await this.prisma.user.findUnique({
       where: { username },
       select: {
         id: true,
@@ -30,8 +39,16 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
         portfolio: true,
         linkedin: true,
         github: true,
+        ...PROSE_FROM_RESUME,
       },
     });
+    if (!row) return null;
+    const { primaryResume, ...user } = row;
+    return {
+      ...user,
+      headline: primaryResume?.headline ?? user.headline,
+      bio: primaryResume?.summary ?? user.bio,
+    };
   }
 
   async findResumeByUserId(userId: string): Promise<Record<string, unknown> | null> {
@@ -39,7 +56,7 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
   }
 
   async findUserProfileById(userId: string): Promise<UserProfile | null> {
-    return this.prisma.user.findUnique({
+    const row = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -58,8 +75,16 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
         usernameUpdatedAt: true,
         createdAt: true,
         updatedAt: true,
+        ...PROSE_FROM_RESUME,
       },
     });
+    if (!row) return null;
+    const { primaryResume, ...user } = row;
+    return {
+      ...user,
+      headline: primaryResume?.headline ?? user.headline,
+      bio: primaryResume?.summary ?? user.bio,
+    };
   }
 
   async findUserById(userId: string): Promise<{ id: string } | null> {
@@ -73,11 +98,36 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
     // The avatar lives in two columns historically (`image` for NextAuth,
     // `photoURL` for the profile read). Keep them in sync on this path so a
     // set/clear via the profile actually reflects on the next read.
-    const { image, ...rest } = data;
-    return this.prisma.user.update({
+    const { image, bio, headline, ...rest } = data;
+    // Prose goes to the primary résumé (ADR-003 §7); the `User` columns are
+    // written too until they are dropped, so nothing reads stale text.
+    if (bio !== undefined || headline !== undefined) {
+      const owner = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { primaryResumeId: true },
+      });
+      if (owner?.primaryResumeId) {
+        await this.prisma.resume.update({
+          where: { id: owner.primaryResumeId },
+          data: {
+            ...(bio !== undefined ? { summary: bio } : {}),
+            ...(headline !== undefined ? { headline } : {}),
+          },
+        });
+      }
+    }
+    await this.prisma.user.update({
       where: { id: userId },
-      data: { ...rest, ...(image !== undefined ? { image, photoURL: image } : {}) },
+      data: {
+        ...rest,
+        ...(bio !== undefined ? { bio } : {}),
+        ...(headline !== undefined ? { headline } : {}),
+        ...(image !== undefined ? { image, photoURL: image } : {}),
+      },
     });
+    const profile = await this.findUserProfileById(userId);
+    if (!profile) throw new Error(`User ${userId} vanished during profile update`);
+    return profile;
   }
 
   async listPublicUsers(
