@@ -224,11 +224,7 @@ describe('Command Injection Prevention', () => {
       'scripts',
     ]);
     const appUsage = [...execUsage, ...childProcessImports].filter(
-      (e) =>
-        !e.includes('.spec.ts') &&
-        !e.includes('/test/') &&
-        !e.includes('/scripts/') &&
-        !e.includes('test-runner'),
+      (e) => !e.includes('.spec.ts') && !e.includes('/test/') && !e.includes('/scripts/'),
     );
     expect(appUsage).toEqual([]);
   });

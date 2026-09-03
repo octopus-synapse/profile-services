@@ -392,11 +392,7 @@ describe('OWASP Top 10 Security Tests', () => {
         const matches = grepCodebase(pattern, ['node_modules', 'dist', 'test', 'scripts']);
         violations.push(
           ...matches.filter(
-            (m) =>
-              !m.includes('.spec.ts') &&
-              !m.includes('/test/') &&
-              !m.includes('/scripts/') &&
-              !m.includes('test-runner'),
+            (m) => !m.includes('.spec.ts') && !m.includes('/test/') && !m.includes('/scripts/'),
           ),
         );
       }

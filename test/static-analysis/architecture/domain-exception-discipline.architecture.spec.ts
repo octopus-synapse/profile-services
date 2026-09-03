@@ -15,7 +15,7 @@
  *
  * The allow-list below exists for callsites where a bare Error is the
  * correct idiom (boot-time config, CLI tooling, value-object assertions,
- * inner-loop retry signals caught locally, test-runner wrappers). Each
+ * inner-loop retry signals caught locally). Each
  * allow-list path is documented so future PRs think twice before adding.
  */
 
@@ -137,7 +137,6 @@ describe('DomainException discipline', () => {
       '/cache/decorators/cache-invalidate.decorator.ts',
       '/rate-limit/rate-limit.guard.ts',
       '/health/indicators/',
-      '/test-runner/test-runner.service.ts',
       '/pr-comment/',
       '/shared-kernel/authorization/ownership.guard.ts', // assert-never paths; typed Errors for real failures live in authorization.exceptions
       '/shared-kernel/authorization/ownership-registry.ts', // boot-time duplicate-registration guard — composition error, not user-facing

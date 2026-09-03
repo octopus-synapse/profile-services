@@ -1288,14 +1288,6 @@
       "en": "Verification token was already sent. Wait a moment before retrying.",
       "pt-BR": "Token de verificação já foi enviado. Aguarde um pouco antes de tentar de novo."
     },
-    "WEBHOOK_DELIVERY_FAILED": {
-      "en": "Webhook delivery failed",
-      "pt-BR": "Falha na entrega do webhook"
-    },
-    "WEBHOOK_NOT_FOUND": {
-      "en": "Webhook not found",
-      "pt-BR": "Webhook não encontrado"
-    },
     "WS_VALIDATION_ERROR": {
       "en": "Invalid WebSocket payload",
       "pt-BR": "Payload de WebSocket inválido"

@@ -110,8 +110,6 @@ import { buildI18nComposition } from '@/bounded-contexts/platform/i18n/i18n.comp
 import { buildMetricsComposition } from '@/bounded-contexts/platform/metrics/metrics.composition';
 import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
 import { buildRealtimeComposition } from '@/bounded-contexts/platform/realtime/realtime.composition';
-import { buildTestRunnerComposition } from '@/bounded-contexts/platform/test-runner/test-runner.composition';
-import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-runner.routes';
 import { buildUiMetadataComposition } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.composition';
 import { buildWellKnownComposition } from '@/bounded-contexts/platform/well-known/well-known.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
@@ -816,8 +814,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     sectionTypeRepo as never,
   );
 
-  const testRunner = buildTestRunnerComposition(prisma as never, logger) as never;
-
   // Job-match: shares the `flags` null-object declared above with
   // resume-quality, until the Redis-backed feature-flags BC is wired.
   const jobMatch = buildJobMatchComposition({
@@ -1016,7 +1012,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   void resumesCore;
   void timeCapsule;
   void translation;
-  void testRunner;
   void skillsCatalog;
   void skillsCatalogAdmin;
   void onboarding;
@@ -1201,10 +1196,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     },
     { bundle: mecSync, routes: mecSyncRoutes },
     { bundle: platformUseCases, routes: platformRoutes },
-    {
-      bundle: (testRunner as { useCases: unknown }).useCases ?? testRunner,
-      routes: testRunnerRoutes,
-    },
     {
       bundle: (onboarding as { useCases: unknown }).useCases ?? onboarding,
       // `buildOnboardingComposition` returns both sets, but this group was
