@@ -14,7 +14,7 @@ import type { ConfigPort } from '@/shared-kernel/config';
 import type { LoggerPort } from '@/shared-kernel/logger';
 import { EmailService } from './email.service';
 import { EmailSenderService } from './services/email-sender.service';
-import { EmailTemplateService } from './services/email-template.service';
+import { type AccountLocaleLookup, EmailTemplateService } from './services/email-template.service';
 
 export { EmailSenderService, EmailService, EmailTemplateService };
 
@@ -24,9 +24,18 @@ export interface EmailComposition {
   readonly emailTemplateService: EmailTemplateService;
 }
 
-export function buildEmailComposition(config: ConfigPort, logger: LoggerPort): EmailComposition {
+export function buildEmailComposition(
+  config: ConfigPort,
+  logger: LoggerPort,
+  accountLocale?: AccountLocaleLookup,
+): EmailComposition {
   const emailSenderService = new EmailSenderService(config, logger);
-  const emailTemplateService = new EmailTemplateService(emailSenderService, config);
+  const emailTemplateService = new EmailTemplateService(
+    emailSenderService,
+    config,
+    logger,
+    accountLocale,
+  );
   const emailService = new EmailService(emailSenderService, emailTemplateService);
 
   return { emailService, emailSenderService, emailTemplateService };

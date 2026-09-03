@@ -155,7 +155,7 @@ import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import { buildCorsAllowlist } from '@/shared-kernel/http/cors-allowlist';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
-import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
+import { type Locale, normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import {
   DatadogTelemetryService,
   initOpenTelemetry,
@@ -397,7 +397,14 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   }
 
   // --- Cross-cutting service factories (no routes; consumed by BCs) ---
-  const { emailService } = buildEmailComposition(config, logger);
+  // Decision 5: mail goes out in the account's language.
+  const { emailService } = buildEmailComposition(config, logger, async (email) => {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { preferences: { select: { language: true } } },
+    });
+    return normalizeLocale(user?.preferences?.language ?? undefined);
+  });
   const s3 = buildS3UploadService(config, logger);
   const ai = buildAiComposition(config, logger, cache);
   await ai.init();

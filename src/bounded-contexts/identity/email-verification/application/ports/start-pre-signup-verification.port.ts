@@ -1,3 +1,4 @@
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 /**
  * Start Pre-Signup Verification Port (Inbound)
  *
@@ -10,6 +11,8 @@
 
 export interface StartPreSignupVerificationCommand {
   email: string;
+  /** The request's language — the code e-mail is written in it (no account to ask yet). */
+  locale?: Locale;
 }
 
 export interface StartPreSignupVerificationResult {

@@ -61,7 +61,9 @@ export class StartPreSignupVerificationUseCase implements StartPreSignupVerifica
       PRE_SIGNUP_CODE_TTL_MINUTES * 60,
     );
 
-    await this.emailSender.sendVerificationEmail(email, null, token.getValue());
+    // A stranger has no account to read the language from: the request's
+    // locale is the only honest signal (decision 5).
+    await this.emailSender.sendVerificationEmail(email, null, token.getValue(), command.locale);
 
     const showTestCode = this.env.NODE_ENV !== 'production' && this.env.BYPASS_2FA === true;
 

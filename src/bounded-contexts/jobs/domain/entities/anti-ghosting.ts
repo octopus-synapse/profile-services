@@ -35,6 +35,8 @@ export interface StaleApplicationCandidate {
 }
 
 export interface AntiGhostingUser {
+  /** `UserPreferences.language`, when set — the reminder is written in it (decision 5). */
+  language?: string | null;
   readonly email: string;
   readonly name: string | null;
 }

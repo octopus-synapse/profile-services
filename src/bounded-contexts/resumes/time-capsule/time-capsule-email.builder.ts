@@ -1,4 +1,5 @@
 import { pluralize } from '@/shared-kernel/i18n/pluralize';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 
 // Semantic kind identifiers. These names come from section-type definitions
 // in the DB; we reference them by constant name so the arch test can prove
@@ -18,6 +19,8 @@ export interface TimeCapsuleDiff {
 
 export interface TimeCapsuleEmailInput {
   userName: string | null;
+  /** The account's language (decision 5); English when unknown, as before. */
+  locale?: Locale;
   snapshotYear: number;
   diff: TimeCapsuleDiff;
 }
@@ -42,6 +45,47 @@ function escapeHtml(value: string): string {
  * the current one. Returns null if the diff is totally empty — we don't
  * email "nothing changed" to avoid becoming noise.
  */
+const COPY = {
+  en: {
+    fallbackName: 'there',
+    greeting: (name: string) => `Hi ${name},`,
+    subject: (year: number) => `Your Patch Careers time capsule — ${year}`,
+    intro: 'A year ago today you had a very different CV.',
+    compare: (year: number) => `Here is how ${year}-you compares with today-you:`,
+    compareHtml: (year: number) =>
+      `A year ago today you had a very different CV. Here is how <strong>${year}</strong>-you compares with today-you:`,
+    outro: 'Growth sneaks up on you — take a minute to pick one thing you want next year to show.',
+    title: (from: string, to: string) => `Title: "${from}" → "${to}"`,
+    untitled: 'untitled',
+    skill: ['new skill', 'new skills'],
+    experience: ['new experience', 'new experiences'],
+    section: ['new section', 'new sections'],
+    trimmed: ['skill trimmed', 'skills trimmed'],
+  },
+  'pt-BR': {
+    fallbackName: 'tudo bem',
+    greeting: (name: string) => `Olá, ${name},`,
+    subject: (year: number) => `Sua cápsula do tempo no Patch Careers — ${year}`,
+    intro: 'Há exatamente um ano o seu currículo era bem diferente.',
+    compare: (year: number) => `Veja como o você de ${year} se compara com o você de hoje:`,
+    compareHtml: (year: number) =>
+      `Há exatamente um ano o seu currículo era bem diferente. Veja como o você de <strong>${year}</strong> se compara com o você de hoje:`,
+    outro:
+      'Crescimento passa despercebido — tire um minuto para escolher uma coisa que o próximo ano deve mostrar.',
+    title: (from: string, to: string) => `Título: "${from}" → "${to}"`,
+    untitled: 'sem título',
+    skill: ['habilidade nova', 'habilidades novas'],
+    experience: ['experiência nova', 'experiências novas'],
+    section: ['seção nova', 'seções novas'],
+    trimmed: ['habilidade removida', 'habilidades removidas'],
+  },
+} as const;
+
+/**
+ * Builds the anniversary email comparing last year's resume snapshot with
+ * the current one. Returns null if the diff is totally empty — we don't
+ * email "nothing changed" to avoid becoming noise.
+ */
 export function buildTimeCapsuleEmail(input: TimeCapsuleEmailInput): TimeCapsuleEmailOutput | null {
   const { diff } = input;
   const empty =
@@ -52,37 +96,39 @@ export function buildTimeCapsuleEmail(input: TimeCapsuleEmailInput): TimeCapsule
     !diff.titleChanged;
   if (empty) return null;
 
-  const greeting = input.userName?.trim() || 'there';
+  const copy = COPY[input.locale ?? 'en'];
+  const greeting = input.userName?.trim() || copy.fallbackName;
   const safeGreeting = escapeHtml(greeting);
 
   const bullets: string[] = [];
   if (diff.titleChanged)
-    bullets.push(`Title: "${diff.oldTitle ?? 'untitled'}" → "${diff.newTitle ?? 'untitled'}"`);
-  if (diff.skillsAdded > 0) bullets.push(pluralize(diff.skillsAdded, 'new skill', 'new skills'));
+    bullets.push(copy.title(diff.oldTitle ?? copy.untitled, diff.newTitle ?? copy.untitled));
+  if (diff.skillsAdded > 0) bullets.push(pluralize(diff.skillsAdded, copy.skill[0], copy.skill[1]));
   if (diff.experiencesAdded > 0)
-    bullets.push(pluralize(diff.experiencesAdded, 'new experience', 'new experiences'));
+    bullets.push(pluralize(diff.experiencesAdded, copy.experience[0], copy.experience[1]));
   if (diff.sectionsAdded > 0)
-    bullets.push(pluralize(diff.sectionsAdded, 'new section', 'new sections'));
+    bullets.push(pluralize(diff.sectionsAdded, copy.section[0], copy.section[1]));
   if (diff.skillsRemoved > 0)
-    bullets.push(pluralize(diff.skillsRemoved, 'skill trimmed', 'skills trimmed'));
+    bullets.push(pluralize(diff.skillsRemoved, copy.trimmed[0], copy.trimmed[1]));
 
-  const subject = `Your Patch Careers time capsule — ${input.snapshotYear}`;
+  const subject = copy.subject(input.snapshotYear);
+
   const text = [
-    `Hi ${greeting},`,
+    copy.greeting(greeting),
     '',
-    `A year ago today you had a very different CV.`,
-    `Here is how ${input.snapshotYear}-you compares with today-you:`,
+    copy.intro,
+    copy.compare(input.snapshotYear),
     ...bullets.map((b) => `• ${b}`),
     '',
-    'Growth sneaks up on you — take a minute to pick one thing you want next year to show.',
+    copy.outro,
   ].join('\n');
 
   const htmlList = bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('');
-  const html = `<!doctype html><html><body style="font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;color:#111827;max-width:560px;margin:0 auto;padding:24px;">
-    <p>Hi ${safeGreeting},</p>
-    <p>A year ago today you had a very different CV. Here is how <strong>${input.snapshotYear}</strong>-you compares with today-you:</p>
+  const html = `<!doctype html><html lang="${input.locale ?? 'en'}"><body style="font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;color:#111827;max-width:560px;margin:0 auto;padding:24px;">
+    <p>${copy.greeting(safeGreeting)}</p>
+    <p>${copy.compareHtml(input.snapshotYear)}</p>
     <ul>${htmlList}</ul>
-    <p style="color:#6B7280;">Growth sneaks up on you — take a minute to pick one thing you want next year to show.</p>
+    <p style="color:#6B7280;">${copy.outro}</p>
   </body></html>`;
 
   return { subject, html, text };

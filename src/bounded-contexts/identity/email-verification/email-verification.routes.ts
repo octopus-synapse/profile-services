@@ -10,6 +10,7 @@
  */
 
 import type { z } from 'zod';
+import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
@@ -83,7 +84,11 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     sdk: { exported: true, name: 'startPreSignupVerification' },
     handler: async (ctx, bc) => {
       const dto = ctx.body as z.infer<typeof StartPreSignupVerificationSchema>;
-      const result = await bc.startPreSignupVerification.execute({ email: dto.email });
+      const negotiated = negotiateLocale(acceptLanguageOf(ctx.headers));
+      const result = await bc.startPreSignupVerification.execute({
+        email: dto.email,
+        ...(negotiated.matched ? { locale: negotiated.locale } : {}),
+      });
       const { testCode, ...cooldown } = result;
       const { message } = renderSuccessMessageForRequest(
         { code: 'EMAIL_VERIFICATION_SENT' },
@@ -166,3 +171,10 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     },
   },
 ];
+
+function acceptLanguageOf(
+  headers: Record<string, string | string[] | undefined>,
+): string | undefined {
+  const header = headers['accept-language'];
+  return Array.isArray(header) ? header[0] : header;
+}

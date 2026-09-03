@@ -21,8 +21,10 @@
  */
 
 import type { LoggerPort } from '@/shared-kernel';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import type {
   AntiGhostingSweepResult,
+  AntiGhostingUser,
   ReminderThreshold,
   StaleApplicationCandidate,
 } from '../../../domain/entities/anti-ghosting';
@@ -65,7 +67,7 @@ export class RunAntiGhostingSweepUseCase {
       const user = await this.repository.findUser(candidate.userId);
       if (!user?.email) continue;
 
-      await this.sendReminder(user.email, user.name, candidate, daysSilent);
+      await this.sendReminder(user, candidate, daysSilent);
 
       await this.repository.createStaleNotification({
         userId: candidate.userId,
@@ -83,13 +85,14 @@ export class RunAntiGhostingSweepUseCase {
   }
 
   private async sendReminder(
-    to: string,
-    name: string | null,
+    user: AntiGhostingUser,
     candidate: StaleApplicationCandidate,
     daysSilent: number,
   ): Promise<void> {
+    const to = user.email;
     const payload = buildAntiGhostingEmail({
-      userName: name,
+      userName: user.name,
+      locale: normalizeLocale(user.language ?? undefined) ?? 'pt-BR',
       jobTitle: candidate.jobTitle,
       company: candidate.company,
       daysSilent,

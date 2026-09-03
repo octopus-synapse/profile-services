@@ -6,6 +6,7 @@
  * either the Nest module shell or the Elysia bootstrap.
  */
 
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { EmailSenderService, type SendEmailOptions } from './services/email-sender.service';
 import { EmailTemplateService } from './services/email-template.service';
 
@@ -25,50 +26,75 @@ export class EmailService {
   /**
    * Send verification email
    */
-  async sendVerificationEmail(email: string, name: string, token: string): Promise<void> {
-    return this.templateService.sendVerificationEmail(email, name, token);
+  async sendVerificationEmail(
+    email: string,
+    name: string,
+    token: string,
+    locale?: Locale,
+  ): Promise<void> {
+    return this.templateService.sendVerificationEmail(email, name, token, locale);
   }
 
   /**
    * Send password reset email
    */
-  async sendPasswordResetEmail(email: string, name: string, token: string): Promise<void> {
-    return this.templateService.sendPasswordResetEmail(email, name, token);
+  async sendPasswordResetEmail(
+    email: string,
+    name: string,
+    token: string,
+    locale?: Locale,
+  ): Promise<void> {
+    return this.templateService.sendPasswordResetEmail(email, name, token, locale);
   }
 
   /**
    * Send welcome email
    */
-  async sendWelcomeEmail(email: string, name: string): Promise<void> {
-    return this.templateService.sendWelcomeEmail(email, name);
+  async sendWelcomeEmail(email: string, name: string, locale?: Locale): Promise<void> {
+    return this.templateService.sendWelcomeEmail(email, name, locale);
   }
 
   /**
    * Send password changed email
    */
-  async sendPasswordChangedEmail(email: string, name: string): Promise<void> {
-    return this.templateService.sendPasswordChangedEmail(email, name);
+  async sendPasswordChangedEmail(email: string, name: string, locale?: Locale): Promise<void> {
+    return this.templateService.sendPasswordChangedEmail(email, name, locale);
   }
 
   /**
    * Send the email-change confirmation code (to the new address).
    */
-  async sendEmailChangeCode(email: string, name: string, code: string): Promise<void> {
-    return this.templateService.sendEmailChangeCode(email, name, code);
+  async sendEmailChangeCode(
+    email: string,
+    name: string,
+    code: string,
+    locale?: Locale,
+  ): Promise<void> {
+    return this.templateService.sendEmailChangeCode(email, name, code, locale);
   }
 
   /**
    * Send the password-change confirmation code (to the current address).
    */
-  async sendPasswordChangeCode(email: string, name: string, code: string): Promise<void> {
-    return this.templateService.sendPasswordChangeCode(email, name, code);
+  async sendPasswordChangeCode(
+    email: string,
+    name: string,
+    code: string,
+    locale?: Locale,
+  ): Promise<void> {
+    return this.templateService.sendPasswordChangeCode(email, name, code, locale);
   }
 
   /**
    * Send the account-deletion confirmation code (to the current address).
    */
-  async sendAccountDeletionCode(email: string, name: string, code: string): Promise<void> {
-    return this.templateService.sendAccountDeletionCode(email, name, code);
+  async sendAccountDeletionCode(
+    email: string,
+    name: string,
+    code: string,
+    locale?: Locale,
+  ): Promise<void> {
+    return this.templateService.sendAccountDeletionCode(email, name, code, locale);
   }
 }
 

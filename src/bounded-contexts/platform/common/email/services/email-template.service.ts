@@ -6,6 +6,8 @@
  */
 
 import type { ConfigPort } from '@/shared-kernel/config';
+import type { LoggerPort } from '@/shared-kernel/logger';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { getChangeCodeTemplate } from '../templates/change-code.template';
 import { getPasswordChangedTemplate } from '../templates/password-changed.template';
 import { getPasswordResetTemplate } from '../templates/password-reset.template';
@@ -32,109 +34,138 @@ function resolveFrontendUrl(config: ConfigPort): string {
   return 'http://localhost:3000';
 }
 
+/**
+ * Which language an address should be written to in (decision 5 / ADR-003):
+ * the account's `UserPreferences.language`, when the address belongs to an
+ * account. `null` for a stranger (pre-signup verification), where the caller
+ * knows the request's locale better than we do.
+ */
+export type AccountLocaleLookup = (email: string) => Promise<Locale | null>;
+
+const SUBJECT = {
+  'pt-BR': {
+    verification: 'Verifique seu email - Patch Careers',
+    passwordReset: 'Redefinir senha - Patch Careers',
+    welcome: 'Bem-vindo ao Patch Careers!',
+    passwordChanged: 'Sua senha foi alterada - Patch Careers',
+    emailChangeCode: 'Confirme seu novo e-mail - Patch Careers',
+    passwordChangeCode: 'Confirme a alteração de senha - Patch Careers',
+    accountDeletionCode: 'Confirme a exclusão da conta - Patch Careers',
+  },
+  en: {
+    verification: 'Verify your email - Patch Careers',
+    passwordReset: 'Reset your password - Patch Careers',
+    welcome: 'Welcome to Patch Careers!',
+    passwordChanged: 'Your password was changed - Patch Careers',
+    emailChangeCode: 'Confirm your new email - Patch Careers',
+    passwordChangeCode: 'Confirm your password change - Patch Careers',
+    accountDeletionCode: 'Confirm your account deletion - Patch Careers',
+  },
+} as const;
+
 export class EmailTemplateService {
   private readonly frontendUrl: string;
 
   constructor(
     private readonly senderService: EmailSenderService,
     private readonly configService: ConfigPort,
+    private readonly logger: LoggerPort,
+    private readonly accountLocale: AccountLocaleLookup = async () => null,
   ) {
     this.frontendUrl = resolveFrontendUrl(configService);
   }
 
-  /**
-   * Send verification email
-   */
-  async sendVerificationEmail(email: string, name: string, token: string): Promise<void> {
+  /** Explicit locale wins; else the account's; else the product default. */
+  private async localeFor(email: string, explicit?: Locale): Promise<Locale> {
+    if (explicit) return explicit;
+    try {
+      return (await this.accountLocale(email)) ?? 'pt-BR';
+    } catch (error) {
+      // The mail still goes out; only its language falls back.
+      this.logger.warn(
+        `Could not read the account language for ${email}: ${error instanceof Error ? error.message : 'unknown'}`,
+        'EmailTemplateService',
+      );
+      return 'pt-BR';
+    }
+  }
+
+  async sendVerificationEmail(
+    email: string,
+    name: string,
+    token: string,
+    locale?: Locale,
+  ): Promise<void> {
+    const lang = await this.localeFor(email, locale);
     const frontendUrl = this.frontendUrl;
     // Frontend route is /identity/verify-email; the ?token=<code> query param
     // auto-submits the 6-digit code for users who prefer clicking the link.
     const verificationUrl = `${frontendUrl}/identity/verify-email?token=${token}`;
+    const html = getVerificationEmailTemplate(name, token, verificationUrl, lang);
+    await this.senderService.sendEmail({ to: email, subject: SUBJECT[lang].verification, html });
+  }
 
-    const html = getVerificationEmailTemplate(name, token, verificationUrl);
+  async sendPasswordResetEmail(
+    email: string,
+    name: string,
+    token: string,
+    locale?: Locale,
+  ): Promise<void> {
+    const lang = await this.localeFor(email, locale);
+    const resetUrl = `${this.frontendUrl}/auth/reset-password?token=${token}`;
+    const html = getPasswordResetTemplate(name, resetUrl, lang);
+    await this.senderService.sendEmail({ to: email, subject: SUBJECT[lang].passwordReset, html });
+  }
 
+  async sendWelcomeEmail(email: string, name: string, locale?: Locale): Promise<void> {
+    const lang = await this.localeFor(email, locale);
+    const html = getWelcomeEmailTemplate(name, this.frontendUrl, lang);
+    await this.senderService.sendEmail({ to: email, subject: SUBJECT[lang].welcome, html });
+  }
+
+  async sendPasswordChangedEmail(email: string, name: string, locale?: Locale): Promise<void> {
+    const lang = await this.localeFor(email, locale);
+    const html = getPasswordChangedTemplate(name, this.frontendUrl, lang);
+    await this.senderService.sendEmail({ to: email, subject: SUBJECT[lang].passwordChanged, html });
+  }
+
+  async sendEmailChangeCode(
+    email: string,
+    name: string,
+    code: string,
+    locale?: Locale,
+  ): Promise<void> {
+    const lang = await this.localeFor(email, locale);
+    const html = getChangeCodeTemplate({ name, code, action: 'change-email', locale: lang });
+    await this.senderService.sendEmail({ to: email, subject: SUBJECT[lang].emailChangeCode, html });
+  }
+
+  async sendPasswordChangeCode(
+    email: string,
+    name: string,
+    code: string,
+    locale?: Locale,
+  ): Promise<void> {
+    const lang = await this.localeFor(email, locale);
+    const html = getChangeCodeTemplate({ name, code, action: 'change-password', locale: lang });
     await this.senderService.sendEmail({
       to: email,
-      subject: 'Verifique seu email - Patch Careers',
+      subject: SUBJECT[lang].passwordChangeCode,
       html,
     });
   }
 
-  /**
-   * Send password reset email
-   */
-  async sendPasswordResetEmail(email: string, name: string, token: string): Promise<void> {
-    const frontendUrl = this.frontendUrl;
-    const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
-
-    const html = getPasswordResetTemplate(name, resetUrl);
-
+  async sendAccountDeletionCode(
+    email: string,
+    name: string,
+    code: string,
+    locale?: Locale,
+  ): Promise<void> {
+    const lang = await this.localeFor(email, locale);
+    const html = getChangeCodeTemplate({ name, code, action: 'delete-account', locale: lang });
     await this.senderService.sendEmail({
       to: email,
-      subject: 'Redefinir senha - Patch Careers',
-      html,
-    });
-  }
-
-  /**
-   * Send welcome email
-   */
-  async sendWelcomeEmail(email: string, name: string): Promise<void> {
-    const frontendUrl = this.frontendUrl;
-    const html = getWelcomeEmailTemplate(name, frontendUrl);
-
-    await this.senderService.sendEmail({ to: email, subject: 'Bem-vindo ao Patch Careers!', html });
-  }
-
-  /**
-   * Send password changed email
-   */
-  async sendPasswordChangedEmail(email: string, name: string): Promise<void> {
-    const frontendUrl = this.frontendUrl;
-    const html = getPasswordChangedTemplate(name, frontendUrl);
-
-    await this.senderService.sendEmail({
-      to: email,
-      subject: 'Sua senha foi alterada - Patch Careers',
-      html,
-    });
-  }
-
-  /**
-   * Send the 6-digit code that confirms an email-change request. The code is
-   * delivered to the NEW address (proving the user controls it).
-   */
-  async sendEmailChangeCode(email: string, name: string, code: string): Promise<void> {
-    const html = getChangeCodeTemplate({ name, code, actionLabel: 'alterar seu e-mail' });
-    await this.senderService.sendEmail({
-      to: email,
-      subject: 'Confirme seu novo e-mail - Patch Careers',
-      html,
-    });
-  }
-
-  /**
-   * Send the 6-digit code that confirms a password-change request. Delivered
-   * to the user's current address.
-   */
-  async sendPasswordChangeCode(email: string, name: string, code: string): Promise<void> {
-    const html = getChangeCodeTemplate({ name, code, actionLabel: 'alterar sua senha' });
-    await this.senderService.sendEmail({
-      to: email,
-      subject: 'Confirme a alteração de senha - Patch Careers',
-      html,
-    });
-  }
-
-  /**
-   * Send the 6-digit code that confirms an account-deletion request. Delivered
-   * to the user's current address (re-proving control before erasure).
-   */
-  async sendAccountDeletionCode(email: string, name: string, code: string): Promise<void> {
-    const html = getChangeCodeTemplate({ name, code, actionLabel: 'excluir sua conta' });
-    await this.senderService.sendEmail({
-      to: email,
-      subject: 'Confirme a exclusão da conta - Patch Careers',
+      subject: SUBJECT[lang].accountDeletionCode,
       html,
     });
   }

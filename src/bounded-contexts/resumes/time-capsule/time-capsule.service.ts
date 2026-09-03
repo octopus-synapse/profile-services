@@ -10,6 +10,7 @@
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { buildTimeCapsuleEmail, diffSnapshots } from './time-capsule-email.builder';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -41,7 +42,7 @@ export class TimeCapsuleService {
         id: true,
         userId: true,
         title: true,
-        user: { select: { email: true, name: true } },
+        user: { select: { email: true, name: true, preferences: { select: { language: true } } } },
       },
     });
 
@@ -81,6 +82,7 @@ export class TimeCapsuleService {
 
         const email = buildTimeCapsuleEmail({
           userName: resume.user.name,
+          locale: normalizeLocale(resume.user.preferences?.language ?? undefined) ?? 'en',
           snapshotYear: snapshot.createdAt.getUTCFullYear(),
           diff,
         });

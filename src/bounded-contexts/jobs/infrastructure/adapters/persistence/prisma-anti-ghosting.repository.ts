@@ -66,10 +66,10 @@ export class PrismaAntiGhostingRepository extends AntiGhostingRepositoryPort {
   async findUser(userId: string): Promise<AntiGhostingUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true, name: true },
+      select: { email: true, name: true, preferences: { select: { language: true } } },
     });
     if (!user?.email) return null;
-    return { email: user.email, name: user.name };
+    return { email: user.email, name: user.name, language: user.preferences?.language ?? null };
   }
 
   async recordReminderLog(applicationId: string, threshold: ReminderThreshold): Promise<void> {

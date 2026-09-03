@@ -1,11 +1,24 @@
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
+
+const FOOTER = {
+  'pt-BR': {
+    rights: 'Todos os direitos reservados.',
+    open: 'Acessar Patch Careers',
+    help: 'Ajuda',
+  },
+  en: { rights: 'All rights reserved.', open: 'Open Patch Careers', help: 'Help' },
+} as const;
+
 export const getBaseTemplate = (
   content: string,
   title: string,
   frontendUrl = 'http://localhost:3000',
+  locale: Locale = 'pt-BR',
 ) => {
+  const footer = FOOTER[locale];
   return `
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${locale}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,10 +104,10 @@ export const getBaseTemplate = (
       ${content}
     </div>
     <div class="email-footer">
-      <p>&copy; ${new Date().getFullYear()} Patch Careers. Todos os direitos reservados.</p>
+      <p>&copy; ${new Date().getFullYear()} Patch Careers. ${footer.rights}</p>
       <p>
-        <a href="${frontendUrl}">Acessar Patch Careers</a> &middot;
-        <a href="${frontendUrl}/help">Ajuda</a>
+        <a href="${frontendUrl}">${footer.open}</a> &middot;
+        <a href="${frontendUrl}/help">${footer.help}</a>
       </p>
     </div>
   </div>
