@@ -123,6 +123,8 @@ const PublicProfileUserSchema = z.object({
   portfolio: z.string().nullable().openapi({ example: 'https://alexrivera.dev/portfolio' }),
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
+  /** The person's own choice (preferences): may search engines list this page? */
+  allowSearchEngineIndex: z.boolean().openapi({ example: false }),
 });
 
 const PublicProfileResumeSchema = z.object({

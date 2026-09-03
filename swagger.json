@@ -35572,6 +35572,10 @@
                         "github": {
                           "type": "string",
                           "nullable": true
+                        },
+                        "allowSearchEngineIndex": {
+                          "type": "boolean",
+                          "example": false
                         }
                       },
                       "required": [
@@ -35584,7 +35588,8 @@
                         "website",
                         "portfolio",
                         "linkedin",
-                        "github"
+                        "github",
+                        "allowSearchEngineIndex"
                       ]
                     },
                     "resume": {

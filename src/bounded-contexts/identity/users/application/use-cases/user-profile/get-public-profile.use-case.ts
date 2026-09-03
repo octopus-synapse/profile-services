@@ -37,6 +37,7 @@ export class GetPublicProfileUseCase {
         portfolio: foundUser.portfolio ?? null,
         linkedin: foundUser.linkedin,
         github: foundUser.github,
+        allowSearchEngineIndex: foundUser.allowSearchEngineIndex,
       },
       resume: userResume ? projectPublicProfileResume(userResume) : null,
     };

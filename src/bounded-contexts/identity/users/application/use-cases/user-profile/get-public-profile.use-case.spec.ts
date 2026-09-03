@@ -14,6 +14,7 @@ const mockFoundUser = {
   portfolio: 'https://johndoe.dev',
   linkedin: 'johndoe',
   github: 'johndoe',
+  allowSearchEngineIndex: false,
 };
 
 const mockResume = {
@@ -91,6 +92,7 @@ describe('GetPublicProfileUseCase', () => {
       portfolio: 'https://johndoe.dev',
       linkedin: 'johndoe',
       github: 'johndoe',
+      allowSearchEngineIndex: false,
     });
     expect(result.resume).toEqual(mockResumeProjection);
     expect(repository.findUserByUsername).toHaveBeenCalledWith('johndoe', undefined);

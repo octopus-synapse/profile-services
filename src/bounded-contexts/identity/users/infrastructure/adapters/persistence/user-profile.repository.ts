@@ -63,16 +63,18 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
         portfolio: true,
         linkedin: true,
         github: true,
+        preferences: { select: { allowSearchEngineIndex: true } },
         ...PROSE_FROM_RESUME,
       },
     });
     if (!row) return null;
-    const { primaryResume, ...user } = row;
+    const { primaryResume, preferences, ...user } = row;
     const prose = proseOf(primaryResume, locale);
     return {
       ...user,
       headline: prose?.headline ?? user.headline,
       bio: prose?.summary ?? user.bio,
+      allowSearchEngineIndex: preferences?.allowSearchEngineIndex ?? false,
     };
   }
 

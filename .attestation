@@ -1,103 +1,103 @@
 {
   "version": "3",
-  "tree_hash": "26532f140ae133b767249c305c3aab1f0406565c",
+  "tree_hash": "a2d3569877cb8ab5dbda61ed89a8b64d9448e1da",
   "checks": "swagger typecheck lint unit arch contract static",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 203
+      "time_ms": 171
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 1343
+      "time_ms": 1347
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 3594
+      "time_ms": 3606
     },
     "lint": {
       "status": "ok",
-      "time_ms": 1315
+      "time_ms": 1259
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 579
+      "time_ms": 650
     },
     "unit": {
       "status": "ok",
-      "time_ms": 3737,
+      "time_ms": 3775,
       "passed": 2756,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 2028,
+      "time_ms": 1821,
       "passed": 78,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 1298,
+      "time_ms": 1050,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "static": {
       "status": "ok",
-      "time_ms": 5662,
+      "time_ms": 5749,
       "passed": 317,
       "failed": 0,
       "skipped": 1
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 176
+      "time_ms": 159
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 172
+      "time_ms": 158
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 168
+      "time_ms": 157
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 164
+      "time_ms": 156
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 133
+      "time_ms": 117
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 127
+      "time_ms": 117
     },
     "pii-in-logs": {
       "status": "ok",
-      "time_ms": 124
+      "time_ms": 115
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 180
+      "time_ms": 234
     },
     "cache-direct-delete": {
       "status": "ok",
-      "time_ms": 146
+      "time_ms": 120
     },
     "ts-directives": {
       "status": "ok",
-      "time_ms": 256
+      "time_ms": 162
     },
     "no-prisma-mock-in-integration": {
       "status": "ok",
-      "time_ms": 113
+      "time_ms": 110
     },
     "no-db-helpers-in-unit": {
       "status": "ok",
-      "time_ms": 148
+      "time_ms": 134
     },
     "skip-todo-deadline": {
       "status": "ok",
@@ -109,57 +109,57 @@
     },
     "cron-wrapper": {
       "status": "ok",
-      "time_ms": 102
+      "time_ms": 105
     },
     "ws-validate": {
       "status": "ok",
-      "time_ms": 98
+      "time_ms": 103
     },
     "no-mutable-module-state": {
       "status": "ok",
-      "time_ms": 195
+      "time_ms": 102
     },
     "no-process-env-in-domain": {
       "status": "ok",
-      "time_ms": 125
+      "time_ms": 140
     },
     "deprecated-removeby": {
       "status": "ok",
-      "time_ms": 88
+      "time_ms": 118
     },
     "no-unknown-cast": {
       "status": "ok",
-      "time_ms": 145
+      "time_ms": 139
     },
     "pagination-adhoc": {
       "status": "ok",
-      "time_ms": 95
+      "time_ms": 89
     },
     "file-size": {
       "status": "ok",
-      "time_ms": 95
+      "time_ms": 208
     },
     "no-cyclic-imports": {
       "status": "ok",
-      "time_ms": 226
+      "time_ms": 190
     },
     "boolean-trap": {
       "status": "ok",
-      "time_ms": 291
+      "time_ms": 384
     },
     "jsdoc-params": {
       "status": "ok",
-      "time_ms": 78
+      "time_ms": 99
     },
     "no-console-in-features": {
       "status": "ok",
-      "time_ms": 154
+      "time_ms": 141
     },
     "magic-numbers": {
       "status": "ok",
-      "time_ms": 480
+      "time_ms": 628
     }
   },
-  "timestamp": "2026-09-03T11:43:18Z",
+  "timestamp": "2026-09-03T11:44:57Z",
   "git_user": "efpatti.dev@gmail.com"
 }

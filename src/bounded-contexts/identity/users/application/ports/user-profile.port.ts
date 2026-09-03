@@ -20,6 +20,7 @@ export type PublicProfileUser = {
   portfolio: string | null;
   linkedin: string | null;
   github: string | null;
+  allowSearchEngineIndex: boolean;
 };
 
 export type PublicProfileData = { user: PublicProfileUser; resume: Record<string, unknown> | null };
@@ -101,6 +102,7 @@ export abstract class UserProfileRepositoryPort {
     portfolio?: string | null;
     linkedin: string | null;
     github: string | null;
+    allowSearchEngineIndex: boolean;
   } | null>;
 
   abstract findResumeByUserId(
