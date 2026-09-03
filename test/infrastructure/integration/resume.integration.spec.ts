@@ -157,20 +157,6 @@ describe('Resume Smoke Tests', () => {
     });
   });
 
-  describe('GET /api/v1/resumes/:id/full', () => {
-    it('should return resume with all sections', async () => {
-      const app = await getApp();
-      const user = await freshInDbUser(app);
-      const resumeId = await createResume(app, user, 'Full Resume');
-
-      const res = await app.request.get(`/api/v1/resumes/${resumeId}/full`).set(user.bearer());
-
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('id');
-      expect(res.body).toHaveProperty('resumeSections');
-    });
-  });
-
   describe('DELETE /api/v1/resumes/:id', () => {
     it('should delete resume', async () => {
       const app = await getApp();

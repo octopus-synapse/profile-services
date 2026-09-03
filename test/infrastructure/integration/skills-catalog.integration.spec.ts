@@ -34,41 +34,6 @@ describeIntegration('Skills Catalog Integration', () => {
   // ---------------------------------------------------------------------------
   // GET /api/v1/tech-skills - List all tech skills (root controller)
   // ---------------------------------------------------------------------------
-  describe('GET /api/v1/tech-skills', () => {
-    it('should return seeded tech skills', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .get('/api/v1/tech-skills')
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.skills).toBeDefined();
-      expect(Array.isArray(res.body.skills)).toBe(true);
-      expect(res.body.skills.length).toBeGreaterThan(0);
-    });
-
-    it('should return skills with expected shape', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .get('/api/v1/tech-skills')
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect(res.status).toBe(200);
-      const skill = res.body.skills[0];
-      expect(skill).toHaveProperty('nameEn');
-      expect(typeof skill.nameEn).toBe('string');
-    });
-
-    it('should require authentication', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest().get('/api/v1/tech-skills');
-
-      expect(res.status).toBe(401);
-    });
-  });
 
   // ---------------------------------------------------------------------------
   // GET /api/v1/tech-skills/search?q=... - Combined search

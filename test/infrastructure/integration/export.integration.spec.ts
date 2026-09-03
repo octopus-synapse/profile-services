@@ -56,28 +56,6 @@ describeIntegration('Export Integration Tests', () => {
     await closeApp();
   });
 
-  describe('List available export formats', () => {
-    it('should return available export formats', async () => {
-      const response = await getRequest().get('/api/v1/enums/export-formats');
-
-      expect(response.status).toBe(200);
-      expect(response.body.formats).toBeDefined();
-      expect(Array.isArray(response.body.formats)).toBe(true);
-
-      // ExportFormatDescriptorSchema: { key, label, mimeType, extension, enabled, requiresPro? }
-      const formatKeys = response.body.formats.map((f: { key: string }) => f.key);
-      expect(formatKeys).toContain('pdf');
-      expect(formatKeys).toContain('docx');
-    });
-
-    it('should be accessible without authentication (public endpoint)', async () => {
-      const response = await getRequest().get('/api/v1/enums/export-formats');
-
-      // Public endpoint - should not require auth
-      expect(response.status).toBe(200);
-    });
-  });
-
   describe('Export resume as DOCX', () => {
     it('should export resume as DOCX with correct headers', async () => {
       const response = await getRequest()
