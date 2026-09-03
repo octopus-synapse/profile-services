@@ -5,7 +5,7 @@
  * Controllers depend on this abstraction, allowing proper testing without type assertions.
  */
 
-import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import type { CreateResume } from '@/shared-kernel';
 
 export type UserResumesPagination = {
   total: number;
@@ -74,11 +74,8 @@ export abstract class ResumesServicePort {
 
   abstract createResumeForUser(userId: string, data: CreateResume): Promise<ResumeResult>;
 
-  abstract updateResumeForUser(
-    id: string,
-    userId: string,
-    data: UpdateResume,
-  ): Promise<ResumeResult>;
+  // Updates go through `UpdateResumeForUserUseCase` only — it is the single
+  // emitter of `ResumeUpdatedEvent` for live edits.
 
   abstract deleteResumeForUser(id: string, userId: string): Promise<void>;
 }

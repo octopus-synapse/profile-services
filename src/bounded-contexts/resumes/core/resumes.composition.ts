@@ -86,7 +86,7 @@ export function buildResumesCoreComposition(
   logger: LoggerPort,
 ): BoundedContextComposition<ResumesUseCases> & ResumesCoreCompositionExtras {
   const repository = new ResumesRepository(prisma, logger);
-  const service = new ResumesService(repository, versionService, eventPublisher);
+  const service = new ResumesService(repository, eventPublisher);
 
   const useCases = buildResumesUseCases(repository, versionService, eventPublisher, logger);
 

@@ -300,8 +300,7 @@ export class InMemoryResumesEventPublisher implements ResumeEventPublisher {
  */
 export function createTestResumesService(
   repository: InMemoryResumesRepository,
-  versionService: StubResumeVersionService,
   eventPublisher: InMemoryResumesEventPublisher,
 ): ResumesService {
-  return new ResumesService(repository, versionService, eventPublisher);
+  return new ResumesService(repository, eventPublisher);
 }

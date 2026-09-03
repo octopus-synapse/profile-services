@@ -2,7 +2,7 @@
  * Resume Version Service Port
  *
  * Abstract port for ResumeVersionService - enables dependency inversion.
- * Used by ResumesService for creating snapshots before updates.
+ * Used by `UpdateResumeForUserUseCase` for creating snapshots before updates.
  */
 
 export abstract class ResumeVersionServicePort {

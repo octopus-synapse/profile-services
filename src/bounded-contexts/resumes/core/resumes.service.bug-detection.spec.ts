@@ -103,18 +103,6 @@ class StubResumesRepository {
   }
 }
 
-class StubResumeVersionService {
-  async createSnapshot(): Promise<void> {}
-  async getVersions(): Promise<
-    Array<{ id: string; versionNumber: number; label: string | null; createdAt: Date }>
-  > {
-    return [];
-  }
-  async restoreVersion(): Promise<{ restoredFrom: Date }> {
-    return { restoredFrom: new Date() };
-  }
-}
-
 class StubResumeEventPublisher implements ResumeEventPublisher {
   publishResumeCreated(): void {}
   publishResumeUpdated(): void {}
@@ -141,12 +129,10 @@ class StubResumeEventPublisher implements ResumeEventPublisher {
  */
 function createTestService(
   repository: StubResumesRepository,
-  versionService: StubResumeVersionService,
   eventPublisher: StubResumeEventPublisher,
 ): ResumesService {
   return new ResumesService(
     repository as ConstructorParameters<typeof ResumesService>[0],
-    versionService as ConstructorParameters<typeof ResumesService>[1],
     eventPublisher,
   );
 }
@@ -161,7 +147,6 @@ function createResumeDto(overrides: Partial<CreateResume> = {}): CreateResume {
 describe('ResumesService - Bug Detection', () => {
   let service: ResumesService;
   let stubRepository: StubResumesRepository;
-  let stubVersionService: StubResumeVersionService;
   let stubEventPublisher: StubResumeEventPublisher;
 
   const _mockResume = buildResume({
@@ -172,10 +157,9 @@ describe('ResumesService - Bug Detection', () => {
 
   beforeEach(() => {
     stubRepository = new StubResumesRepository();
-    stubVersionService = new StubResumeVersionService();
     stubEventPublisher = new StubResumeEventPublisher();
 
-    service = createTestService(stubRepository, stubVersionService, stubEventPublisher);
+    service = createTestService(stubRepository, stubEventPublisher);
   });
 
   /**

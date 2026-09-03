@@ -1,13 +1,11 @@
-import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import type { CreateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { sanitizeHtmlContent } from '@/shared-kernel/validation';
 import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumeEventPublisher } from '../domain/ports';
-import { ResumeVersionServicePort } from './ports/resume-version-service.port';
+import { MAX_RESUMES_PER_USER } from './application/resume-limits.const';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 import { ResumesServicePort, type UserResumesPaginatedResult } from './ports/resumes-service.port';
-
-const MAX_RESUMES_PER_USER = 4;
 
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
@@ -18,7 +16,6 @@ function sanitizeContent(text: string | undefined | null): string | undefined {
 export class ResumesService extends ResumesServicePort {
   constructor(
     private readonly repository: ResumesRepositoryPort,
-    private readonly versionService: ResumeVersionServicePort,
     private readonly eventPublisher: ResumeEventPublisher,
   ) {
     super();
@@ -62,27 +59,6 @@ export class ResumesService extends ResumesServicePort {
     this.eventPublisher.publishResumeCreated(resume.id, {
       userId,
       title: resume.title ?? '',
-    });
-
-    return resume;
-  }
-
-  async updateResumeForUser(id: string, userId: string, data: UpdateResume) {
-    await this.createSnapshotSafely(id);
-
-    // Sanitize input to prevent XSS attacks
-    const sanitizedData = {
-      ...data,
-      title: sanitizeContent(data.title),
-      summary: sanitizeContent(data.summary),
-    };
-
-    const resume = await this.repository.updateResumeForUser(id, userId, sanitizedData);
-    if (!resume) throw new EntityNotFoundException('Resume', id);
-
-    this.eventPublisher.publishResumeUpdated(id, {
-      userId,
-      changedFields: Object.keys(data),
     });
 
     return resume;
@@ -139,14 +115,6 @@ export class ResumesService extends ResumesServicePort {
     const existing = await this.repository.listUserResumes(userId);
     if (existing.length >= MAX_RESUMES_PER_USER) {
       throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
-    }
-  }
-
-  private async createSnapshotSafely(resumeId: string): Promise<void> {
-    try {
-      await this.versionService.createSnapshot(resumeId);
-    } catch {
-      // Snapshot failure should not block update
     }
   }
 }

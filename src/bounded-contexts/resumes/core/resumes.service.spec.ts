@@ -17,13 +17,11 @@ import {
   createTestResumesService,
   InMemoryResumesEventPublisher,
   InMemoryResumesRepository,
-  StubResumeVersionService,
 } from './testing';
 
 describe('ResumesService', () => {
   let service: ResumesService;
   let repository: InMemoryResumesRepository;
-  let versionService: StubResumeVersionService;
   let eventPublisher: InMemoryResumesEventPublisher;
 
   const userId = 'user-123';
@@ -40,9 +38,8 @@ describe('ResumesService', () => {
 
   beforeEach(() => {
     repository = new InMemoryResumesRepository();
-    versionService = new StubResumeVersionService();
     eventPublisher = new InMemoryResumesEventPublisher();
-    service = createTestResumesService(repository, versionService, eventPublisher);
+    service = createTestResumesService(repository, eventPublisher);
   });
 
   describe('Resume Limit (Maximum 4)', () => {
@@ -121,16 +118,6 @@ describe('ResumesService', () => {
       await expect(async () => await service.findResumeByIdForUser('nonexistent', userId)).toThrow(
         EntityNotFoundException,
       );
-    });
-
-    it('should update resume if owned by user', async () => {
-      repository.seedResume(createTestResume({ id: 'resume-1' }));
-
-      const result = await service.updateResumeForUser('resume-1', userId, {
-        title: 'Updated Title',
-      });
-
-      expect(result?.title).toBe('Updated Title');
     });
 
     it('should delete resume if owned by user', async () => {
