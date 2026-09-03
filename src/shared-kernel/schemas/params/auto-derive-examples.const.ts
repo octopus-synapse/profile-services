@@ -375,7 +375,6 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['reposts', '2'],
   ['comments', '3'],
   ['bookmarks', '1'],
-  ['followers', '0'],
   ['following', '0'],
   ['connections', '0'],
   ['endorsers', '0'],

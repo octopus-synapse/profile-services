@@ -1,15 +1,14 @@
 /**
  * Translation Integration Tests
  *
- * Tests translation endpoints against the live app. Translation now uses
- * the BC AI's TranslationLlmPort (OpenAI). When OPENAI_API_KEY is unset
- * the health endpoint reports `unavailable` and the body-mutating tests
- * skip themselves automatically — CI without a key still exercises auth
- * and routing.
+ * The translation surface is health + language detection; the raw
+ * text/batch endpoints were removed (no client, and a general-purpose LLM
+ * translator billed to any account). When OPENAI_API_KEY is unset the health
+ * endpoint reports `unavailable` and the detect test skips its happy path —
+ * CI without a key still exercises auth and routing, and confirms the removed
+ * routes stay gone.
  *
- * Tests are also skipped when DATABASE_URL is missing or SKIP_INTEGRATION
- * is set. Translation endpoints (except health) require authentication
- * with RESUME_READ permission.
+ * Tests are skipped when DATABASE_URL is missing or SKIP_INTEGRATION is set.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
@@ -69,308 +68,44 @@ describeIntegration('Translation Integration', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // POST /api/v1/translation/text - General translation
+  // POST /api/v1/translation/detect — the one LLM route that stays
   // ---------------------------------------------------------------------------
-  describe('POST /api/v1/translation/text', () => {
-    it('should translate text en->pt', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Hello world', sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(201);
-      expect(res.body).toBeDefined();
-      expect(typeof res.body.translated).toBe('string');
-      expect(res.body.translated.length).toBeGreaterThan(0);
-    });
-
-    it('should translate text pt->en', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Olá mundo', sourceLanguage: 'pt', targetLanguage: 'en' });
-
-      expect(res.status).toBe(201);
-      expect(res.body).toBeDefined();
-      expect(typeof res.body.translated).toBe('string');
-    });
-
+  describe('POST /api/v1/translation/detect', () => {
     it('should require authentication', async () => {
       if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .send({ text: 'Hello', sourceLanguage: 'en', targetLanguage: 'pt' });
-
+      const res = await getRequest().post('/api/v1/translation/detect').send({ text: 'Olá' });
       expect(res.status).toBe(401);
     });
 
-    it('should validate empty text', async () => {
+    it('should reject empty text', async () => {
       if (setupFailed) return;
-
       const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: '', sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('should validate missing text field', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('should accept missing sourceLanguage (defaults to auto)', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Hello', targetLanguage: 'pt' });
-
-      // sourceLanguage defaults to 'auto' in the schema, so missing
-      // it is valid input; 201 means the request was accepted.
-      // 503 ocorre quando OPENAI_API_KEY não está configurada (test env).
-      expect([201, 400, 503]).toContain(res.status);
-    });
-
-    it('should validate missing targetLanguage', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Hello', sourceLanguage: 'en' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('should handle text with special characters', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Hello! @#$%^&*() "quotes" <tags>',
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
-
-      expect(res.status).toBe(201);
-    });
-
-    it('should handle text with emojis', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Hello world! Great job!', sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(201);
-    });
-
-    it('should handle long text', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const longText = 'This is a test sentence for translation. '.repeat(50);
-
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: longText, sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      // Should either succeed or return a controlled error (not 500)
-      expect([201, 400, 413]).toContain(res.status);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // POST /api/v1/translation/en-to-pt - English to Portuguese shortcut
-  // ---------------------------------------------------------------------------
-  describe('POST /api/v1/translation/en-to-pt', () => {
-    it('should translate English to Portuguese', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/en-to-pt')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Software Engineer' });
-
-      expect(res.status).toBe(201);
-      expect(res.body).toBeDefined();
-      expect(typeof res.body.translated).toBe('string');
-      expect(res.body.translated.length).toBeGreaterThan(0);
-    });
-
-    it('should validate empty text', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/en-to-pt')
+        .post('/api/v1/translation/detect')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ text: '' });
-
       expect(res.status).toBe(400);
     });
 
-    it('should require authentication', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest().post('/api/v1/translation/en-to-pt').send({ text: 'Hello' });
-
-      expect(res.status).toBe(401);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // POST /api/v1/translation/pt-to-en - Portuguese to English shortcut
-  // ---------------------------------------------------------------------------
-  describe('POST /api/v1/translation/pt-to-en', () => {
-    it('should translate Portuguese to English', async () => {
+    it('should detect the language when the provider is available', async () => {
       if (setupFailed || !translationAvailable) return;
-
       const res = await getRequest()
-        .post('/api/v1/translation/pt-to-en')
+        .post('/api/v1/translation/detect')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Engenheiro de Software' });
-
-      expect(res.status).toBe(201);
-      expect(res.body).toBeDefined();
-      expect(typeof res.body.translated).toBe('string');
-      expect(res.body.translated.length).toBeGreaterThan(0);
-    });
-
-    it('should validate empty text', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/pt-to-en')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: '' });
-
-      expect(res.status).toBe(400);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // POST /api/v1/translation/batch - Batch translation
-  // ---------------------------------------------------------------------------
-  describe('POST /api/v1/translation/batch', () => {
-    it('should translate multiple texts', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/batch')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          texts: ['Hello', 'World', 'Good morning'],
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
-
-      expect(res.status).toBe(201);
-      expect(res.body).toBeDefined();
-    });
-
-    it('should translate a single text in batch', async () => {
-      if (setupFailed || !translationAvailable) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/batch')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ texts: ['Software Development'], sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(201);
-    });
-
-    it('should validate empty texts array', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/batch')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ texts: [], sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('should validate texts array with empty strings', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/batch')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ texts: [''], sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('should accept missing sourceLanguage (defaults to auto)', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/batch')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ texts: ['Hello'], targetLanguage: 'pt' });
-
-      // sourceLanguage defaults to 'auto' in the schema, so missing
-      // it is valid input; 201 means the batch was accepted.
-      // 503 ocorre quando OPENAI_API_KEY não está configurada (test env).
-      expect([201, 400, 503]).toContain(res.status);
-    });
-
-    it('should require authentication', async () => {
-      if (setupFailed) return;
-
-      const res = await getRequest()
-        .post('/api/v1/translation/batch')
-        .send({ texts: ['Hello'], sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      expect(res.status).toBe(401);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Graceful degradation when translation service is unavailable
-  // ---------------------------------------------------------------------------
-  describe('Translation service graceful degradation', () => {
-    it('should report unavailable status when service is down', async () => {
-      if (setupFailed) return;
-
-      // Health endpoint should always work, reporting status
-      const res = await getRequest().get('/api/v1/translation/health');
-
+        .send({ text: 'Bom dia, tudo bem?' });
       expect(res.status).toBe(200);
-      expect(['healthy', 'unavailable']).toContain(res.body.status);
     });
+  });
 
-    it('should handle translation request when service is unavailable gracefully', async () => {
-      if (setupFailed || translationAvailable) return;
-
-      // When the translation provider is unavailable (no OPENAI_API_KEY),
-      // translation should fail gracefully — 503 surfaces the configured-but-
-      // unavailable state; 201/400 are acceptable when the provider partially
-      // responds.
-      const res = await getRequest()
-        .post('/api/v1/translation/text')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ text: 'Hello', sourceLanguage: 'en', targetLanguage: 'pt' });
-
-      // Should return error but not 500
-      expect([201, 400, 503]).toContain(res.status);
-    });
+  describe('removed raw translation routes', () => {
+    for (const path of ['text', 'batch', 'pt-to-en', 'en-to-pt']) {
+      it(`POST /api/v1/translation/${path} is gone`, async () => {
+        if (setupFailed) return;
+        const res = await getRequest()
+          .post(`/api/v1/translation/${path}`)
+          .set('Authorization', `Bearer ${accessToken}`)
+          .send({ text: 'x' });
+        expect(res.status).toBe(404);
+      });
+    }
   });
 });
