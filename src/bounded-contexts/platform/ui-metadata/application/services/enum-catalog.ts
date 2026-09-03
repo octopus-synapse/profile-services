@@ -15,37 +15,6 @@ export interface EnumDescriptor {
 
 const NOTIFICATION_TYPES: EnumValueDescriptor[] = [
   {
-    value: 'CONNECTION_REQUEST',
-    icon: 'user-plus',
-    group: 'connections',
-    tone: 'info',
-    labels: { 'pt-BR': 'enviou um pedido de conexão', en: 'sent a connection request' },
-  },
-  {
-    value: 'CONNECTION_ACCEPTED',
-    icon: 'user-check',
-    group: 'connections',
-    tone: 'success',
-    labels: { 'pt-BR': 'aceitou sua conexão', en: 'accepted your connection' },
-  },
-  {
-    value: 'FOLLOW_NEW',
-    icon: 'user-plus',
-    group: 'connections',
-    tone: 'info',
-    labels: { 'pt-BR': 'começou a seguir você', en: 'started following you' },
-  },
-  {
-    value: 'SKILL_DECAY',
-    icon: 'trending-down',
-    group: 'engagement',
-    tone: 'warning',
-    labels: {
-      'pt-BR': 'Uma das suas skills está parada — atualize para não perder relevância.',
-      en: 'One of your skills has gone stale — refresh it to stay relevant.',
-    },
-  },
-  {
     value: 'APPLICATION_STALE',
     icon: 'alarm-clock',
     group: 'engagement',
@@ -53,16 +22,6 @@ const NOTIFICATION_TYPES: EnumValueDescriptor[] = [
     labels: {
       'pt-BR': 'Aplicação sem resposta — vale enviar um follow-up.',
       en: 'An application got no reply — consider sending a follow-up.',
-    },
-  },
-  {
-    value: 'CONNECTION_RECOMMENDATION',
-    icon: 'users',
-    group: 'connections',
-    tone: 'info',
-    labels: {
-      'pt-BR': 'Encontramos pessoas com skills parecidas com as suas.',
-      en: 'We found people with overlapping skills.',
     },
   },
 ];

@@ -13,16 +13,6 @@ export async function cleanupTestUsers(prisma: PrismaService, logger: LoggerPort
 
     if (testUserIds.length > 0) {
       await prisma.resume.deleteMany({ where: { userId: { in: testUserIds } } });
-      await prisma.follow.deleteMany({
-        where: {
-          OR: [{ followerId: { in: testUserIds } }, { followingId: { in: testUserIds } }],
-        },
-      });
-      await prisma.connection.deleteMany({
-        where: {
-          OR: [{ requesterId: { in: testUserIds } }, { targetId: { in: testUserIds } }],
-        },
-      });
     }
 
     await prisma.user.deleteMany({ where: { email: { startsWith: '__test_' } } });

@@ -36,8 +36,8 @@ export class BuildWeeklyDigestService {
 /** Bare function for tests and for callers that don't want to allocate
  *  a service instance. */
 export function buildWeeklyDigest(input: WeeklyDigestInput): WeeklyDigestOutput | null {
-  const { resumeViews, newFollowers, newEndorsements, profileViews } = input.stats;
-  const total = resumeViews + newFollowers + newEndorsements + profileViews;
+  const { resumeViews, profileViews } = input.stats;
+  const total = resumeViews + profileViews;
   if (total === 0) return null;
 
   const greetingName = input.userName?.trim() || 'there';
@@ -46,9 +46,6 @@ export function buildWeeklyDigest(input: WeeklyDigestInput): WeeklyDigestOutput 
   const lines: string[] = [];
   if (resumeViews > 0) lines.push(pluralize(resumeViews, 'resume view', 'resume views'));
   if (profileViews > 0) lines.push(pluralize(profileViews, 'profile view', 'profile views'));
-  if (newFollowers > 0) lines.push(pluralize(newFollowers, 'new follower', 'new followers'));
-  if (newEndorsements > 0)
-    lines.push(pluralize(newEndorsements, 'new endorsement', 'new endorsements'));
 
   const textBody = [
     `Hi ${greetingName},`,

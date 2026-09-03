@@ -14,22 +14,10 @@ export class PrismaWeeklyDigestStatsAdapter extends WeeklyDigestStatsPort {
   }
 
   async collect(userId: string, since: Date): Promise<WeeklyDigestStats> {
-    const [resumeViews, newFollowers, newEndorsements, profileViews] = await Promise.all([
+    const [resumeViews, profileViews] = await Promise.all([
       this.prisma.resumeViewEvent.count({
         where: {
           resume: { userId },
-          createdAt: { gte: since },
-        },
-      }),
-      this.prisma.follow.count({
-        where: {
-          followingId: userId,
-          createdAt: { gte: since },
-        },
-      }),
-      this.prisma.skillEndorsement.count({
-        where: {
-          endorsedUserId: userId,
           createdAt: { gte: since },
         },
       }),
@@ -42,6 +30,6 @@ export class PrismaWeeklyDigestStatsAdapter extends WeeklyDigestStatsPort {
       }),
     ]);
 
-    return { resumeViews, newFollowers, newEndorsements, profileViews };
+    return { resumeViews, profileViews };
   }
 }

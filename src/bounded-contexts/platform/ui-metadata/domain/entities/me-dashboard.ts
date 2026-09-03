@@ -18,8 +18,6 @@ export interface DashboardCounts {
   readonly resumes: number;
   readonly applications: number;
   readonly unreadNotifications: number;
-  readonly followers: number;
-  readonly following: number;
 }
 
 export interface DashboardNotification {

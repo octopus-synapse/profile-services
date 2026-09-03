@@ -129,6 +129,7 @@ import { buildWebhooksComposition } from '@/bounded-contexts/platform/webhooks/w
 import { buildWellKnownComposition } from '@/bounded-contexts/platform/well-known/well-known.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
 import { ShareDownloadedEvent } from '@/bounded-contexts/presentation/shared-kernel/domain/events/share-downloaded.event';
+import { ShareAuditHandler } from '@/bounded-contexts/presentation/shared-kernel/infrastructure/handlers/share-audit.handler';
 import { buildRecruitingComposition } from '@/bounded-contexts/recruiting/recruiting.composition';
 import { buildResumeQualityComposition } from '@/bounded-contexts/resume-quality/resume-quality.composition';
 import { buildResumeStylesComposition } from '@/bounded-contexts/resume-styles/resume-styles.composition';
@@ -152,12 +153,6 @@ import { buildTimeCapsuleComposition } from '@/bounded-contexts/resumes/time-cap
 import { buildRolesComposition } from '@/bounded-contexts/roles/roles.composition';
 import { buildAdminCatalogUseCases } from '@/bounded-contexts/skills-catalog/admin/admin-catalog.composition';
 import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalog/skills-catalog.composition';
-import {
-  ConnectionRequestedEvent,
-  UserFollowedEvent,
-} from '@/bounded-contexts/social/domain/events';
-import { SocialAuditHandler } from '@/bounded-contexts/social/infrastructure/handlers/social-audit.handler';
-import { buildSocialComposition } from '@/bounded-contexts/social/social.composition';
 import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stories/success-stories.composition';
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
@@ -187,7 +182,6 @@ import {
   CACHE_INVALIDATION_QUEUE,
 } from './bullmq-cache-invalidation.adapter';
 import { BullMQJobQueueAdapter } from './bullmq-job-queue.adapter';
-import { CacheIdempotencyAdapter } from './cache-idempotency.adapter';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';
 import { CronerCronAdapter } from './croner-cron.adapter';
 import { buildDefaultPipeline } from './elysia-pipeline';
@@ -415,11 +409,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     );
   }
 
-  // Idempotency: cache-backed lock semantics. Replaces the deleted
-  // Nest `IdempotencyService` (which transitively pulled CacheLockService
-  // + AppLoggerService and TDZ-hit `LoggerPort`).
-  const idempotency = new CacheIdempotencyAdapter(cache, logger);
-
   // --- Cross-cutting service factories (no routes; consumed by BCs) ---
   const { emailService } = buildEmailComposition(config, logger);
   const s3 = buildS3UploadService(config, logger);
@@ -550,23 +539,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   registerJobsJobs(cron, jobs.useCases, logger, distributedLock, {
     externalIngestionEnabled: isExternalJobsIngestionEnabled(config),
   });
-
-  // Social: idempotency is the cache-backed `CacheIdempotencyAdapter`
-  // wired above (lock semantics over `CachePort.acquireLock`).
-  const social = buildSocialComposition({
-    prisma: prisma as never,
-    logger,
-    eventPublisher: eventBus,
-    eventBus,
-    idempotency: idempotency as never,
-    sse: sseStream,
-    cron,
-    lock: distributedLock,
-  });
-  for (const binding of social.eventHandlers ?? []) {
-    eventBus.on(binding.eventType, binding.handler);
-  }
-  for (const l of social.lifecycles ?? []) lifecycles.push(l);
 
   // Automation: needs CuratedSelectorService (uses ResumeAnalyticsFacade
   // via ResumeAnalyticsJobMatcherAdapter) + ResumeTailorService (from
@@ -863,13 +835,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     sectionTypeRepo as never,
   );
 
-  // Test runner consumes the real social services.
-  const testRunner = buildTestRunnerComposition(
-    prisma as never,
-    logger,
-    social.useCases.connectionService as never,
-    social.useCases.followService as never,
-  ) as never;
+  const testRunner = buildTestRunnerComposition(prisma as never, logger) as never;
 
   // Job-match: shares the `flags` null-object declared above with
   // resume-quality, until the Redis-backed feature-flags BC is wired.
@@ -1039,21 +1005,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     'ExportAudit.onFailed',
   );
 
-  const socialAudit = new SocialAuditHandler(auditPort, logger);
-  bindAuditListener(
-    UserFollowedEvent.TYPE,
-    socialAudit.onUserFollowed.bind(socialAudit),
-    'SocialAudit.onUserFollowed',
-  );
-  bindAuditListener(
-    ConnectionRequestedEvent.TYPE,
-    socialAudit.onConnectionRequested.bind(socialAudit),
-    'SocialAudit.onConnectionRequested',
-  );
+  const shareAudit = new ShareAuditHandler(auditPort, logger);
   bindAuditListener(
     ShareDownloadedEvent.TYPE,
-    socialAudit.onShareDownloaded.bind(socialAudit),
-    'SocialAudit.onShareDownloaded',
+    shareAudit.onShareDownloaded.bind(shareAudit),
+    'ShareAudit.onShareDownloaded',
   );
 
   const versionAudit = new VersionAuditHandler(auditPort, logger);
@@ -1220,7 +1176,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     resumeVersions,
     resumeAnalytics,
     jobs,
-    social,
     automation,
     collaboration,
     publicResumes,
@@ -1344,13 +1299,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     { bundle: resumeAnalytics.sseBundle, routes: [] as never },
     { prefix: '/api', pipeline, i18n: i18n.translation },
   );
-  if (social.sseBundle) {
-    mountRoutes(
-      app,
-      { bundle: social.sseBundle, routes: social.sseRoutes },
-      { prefix: '/api', pipeline, i18n: i18n.translation },
-    );
-  }
 
   // Health endpoint to prove the server is up.
   // `/api/health[/live|/ready]` are mounted via the health BC's Route descriptors above.

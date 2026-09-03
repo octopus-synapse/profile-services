@@ -137,13 +137,13 @@ export class PrismaAdminAnalyticsRepository extends AdminAnalyticsRepositoryPort
   }
 
   async getSocialStats(): Promise<SocialStats> {
-    const [pendingInvitations, acceptedConnections, rejectedConnections, blockedUsers] =
-      await Promise.all([
-        this.prisma.connection.count({ where: { status: 'PENDING' } }),
-        this.prisma.connection.count({ where: { status: 'ACCEPTED' } }),
-        this.prisma.connection.count({ where: { status: 'REJECTED' } }),
-        this.prisma.blockedUser.count(),
-      ]);
+    // The social graph is gone; only chat blocks remain to count.
+    const [pendingInvitations, acceptedConnections, rejectedConnections, blockedUsers] = [
+      0,
+      0,
+      0,
+      await this.prisma.blockedUser.count(),
+    ];
     const totalDecided = acceptedConnections + rejectedConnections;
     const acceptanceRate =
       totalDecided > 0 ? Math.round((acceptedConnections / totalDecided) * 100) : 0;

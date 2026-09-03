@@ -700,101 +700,11 @@ async function main() {
 
   console.log(`[seed-bulk] ✓ ${resumeCount} resumes created`);
 
-  // 4. Create social graph (follows + connections)
-  console.log('[seed-bulk] Creating social graph...');
-  const powerUsers = userRecords.filter((u) => u.tier === 'power');
-  const _regularUsers = userRecords.filter((u) => u.tier === 'regular');
-  const _casualUsers = userRecords.filter((u) => u.tier === 'casual');
-
-  let followCount = 0;
-  for (const u of userRecords) {
-    // Target follow count based on tier
-    const followCount_ =
-      u.tier === 'power'
-        ? randomInt(30, 80)
-        : u.tier === 'regular'
-          ? randomInt(5, 25)
-          : randomInt(1, 8);
-
-    // Bias: follow same archetype more, power users more
-    const sameArchetype = userRecords.filter(
-      (o) => o.archetype.id === u.archetype.id && o.id !== u.id,
-    );
-    const followTargets: typeof userRecords = [];
-
-    // 40% same archetype, 30% power users, 30% random
-    const sameCount = Math.floor(followCount_ * 0.4);
-    followTargets.push(...pickMany(sameArchetype, sameCount));
-    const powerCount = Math.floor(followCount_ * 0.3);
-    followTargets.push(
-      ...pickMany(
-        powerUsers.filter((p) => p.id !== u.id && !followTargets.some((f) => f.id === p.id)),
-        powerCount,
-      ),
-    );
-    const otherCount = followCount_ - followTargets.length;
-    const others = userRecords.filter(
-      (o) => o.id !== u.id && !followTargets.some((f) => f.id === o.id),
-    );
-    followTargets.push(...pickMany(others, otherCount));
-
-    for (const target of followTargets) {
-      try {
-        await prisma.follow.create({
-          data: {
-            followerId: u.id,
-            followingId: target.id,
-            createdAt: weightedDate(120),
-          },
-        });
-        followCount++;
-      } catch {
-        // Duplicate — skip
-      }
-    }
-  }
-  console.log(`[seed-bulk] ✓ ${followCount} follows created`);
-
-  // Connections (accepted)
-  let connectionCount = 0;
-  for (const u of userRecords) {
-    const connCount =
-      u.tier === 'power'
-        ? randomInt(15, 40)
-        : u.tier === 'regular'
-          ? randomInt(5, 15)
-          : randomInt(0, 5);
-    const targets = pickMany(
-      userRecords.filter((o) => o.id !== u.id),
-      connCount,
-    );
-
-    for (const target of targets) {
-      try {
-        await prisma.connection.create({
-          data: {
-            requesterId: u.id,
-            targetId: target.id,
-            status: Math.random() > 0.2 ? 'ACCEPTED' : 'PENDING',
-            createdAt: weightedDate(90),
-            updatedAt: weightedDate(60),
-          },
-        });
-        connectionCount++;
-      } catch {
-        // Duplicate
-      }
-    }
-  }
-  console.log(`[seed-bulk] ✓ ${connectionCount} connections created`);
-
   console.log('\n[seed-bulk] ✅ DONE');
   console.log(
     `   Users: ${userRecords.length} (${POWER_USERS} power, ${REGULAR_USERS} regular, ${CASUAL_USERS} casual)`,
   );
   console.log(`   Resumes: ${resumeCount}`);
-  console.log(`   Follows: ${followCount}`);
-  console.log(`   Connections: ${connectionCount}`);
 }
 
 // ==========================================

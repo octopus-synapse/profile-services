@@ -2,14 +2,12 @@
  * Pure-TS wiring for the test-runner BC. Zero `@nestjs/*` imports.
  *
  * The runner itself (`TestRunnerService`) is now a POJO that extends
- * `TestSuiteRunnerPort` and depends on Prisma + social services. The
+ * `TestSuiteRunnerPort` and depends on Prisma. The
  * Phase-1 contract returns `BoundedContextComposition<TestRunnerUseCases>`
  * for the bootstrap to consume.
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
-import type { FollowService } from '@/bounded-contexts/social/services/follow.service';
 import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { TestRunnerUseCases } from './application/ports/test-runner.port';
@@ -31,10 +29,8 @@ export function buildTestRunnerUseCases(runner: TestSuiteRunnerPort): TestRunner
 export function buildTestRunnerComposition(
   prisma: PrismaService,
   logger: LoggerPort,
-  connectionService: ConnectionService,
-  followService: FollowService,
 ): BoundedContextComposition<TestRunnerUseCases> {
-  const runner = new TestRunnerService(prisma, logger, connectionService, followService);
+  const runner = new TestRunnerService(prisma, logger);
   const useCases = buildTestRunnerUseCases(runner);
 
   return {

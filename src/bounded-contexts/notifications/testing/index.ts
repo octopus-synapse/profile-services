@@ -290,8 +290,6 @@ export class InMemoryWeeklyDigestStats extends WeeklyDigestStatsPort {
     return (
       this.statsByUser.get(userId) ?? {
         resumeViews: 0,
-        newFollowers: 0,
-        newEndorsements: 0,
         profileViews: 0,
       }
     );

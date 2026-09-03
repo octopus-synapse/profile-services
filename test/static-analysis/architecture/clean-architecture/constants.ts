@@ -105,7 +105,6 @@ export const BOUNDED_CONTEXTS = [
   'export',
   'import',
   'collaboration',
-  'social',
   'analytics',
   'platform',
   'dsl',

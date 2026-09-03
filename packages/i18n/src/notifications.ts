@@ -23,50 +23,6 @@ export interface NotificationTemplate {
 export type NotificationDictionary = Readonly<Record<string, NotificationTemplate>>;
 
 export const NOTIFICATION_DICTIONARY = {
-  CONNECTION_REQUEST: {
-    title: {
-      en: '{actorName} wants to connect',
-      'pt-BR': '{actorName} quer se conectar',
-    },
-    body: {
-      en: '{actorName} sent you a connection request',
-      'pt-BR': '{actorName} enviou um pedido de conexão',
-    },
-    params: ['actorName'],
-  },
-  CONNECTION_ACCEPTED: {
-    title: {
-      en: '{actorName} accepted your connection',
-      'pt-BR': '{actorName} aceitou sua conexão',
-    },
-    body: {
-      en: 'You are now connected with {actorName}',
-      'pt-BR': 'Você agora está conectado com {actorName}',
-    },
-    params: ['actorName'],
-  },
-  FOLLOW_NEW: {
-    title: {
-      en: '{actorName} started following you',
-      'pt-BR': '{actorName} começou a te seguir',
-    },
-    body: {
-      en: '{actorName} is now following you',
-      'pt-BR': '{actorName} agora te segue',
-    },
-    params: ['actorName'],
-  },
-  SKILL_DECAY: {
-    title: {
-      en: '"{skillName}" is getting rusty',
-      'pt-BR': '"{skillName}" está enferrujando',
-    },
-    body: {
-      en: 'You have not touched "{skillName}" in {daysIdle} days. Time to dust it off?',
-      'pt-BR': 'Você não mexe em "{skillName}" há {daysIdle} dias. Hora de revisitar?',
-    },
-    params: ['skillName', 'daysIdle'],
-  },
   APPLICATION_STALE: {
     title: {
       en: 'Your application at {companyName} is stale',
@@ -77,17 +33,6 @@ export const NOTIFICATION_DICTIONARY = {
       'pt-BR': 'Sem retorno de {companyName} há {daysSince} dias em "{jobTitle}". Dar um toque?',
     },
     params: ['companyName', 'daysSince', 'jobTitle'],
-  },
-  CONNECTION_RECOMMENDATION: {
-    title: {
-      en: 'You might know {candidateName}',
-      'pt-BR': 'Talvez você conheça {candidateName}',
-    },
-    body: {
-      en: '{candidateName} shares {sharedSkillsCount} skills with you',
-      'pt-BR': '{candidateName} compartilha {sharedSkillsCount} habilidades com você',
-    },
-    params: ['candidateName', 'sharedSkillsCount'],
   },
   FIT_PROFILE_EXPIRED: {
     title: {

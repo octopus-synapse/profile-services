@@ -13,12 +13,7 @@ import type {
 import { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
 
 const ALL_TYPES: readonly NotificationType[] = [
-  'CONNECTION_REQUEST',
-  'CONNECTION_ACCEPTED',
-  'FOLLOW_NEW',
-  'SKILL_DECAY',
   'APPLICATION_STALE',
-  'CONNECTION_RECOMMENDATION',
   'FIT_PROFILE_EXPIRED',
   'FIT_PROFILE_EXPIRY_REMINDER',
   'MATCH_RECOMMENDATIONS_READY',

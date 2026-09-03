@@ -106,14 +106,6 @@ export const ERROR_DICTIONARY = {
     en: 'This user is already blocked',
     'pt-BR': 'Este usuário já está bloqueado',
   },
-  ALREADY_CONNECTED: {
-    en: 'Already connected with this user',
-    'pt-BR': 'Você já está conectado com este usuário',
-  },
-  ALREADY_FOLLOWING: {
-    en: 'Already following this user',
-    'pt-BR': 'Você já segue este usuário',
-  },
   ANALYTICS_CONSENT_REQUIRED: {
     en: 'User has not granted analytics consent',
     'pt-BR': 'O usuário não autorizou a coleta de analytics',
@@ -202,10 +194,6 @@ export const ERROR_DICTIONARY = {
     en: 'You cannot block yourself',
     'pt-BR': 'Você não pode bloquear a si mesmo',
   },
-  CANNOT_CONNECT_WITH_SELF: {
-    en: 'Cannot connect with yourself',
-    'pt-BR': 'Você não pode se conectar consigo mesmo',
-  },
   CANNOT_DELETE_ANOTHER_USERS_COMMENT: {
     en: 'Cannot delete another user comment',
     'pt-BR': 'Você não pode apagar o comentário de outro usuário',
@@ -213,10 +201,6 @@ export const ERROR_DICTIONARY = {
   CANNOT_DELETE_OWN_ACCOUNT_AS_ADMIN: {
     en: 'Cannot delete your own account through the admin interface',
     'pt-BR': 'Você não pode apagar a sua própria conta pela interface de admin',
-  },
-  CANNOT_FOLLOW_SELF: {
-    en: 'Cannot follow yourself',
-    'pt-BR': 'Você não pode seguir a si mesmo',
   },
   CANNOT_INVITE_SELF_AS_COLLABORATOR: {
     en: 'Cannot add yourself as a collaborator',
@@ -253,22 +237,6 @@ export const ERROR_DICTIONARY = {
   CONFLICT: {
     en: 'Conflict',
     'pt-BR': 'Conflito',
-  },
-  CONNECTION_NOT_ACCEPTED: {
-    en: 'Connection is not accepted',
-    'pt-BR': 'A conexão não foi aceita',
-  },
-  CONNECTION_NOT_PENDING: {
-    en: 'Connection request is not pending',
-    'pt-BR': 'O pedido de conexão não está pendente',
-  },
-  CONNECTION_REQUEST_EXISTS: {
-    en: 'Connection request already exists',
-    'pt-BR': 'Já existe um pedido de conexão',
-  },
-  CONNECTION_REQUEST_PENDING: {
-    en: 'Connection request already pending',
-    'pt-BR': 'Já existe um pedido de conexão pendente',
   },
   CONSENT_REQUIRED: {
     en: 'Consent is required for this action',
@@ -691,14 +659,6 @@ export const ERROR_DICTIONARY = {
     en: 'Not a collaborator on this resume',
     'pt-BR': 'Você não é colaborador deste currículo',
   },
-  NOT_CONNECTION_REQUESTER: {
-    en: 'Only the requester can withdraw a sent request',
-    'pt-BR': 'Apenas quem enviou o pedido pode cancelá-lo',
-  },
-  NOT_CONNECTION_TARGET: {
-    en: 'You are not the target of this connection',
-    'pt-BR': 'Você não é o destinatário desta conexão',
-  },
   NOT_CONVERSATION_PARTICIPANT: {
     en: 'Not a participant of this conversation',
     'pt-BR': 'Você não participa desta conversa',
@@ -706,10 +666,6 @@ export const ERROR_DICTIONARY = {
   NOT_JOB_OWNER: {
     en: 'Only the job owner can perform this action',
     'pt-BR': 'Apenas o dono da vaga pode realizar esta ação',
-  },
-  NOT_PART_OF_CONNECTION: {
-    en: 'You are not part of this connection',
-    'pt-BR': 'Você não faz parte desta conexão',
   },
   NOTIFICATION_DELIVERY_FAILED: {
     en: 'Notification delivery failed',

@@ -112,36 +112,6 @@ export const notificationsRoutes: ReadonlyArray<Route<NotificationsUseCases>> = 
         category: 'social' | 'jobs' | 'scoring' | 'system';
       }> = [
         {
-          key: 'CONNECTION_REQUEST',
-          label: 'Solicitações de conexão',
-          description: 'Quando alguém pede para se conectar',
-          category: 'social',
-        },
-        {
-          key: 'CONNECTION_ACCEPTED',
-          label: 'Conexões aceitas',
-          description: 'Quando aceitam sua solicitação',
-          category: 'social',
-        },
-        {
-          key: 'FOLLOW_NEW',
-          label: 'Novos seguidores',
-          description: 'Quando alguém começa a te seguir',
-          category: 'social',
-        },
-        {
-          key: 'CONNECTION_RECOMMENDATION',
-          label: 'Recomendações de conexão',
-          description: 'Sugestões com base nas suas habilidades',
-          category: 'social',
-        },
-        {
-          key: 'SKILL_DECAY',
-          label: 'Habilidade ociosa',
-          description: 'Habilidade do seu currículo sem atividade há 120+ dias',
-          category: 'scoring',
-        },
-        {
           key: 'APPLICATION_STALE',
           label: 'Aplicação parada',
           description: 'Aplicações sem atualização por 7/14/21 dias',

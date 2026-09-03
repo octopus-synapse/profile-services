@@ -19,8 +19,6 @@ describe('LoadMeDashboardUseCase', () => {
         resumes: 3,
         applications: 7,
         unreadNotifications: 2,
-        followers: 11,
-        following: 9,
       },
       recentNotifications: [
         {

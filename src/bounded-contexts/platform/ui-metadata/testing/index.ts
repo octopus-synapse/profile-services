@@ -16,8 +16,6 @@ const EMPTY_PAYLOAD = (userId: string): MeDashboardPayload => ({
     resumes: 0,
     applications: 0,
     unreadNotifications: 0,
-    followers: 0,
-    following: 0,
   },
   recentNotifications: [],
   pendingFollowUps: 0,

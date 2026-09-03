@@ -93,19 +93,6 @@ enum ConsentDocumentType {
   MARKETING_CONSENT
 }
 
-enum ActivityType {
-  RESUME_CREATED
-  RESUME_UPDATED
-  RESUME_SHARED
-  RESUME_PUBLISHED
-  THEME_PUBLISHED
-  ACHIEVEMENT_EARNED
-  SKILL_ADDED
-  PROFILE_UPDATED
-  FOLLOWED_USER
-  CONNECTED_USER
-}
-
 enum AttestationWitnessStatus {
   PENDING
   RUNNING
@@ -115,12 +102,7 @@ enum AttestationWitnessStatus {
 
 // Notifications
 enum NotificationType {
-  CONNECTION_REQUEST
-  CONNECTION_ACCEPTED
-  FOLLOW_NEW
-  SKILL_DECAY // A tracked skill has been idle for 120+ days.
   APPLICATION_STALE // Application tracker: no update for 7/14/21 days.
-  CONNECTION_RECOMMENDATION // Suggested connection based on skill overlap.
   // Scoring subsystem
   FIT_PROFILE_EXPIRED // UserFitProfile.expiresAt has passed; questionnaire required.
   FIT_PROFILE_EXPIRY_REMINDER // 7/3/1-day anticipatory reminder before expiry.

@@ -30,11 +30,6 @@ export abstract class NotificationsSseBundle {
 // Mirrors `NotificationType` from the Prisma enum — keep in sync with
 // `src/bounded-contexts/notifications/domain/entities/notification.ts`.
 export const NOTIFICATION_TYPES = [
-  'CONNECTION_REQUEST',
-  'CONNECTION_ACCEPTED',
-  'FOLLOW_NEW',
-  'CONNECTION_RECOMMENDATION',
-  'SKILL_DECAY',
   'APPLICATION_STALE',
   'FIT_PROFILE_EXPIRED',
   'FIT_PROFILE_EXPIRY_REMINDER',

@@ -29,8 +29,6 @@ export class PrismaMeDashboardRepository extends MeDashboardRepositoryPort {
       resumesCount,
       applicationsCount,
       unreadCount,
-      followersCount,
-      followingCount,
       recentNotifications,
       pendingFollowUps,
     ] = await Promise.all([
@@ -43,8 +41,6 @@ export class PrismaMeDashboardRepository extends MeDashboardRepositoryPort {
         where: { userId, status: { not: 'WITHDRAWN' } },
       }),
       this.prisma.notification.count({ where: { userId, read: false } }),
-      this.prisma.follow.count({ where: { followingId: userId } }),
-      this.prisma.follow.count({ where: { followerId: userId } }),
       this.prisma.notification.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -74,8 +70,6 @@ export class PrismaMeDashboardRepository extends MeDashboardRepositoryPort {
         resumes: resumesCount,
         applications: applicationsCount,
         unreadNotifications: unreadCount,
-        followers: followersCount,
-        following: followingCount,
       },
       recentNotifications,
       pendingFollowUps,

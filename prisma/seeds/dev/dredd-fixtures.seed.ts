@@ -13,7 +13,6 @@
 
 import {
   CollaboratorRole,
-  ConnectionStatus,
   FitDimension,
   ImportSource,
   ImportStatus,
@@ -712,18 +711,6 @@ export async function seedDreddFixtures(
       createdBy: EXAMPLE_USER_ID,
     },
     update: {},
-  });
-
-  // ── Connection (for /connections/{id}/accept|reject|withdraw|delete) ─
-  await prisma.connection.upsert({
-    where: { requesterId_targetId: { requesterId: EXAMPLE_GENERIC_ID, targetId: EXAMPLE_USER_ID } },
-    create: {
-      id: EXAMPLE_GENERIC_ID,
-      requesterId: EXAMPLE_GENERIC_ID,
-      targetId: EXAMPLE_USER_ID,
-      status: ConnectionStatus.PENDING,
-    },
-    update: { status: ConnectionStatus.PENDING },
   });
 
   // ── SuccessStory (for /success-stories/{id} PATCH/DELETE) ─────────

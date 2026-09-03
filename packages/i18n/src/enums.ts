@@ -17,18 +17,6 @@ import type { LocalizedMessages } from './types';
 export type EnumDictionary = Readonly<Record<string, Readonly<Record<string, LocalizedMessages>>>>;
 
 export const ENUM_DICTIONARY = {
-  ActivityType: {
-    ACHIEVEMENT_EARNED: { en: 'Achievement earned', 'pt-BR': 'Conquista obtida' },
-    CONNECTED_USER: { en: 'Connected with user', 'pt-BR': 'Conectou-se com usuário' },
-    FOLLOWED_USER: { en: 'Followed user', 'pt-BR': 'Seguiu usuário' },
-    PROFILE_UPDATED: { en: 'Profile updated', 'pt-BR': 'Perfil atualizado' },
-    RESUME_CREATED: { en: 'Resume created', 'pt-BR': 'Currículo criado' },
-    RESUME_PUBLISHED: { en: 'Resume published', 'pt-BR': 'Currículo publicado' },
-    RESUME_SHARED: { en: 'Resume shared', 'pt-BR': 'Currículo compartilhado' },
-    RESUME_UPDATED: { en: 'Resume updated', 'pt-BR': 'Currículo atualizado' },
-    SKILL_ADDED: { en: 'Skill added', 'pt-BR': 'Habilidade adicionada' },
-    THEME_PUBLISHED: { en: 'Theme published', 'pt-BR': 'Tema publicado' },
-  },
   AnalyticsEvent: {
     DOWNLOAD: { en: 'Download', 'pt-BR': 'Download' },
     VIEW: { en: 'View', 'pt-BR': 'Visualização' },
@@ -124,11 +112,6 @@ export const ENUM_DICTIONARY = {
     ADMIN: { en: 'Admin', 'pt-BR': 'Administrador' },
     EDITOR: { en: 'Editor', 'pt-BR': 'Editor' },
     VIEWER: { en: 'Viewer', 'pt-BR': 'Visualizador' },
-  },
-  ConnectionStatus: {
-    ACCEPTED: { en: 'Accepted', 'pt-BR': 'Aceita' },
-    PENDING: { en: 'Pending', 'pt-BR': 'Pendente' },
-    REJECTED: { en: 'Rejected', 'pt-BR': 'Recusada' },
   },
   ConsentDocumentType: {
     MARKETING_CONSENT: { en: 'Marketing consent', 'pt-BR': 'Consentimento de marketing' },
@@ -258,18 +241,11 @@ export const ENUM_DICTIONARY = {
   },
   NotificationType: {
     APPLICATION_STALE: { en: 'Application stale', 'pt-BR': 'Candidatura parada' },
-    CONNECTION_ACCEPTED: { en: 'Connection accepted', 'pt-BR': 'Conexão aceita' },
-    CONNECTION_RECOMMENDATION: {
-      en: 'Connection recommendation',
-      'pt-BR': 'Recomendação de conexão',
-    },
-    CONNECTION_REQUEST: { en: 'Connection request', 'pt-BR': 'Pedido de conexão' },
     FIT_PROFILE_EXPIRED: { en: 'Fit profile expired', 'pt-BR': 'Perfil de fit expirou' },
     FIT_PROFILE_EXPIRY_REMINDER: {
       en: 'Fit profile expires soon',
       'pt-BR': 'Perfil de fit expira em breve',
     },
-    FOLLOW_NEW: { en: 'New follower', 'pt-BR': 'Novo seguidor' },
     MATCH_RECOMMENDATIONS_READY: {
       en: 'New job recommendations ready',
       'pt-BR': 'Novas recomendações de vagas',
@@ -283,7 +259,6 @@ export const ENUM_DICTIONARY = {
       en: 'Resume quality dropped',
       'pt-BR': 'Qualidade do currículo caiu',
     },
-    SKILL_DECAY: { en: 'Skill getting rusty', 'pt-BR': 'Habilidade enferrujando' },
   },
   MessagePrivacy: {
     EVERYONE: { en: 'Everyone', 'pt-BR': 'Todos' },

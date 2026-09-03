@@ -37,8 +37,6 @@ describe('SendWeeklyDigestsUseCase', () => {
     log.setRecipient({ id: 'u-1', name: 'Enzo', email: 'enzo@example.com' });
     stats.statsByUser.set('u-1', {
       resumeViews: 3,
-      newFollowers: 0,
-      newEndorsements: 0,
       profileViews: 0,
     });
 
@@ -71,8 +69,6 @@ describe('SendWeeklyDigestsUseCase', () => {
     log.setRecipient({ id: 'u-1', name: 'Enzo', email: 'enzo@example.com' });
     stats.statsByUser.set('u-1', {
       resumeViews: 5,
-      newFollowers: 0,
-      newEndorsements: 0,
       profileViews: 0,
     });
 

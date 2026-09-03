@@ -112,8 +112,6 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
                   label: 'Notificações',
                   value: data.counts.unreadNotifications,
                 },
-                { key: 'followers', label: 'Seguidores', value: data.counts.followers },
-                { key: 'following', label: 'Seguindo', value: data.counts.following },
               ],
             },
           },

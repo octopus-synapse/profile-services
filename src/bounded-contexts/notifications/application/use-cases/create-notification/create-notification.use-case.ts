@@ -45,12 +45,7 @@ const CTX = 'CreateNotificationUseCase';
  * of failing with a Prisma constraint error deeper down.
  */
 const KNOWN_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
-  'CONNECTION_REQUEST',
-  'CONNECTION_ACCEPTED',
-  'FOLLOW_NEW',
-  'SKILL_DECAY',
   'APPLICATION_STALE',
-  'CONNECTION_RECOMMENDATION',
   'FIT_PROFILE_EXPIRED',
   'FIT_PROFILE_EXPIRY_REMINDER',
   'MATCH_RECOMMENDATIONS_READY',

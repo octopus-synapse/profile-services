@@ -106,8 +106,6 @@ export interface DailyDigestPreference {
  *  and consumed by `BuildWeeklyDigestService`. */
 export interface WeeklyDigestStats {
   readonly resumeViews: number;
-  readonly newFollowers: number;
-  readonly newEndorsements: number;
   readonly profileViews: number;
 }
 
