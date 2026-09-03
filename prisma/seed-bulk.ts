@@ -688,13 +688,6 @@ async function main() {
       }
     }
 
-    // Analytics row (model now just tracks existence; per-score data
-    // moved to ResumeAtsResult). Create a bare row so downstream
-    // queries that fan out from resume → analytics don't 404.
-    await prisma.resumeAnalytics.create({
-      data: { resumeId: resume.id },
-    });
-
     resumeCount++;
   }
 

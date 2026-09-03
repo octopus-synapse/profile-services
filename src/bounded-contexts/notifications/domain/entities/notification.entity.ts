@@ -102,13 +102,6 @@ export interface DailyDigestPreference {
   readonly type: NotificationType;
 }
 
-/** Aggregated weekly stats for a user — produced by the repository
- *  and consumed by `BuildWeeklyDigestService`. */
-export interface WeeklyDigestStats {
-  readonly resumeViews: number;
-  readonly profileViews: number;
-}
-
 /** Reminder window for the fit-profile expiry cron. */
 export type FitProfileReminderDaysLeft = 7 | 3 | 1;
 

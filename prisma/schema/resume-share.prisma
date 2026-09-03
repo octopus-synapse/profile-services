@@ -13,7 +13,6 @@ model ResumeShare {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  analytics ShareAnalytics[]
   aliases   ResumeShareAlias[]
 
   @@index([resumeId])

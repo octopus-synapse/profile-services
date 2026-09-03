@@ -33,9 +33,6 @@ async function main() {
   await prisma.notification.deleteMany({
     where: { OR: [{ userId: { in: userIds } }, { actorId: { in: userIds } }] },
   });
-  await prisma.resumeAnalytics.deleteMany({
-    where: { resume: { userId: { in: userIds } } },
-  });
   await prisma.sectionItem.deleteMany({
     where: { resumeSection: { resume: { userId: { in: userIds } } } },
   });

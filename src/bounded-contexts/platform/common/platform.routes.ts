@@ -120,7 +120,6 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
       return {
         totalUsers: stats.users.total,
         totalResumes: stats.resumes.total,
-        totalViews: 0,
         activeUsersToday: stats.users.recentSignups,
         activeUsersWeek: stats.users.recentSignups,
         updatedAt: new Date().toISOString(),

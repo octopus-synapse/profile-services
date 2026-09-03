@@ -9,7 +9,6 @@ export interface AdminDashboardMetrics {
   readonly totalResumes: number;
   readonly activeUsers7d: number;
   readonly activeUsers30d: number;
-  readonly totalViews: number;
   readonly signupsThisWeek: number;
   readonly signupsThisMonth: number;
   readonly resumesThisWeek: number;
@@ -27,7 +26,6 @@ export interface AdminDashboardCounts {
   readonly totalResumes: number;
   readonly activeUsers7d: number;
   readonly activeUsers30d: number;
-  readonly totalViews: number;
   readonly signupsThisWeek: number;
   readonly signupsThisMonth: number;
   readonly resumesThisWeek: number;

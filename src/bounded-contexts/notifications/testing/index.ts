@@ -18,7 +18,6 @@ import type {
   NotificationType,
   NotificationView,
   PendingDigestNotification,
-  WeeklyDigestStats,
 } from '../domain/entities/notification.entity';
 import { FitProfileExpiryReadPort } from '../domain/ports/fit-profile-expiry.port';
 import {
@@ -37,8 +36,6 @@ import {
   type ResumeQualitySnapshot,
   ResumeQualitySnapshotPort,
 } from '../domain/ports/resume-quality-snapshot.port';
-import { WeeklyDigestLogPort } from '../domain/ports/weekly-digest-log.port';
-import { WeeklyDigestStatsPort } from '../domain/ports/weekly-digest-stats.port';
 
 let counter = 0;
 const nextId = (prefix: string) => `${prefix}-${++counter}`;
@@ -280,51 +277,6 @@ export class InMemoryNotificationEmail extends NotificationEmailPort {
   async send(message: NotificationEmailMessage): Promise<void> {
     if (this.shouldThrow) throw this.shouldThrow;
     this.sent.push(message);
-  }
-}
-
-export class InMemoryWeeklyDigestStats extends WeeklyDigestStatsPort {
-  readonly statsByUser = new Map<string, WeeklyDigestStats>();
-
-  async collect(userId: string, _since: Date): Promise<WeeklyDigestStats> {
-    return (
-      this.statsByUser.get(userId) ?? {
-        resumeViews: 0,
-        profileViews: 0,
-      }
-    );
-  }
-}
-
-export class InMemoryWeeklyDigestLog extends WeeklyDigestLogPort {
-  readonly sent = new Set<string>();
-  readonly recipients = new Map<string, { id: string; name: string | null; email: string }>();
-
-  setRecipient(row: { id: string; name: string | null; email: string }): void {
-    this.recipients.set(row.id, row);
-  }
-
-  private key(userId: string, weekKey: string): string {
-    return `${userId}:${weekKey}`;
-  }
-
-  async wasSentThisWeek(userId: string, weekKey: string): Promise<boolean> {
-    return this.sent.has(this.key(userId, weekKey));
-  }
-
-  async recordSent(userId: string, weekKey: string): Promise<void> {
-    this.sent.add(this.key(userId, weekKey));
-  }
-
-  async listEligibleRecipients(
-    userIds: readonly string[],
-  ): Promise<Array<{ id: string; name: string | null; email: string }>> {
-    const out: Array<{ id: string; name: string | null; email: string }> = [];
-    for (const id of userIds) {
-      const row = this.recipients.get(id);
-      if (row) out.push(row);
-    }
-    return out;
   }
 }
 

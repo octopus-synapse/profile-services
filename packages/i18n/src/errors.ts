@@ -82,10 +82,6 @@ export const ERROR_DICTIONARY = {
     en: 'Account is temporarily locked. Try again in a few minutes.',
     'pt-BR': 'A conta está temporariamente bloqueada. Tente novamente em alguns minutos.',
   },
-  AGGREGATION_BACKEND_UNAVAILABLE: {
-    en: 'Analytics backend is temporarily unavailable',
-    'pt-BR': 'O backend de analytics está temporariamente indisponível',
-  },
   AI_EMPTY_INPUT: {
     en: 'AI input is empty',
     'pt-BR': 'A entrada enviada para a IA está vazia',
@@ -245,10 +241,6 @@ export const ERROR_DICTIONARY = {
   CURATED_SELECTOR_ALL_SCORING_FAILED: {
     en: 'All scoring strategies failed for the curated selector',
     'pt-BR': 'Todas as estratégias de scoring falharam para o seletor curado',
-  },
-  DATE_RANGE_TOO_LARGE: {
-    en: 'Date range is too large',
-    'pt-BR': 'Intervalo de datas muito grande',
   },
   DELETION_REQUIRES_CONFIRMATION: {
     en: 'Account deletion requires explicit confirmation',
@@ -485,10 +477,6 @@ export const ERROR_DICTIONARY = {
   CONNECTED_ACCOUNT_NOT_FOUND: {
     en: 'No connected account found for this provider',
     'pt-BR': 'Nenhuma conta conectada encontrada para este provedor',
-  },
-  INVALID_DATE_RANGE: {
-    en: 'End date must be after start date',
-    'pt-BR': 'A data final precisa ser posterior à data inicial',
   },
   INVALID_EMPLOYMENT_TYPE_FOR_INTERN_ROLE: {
     en: 'Internship roles must use the Internship employment type, not "{employmentType}"',
@@ -947,10 +935,6 @@ export const ERROR_DICTIONARY = {
   SHARE_ALIAS_NOT_FOUND: {
     en: 'Alias not found',
     'pt-BR': 'Alias não encontrado',
-  },
-  SHARE_ANALYTICS_NOT_AUTHORIZED: {
-    en: 'Not authorized to view share analytics',
-    'pt-BR': 'Sem autorização para ver analytics de compartilhamento',
   },
   SHARE_NOT_FOUND: {
     en: 'Share not found',

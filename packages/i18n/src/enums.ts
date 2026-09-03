@@ -17,10 +17,6 @@ import type { LocalizedMessages } from './types';
 export type EnumDictionary = Readonly<Record<string, Readonly<Record<string, LocalizedMessages>>>>;
 
 export const ENUM_DICTIONARY = {
-  AnalyticsEvent: {
-    DOWNLOAD: { en: 'Download', 'pt-BR': 'Download' },
-    VIEW: { en: 'View', 'pt-BR': 'Visualização' },
-  },
   ApplyMode: {
     AUTO_APPLY: { en: 'Auto-apply', 'pt-BR': 'Candidatura automática' },
     ONE_CLICK: { en: 'One-click', 'pt-BR': 'Um clique' },

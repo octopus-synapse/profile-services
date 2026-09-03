@@ -1,4 +1,3 @@
-export * as analytics from './analytics';
 export * as collaboration from './collaboration';
 export * as exportContext from './export';
 export * as identity from './identity';

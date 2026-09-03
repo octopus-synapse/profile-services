@@ -16,7 +16,6 @@ import type { NotifyResumeQualityRankChangeUseCase } from '../use-cases/notify-r
 import type { RegisterPushDeviceUseCase } from '../use-cases/register-push-device/register-push-device.use-case';
 import type { SendDailyDigestsUseCase } from '../use-cases/send-daily-digests/send-daily-digests.use-case';
 import type { SendExpiryReminderUseCase } from '../use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
-import type { SendWeeklyDigestsUseCase } from '../use-cases/send-weekly-digests/send-weekly-digests.use-case';
 import type { SetPreferenceUseCase } from '../use-cases/set-preference/set-preference.use-case';
 import type { UnregisterPushDeviceUseCase } from '../use-cases/unregister-push-device/unregister-push-device.use-case';
 
@@ -31,7 +30,6 @@ export abstract class NotificationsUseCases {
   abstract readonly unregisterPushDevice: UnregisterPushDeviceUseCase;
   abstract readonly deleteOldNotifications: DeleteOldNotificationsUseCase;
   abstract readonly sendDailyDigests: SendDailyDigestsUseCase;
-  abstract readonly sendWeeklyDigests: SendWeeklyDigestsUseCase;
   abstract readonly notifyFitProfileExpired: NotifyFitProfileExpiredUseCase;
   abstract readonly notifyResumeQualityRankChange: NotifyResumeQualityRankChangeUseCase;
   abstract readonly enqueueExpiryReminders: EnqueueExpiryRemindersUseCase;

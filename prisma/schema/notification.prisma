@@ -77,21 +77,6 @@ enum EmailDeliveryMode {
   OFF
 }
 
-// One row per user per ISO-week that received the weekly digest.
-// Guarantees the cron job is idempotent: a retry after a partial failure
-// cannot double-send.
-model UserWeeklyDigestLog {
-  id      String   @id @default(dbgenerated("uuidv7()"))
-  userId  String
-  weekKey String // YYYY-Www format (ISO-8601 week)
-  sentAt  DateTime @default(now())
-
-  @@unique([userId, weekKey])
-  @@index([weekKey])
-  @@index([userId])
-  @@map("user_weekly_digest_logs")
-}
-
 // One row per (user, reminder-window, day) for the fit-profile expiry
 // reminder fanout — DB-level idempotency (Wave 1.3 P1 #29). The Redis
 // flag in `ReminderStatePort` is fast-path dedup; this table is the

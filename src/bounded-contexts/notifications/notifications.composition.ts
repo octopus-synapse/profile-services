@@ -17,7 +17,7 @@
  * Background jobs:
  *  - `fit-profile-expiry-reminder` BullMQ-shaped queue: surfaced as a
  *    `BcWorkerBinding` (composition `workers`).
- *  - The daily fan-out tick + the daily/weekly digest crons live in a
+ *  - The daily fan-out tick + the daily digest cron live in a
  *    `lifecycle.init()` so we don't re-run them on hot-reload.
  */
 
@@ -50,7 +50,6 @@ import { NotifyResumeQualityRankChangeUseCase } from './application/use-cases/no
 import { RegisterPushDeviceUseCase } from './application/use-cases/register-push-device/register-push-device.use-case';
 import { SendDailyDigestsUseCase } from './application/use-cases/send-daily-digests/send-daily-digests.use-case';
 import { SendExpiryReminderUseCase } from './application/use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
-import { SendWeeklyDigestsUseCase } from './application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
 import { SetPreferenceUseCase } from './application/use-cases/set-preference/set-preference.use-case';
 import { UnregisterPushDeviceUseCase } from './application/use-cases/unregister-push-device/unregister-push-device.use-case';
 import type { NotificationStreamEvent } from './domain/entities/notification.entity';
@@ -63,8 +62,6 @@ import { PrismaFitProfileExpiryAdapter } from './infrastructure/adapters/persist
 import { PrismaNotificationsRepository } from './infrastructure/adapters/persistence/prisma-notifications.repository';
 import { PrismaPushDeviceRepository } from './infrastructure/adapters/persistence/prisma-push-device.repository';
 import { PrismaResumeQualitySnapshotAdapter } from './infrastructure/adapters/persistence/prisma-resume-quality-snapshot.adapter';
-import { PrismaWeeklyDigestLogAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-log.adapter';
-import { PrismaWeeklyDigestStatsAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-stats.adapter';
 import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
 import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
 import {
@@ -73,7 +70,6 @@ import {
   FitProfileExpiryReminderWorker,
 } from './infrastructure/workers/fit-profile-expiry-reminder.worker';
 import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
-import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worker';
 import {
   NotificationsSseBundle,
   notificationsRoutes,
@@ -116,8 +112,6 @@ export function buildNotificationsUseCases(
 
   const repository = new PrismaNotificationsRepository(prisma);
   const pushDeviceRepository = new PrismaPushDeviceRepository(prisma, logger);
-  const stats = new PrismaWeeklyDigestStatsAdapter(prisma);
-  const digestLog = new PrismaWeeklyDigestLogAdapter(prisma);
   const fitProfileExpiry = new PrismaFitProfileExpiryAdapter(prisma);
   const resumeQualitySnapshot = new PrismaResumeQualitySnapshotAdapter(prisma);
   const emailAdapter = new PlatformEmailAdapter(email);
@@ -144,13 +138,6 @@ export function buildNotificationsUseCases(
     unregisterPushDevice: new UnregisterPushDeviceUseCase(pushDeviceRepository),
     deleteOldNotifications: new DeleteOldNotificationsUseCase(repository),
     sendDailyDigests: new SendDailyDigestsUseCase(repository, emailAdapter, logger),
-    sendWeeklyDigests: new SendWeeklyDigestsUseCase(
-      repository,
-      stats,
-      digestLog,
-      emailAdapter,
-      logger,
-    ),
     notifyFitProfileExpired: new NotifyFitProfileExpiredUseCase(createNotification, logger),
     notifyResumeQualityRankChange: new NotifyResumeQualityRankChangeUseCase(
       resumeQualitySnapshot,
@@ -232,13 +219,11 @@ export function buildNotificationsComposition(
 
   // --- Cron + repeat-job lifecycle (digests + fan-out tick) ---
   const dailyDigest = new NotificationDigestWorker(useCases, logger, lock);
-  const weeklyDigest = new WeeklyDigestWorker(useCases, logger, lock);
 
   const lifecycles: ReadonlyArray<Lifecycle> = [
     {
       init: async (): Promise<void> => {
         cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
-        cron.register({ pattern: '0 13 * * 1' }, weeklyDigest.run.bind(weeklyDigest));
         // Daily 09:00 America/Sao_Paulo fan-out tick — through the queue's
         // repeat semantics so multiple instances booting don't double-tick.
         await queue.schedule<FitProfileExpiryReminderJobData>(

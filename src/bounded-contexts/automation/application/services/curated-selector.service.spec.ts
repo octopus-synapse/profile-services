@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test';
-import type { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { CuratedSelectorAllScoringFailedException } from '../../domain/exceptions/automation.exceptions';
 import {
@@ -8,6 +7,7 @@ import {
   CuratedSelectorRepositoryPort,
   CuratedSelectorUserView,
 } from '../../domain/ports/curated-selector.repository.port';
+import { ResumeJobMatcherPort } from '../../domain/ports/resume-job-matcher.port';
 import { CuratedSelectorService } from './curated-selector.service';
 
 class InMemoryCuratedSelectorRepository extends CuratedSelectorRepositoryPort {
@@ -25,16 +25,16 @@ class InMemoryCuratedSelectorRepository extends CuratedSelectorRepositoryPort {
   }
 }
 
-function buildAnalyticsMock(
+function buildMatcherMock(
   scoreFor: (jobText: string) => number | Promise<number> | Error,
-): ResumeAnalyticsFacade {
+): ResumeJobMatcherPort {
   return {
     matchJobDescription: async (_resumeId: string, _userId: string, jobText: string) => {
       const result = await scoreFor(jobText);
       if (result instanceof Error) throw result;
       return { matchScore: result };
     },
-  } as unknown as ResumeAnalyticsFacade;
+  };
 }
 
 function jobView(id: string, title: string): CuratedSelectorJobView {
@@ -47,7 +47,7 @@ describe('CuratedSelectorService', () => {
       { primaryResumeId: null, applyCriteria: null },
       [],
     );
-    const analytics = buildAnalyticsMock(() => 0);
+    const analytics = buildMatcherMock(() => 0);
     const service = new CuratedSelectorService(repo, analytics, stubLogger);
 
     const picks = await service.selectForUser({
@@ -62,7 +62,7 @@ describe('CuratedSelectorService', () => {
       { primaryResumeId: 'r-1', applyCriteria: null },
       [jobView('j-low', 'low'), jobView('j-mid', 'mid'), jobView('j-hi', 'hi')],
     );
-    const analytics = buildAnalyticsMock((text) => {
+    const analytics = buildMatcherMock((text) => {
       if (text.startsWith('low')) return 50;
       if (text.startsWith('mid')) return 82;
       return 95;
@@ -83,7 +83,7 @@ describe('CuratedSelectorService', () => {
       { primaryResumeId: 'r-1', applyCriteria: null },
       [jobView('a', 'a'), jobView('b', 'b'), jobView('c', 'c')],
     );
-    const analytics = buildAnalyticsMock(() => 90);
+    const analytics = buildMatcherMock(() => 90);
     const service = new CuratedSelectorService(repo, analytics, stubLogger);
 
     const picks = await service.selectForUser({
@@ -99,7 +99,7 @@ describe('CuratedSelectorService', () => {
       { primaryResumeId: 'r-1', applyCriteria: null },
       [jobView('a', 'a'), jobView('b', 'b')],
     );
-    const analytics = buildAnalyticsMock(() => new Error('downstream down'));
+    const analytics = buildMatcherMock(() => new Error('downstream down'));
     const service = new CuratedSelectorService(repo, analytics, stubLogger);
 
     await expect(
@@ -112,7 +112,7 @@ describe('CuratedSelectorService', () => {
       { primaryResumeId: 'r-1', applyCriteria: null },
       [],
     );
-    const analytics = buildAnalyticsMock(() => 99);
+    const analytics = buildMatcherMock(() => 99);
     const service = new CuratedSelectorService(repo, analytics, stubLogger);
 
     const picks = await service.selectForUser({ userId: 'u-1', since: new Date('2024-01-01') });

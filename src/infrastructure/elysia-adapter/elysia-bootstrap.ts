@@ -20,14 +20,11 @@
 import { PrismaClient } from '@prisma/client';
 import Elysia from 'elysia';
 import { buildAiComposition } from '@/bounded-contexts/ai/ai.composition';
-import { buildAdminAnalyticsComposition } from '@/bounded-contexts/analytics/admin/admin-analytics.composition';
 import { buildPlatformEventsComposition } from '@/bounded-contexts/analytics/platform-events/platform-events.composition';
-import { buildResumeAnalyticsComposition } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.composition';
 import { buildSearchComposition } from '@/bounded-contexts/analytics/search/search.composition';
-import { buildShareAnalyticsComposition } from '@/bounded-contexts/analytics/share-analytics/share-analytics.composition';
 import { CuratedSelectorService } from '@/bounded-contexts/automation/application/services/curated-selector.service';
 import { buildAutomationComposition } from '@/bounded-contexts/automation/automation.composition';
-import { ResumeAnalyticsJobMatcherAdapter } from '@/bounded-contexts/automation/infrastructure/adapters/external-services/resume-analytics-job-matcher.adapter';
+import { KeywordJobMatcherAdapter } from '@/bounded-contexts/automation/infrastructure/adapters/external-services/keyword-job-matcher.adapter';
 import { PrismaCuratedSelectorRepository } from '@/bounded-contexts/automation/infrastructure/adapters/persistence/prisma-curated-selector.repository';
 import { buildBadgesComposition } from '@/bounded-contexts/badges/badges.composition';
 import { buildCareerGraphComposition } from '@/bounded-contexts/career-graph/career-graph.composition';
@@ -506,20 +503,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     tailorMatch,
   );
 
-  // Resume analytics facade — needed by jobs. Registers cron + handlers
-  // on its own bundle. Handlers need cross-BC adapters not yet in scope
-  // (recorder/tracker/projection/idempotency); for the POC we skip
-  // registerHandlers and only mount routes + register cron.
-  const resumeAnalytics = buildResumeAnalyticsComposition(
-    prisma as never,
-    sseStream,
-    eventBus,
-    eventBus,
-    logger,
-    config,
-  );
-  resumeAnalytics.registerCron(cron, distributedLock);
-
   // Jobs needs llm + email + eventBus + safeFetch
   // (P0-#9: job-import-from-url uses safeFetch to block SSRF instead of the
   // raw `fetch` global).
@@ -540,10 +523,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     externalIngestionEnabled: isExternalJobsIngestionEnabled(config),
   });
 
-  // Automation: needs CuratedSelectorService (uses ResumeAnalyticsFacade
-  // via ResumeAnalyticsJobMatcherAdapter) + ResumeTailorService (from
-  // resume-versions composition).
-  const matcher = new ResumeAnalyticsJobMatcherAdapter(resumeAnalytics.useCases);
+  // Automation: needs a resume↔job matcher (keyword overlap, self-contained)
+  // + ResumeTailorService (from resume-versions composition).
+  const matcher = new KeywordJobMatcherAdapter(prisma as never);
   const curatedSelectorRepository = new PrismaCuratedSelectorRepository(prisma as never);
   const selector = new CuratedSelectorService(curatedSelectorRepository, matcher, logger);
   const automation = buildAutomationComposition(
@@ -725,14 +707,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Roles BC — ESCO/CBO/O*NET job-title dictionary for the role autocomplete.
   const roles = buildRolesComposition(prisma as never, logger);
 
-  // Analytics sub-BCs.
-  const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);
+  // Platform events + search (the surviving halves of the old analytics folder).
   const platformEvents = buildPlatformEventsComposition(prisma as never, logger, config);
   const search = buildSearchComposition(prisma as never);
-  const shareAnalytics = buildShareAnalyticsComposition(prisma as never, logger, config);
-  for (const binding of shareAnalytics.eventHandlers ?? []) {
-    eventBus.on(binding.eventType, binding.handler);
-  }
 
   // Integration.
   const upload = buildUploadComposition(s3, prisma as never, logger);
@@ -1174,7 +1151,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     webhooks,
     notifications,
     resumeVersions,
-    resumeAnalytics,
     jobs,
     automation,
     collaboration,
@@ -1184,10 +1160,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     // Phase-1 final batch (with `as never` to keep the loop's structural
     // type tractable across heterogeneous bundle shapes):
     twoFactorAuth as never,
-    adminAnalytics,
     platformEvents,
     search,
-    shareAnalytics,
     upload,
     adminSectionTypes,
     resumeQuality,
@@ -1292,11 +1266,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   mountRoutes(
     app,
     { bundle: notifications.sseBundle, routes: notifications.sseRoutes },
-    { prefix: '/api', pipeline, i18n: i18n.translation },
-  );
-  mountRoutes(
-    app,
-    { bundle: resumeAnalytics.sseBundle, routes: [] as never },
     { prefix: '/api', pipeline, i18n: i18n.translation },
   );
 

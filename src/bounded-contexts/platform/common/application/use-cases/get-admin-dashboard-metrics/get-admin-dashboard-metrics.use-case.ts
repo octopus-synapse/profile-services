@@ -39,7 +39,6 @@ export class GetAdminDashboardMetricsUseCase {
       totalResumes: counts.totalResumes,
       activeUsers7d: counts.activeUsers7d,
       activeUsers30d: counts.activeUsers30d,
-      totalViews: counts.totalViews,
       signupsThisWeek: counts.signupsThisWeek,
       signupsThisMonth: counts.signupsThisMonth,
       resumesThisWeek: counts.resumesThisWeek,

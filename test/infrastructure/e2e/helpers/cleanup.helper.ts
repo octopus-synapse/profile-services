@@ -98,12 +98,6 @@ export class CleanupHelper {
       // Delete shares
       await this.prisma.resumeShare.deleteMany({ where: { resumeId } });
 
-      // Delete analytics
-      await this.prisma.resumeAnalytics.deleteMany({ where: { resumeId } });
-      await this.prisma.analyticsResumeProjection.deleteMany({
-        where: { id: resumeId },
-      });
-
       // Delete generic section items (cascades from sections)
       await this.prisma.sectionItem.deleteMany({
         where: { resumeSection: { resumeId } },

@@ -19,7 +19,6 @@ export const AdminDashboardMetricsResponseSchema = z.object({
   totalResumes: z.number().int(),
   activeUsers7d: z.number().int(),
   activeUsers30d: z.number().int(),
-  totalViews: z.number().int(),
   signupsThisWeek: z.number().int(),
   signupsThisMonth: z.number().int(),
   resumesThisWeek: z.number().int(),
@@ -58,7 +57,6 @@ export const SectionTypesResponseSchema = z.object({
 export const PlatformStatsResponseSchema = z.object({
   totalUsers: z.number().int(),
   totalResumes: z.number().int(),
-  totalViews: z.number().int(),
   activeUsersToday: z.number().int(),
   activeUsersWeek: z.number().int(),
   updatedAt: IsoDateTimeSchema,

@@ -160,13 +160,6 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
-  RESUME_VIEW_TRACKED: {
-    message: {
-      en: 'View tracked successfully.',
-      'pt-BR': 'Visualização registrada com sucesso.',
-    },
-    params: [],
-  },
 } as const satisfies SuccessMessageDictionary;
 
 export type SuccessMessageCode = keyof typeof SUCCESS_MESSAGE_DICTIONARY;

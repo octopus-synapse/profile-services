@@ -8,7 +8,6 @@
  * passed in).
  */
 import type { PrismaClient } from '@prisma/client';
-import { seedAnalyticsProjections } from './analytics-projection.seed';
 import { seedDreddFixtures } from './dredd-fixtures.seed';
 import { seedE2EOnboardingUser } from './e2e-onboarding-user.seed';
 import { seedE2ETestUser } from './e2e-test-user.seed';
@@ -37,5 +36,4 @@ export async function runDevSeeds(
 
   // LAST: projects from existing resumes (incl. the dredd fixtures above), so
   // the analytics contract probes don't 404 on missing projection rows.
-  await seedAnalyticsProjections(prisma);
 }
