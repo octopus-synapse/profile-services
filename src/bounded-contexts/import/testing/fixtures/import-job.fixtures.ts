@@ -8,7 +8,7 @@ export function createImportJobFixture(overrides: Partial<ImportJobData> = {}): 
   return {
     id: 'import-1',
     userId: 'user-123',
-    source: 'JSON',
+    source: 'PDF',
     status: 'PENDING',
     fileUrl: null,
     fileName: null,

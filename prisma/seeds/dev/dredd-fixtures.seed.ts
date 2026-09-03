@@ -613,7 +613,7 @@ export async function seedDreddFixtures(
     create: {
       id: EXAMPLE_GENERIC_ID,
       userId: EXAMPLE_USER_ID,
-      source: ImportSource.JSON,
+      source: ImportSource.PDF,
       status: ImportStatus.COMPLETED,
     },
     update: {},
@@ -736,18 +736,6 @@ export async function seedDreddFixtures(
       url: 'https://fixture.example.com/webhook',
       secret: 'dredd-fixture-secret',
       events: ['resume.created'],
-    },
-    update: {},
-  });
-
-  // ── ShadowProfile (for /shadow-profiles/{id}/claim POST) ─────────
-  await prisma.shadowProfile.upsert({
-    where: { source_externalHandle: { source: 'github', externalHandle: 'dredd-fixture' } },
-    create: {
-      id: EXAMPLE_GENERIC_ID,
-      source: 'github',
-      externalHandle: 'dredd-fixture',
-      payload: { login: 'dredd-fixture', name: 'Dredd Fixture', publicRepos: 0 },
     },
     update: {},
   });

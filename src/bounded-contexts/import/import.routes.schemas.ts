@@ -14,59 +14,10 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { ImportSource, ImportStatus } from '@prisma/client';
 import { z } from 'zod';
-import {
-  JsonResumeBasicsMissingException,
-  JsonResumeNameMissingException,
-} from './domain/exceptions/import.exceptions';
 import { JsonResumeParser } from './domain/services/json-resume.parser';
-import type { JsonResumeSchema } from './domain/types/import.types';
 
 extendZodWithOpenApi(z);
 
-export const ImportIdParams = z.object({ importId: z.string().uuid() });
-export const JsonImportBodySchema = z
-  .object({
-    // `data` must be present — without it the handler immediately
-    // throws a 500 inside `validateJsonResume(undefined)`. Forcing
-    // an object here keeps the failure mode at the schema layer
-    // (400 Bad Request).
-    data: z.object({}).passthrough(), // lint-allow-passthrough: JSON Resume payload is opaque here and validated downstream by validateJsonResume.
-  })
-  .openapi({
-    example: {
-      data: {
-        basics: {
-          name: 'Jane Doe',
-          email: 'jane.doe@example.com',
-          summary: 'Backend engineer with 8+ years of experience.',
-        },
-        work: [
-          {
-            company: 'Acme Corp',
-            position: 'Senior Backend Engineer',
-            startDate: '2022-01',
-            summary: 'Led the migration of the payments service.',
-          },
-        ],
-      },
-    },
-  });
-
-export const GithubImportBodySchema = z
-  .object({
-    token: z.string(),
-    username: z.string().optional(),
-    repoLimit: z.number().optional(),
-  })
-  .openapi({
-    example: {
-      token: 'ghp_examplePersonalAccessToken1234567890',
-      username: 'janedoe',
-      repoLimit: 10,
-    },
-  });
-
-// ─── Response schemas ─────────────────────────────────────────────────
 export const ImportSourceEnumSchema = z.nativeEnum(ImportSource);
 
 export const ImportStatusEnumSchema = z.nativeEnum(ImportStatus);
@@ -104,6 +55,8 @@ export const ParsedSectionResponseSchema = z.object({
   sectionTypeKey: z.string(),
   items: z.array(ParsedSectionItemSchema),
 });
+
+export const ImportIdParams = z.object({ importId: z.string().uuid() });
 
 export const ParsedResumeDataResponseSchema = z.object({
   personalInfo: ParsedPersonalInfoSchema,
@@ -147,37 +100,5 @@ export const GithubProjectBulletSchema = z.object({
   languages: z.array(z.string()),
   bullet: z.string(),
 });
-
-export const GithubParsedProfileResponseSchema = z.object({
-  suggestedHeadline: z.string().nullable(),
-  suggestedSummary: z.string().nullable(),
-  primaryStack: z.array(z.string()),
-  projectBullets: z.array(GithubProjectBulletSchema),
-  stats: z.object({
-    totalRepos: z.number().int(),
-    nonForkRepos: z.number().int(),
-    totalStars: z.number().int(),
-    languagesByBytes: z.array(
-      z.object({
-        language: z.string(),
-        bytes: z.number(),
-      }),
-    ),
-  }),
-});
-
-export const GithubImportResponseSchema = z.object({
-  primaryStack: z.array(z.string()),
-  profileUpdated: z.boolean(),
-});
-
-export function validateJsonResume(data: JsonResumeSchema): void {
-  if (!data.basics || typeof data.basics !== 'object') {
-    throw new JsonResumeBasicsMissingException();
-  }
-  if (!data.basics.name || typeof data.basics.name !== 'string') {
-    throw new JsonResumeNameMissingException();
-  }
-}
 
 export const parser = new JsonResumeParser();

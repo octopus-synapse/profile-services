@@ -37,8 +37,7 @@ export class GetAdminAlertsUseCase {
     const counts = await this.repository.loadCounts(new Date(now));
     const data: AdminAlerts = {
       usersPendingVerification: counts.usersPendingVerification,
-      shadowProfilesStale: counts.shadowProfilesStale,
-      total: counts.usersPendingVerification + counts.shadowProfilesStale,
+      total: counts.usersPendingVerification,
     };
     this.cache = { at: now, data };
     this.logger.debug('Refreshed admin alert counts', CTX, { total: data.total });

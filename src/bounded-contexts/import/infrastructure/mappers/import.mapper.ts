@@ -5,7 +5,7 @@
  */
 
 import type { ImportJobData, ParsedResumeData } from '../../domain/types/import.types';
-import type { ImportJobDto, ImportResultDto, ParsedResumeDataDto } from '../dto';
+import type { ImportJobDto, ImportResultDto } from '../dto';
 
 const LEGACY_SECTION_KEYS: Array<{ field: string; sectionTypeKey: string }> = [
   { field: 'experiences', sectionTypeKey: 'work_experience_v1' },
@@ -106,8 +106,4 @@ export function toImportResultDto(data: {
     resumeId: data.resumeId,
     errors: data.errors,
   };
-}
-
-export function toParsedResumeDataDto(data: ParsedResumeData): ParsedResumeDataDto {
-  return { personalInfo: data.personalInfo, summary: data.summary, sections: data.sections };
 }

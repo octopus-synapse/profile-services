@@ -10,7 +10,6 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 // ─── Response schemas ──────────────────────────────────────────────────
 export const AdminAlertsResponseSchema = z.object({
   usersPendingVerification: z.number().int(),
-  shadowProfilesStale: z.number().int(),
   total: z.number().int(),
 });
 

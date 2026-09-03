@@ -20,7 +20,7 @@ describe('ProcessImportUseCase', () => {
   it('should process JSON import and create resume', async () => {
     const job = await repository.create({
       userId: 'user-123',
-      source: 'JSON',
+      source: 'PDF',
       rawData: sampleJsonResume,
     });
 
@@ -37,7 +37,7 @@ describe('ProcessImportUseCase', () => {
   it('should update status to COMPLETED after processing', async () => {
     const job = await repository.create({
       userId: 'user-123',
-      source: 'JSON',
+      source: 'PDF',
       rawData: { basics: { name: 'Test' } },
     });
 
@@ -52,7 +52,7 @@ describe('ProcessImportUseCase', () => {
   });
 
   it('should fail when no raw data', async () => {
-    const job = await repository.create({ userId: 'user-123', source: 'JSON' });
+    const job = await repository.create({ userId: 'user-123', source: 'PDF' });
 
     const result = await useCase.execute(job.id);
 
@@ -63,7 +63,7 @@ describe('ProcessImportUseCase', () => {
   it('should fail when name is missing', async () => {
     const job = await repository.create({
       userId: 'user-123',
-      source: 'JSON',
+      source: 'PDF',
       rawData: { basics: {} },
     });
 
@@ -76,7 +76,7 @@ describe('ProcessImportUseCase', () => {
   it('should store resumeId on completion', async () => {
     const job = await repository.create({
       userId: 'user-123',
-      source: 'JSON',
+      source: 'PDF',
       rawData: { basics: { name: 'Test' } },
     });
 

@@ -145,8 +145,6 @@ export const ENUM_DICTIONARY = {
   },
   ImportSource: {
     DOCX: { en: 'DOCX', 'pt-BR': 'DOCX' },
-    GITHUB: { en: 'GitHub', 'pt-BR': 'GitHub' },
-    JSON: { en: 'JSON', 'pt-BR': 'JSON' },
     LINKEDIN: { en: 'LinkedIn', 'pt-BR': 'LinkedIn' },
     PDF: { en: 'PDF', 'pt-BR': 'PDF' },
   },

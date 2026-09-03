@@ -5,7 +5,7 @@
  * No @prisma/client or NestJS imports allowed.
  */
 
-export type ImportSource = 'LINKEDIN' | 'PDF' | 'DOCX' | 'JSON' | 'GITHUB';
+export type ImportSource = 'LINKEDIN' | 'PDF' | 'DOCX';
 
 export type ImportStatus =
   | 'PENDING'

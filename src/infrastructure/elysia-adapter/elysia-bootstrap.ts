@@ -61,26 +61,19 @@ import { buildAuthorizationUseCases } from '@/bounded-contexts/identity/authoriz
 import { AuthorizationCheckAdapter } from '@/bounded-contexts/identity/authorization/infrastructure/adapters/authorization-check.adapter';
 import { buildEmailVerificationUseCases } from '@/bounded-contexts/identity/email-verification/email-verification.composition';
 import { emailVerificationRoutes } from '@/bounded-contexts/identity/email-verification/email-verification.routes';
-import {
-  buildOAuthComposition,
-  buildOAuthUseCases,
-} from '@/bounded-contexts/identity/oauth/oauth.composition';
+import { buildOAuthComposition } from '@/bounded-contexts/identity/oauth/oauth.composition';
 import { buildPasswordManagementUseCases } from '@/bounded-contexts/identity/password-management/password-management.composition';
 import { passwordManagementRoutes } from '@/bounded-contexts/identity/password-management/password-management.routes';
 import {
   buildTwoFactorAuthComposition,
   buildTwoFactorAuthUseCases,
 } from '@/bounded-contexts/identity/two-factor-auth/two-factor-auth.composition';
-import { buildShadowProfileUseCases } from '@/bounded-contexts/identity/users/shadow-profile/shadow-profile.composition';
-import { shadowProfileRoutes } from '@/bounded-contexts/identity/users/shadow-profile/shadow-profile.routes';
 import { buildUiStateUseCases } from '@/bounded-contexts/identity/users/ui-state/ui-state.composition';
 import { uiStateRoutes } from '@/bounded-contexts/identity/users/ui-state/ui-state.routes';
 import { buildUsersUseCases } from '@/bounded-contexts/identity/users/users.composition';
 import { usersRoutes } from '@/bounded-contexts/identity/users/users.routes';
 import { usersAdminRoutes } from '@/bounded-contexts/identity/users/users-admin.routes';
 import { buildImportComposition } from '@/bounded-contexts/import/import.composition';
-import { buildGitHubIntegrationUseCases } from '@/bounded-contexts/integration/github/github.composition';
-import { githubRoutes } from '@/bounded-contexts/integration/github/github.routes';
 import { buildMecSyncUseCases } from '@/bounded-contexts/integration/mec-sync/mec-sync.composition';
 import { mecSyncRoutes } from '@/bounded-contexts/integration/mec-sync/mec-sync.routes';
 import { buildUploadComposition } from '@/bounded-contexts/integration/upload/upload.composition';
@@ -455,12 +448,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
         : undefined,
   });
   const oauth = buildOAuthComposition(prisma as never, logger, config, oauthAdapter);
-  const oauthUseCases = buildOAuthUseCases(prisma as never, logger, config, oauthAdapter);
   const importBc = buildImportComposition({
     prisma: prisma as never,
     logger,
     llm: ai.bundle.llm,
-    getOAuthAccessToken: oauthUseCases.getOAuthAccessToken,
   });
   const recruiting = buildRecruitingComposition(prisma as never);
   const fitProfile = buildFitProfileComposition(prisma as never, eventBus, logger, queue);
@@ -631,14 +622,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   });
   for (const l of featureFlags.lifecycles ?? []) lifecycles.push(l);
 
-  // GitHub integration BC. Reads `GITHUB_TOKEN` from config (server-side
-  // sync) — for per-user auth flows the import BC reuses
-  // `oauthUseCases.getOAuthAccessToken` declared below. The 4 routes
-  // (summary/sync/auto-sync/sync-status) are mounted via the standard
-  // route mounter loop. Achievement/Contribution services stay internal
-  // (consumed by SyncGitHubService during sync, not as REST endpoints).
-  const githubIntegration = buildGitHubIntegrationUseCases(prisma as never, logger, config);
-
   // Identity sub-BCs.
   const twoFactorAuth = buildTwoFactorAuthComposition(prisma as never, cache as never, logger);
   const twoFaUseCases = buildTwoFactorAuthUseCases(prisma as never, cache as never, logger);
@@ -697,7 +680,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     auditPort,
     config,
   ) as never;
-  const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;
   // Geo lookup BC — `GEO_SOURCE=postgres` uses the GeoNames import, else the
   // bundled dataset baked into the adapter.
@@ -1001,7 +983,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     'VersionAudit.onVersionRestored',
   );
 
-  void shadowProfile;
   void uiState;
   void emailVerification;
   void passwordManagement;
@@ -1181,7 +1162,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // `{ useCases, routes }`. We import the route arrays directly and
   // mount them against the bundle the route file expects.
   const extra: ReadonlyArray<{ bundle: unknown; routes: unknown }> = [
-    { bundle: githubIntegration, routes: githubRoutes },
     { bundle: accountLifecycle, routes: accountLifecycleRoutes },
     {
       bundle: (authenticationUseCases as { bundle: unknown }).bundle,
@@ -1192,10 +1172,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     {
       bundle: (users as { bundle: unknown }).bundle,
       routes: [...usersRoutes, ...usersAdminRoutes],
-    },
-    {
-      bundle: shadowProfile,
-      routes: shadowProfileRoutes,
     },
     { bundle: uiState, routes: uiStateRoutes },
     { bundle: geo.useCases, routes: geo.routes },

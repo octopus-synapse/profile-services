@@ -12,9 +12,9 @@ describe('ListImportHistoryUseCase', () => {
   });
 
   it('should return import history for user', async () => {
-    await repository.create({ userId: 'user-123', source: 'JSON' });
-    await repository.create({ userId: 'user-123', source: 'JSON' });
-    await repository.create({ userId: 'other-user', source: 'JSON' });
+    await repository.create({ userId: 'user-123', source: 'PDF' });
+    await repository.create({ userId: 'user-123', source: 'PDF' });
+    await repository.create({ userId: 'other-user', source: 'PDF' });
 
     const history = await useCase.execute('user-123');
 

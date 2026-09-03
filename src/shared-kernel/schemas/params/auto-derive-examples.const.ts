@@ -976,7 +976,6 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['sampleSize', '0'],
   ['seed', 'fixture-seed'],
   ['sessions', '0'],
-  ['shadowProfilesStale', '0'],
   ['signupsThisMonth', '0'],
   ['signupsThisWeek', '0'],
   ['silentDays', '0'],

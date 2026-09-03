@@ -13,7 +13,7 @@ describe('GetImportStatusUseCase', () => {
   });
 
   it('should return import job by id', async () => {
-    const job = await repository.create({ userId: 'user-123', source: 'JSON' });
+    const job = await repository.create({ userId: 'user-123', source: 'PDF' });
 
     const result = await useCase.execute(job.id);
 

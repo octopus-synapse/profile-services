@@ -27,8 +27,6 @@ enum ImportSource {
   LINKEDIN
   PDF
   DOCX
-  JSON
-  GITHUB
 }
 
 enum ImportStatus {

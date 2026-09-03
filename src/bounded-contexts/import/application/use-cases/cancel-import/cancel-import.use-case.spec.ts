@@ -17,7 +17,7 @@ describe('CancelImportUseCase', () => {
   });
 
   it('should cancel a pending import', async () => {
-    const job = await repository.create({ userId: 'user-123', source: 'JSON' });
+    const job = await repository.create({ userId: 'user-123', source: 'PDF' });
 
     await useCase.execute(job.id);
 

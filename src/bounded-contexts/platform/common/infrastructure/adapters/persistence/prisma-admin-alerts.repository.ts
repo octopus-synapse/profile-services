@@ -11,7 +11,6 @@ import type { AdminAlertCounts } from '../../../domain/entities/admin-alerts';
 import { AdminAlertsRepositoryPort } from '../../../domain/ports/admin-alerts.repository.port';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export class PrismaAdminAlertsRepository extends AdminAlertsRepositoryPort {
   constructor(
@@ -23,22 +22,17 @@ export class PrismaAdminAlertsRepository extends AdminAlertsRepositoryPort {
 
   async loadCounts(now: Date): Promise<AdminAlertCounts> {
     const sevenDaysAgo = new Date(now.getTime() - SEVEN_DAYS_MS);
-    const thirtyDaysAgo = new Date(now.getTime() - THIRTY_DAYS_MS);
 
-    const [usersPendingVerification, shadowProfilesStale] = await Promise.all([
+    const [usersPendingVerification] = await Promise.all([
       this.prisma.user.count({
         where: { emailVerified: null, createdAt: { lt: sevenDaysAgo } },
-      }),
-      this.prisma.shadowProfile.count({
-        where: { claimedByUserId: null, createdAt: { lt: thirtyDaysAgo } },
       }),
     ]);
 
     this.logger.debug('Loaded admin alert counts', 'PrismaAdminAlertsRepository', {
       usersPendingVerification,
-      shadowProfilesStale,
     });
 
-    return { usersPendingVerification, shadowProfilesStale };
+    return { usersPendingVerification };
   }
 }

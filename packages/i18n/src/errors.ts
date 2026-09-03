@@ -924,14 +924,6 @@ export const ERROR_DICTIONARY = {
     en: 'User not found after session creation',
     'pt-BR': 'Usuário não encontrado após a criação da sessão',
   },
-  SHADOW_PROFILE_ALREADY_CLAIMED: {
-    en: 'Shadow profile already claimed by another user',
-    'pt-BR': 'Este shadow profile já foi reivindicado por outro usuário',
-  },
-  SHADOW_PROFILE_NOT_FOUND: {
-    en: 'Shadow profile not found',
-    'pt-BR': 'Shadow profile não encontrado',
-  },
   SHARE_ALIAS_NOT_FOUND: {
     en: 'Alias not found',
     'pt-BR': 'Alias não encontrado',

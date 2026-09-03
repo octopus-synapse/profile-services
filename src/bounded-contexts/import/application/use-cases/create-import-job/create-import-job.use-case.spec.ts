@@ -13,18 +13,18 @@ describe('CreateImportJobUseCase', () => {
   });
 
   it('should create an import job with PENDING status', async () => {
-    const result = await useCase.execute({ userId: 'user-123', source: 'JSON' });
+    const result = await useCase.execute({ userId: 'user-123', source: 'PDF' });
 
     expect(result.id).toBeDefined();
     expect(result.status).toBe('PENDING');
     expect(result.userId).toBe('user-123');
-    expect(result.source).toBe('JSON');
+    expect(result.source).toBe('PDF');
   });
 
   it('should store raw data when provided', async () => {
     const rawData = { basics: { name: 'Test User' } };
 
-    const result = await useCase.execute({ userId: 'user-123', source: 'JSON', rawData });
+    const result = await useCase.execute({ userId: 'user-123', source: 'PDF', rawData });
 
     const saved = await repository.findById(result.id);
     expect(saved?.rawData).toEqual(rawData);
@@ -32,14 +32,14 @@ describe('CreateImportJobUseCase', () => {
 
   it('throws InvalidImportDataException when rawData is not an object payload', async () => {
     await expect(
-      useCase.execute({ userId: 'user-123', source: 'JSON', rawData: 'not-an-object' as unknown }),
+      useCase.execute({ userId: 'user-123', source: 'PDF', rawData: 'not-an-object' as unknown }),
     ).rejects.toThrow(InvalidImportDataException);
   });
 
   it('should store fileName when provided', async () => {
     const result = await useCase.execute({
       userId: 'user-123',
-      source: 'JSON',
+      source: 'PDF',
       fileName: 'resume.json',
     });
 

@@ -612,7 +612,10 @@ describe('OWASP Top 10 Security Tests', () => {
       for (const file of authFiles) {
         const [filePath] = file.split(':');
         if (!filePath || !fileExists(filePath)) continue;
-        if (!filePath.includes('.service.ts')) continue;
+        // Auth events are recorded by audit handlers and use cases, not only
+        // by services — the last `.service.ts` that happened to match was
+        // GitHub sync, which is gone.
+        if (!/\.(service|handler|use-case)\.ts$/.test(filePath)) continue;
 
         const content = fs.readFileSync(filePath, 'utf-8');
 

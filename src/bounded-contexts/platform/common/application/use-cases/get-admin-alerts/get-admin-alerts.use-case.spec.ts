@@ -7,24 +7,22 @@ describe('GetAdminAlertsUseCase', () => {
   it('sums the queue counters into total', async () => {
     const repo = new InMemoryAdminAlertsRepository({
       usersPendingVerification: 4,
-      shadowProfilesStale: 5,
     });
 
     const result = await new GetAdminAlertsUseCase(repo, stubLogger).execute();
 
-    expect(result.total).toBe(9);
+    expect(result.total).toBe(4);
   });
 
   it('serves a second call from cache within the TTL', async () => {
     const repo = new InMemoryAdminAlertsRepository({
       usersPendingVerification: 0,
-      shadowProfilesStale: 0,
     });
     let now = 1_000;
     const useCase = new GetAdminAlertsUseCase(repo, stubLogger, () => now);
 
     const first = await useCase.execute();
-    repo.setCounts({ usersPendingVerification: 99, shadowProfilesStale: 99 });
+    repo.setCounts({ usersPendingVerification: 99 });
     now += 5_000;
     const second = await useCase.execute();
 
@@ -35,13 +33,12 @@ describe('GetAdminAlertsUseCase', () => {
   it('refetches when the cache expires', async () => {
     const repo = new InMemoryAdminAlertsRepository({
       usersPendingVerification: 0,
-      shadowProfilesStale: 0,
     });
     let now = 1_000;
     const useCase = new GetAdminAlertsUseCase(repo, stubLogger, () => now);
 
     await useCase.execute();
-    repo.setCounts({ usersPendingVerification: 0, shadowProfilesStale: 0 });
+    repo.setCounts({ usersPendingVerification: 0 });
     now += 31_000;
     const second = await useCase.execute();
     expect(repo.callCount).toBe(2);
