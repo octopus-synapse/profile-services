@@ -195,7 +195,7 @@ export class TranslateResumeIntoLocaleUseCase {
       }
 
       // Résumé-level prose: summary / headline / jobTitle.
-      const prose = pick(resume.prose as unknown as Record<string, unknown>, RESUME_PROSE_KEYS);
+      const prose = pick({ ...resume.prose }, RESUME_PROSE_KEYS);
       if (Object.keys(prose).length > 0) {
         const hash = hashSource(prose);
         const existing = envelopeFor(resume.translations, locale);

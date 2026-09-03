@@ -50838,6 +50838,53 @@
         "x-auth": "public"
       }
     },
+    "/api/v1/translation/subscribe": {
+      "get": {
+        "summary": "Live progress of translation runs for the authenticated user",
+        "description": "Server-sent events: one `{ resumeId, locale, done, total, status, reason? }` per section as the write-through derives a résumé. Same channel the translate-now route reports on.",
+        "tags": [
+          "translation"
+        ],
+        "operationId": "get_v1_translation_subscribe",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
+      }
+    },
     "/api/v1/upload/company-logo/{resumeId}": {
       "post": {
         "summary": "Upload company logo for resume",

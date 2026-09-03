@@ -6,6 +6,7 @@
  * consumed by a worker the bootstrap registers through the `workers` loop.
  */
 
+import type { Observable } from 'rxjs';
 import type { TranslationLlmPort } from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -16,7 +17,7 @@ import type {
   BcWorkerBinding,
   BoundedContextComposition,
 } from '@/shared-kernel/composition';
-import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
+import type { SseEvent, SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import {
   ResumeTranslationService,
@@ -28,9 +29,13 @@ import {
   type TranslationPricing,
 } from './application/use-cases/translate-resume-into-locale/translate-resume-into-locale.use-case';
 import type { ResumeTranslationStorePort } from './domain/ports/resume-translation-store.port';
+import type { TranslationProgress } from './domain/ports/translation-progress.port';
 import { PrismaResumeTranslationStoreAdapter } from './infrastructure/adapters/persistence/prisma-resume-translation-store.adapter';
 import { PrismaTranslationCostLedgerAdapter } from './infrastructure/adapters/persistence/prisma-translation-cost-ledger.adapter';
-import { SseTranslationProgressAdapter } from './infrastructure/adapters/sse-translation-progress.adapter';
+import {
+  SseTranslationProgressAdapter,
+  translationProgressChannel,
+} from './infrastructure/adapters/sse-translation-progress.adapter';
 import { TranslationOnResumeChangedHandler } from './infrastructure/handlers/translation-on-resume-changed.handler';
 import {
   RESUME_TRANSLATION_QUEUE,
@@ -46,6 +51,8 @@ export interface TranslationBundle {
   readonly service: TranslationService;
   readonly translateResume: TranslateResumeIntoLocaleUseCase;
   readonly store: ResumeTranslationStorePort;
+  /** The user's live channel of translation progress (SSE route). */
+  readonly subscribeToProgress: (userId: string) => Observable<SseEvent<TranslationProgress>>;
 }
 
 export interface BuildTranslationDeps {
@@ -99,7 +106,13 @@ export function buildTranslationComposition(deps: BuildTranslationDeps): Transla
   ];
 
   return {
-    useCases: { service, translateResume, store },
+    useCases: {
+      service,
+      translateResume,
+      store,
+      subscribeToProgress: (userId) =>
+        sse.subscribe<TranslationProgress>(translationProgressChannel(userId)),
+    },
     routes: translationRoutes,
     eventHandlers,
     workers,

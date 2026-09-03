@@ -179,4 +179,21 @@ export const translationRoutes: ReadonlyArray<Route<TranslationBundle>> = [
       return { resumeId, language: resume.language, locales: statusFor(resume) };
     },
   },
+  {
+    method: 'GET',
+    path: '/v1/translation/subscribe',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_READ,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    openapi: {
+      summary: 'Live progress of translation runs for the authenticated user',
+      tags: ['translation'],
+      description:
+        'Server-sent events: one `{ resumeId, locale, done, total, status, reason? }` per section ' +
+        'as the write-through derives a résumé. Same channel the translate-now route reports on.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => bundle.subscribeToProgress(ctx.user!.userId),
+  },
 ];
