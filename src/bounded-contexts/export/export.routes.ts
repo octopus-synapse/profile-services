@@ -18,12 +18,8 @@ import { ExportHttpBundle } from './application/ports/export-http.bundle';
 import {
   BANNER_HEADERS,
   BannerQuery,
-  JsonExportQuery,
-  LatexExportQuery,
   PdfBase64ResponseSchema,
   PresignedDownloadResponseSchema,
-  ResumeBundleRequestSchema,
-  ResumeIdParams,
   ResumePdfQuery,
   ResumePreviewResponseSchema,
   UserIdParams,
@@ -201,119 +197,6 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         key: `exports/${userId}/${randomUUID()}.docx`,
         body: buffer,
         contentType: DOCX_MIME,
-        filename,
-        ttlSeconds: DOWNLOAD_TTL_SECONDS,
-      });
-      return { ...signed, filename };
-    },
-  },
-
-  // ─── Bundle (multi-format zip — F3-PD-009c / PD-018 fix) ───────────
-  {
-    method: 'POST',
-    path: '/v1/export/:resumeId/bundle',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_EXPORT,
-    // PD-018: ownership guard resolves resumeId → ownerId and rejects
-    // non-owners with 403. Without this, any authenticated user could
-    // export any resume by guessing the UUID.
-    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
-    params: ResumeIdParams,
-    body: ResumeBundleRequestSchema,
-    response: PresignedDownloadResponseSchema,
-    openapi: {
-      summary: 'Generate a multi-format zip bundle of the resume',
-      tags: ['export'],
-      description: 'Export API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const { resumeId } = ctx.params as { resumeId: string };
-      const body = ctx.body as z.infer<typeof ResumeBundleRequestSchema>;
-      const userId = ctx.user!.userId;
-      const buffer = await bundle.useCases.exportBundleUseCase.execute({
-        userId,
-        resumeId,
-        formats: body.formats,
-        language: body.language,
-      });
-      const filename = `resume-${userId}-${Date.now()}.zip`;
-      const signed = await bundle.s3.uploadAndPresign({
-        key: `exports/${userId}/${randomUUID()}.zip`,
-        body: buffer,
-        contentType: 'application/zip',
-        filename,
-        ttlSeconds: DOWNLOAD_TTL_SECONDS,
-      });
-      return { ...signed, filename };
-    },
-  },
-
-  // ─── Multi-format (JSON / LaTeX) ───────────────────────────────────
-  {
-    method: 'GET',
-    path: '/v1/export/:resumeId/json',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_EXPORT,
-    // P0-004: ownership guard — only the resume owner can export it.
-    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
-    params: ResumeIdParams,
-    query: JsonExportQuery,
-    response: PresignedDownloadResponseSchema,
-    openapi: {
-      summary: 'Generate resume JSON (returns signed download URL)',
-      tags: ['export'],
-      description: 'Export API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const { resumeId } = ctx.params as { resumeId: string };
-      const q = ctx.query as z.infer<typeof JsonExportQuery>;
-      const format = q.format === 'profile' ? 'profile' : 'jsonresume';
-      const buffer = await bundle.useCases.exportJsonUseCase.executeAsBuffer({
-        resumeId,
-        format,
-      });
-      const filename = `resume-${resumeId}.json`;
-      const signed = await bundle.s3.uploadAndPresign({
-        key: `exports/${resumeId}/${randomUUID()}.json`,
-        body: buffer,
-        contentType: 'application/json',
-        filename,
-        ttlSeconds: DOWNLOAD_TTL_SECONDS,
-      });
-      return { ...signed, filename };
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/export/:resumeId/latex',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_EXPORT,
-    // P0-004: ownership guard — only the resume owner can export it.
-    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
-    params: ResumeIdParams,
-    query: LatexExportQuery,
-    response: PresignedDownloadResponseSchema,
-    openapi: {
-      summary: 'Generate resume LaTeX (returns signed download URL)',
-      tags: ['export'],
-      description: 'Export API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const { resumeId } = ctx.params as { resumeId: string };
-      const q = ctx.query as z.infer<typeof LatexExportQuery>;
-      const template = q.template === 'moderncv' ? 'moderncv' : 'simple';
-      const buffer = await bundle.useCases.exportLatexUseCase.executeAsBuffer({
-        resumeId,
-        template,
-      });
-      const filename = `resume-${resumeId}.tex`;
-      const signed = await bundle.s3.uploadAndPresign({
-        key: `exports/${resumeId}/${randomUUID()}.tex`,
-        body: buffer,
-        contentType: 'application/x-tex',
         filename,
         ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });
