@@ -8,12 +8,6 @@
 
 import type { PaginatedResult } from '@/shared-kernel/database';
 import {
-  type AdminChatConversationView,
-  AdminChatRepositoryPort,
-  type AdminChatStats,
-  type ListConversationsQuery,
-} from '../domain/ports/admin-chat.repository.port';
-import {
   AdminCollaborationsRepositoryPort,
   type AdminCollaborationsStats,
   type AdminCollaborationView,
@@ -38,34 +32,6 @@ function paginateInMemory<T>(
     hasNext: page * limit < total,
     hasPrev: page > 1,
   };
-}
-
-export class InMemoryAdminChatRepository extends AdminChatRepositoryPort {
-  private stats: AdminChatStats = {
-    totalConversations: 0,
-    totalMessages: 0,
-    activeConversations: 0,
-    activeChatUsers: 0,
-  };
-  private conversations: AdminChatConversationView[] = [];
-  lastActiveSince: Date | null = null;
-
-  seedStats(stats: Partial<AdminChatStats>): void {
-    this.stats = { ...this.stats, ...stats };
-  }
-
-  seedConversations(rows: AdminChatConversationView[]): void {
-    this.conversations = rows;
-  }
-
-  async getStats(activeSince: Date): Promise<AdminChatStats> {
-    this.lastActiveSince = activeSince;
-    return this.stats;
-  }
-
-  async listConversations(query: ListConversationsQuery) {
-    return paginateInMemory(this.conversations, query);
-  }
 }
 
 export class InMemoryAdminCollaborationsRepository extends AdminCollaborationsRepositoryPort {

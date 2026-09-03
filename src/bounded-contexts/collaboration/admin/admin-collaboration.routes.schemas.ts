@@ -29,36 +29,6 @@ export function parsePage(q: z.infer<typeof PageQuerySchema>): {
 }
 
 // ─── Response schemas ─────────────────────────────────────────────────
-export const ChatStatsResponseSchema = z.object({
-  totalConversations: z.number().int().min(0),
-  totalMessages: z.number().int().min(0),
-  activeConversations: z.number().int().min(0),
-  activeChatUsers: z.number().int().min(0),
-});
-
-export const ChatParticipantSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  email: z.string(),
-});
-
-export const ChatConversationViewSchema = z.object({
-  id: z.string(),
-  createdAt: IsoDateTimeSchema,
-  updatedAt: IsoDateTimeSchema,
-  participant1Id: z.string(),
-  participant2Id: z.string(),
-  participant1: ChatParticipantSchema,
-  participant2: ChatParticipantSchema,
-  lastMessageContent: z.string().nullable(),
-  lastMessageAt: IsoDateTimeSchema.nullable(),
-  lastMessageSenderId: z.string().uuid().nullable(),
-});
-
-export const PaginatedChatConversationsResponseSchema = PaginatedResponseSchema(
-  ChatConversationViewSchema,
-);
-
 export const CollaborationStatsResponseSchema = z.object({
   totalCollaborations: z.number().int().min(0),
   byRole: z.array(
