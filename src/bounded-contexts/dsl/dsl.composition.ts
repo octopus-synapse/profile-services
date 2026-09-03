@@ -22,7 +22,6 @@ import { RenderPublicResumeDslUseCase } from './application/use-cases/render-pub
 import { RenderResumeDslUseCase } from './application/use-cases/render-resume-dsl/render-resume-dsl.use-case';
 import { RenderSampleResumeDslUseCase } from './application/use-cases/render-sample-resume-dsl/render-sample-resume-dsl.use-case';
 import { ValidateDslUseCase } from './application/use-cases/validate-dsl/validate-dsl.use-case';
-import { dslRoutes } from './dsl.routes';
 import { PrismaResumeDslRepository } from './infrastructure/adapters/persistence/prisma-resume-dsl.repository';
 
 export { DslUseCases };
@@ -55,6 +54,6 @@ export function buildDslComposition(
 
   return {
     useCases,
-    routes: dslRoutes,
+    routes: [],
   };
 }

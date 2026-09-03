@@ -28,10 +28,6 @@ import {
   MarkConversationReadResponseSchema,
   SearchQuerySchema,
   SendMessageResponseSchema,
-  SetMuteResponseSchema,
-  SetMuteSchema,
-  SetPinResponseSchema,
-  SetPinSchema,
   UserIdParam,
 } from './chat.routes.schemas';
 import {
@@ -248,53 +244,6 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   },
 
   // ─── Chat preferences (pin / mute) ─────────────────────────────────
-  {
-    method: 'POST',
-    path: '/v1/chat/conversations/:conversationId/preferences/pin',
-    auth: { kind: 'jwt' },
-    permission: Permission.CHAT_USE,
-    params: ConversationIdParam,
-    body: SetPinSchema,
-    response: SetPinResponseSchema,
-    openapi: {
-      summary: 'Pin / unpin a conversation for the current user.',
-      tags: ['chat'],
-      description: 'Conversation preferences',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const { conversationId } = ctx.params as { conversationId: string };
-      const body = ctx.body as z.infer<typeof SetPinSchema>;
-      await bundle.preferences.setPin(conversationId, ctx.user!.userId, body.pinned);
-      return { pinned: body.pinned };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/v1/chat/conversations/:conversationId/preferences/mute',
-    auth: { kind: 'jwt' },
-    permission: Permission.CHAT_USE,
-    params: ConversationIdParam,
-    body: SetMuteSchema,
-    response: SetMuteResponseSchema,
-    openapi: {
-      summary: 'Mute / unmute notifications for a conversation.',
-      tags: ['chat'],
-      description: 'Conversation preferences',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const { conversationId } = ctx.params as { conversationId: string };
-      const body = ctx.body as z.infer<typeof SetMuteSchema>;
-      const result = await bundle.preferences.setMute(
-        conversationId,
-        ctx.user!.userId,
-        body.muted,
-        body.mutedUntil,
-      );
-      return result;
-    },
-  },
 
   // ─── Block users ───────────────────────────────────────────────────
   {

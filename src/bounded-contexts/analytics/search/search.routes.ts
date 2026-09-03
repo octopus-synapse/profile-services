@@ -16,13 +16,8 @@ import { parseCsvQuery } from './search.presenter';
 import {
   GlobalSearchQuerySchema,
   GlobalSearchResponseSchema,
-  IdParam,
   SearchQuerySchema,
   SearchResponseSchema,
-  SimilarQuerySchema,
-  SimilarResumesResponseSchema,
-  SuggestionsQuerySchema,
-  SuggestionsResponseSchema,
 } from './search.routes.schemas';
 
 export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
@@ -56,25 +51,6 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
   },
   {
     method: 'GET',
-    path: '/v1/search/suggestions',
-    auth: { kind: 'public' },
-    headers: { 'Cache-Control': 'public, max-age=30' },
-    query: SuggestionsQuerySchema,
-    response: SuggestionsResponseSchema,
-    openapi: {
-      summary: 'Get search autocomplete suggestions',
-      tags: ['search'],
-      description: 'Resume Search API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, service) => {
-      const q = SuggestionsQuerySchema.parse(ctx.query);
-      const suggestions = await service.suggest(q.prefix || '', q.limit);
-      return { suggestions };
-    },
-  },
-  {
-    method: 'GET',
     path: '/v1/search/global',
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'public, max-age=30' },
@@ -90,27 +66,6 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     handler: async (ctx, service) => {
       const q = GlobalSearchQuerySchema.parse(ctx.query);
       return service.globalSearch(q.q, q.limit);
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/search/similar/:id',
-    auth: { kind: 'public' },
-    headers: { 'Cache-Control': 'public, max-age=30' },
-    params: IdParam,
-    query: SimilarQuerySchema,
-    response: SimilarResumesResponseSchema,
-    openapi: {
-      summary: 'Find similar resumes by resume id',
-      tags: ['search'],
-      description: 'Resume Search API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, service) => {
-      const { id } = ctx.params as { id: string };
-      const q = SimilarQuerySchema.parse(ctx.query);
-      const resumes = await service.findSimilar(id, q.limit);
-      return { resumes };
     },
   },
 ];

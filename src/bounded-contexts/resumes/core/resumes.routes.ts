@@ -21,9 +21,7 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { normalizeLocale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
 import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
-import { renderResumeThumbnailSvg } from './presenters/resume-thumbnail-svg.presenter';
 import {
-  toMgmtResumeListResponseDto,
   toPaginatedResumesData,
   toResumeFullResponseDto,
   toResumeResponseDto,
@@ -33,9 +31,6 @@ import {
   DeleteResumeResponseSchema,
   DuplicateResumeBody,
   LocaleQuery,
-  MgmtResumeDetailsResponseSchema,
-  MgmtResumeListResponseSchema,
-  MgmtResumeMessageResponseSchema,
   PageLimitQuery,
   PaginatedResumesResponseSchema,
   ResumeBaseSchema,
@@ -51,7 +46,6 @@ import {
   SectionItemBody,
   SectionsLocaleQuerySchema,
   UpdateResumeBody,
-  UserIdParam,
 } from './resumes.routes.schemas';
 import { GenericResumeSectionsUseCases } from './services/generic-resume-sections/ports/generic-resume-sections-repository.port';
 import { ResumeManagementUseCases } from './services/resume-management/ports/resume-management.port';
@@ -97,25 +91,6 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const result = await bc.getRemainingSlotsUseCase.execute(ctx.user!.userId);
       return result;
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/resumes/:resumeId/full',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_READ,
-    params: ResumeIdParam,
-    response: ResumeFullResponseSchema,
-    openapi: {
-      summary: 'Get a resume with all sections',
-      tags: ['resumes'],
-      description: 'Resume CRUD operations',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { resumeId: id } = ctx.params as { resumeId: string };
-      const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
-      return toResumeFullResponseDto(result);
     },
   },
   {
@@ -239,104 +214,21 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
       return { deleted: true, id };
     },
   },
-  {
-    method: 'GET',
-    path: '/v1/resumes/:resumeId/thumbnail.svg',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_READ,
-    params: ResumeIdParam,
-    binary: { mediaType: 'image/svg+xml', filename: 'thumbnail.svg' },
-    headers: {
-      'Content-Type': 'image/svg+xml; charset=utf-8',
-      'Cache-Control': 'private, max-age=300',
-    },
-    openapi: {
-      summary: 'Lightweight SVG thumbnail of the resume (name + title + summary preview)',
-      tags: ['resumes'],
-      description: 'Resume CRUD operations',
-    },
-    handler: async (ctx, bc) => {
-      const { resumeId: id } = ctx.params as { resumeId: string };
-      const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
-      const resume = (result as { resume?: Record<string, unknown> }).resume ?? result;
-      const fullName =
-        (resume as { fullName?: string | null; title?: string | null }).fullName ??
-        (resume as { title?: string | null }).title ??
-        'Currículo';
-      const jobTitle = (resume as { jobTitle?: string | null }).jobTitle ?? '';
-      const summary = (resume as { summary?: string | null }).summary ?? '';
-      return renderResumeThumbnailSvg(String(fullName), String(jobTitle), String(summary));
-    },
-  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────
-// Resume management (elevated permissions)
 // ─────────────────────────────────────────────────────────────────────
-
-export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCases>> = [
-  {
-    method: 'GET',
-    path: '/v1/resumes/manage/user/:userId',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_READ,
-    params: UserIdParam,
-    response: MgmtResumeListResponseSchema,
-    openapi: {
-      summary: 'List all resumes for a specific user',
-      tags: ['resumes'],
-      description: 'Resumes API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { userId } = ctx.params as { userId: string };
-      const result = await bc.listResumesForUserUseCase.execute(userId);
-      return toMgmtResumeListResponseDto(result.resumes);
-    },
-  },
-  {
-    method: 'GET',
-    path: '/v1/resumes/manage/:resumeId',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_READ,
-    params: ResumeIdParam,
-    response: MgmtResumeDetailsResponseSchema,
-    openapi: {
-      summary: 'Get full resume details',
-      tags: ['resumes'],
-      description: 'Resumes API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { resumeId: id } = ctx.params as { resumeId: string };
-      const resume = await bc.getResumeDetailsUseCase.execute(id);
-      return { resume };
-    },
-  },
-  {
-    method: 'DELETE',
-    path: '/v1/resumes/manage/:resumeId',
-    auth: { kind: 'jwt' },
-    permission: Permission.RESUME_DELETE,
-    params: ResumeIdParam,
-    response: MgmtResumeMessageResponseSchema,
-    openapi: {
-      summary: 'Delete a resume',
-      tags: ['resumes'],
-      description: 'Resumes API',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { resumeId: id } = ctx.params as { resumeId: string };
-      await bc.deleteResumeUseCase.execute(id);
-      return { code: 'RESUME_DELETED' as const };
-    },
-  },
-];
 
 // ─────────────────────────────────────────────────────────────────────
 // Generic resume sections
 // ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Elevated management routes. The three that existed (`/v1/resumes/manage/*`)
+ * were removed with the rest of the surface no screen called (ADR-005); the
+ * use cases behind them stay wired for the support paths that need them.
+ */
+export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCases>> = [];
 
 export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSectionsUseCases>> = [
   {

@@ -23,13 +23,6 @@ export interface SuccessMessageTemplate {
 export type SuccessMessageDictionary = Readonly<Record<string, SuccessMessageTemplate>>;
 
 export const SUCCESS_MESSAGE_DICTIONARY = {
-  RESUME_DELETED: {
-    message: {
-      en: 'Resume deleted successfully.',
-      'pt-BR': 'Currículo apagado com sucesso.',
-    },
-    params: [],
-  },
   USER_DELETED: {
     message: {
       en: 'Account deleted successfully.',
