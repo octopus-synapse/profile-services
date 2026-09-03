@@ -1,5 +1,6 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SEMANTIC_KIND } from '@/shared-kernel/schemas/sections/semantic-kind.const';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeLoaderPort } from '../../../domain/ports/resume-loader.port';
 import type { ResumeBullet, ResumeForCompleteness } from '../../../domain/rules/completeness.rules';
 
@@ -107,7 +108,10 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
       summary: row.summary,
       jobTitle: row.jobTitle,
       phone: row.phone,
-      language: row.language,
+      // ADR-003 §11: the column has carried 'pt-br' since the initial
+      // migration. This projection is the one place the value leaves
+      // persistence, so it is the one place to canonicalize it.
+      language: parseLocale(row.language),
       experiences,
       educations,
       skills,

@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { TranslationService } from './application/services';
+import { TRANSLATION_FLAG_KEY } from './domain/translation-flags.const';
 import type { SourceLanguage, TranslationLanguage } from './domain/types/translation.types';
 import {
   BatchTranslationResponseSchema,
@@ -19,6 +20,23 @@ import {
   TranslateTextSchema,
   TranslationResultSchema,
 } from './translation.routes.schemas';
+
+/**
+ * Guards for every route that spends an OpenAI call (ADR-003 §9).
+ *
+ * These were authenticated but otherwise unguarded, so any logged-in account
+ * could loop them and run up the bill. The rate limit is user-keyed because
+ * the cost is per-account, not per-IP; the flag is the subsystem kill-switch,
+ * and refusing outright is the honest answer here — a translate endpoint that
+ * quietly hands back untranslated text would be worse than a 404.
+ *
+ * `GET /v1/translation/health` is deliberately excluded: it is cached for an
+ * hour and `isAvailable()` never reaches the provider.
+ */
+const LLM_ROUTE_GUARDS = [
+  { id: 'rate-limit', metadata: { points: 30, duration: 3600, keyStrategy: 'user' } },
+  { id: 'feature-flag', metadata: { key: TRANSLATION_FLAG_KEY } },
+] as const;
 
 export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {
@@ -46,6 +64,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     path: '/v1/translation/text',
     statusCode: 201,
     auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
     permission: Permission.RESUME_READ,
     body: TranslateTextSchema,
     response: TranslationResultSchema,
@@ -69,6 +88,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     method: 'POST',
     path: '/v1/translation/detect',
     auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
     response: LanguageDetectionsResponseSchema,
@@ -89,6 +109,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     path: '/v1/translation/batch',
     statusCode: 201,
     auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
     permission: Permission.RESUME_READ,
     body: TranslateBatchSchema,
     response: BatchTranslationResponseSchema,
@@ -113,6 +134,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     path: '/v1/translation/pt-to-en',
     statusCode: 201,
     auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
     response: TranslationResultSchema,
@@ -133,6 +155,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     path: '/v1/translation/en-to-pt',
     statusCode: 201,
     auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
     response: TranslationResultSchema,

@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 
 export const ANALYZE_CONTENT_QUALITY_PROMPT_ID = 'analyze-content-quality';
-export const ANALYZE_CONTENT_QUALITY_PROMPT_SEMVER = '1.1.0';
+export const ANALYZE_CONTENT_QUALITY_PROMPT_SEMVER = '1.2.0';
 
 /** Structured scoring prompt — the adapter wraps the body with a JSON
  * schema via OpenAI's `response_format`. Prompt wording bumps the MINOR
@@ -16,7 +17,7 @@ Scoring rubric (0..100):
 - Temporal / factual consistency. Obvious contradictions emit OTHER with severity: 'high'.
 
 Issues: report up to 5, most severe first. Each issue references a bulletId when applicable, and quotes the offending fragment in 'excerpt'. The freeformMessage is a concrete, actionable rewrite hint (e.g. "Add a number: 'increased conversion by 18%'."), under 160 chars.
-Language: write every freeformMessage in the language given by the 'language' field of the input ('pt-br' → Portuguese, 'en' → English). When absent, match the language the candidate wrote in.
+Language: write every freeformMessage in the language given by the 'language' field of the input ('pt-BR' → Portuguese, 'en' → English). When absent, match the language the candidate wrote in.
 Do NOT invent scores — be conservative. If you cannot justify a number, pick 60.`;
 
 /** Pure function — stable across versions of the JSON schema so the
@@ -36,7 +37,10 @@ export function buildAnalyzeContentQualityUserMessage(input: {
   language?: string | null;
 }): string {
   return JSON.stringify({
-    language: input.language ?? 'pt-br',
+    // ADR-003 §11: the model is shown a canonical tag. `language` reaches here
+    // already normalized by the adapter; the fallback names the same default
+    // the Resume column carries.
+    language: normalizeLocale(input.language) ?? 'pt-BR',
     summary: input.summary ?? '',
     jobTitle: input.jobTitle ?? '',
     bullets: input.bullets,

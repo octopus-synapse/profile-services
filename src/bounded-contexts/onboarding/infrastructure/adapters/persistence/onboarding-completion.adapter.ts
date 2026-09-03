@@ -5,6 +5,7 @@
  * resume upsert, section replacement, user update, progress deletion.
  */
 
+import type { Locale } from '@packages/i18n';
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
@@ -28,10 +29,19 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     super();
   }
 
-  async executeCompletion(userId: string, data: OnboardingData): Promise<CompletionResult> {
+  async executeCompletion(
+    userId: string,
+    data: OnboardingData,
+    authoredLocale?: Locale | null,
+  ): Promise<CompletionResult> {
     return this.prisma.$transaction(
       async (tx) => {
-        const resume = await this.resumeAdapter.upsertResumeWithTx(tx, userId, data);
+        const resume = await this.resumeAdapter.upsertResumeWithTx(
+          tx,
+          userId,
+          data,
+          authoredLocale,
+        );
         await this.saveSections(tx, resume.id, data);
         await this.markOnboardingComplete(tx, userId, data);
         await tx.onboardingProgress.deleteMany({ where: { userId } });

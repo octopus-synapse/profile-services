@@ -5,6 +5,7 @@
  * Moved from application/services/resume-onboarding.service.ts.
  */
 
+import type { Locale } from '@packages/i18n';
 import { type Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
@@ -21,11 +22,16 @@ export class ResumeOnboardingAdapter {
     private readonly logger: LoggerPort,
   ) {}
 
-  async upsertResume(userId: string, data: OnboardingData) {
-    return this.upsertResumeWithTx(this.prisma, userId, data);
+  async upsertResume(userId: string, data: OnboardingData, authoredLocale?: Locale | null) {
+    return this.upsertResumeWithTx(this.prisma, userId, data, authoredLocale);
   }
 
-  async upsertResumeWithTx(tx: Prisma.TransactionClient, userId: string, data: OnboardingData) {
+  async upsertResumeWithTx(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    data: OnboardingData,
+    authoredLocale?: Locale | null,
+  ) {
     const { personalInfo, professionalProfile, resumeStyleId } = data;
 
     const existingResume = await tx.resume.findFirst({
@@ -45,6 +51,12 @@ export class ResumeOnboardingAdapter {
       linkedin: professionalProfile.linkedin,
       github: professionalProfile.github,
       website: professionalProfile.website,
+      // ADR-003 §10: record the language the person actually wrote in instead
+      // of letting every résumé inherit the column default. Omitted (not
+      // null-written) when the request gave us nothing to go on, so the
+      // default still applies on create and an existing value survives an
+      // onboarding re-run.
+      ...(authoredLocale ? { language: authoredLocale, primaryLanguage: authoredLocale } : {}),
     };
 
     const selectedStyleId = await this.resolveStyleId(tx, resumeStyleId ?? null);

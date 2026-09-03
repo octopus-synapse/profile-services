@@ -2,6 +2,7 @@ import type { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { type Locale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { RoleSkillsPort } from '../../domain/ports/role-skills.port';
 
 const CTX = 'RoleSkillsAdapter';
@@ -33,7 +34,9 @@ export class RoleSkillsAdapter extends RoleSkillsPort {
   async getInDemandSkills(roleLabel: string, language?: string | null): Promise<readonly string[]> {
     const label = roleLabel.trim();
     if (!label) return [];
-    const lang = language === 'pt-br' ? 'pt-br' : 'en';
+    // ADR-003 §11. The stored column has shipped as 'pt-br'; normalizing here
+    // keeps one cache bucket per locale instead of one per spelling.
+    const lang: Locale = parseLocale(language ?? undefined);
     const key = `role-skills:v1:${lang}:${label.toLowerCase()}`;
     try {
       return await this.cache.getOrSet<readonly string[]>(

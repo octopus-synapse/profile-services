@@ -32,7 +32,7 @@ function resume(overrides: Partial<ResumeForCompleteness> = {}): ResumeForComple
     fullName: 'Jane',
     summary: 'Engineer.',
     jobTitle: 'Engineer',
-    language: 'pt-br',
+    language: 'pt-BR',
     experiences: [{ role: 'Engineer', company: 'Acme' }],
     educations: [],
     skills: [],
@@ -48,7 +48,7 @@ describe('AiContentQualityAdapter', () => {
     const llm = new CapturingScoringLlm({ score: 72, issues: [], tokensUsed: 0 });
     const adapter = new AiContentQualityAdapter(llm, enabledFlags, stubLogger);
     await adapter.analyze(resume());
-    expect(llm.lastInput?.language).toBe('pt-br');
+    expect(llm.lastInput?.language).toBe('pt-BR');
     expect(llm.lastInput?.bullets).toEqual([
       { id: 'exp:0:description', text: 'Led the payments rewrite' },
     ]);

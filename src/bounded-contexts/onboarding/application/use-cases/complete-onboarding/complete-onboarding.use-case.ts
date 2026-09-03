@@ -1,3 +1,4 @@
+import type { Locale } from '@packages/i18n';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
@@ -39,13 +40,17 @@ export class CompleteOnboardingUseCase {
     private readonly invalidateAuthContext?: InvalidateAuthContextFn,
   ) {}
 
-  async execute(userId: string, data: unknown): Promise<CompletionResult> {
+  async execute(
+    userId: string,
+    data: unknown,
+    authoredLocale?: Locale | null,
+  ): Promise<CompletionResult> {
     this.logger.log('Onboarding process started', 'CompleteOnboardingUseCase', { userId });
 
     const validatedData = this.validateOnboardingData(data);
     const user = await this.findVerifiedUser(userId);
 
-    return this.executeCompletionWithAudit(user.id, validatedData);
+    return this.executeCompletionWithAudit(user.id, validatedData, authoredLocale);
   }
 
   private validateOnboardingData(data: unknown): OnboardingData {
@@ -102,9 +107,14 @@ export class CompleteOnboardingUseCase {
   private async executeCompletionWithAudit(
     userId: string,
     validatedData: OnboardingData,
+    authoredLocale?: Locale | null,
   ): Promise<CompletionResult> {
     try {
-      const result = await this.completionAdapter.executeCompletion(userId, validatedData);
+      const result = await this.completionAdapter.executeCompletion(
+        userId,
+        validatedData,
+        authoredLocale,
+      );
 
       this.invalidateAuthContext?.(userId);
 

@@ -15,7 +15,7 @@ const SAMPLE_ROW = {
   summary: 'Backend engineer.',
   jobTitle: 'Senior Engineer',
   phone: '+55 11 90000-0000',
-  language: 'pt-br',
+  language: 'pt-BR',
   resumeSections: [
     {
       sectionType: { semanticKind: 'WORK_EXPERIENCE' },
@@ -96,6 +96,6 @@ describe('PrismaResumeLoader projection', () => {
 
   it('forwards the resume language', async () => {
     const r = await loaderFor(SAMPLE_ROW).load('r1');
-    expect(r?.language).toBe('pt-br');
+    expect(r?.language).toBe('pt-BR');
   });
 });

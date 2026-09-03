@@ -4,9 +4,11 @@
  * `OnboardingPreviewController` SSE stream.
  */
 
+import type { Locale } from '@packages/i18n';
 import { z } from 'zod';
+import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import { normalizeLocale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { OnboardingCompletionInProgressException } from './domain/exceptions/onboarding-extra.exceptions';
 import { type OnboardingData, OnboardingDataSchema } from './domain/schemas/onboarding-data.schema';
@@ -29,6 +31,34 @@ import {
   SaveProgressResponseSchema,
   StepDataBody,
 } from './onboarding.routes.schemas';
+
+/**
+ * The locale the person actually did onboarding in.
+ *
+ * ADR-003 §10 — the résumé's canonical language must be the one it was
+ * written in, and until now nothing recorded it: every résumé was born with
+ * the column default, so an English onboarding produced a résumé labelled
+ * Portuguese. The completing request is the cheapest honest signal we have
+ * (no LLM, no extra round trip): the explicit `?locale=` the client already
+ * sends on every other onboarding route, else the negotiated
+ * `Accept-Language`.
+ *
+ * Returns `null` when neither is present or recognisable, which leaves the
+ * column default standing rather than asserting a language we are guessing
+ * at. Detecting the language from the prose itself (`detectLanguage` on the
+ * translation port) is the stronger signal and is the ADR's own open item.
+ */
+function resolveAuthoredLocale(ctx: {
+  query: unknown;
+  headers: Record<string, string | string[] | undefined>;
+}): Locale | null {
+  const explicit = normalizeLocale((ctx.query as LocaleQuery | undefined)?.locale);
+  if (explicit) return explicit;
+
+  const header = ctx.headers['accept-language'];
+  const negotiated = negotiateLocale(Array.isArray(header) ? header[0] : header);
+  return negotiated.matched ? negotiated.locale : null;
+}
 
 export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
   // ===== Session / Commands API =====
@@ -233,6 +263,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'POST',
     path: '/v1/onboarding/session/complete',
     auth: { kind: 'jwt' },
+    query: LocaleQuery,
     response: CompleteOnboardingResponseSchema,
     openapi: {
       summary: 'Complete onboarding — backend builds payload from saved progress',
@@ -250,6 +281,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       try {
         const result = await bundle.useCases.completeOnboardingFromProgressUseCase.execute(
           user.userId,
+          resolveAuthoredLocale(ctx),
         );
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
         return result;

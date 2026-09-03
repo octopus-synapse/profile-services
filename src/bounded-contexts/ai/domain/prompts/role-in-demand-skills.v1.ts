@@ -4,6 +4,7 @@
  * role are too sparse to aggregate real skills from. Deterministic-ish
  * (low temperature); returns a compact, normalised skill list.
  */
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import type { RoleSkillsInput } from '../ports/scoring-llm.port';
 
 export const ROLE_IN_DEMAND_SKILLS_PROMPT_VERSION = '1.0.0';
@@ -23,7 +24,7 @@ export const ROLE_IN_DEMAND_SKILLS_SYSTEM_PROMPT = [
 ].join(' ');
 
 export function buildRoleInDemandSkillsUserMessage(input: RoleSkillsInput): string {
-  const lang = input.language === 'pt-br' ? 'Portuguese (Brazil)' : 'English';
+  const lang = normalizeLocale(input.language) === 'pt-BR' ? 'Portuguese (Brazil)' : 'English';
   return [
     `Role title: ${input.roleLabel}`,
     `Language: ${lang}`,

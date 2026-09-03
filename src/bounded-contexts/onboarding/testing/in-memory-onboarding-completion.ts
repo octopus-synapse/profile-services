@@ -1,3 +1,4 @@
+import type { Locale } from '@packages/i18n';
 import {
   type CompletionResult,
   OnboardingCompletionPort,
@@ -8,16 +9,27 @@ interface CompletionRecord {
   userId: string;
   data: OnboardingData;
   resumeId: string;
+  /** The locale the caller said the person authored in — ADR-003 §10. */
+  authoredLocale: Locale | null;
 }
 
 export class InMemoryOnboardingCompletion extends OnboardingCompletionPort {
   private completions = new Map<string, CompletionRecord>();
   private idCounter = 0;
 
-  async executeCompletion(userId: string, data: OnboardingData): Promise<CompletionResult> {
+  async executeCompletion(
+    userId: string,
+    data: OnboardingData,
+    authoredLocale?: Locale | null,
+  ): Promise<CompletionResult> {
     this.idCounter++;
     const resumeId = `resume-${this.idCounter}`;
-    this.completions.set(userId, { userId, data, resumeId });
+    this.completions.set(userId, {
+      userId,
+      data,
+      resumeId,
+      authoredLocale: authoredLocale ?? null,
+    });
     return { resumeId };
   }
 

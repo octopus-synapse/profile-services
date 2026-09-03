@@ -1,3 +1,4 @@
+import type { Locale } from '@packages/i18n';
 import type { LoggerPort } from '@/shared-kernel';
 import {
   OnboardingGenericValidationException,
@@ -11,7 +12,11 @@ import { extractOnboardingDataFromProgress } from '../../mappers/onboarding-resu
 import type { GetProgressFn } from '../shared/navigation.types';
 
 export interface CompleteOnboardingExecutor {
-  execute: (userId: string, data: unknown) => Promise<CompletionResult>;
+  execute: (
+    userId: string,
+    data: unknown,
+    authoredLocale?: Locale | null,
+  ) => Promise<CompletionResult>;
 }
 
 export class CompleteOnboardingFromProgressUseCase {
@@ -34,11 +39,16 @@ export class CompleteOnboardingFromProgressUseCase {
     'professional-profile',
   ];
 
-  async execute(userId: string): Promise<CompletionResult> {
+  /**
+   * @param authoredLocale The locale the person answered in, from the
+   *   completing request. Passed straight through to the résumé so its
+   *   canonical language is the one it was actually written in (ADR-003 §10).
+   */
+  async execute(userId: string, authoredLocale?: Locale | null): Promise<CompletionResult> {
     const progress = await this.getProgress(userId);
     this.assertRequiredStepsCompleted(progress);
     const onboardingData = this.buildOnboardingDataFromProgress(progress);
-    return this.completeOnboarding.execute(userId, onboardingData);
+    return this.completeOnboarding.execute(userId, onboardingData, authoredLocale);
   }
 
   private assertRequiredStepsCompleted(progress: OnboardingProgressData): void {

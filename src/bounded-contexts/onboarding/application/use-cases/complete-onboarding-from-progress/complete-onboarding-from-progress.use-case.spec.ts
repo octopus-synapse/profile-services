@@ -32,7 +32,8 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     getProgressFn = (userId) => getUseCase.execute(userId);
 
     const executor: CompleteOnboardingExecutor = {
-      execute: (userId, data) => completion.executeCompletion(userId, data as never),
+      execute: (userId, data, authoredLocale) =>
+        completion.executeCompletion(userId, data as never, authoredLocale),
     };
 
     useCase = new CompleteOnboardingFromProgressUseCase(getProgressFn, executor, stubLogger);
@@ -267,5 +268,41 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     expect(result.resumeId).toBeDefined();
     const stored = completion.getCompletion(USER_ID);
     expect(stored?.data.sections).toEqual([]);
+  });
+
+  it('forwards the authored locale so the resume is not born in the wrong language', async () => {
+    // ADR-003 §10: before this, the completion path never wrote `language`,
+    // so a resume written in English was persisted claiming Portuguese.
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'review',
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
+        username: 'johndoe',
+        personalInfo: { fullName: 'John Doe' },
+        professionalProfile: { jobTitle: 'Engineer' },
+      }),
+    );
+
+    await useCase.execute(USER_ID, 'en');
+
+    expect(completion.getCompletion(USER_ID)?.authoredLocale).toBe('en');
+  });
+
+  it('passes null through when the request named no locale, leaving the default', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'review',
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
+        username: 'johndoe',
+        personalInfo: { fullName: 'John Doe' },
+        professionalProfile: { jobTitle: 'Engineer' },
+      }),
+    );
+
+    await useCase.execute(USER_ID);
+
+    expect(completion.getCompletion(USER_ID)?.authoredLocale).toBeNull();
   });
 });

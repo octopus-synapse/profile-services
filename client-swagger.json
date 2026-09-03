@@ -36458,6 +36458,16 @@
           "onboarding"
         ],
         "operationId": "post_v1_onboarding_session_complete",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
+          }
+        ],
         "responses": {
           "201": {
             "description": "Successful response",
@@ -61407,7 +61417,11 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:read"
+        "x-permission": "resume:read",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/translation/detect": {
@@ -61505,7 +61519,11 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:read"
+        "x-permission": "resume:read",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/translation/en-to-pt": {
@@ -61616,7 +61634,11 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:read"
+        "x-permission": "resume:read",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/translation/health": {
@@ -61779,7 +61801,11 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:read"
+        "x-permission": "resume:read",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/translation/text": {
@@ -61909,7 +61935,11 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:read"
+        "x-permission": "resume:read",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/upload/company-logo/{resumeId}": {

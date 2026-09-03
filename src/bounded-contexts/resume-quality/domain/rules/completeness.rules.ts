@@ -20,8 +20,9 @@ export interface ResumeForCompleteness {
   /** Optional: when loaded, a blank phone fails the phone rule.
    * `undefined` (not loaded) skips the check so unit literals stay terse. */
   readonly phone?: string | null;
-  /** Resume language (`pt-br` / `en`); forwarded to the Content Quality
-   * AI so issue text comes back in the user's language. */
+  /** Resume language, canonical `pt-BR` / `en` (ADR-003 §11); forwarded to
+   * the Content Quality AI so issue text comes back in the user's language.
+   * The loader canonicalizes it — do not compare against raw column spellings. */
   readonly language?: string | null;
   readonly experiences: ReadonlyArray<{
     readonly startedAt?: Date | null;

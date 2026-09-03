@@ -38,16 +38,74 @@ export {
   SUPPORTED_LOCALES,
 } from './locale-resolver.types';
 
-/** Validates if a string is a supported locale. */
+/** Validates if a string is *exactly* a canonical locale tag. Case-sensitive
+ *  on purpose — this is the "is it already canonical?" predicate. Use
+ *  {@link normalizeLocale} to accept the wild forms. */
 export function isSupportedLocale(locale: string): locale is Locale {
   return LOCALES.includes(locale as Locale);
 }
 
-/** Parse and validate locale from request, defaulting to 'en'. */
+/**
+ * Every spelling of a locale we accept, mapped to its canonical tag.
+ *
+ * Built from `LOCALES` rather than written out, so adding a locale to
+ * `@packages/i18n` extends this table for free. Two spellings are accepted
+ * per locale: the full tag lowercased (`pt-br`) and the bare primary subtag
+ * (`pt`). Primary-subtag entries are first-wins over `LOCALES` order, which
+ * is what makes `pt` mean `pt-BR` and not some future `pt-PT`.
+ */
+const LOCALE_ALIASES: ReadonlyMap<string, Locale> = (() => {
+  const table = new Map<string, Locale>();
+  for (const locale of LOCALES) {
+    const lower = locale.toLowerCase();
+    table.set(lower, locale);
+    const primary = lower.split('-')[0];
+    if (primary && !table.has(primary)) table.set(primary, locale);
+  }
+  return table;
+})();
+
+/**
+ * Canonicalize any locale-ish string to a `Locale`, or `null` when it names
+ * no locale we serve.
+ *
+ * ADR-003 §11 makes `pt-BR` / `en` from `@packages/i18n` the single
+ * vocabulary, but the wild forms are everywhere and outlive the migration:
+ * the `Resume.language` column shipped its default as `'pt-br'`, HTTP clients
+ * send `pt_BR` and `PT-br`, and `TranslationLlmPort` speaks `'pt'`. All of
+ * those denote the same locale, and every one of them used to fall through to
+ * English — silently, because the old `parseLocale` only trimmed.
+ *
+ * Accepts: any case, `_` or `-` as the separator, with or without the region
+ * subtag, and an unserved region on a served language (`en-US` → `en`,
+ * `pt-PT` → `pt-BR`) — the same exact-or-prefix rule `negotiateLocale` already
+ * applies to `Accept-Language`, so the query param and the header can no
+ * longer disagree about the same string. Rejects (returns `null`) anything
+ * else, so a caller that needs to tell "absent" from "unrecognised" can.
+ */
+export function normalizeLocale(raw: string | null | undefined): Locale | null {
+  if (!raw) return null;
+  const key = raw.trim().toLowerCase().replace(/_/g, '-');
+  if (!key) return null;
+
+  const exact = LOCALE_ALIASES.get(key);
+  if (exact) return exact;
+
+  // A served language with a region we do not serve still names a language we
+  // can answer in; only an unknown language is a miss.
+  const primary = key.split('-')[0];
+  return primary ? (LOCALE_ALIASES.get(primary) ?? null) : null;
+}
+
+/**
+ * Locale for a request, defaulting to `DEFAULT_LOCALE`.
+ *
+ * Lenient by construction — this reads `?locale=` and other free-text inputs,
+ * where rejecting `pt-br` outright would be hostile. Routes that want the
+ * strict form validate with `LocaleSchema` at the Zod boundary instead.
+ */
 export function parseLocale(locale: string | undefined): Locale {
-  if (!locale) return DEFAULT_LOCALE;
-  const normalized = locale.trim();
-  return isSupportedLocale(normalized) ? normalized : DEFAULT_LOCALE;
+  return normalizeLocale(locale) ?? DEFAULT_LOCALE;
 }
 
 /**

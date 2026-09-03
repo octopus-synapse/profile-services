@@ -5,15 +5,19 @@ model Resume {
   userId String
   user   User   @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
 
-  title    String?
-  language String  @default("pt-br")
+  title String?
+  // ADR-003 §11: canonical locale tags from `@packages/i18n` (`pt-BR` / `en`).
+  // Migration `20261206000000_normalize_resume_locale_vocabulary` rewrote the
+  // legacy `pt-br` rows and moved the defaults. Normalize at the edges with
+  // `parseLocale` — never compare against a raw spelling.
+  language String  @default("pt-BR")
   isPublic Boolean @default(false)
   slug     String? @unique
 
   // Bilingual content
   contentPtBr     Json?
   contentEn       Json?
-  primaryLanguage String @default("pt-br")
+  primaryLanguage String @default("pt-BR")
 
   // Tech Persona
   techPersona     String?

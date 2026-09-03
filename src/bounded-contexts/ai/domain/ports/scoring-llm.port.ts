@@ -14,7 +14,7 @@ export interface ContentQualityInput {
   readonly summary: string | null;
   readonly jobTitle: string | null;
   readonly bullets: ReadonlyArray<{ readonly id: string; readonly text: string }>;
-  /** Resume language (`pt-br` / `en`); the analyzer writes issue text in
+  /** Resume language, canonical `pt-BR` / `en` (ADR-003 §11); the analyzer writes issue text in
    * this language instead of guessing from the bullet content. */
   readonly language?: string | null;
 }
@@ -61,7 +61,7 @@ export interface NormalizedRequirementsResult {
 export interface RoleSkillsInput {
   /** Free-text role/occupation label, e.g. "Backend Engineer". */
   readonly roleLabel: string;
-  /** Preferred language for the skill names (`pt-br` / `en`). */
+  /** Preferred language for the skill names, canonical `pt-BR` / `en`. */
   readonly language?: string | null;
 }
 

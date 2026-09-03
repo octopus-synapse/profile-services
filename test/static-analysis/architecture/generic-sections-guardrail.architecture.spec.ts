@@ -58,6 +58,7 @@ const ALLOWED_SEMANTIC_KIND_PATHS = [
   '/shared-kernel/types/generic-section.types.ts', // Example docs
   '/shared-kernel/ast/generic-section-data.schema.ts', // Example docs
   '/shared-kernel/schemas/sections/semantic-kind.const.ts', // Single source of truth for well-known kinds
+  '/shared-kernel/schemas/sections/semantic-role.const.ts', // Single source of truth for well-known roles (ACHIEVEMENT is a role here, not a kind)
   '/test/architecture/', // This test
   '/bounded-contexts/resume-styles/validators/', // Resume style config seeds
   '/shared-kernel/dtos/sdk-response.dto.ts', // @ApiProperty examples for Swagger

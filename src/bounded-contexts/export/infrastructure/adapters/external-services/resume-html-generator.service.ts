@@ -18,16 +18,20 @@ import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { AstHtmlRendererService } from './ast-html-renderer.service';
 import { overlayTailoredVersion } from './tailored-version-overlay';
 
-/** Map lang query param to Locale (mirrors TypstPdfGeneratorService). */
+/**
+ * `?lang=` → `Locale`. Delegates the spelling rules to the shared
+ * normalizer (ADR-003 §11) so `pt-br`, `PT_BR` and `pt` stop being three
+ * different answers. The default stays `pt-BR` — an export with no `lang`
+ * keeps rendering what it rendered before. ADR-003 §12 replaces that
+ * default with the resume's own `primaryLanguage`.
+ */
 function resolveLocale(lang?: string): Locale {
-  if (!lang) return 'pt-BR';
-  const normalized = lang.toLowerCase().trim();
-  if (normalized === 'en' || normalized === 'en-us') return 'en';
-  return 'pt-BR';
+  return normalizeLocale(lang) ?? 'pt-BR';
 }
 
 export interface ResumeHtmlOptions {

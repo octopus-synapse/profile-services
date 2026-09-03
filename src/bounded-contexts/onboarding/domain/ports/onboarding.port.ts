@@ -4,6 +4,7 @@
  * Defines domain types and repository abstraction for onboarding operations.
  */
 
+import type { Locale } from '@packages/i18n';
 import type { SectionTypeData } from '../config/onboarding-steps.config';
 import type { OnboardingData } from '../schemas/onboarding-data.schema';
 import type { OnboardingStepConfig } from './onboarding-config.port';
@@ -52,10 +53,19 @@ export abstract class OnboardingRepositoryPort {
 
 export abstract class OnboardingUseCases {
   abstract readonly completeOnboardingUseCase: {
-    execute: (userId: string, data: unknown) => Promise<OnboardingCompletionResult>;
+    execute: (
+      userId: string,
+      data: unknown,
+      /** Locale the person answered in — ADR-003 §10. */
+      authoredLocale?: Locale | null,
+    ) => Promise<OnboardingCompletionResult>;
   };
   abstract readonly completeOnboardingFromProgressUseCase: {
-    execute: (userId: string) => Promise<OnboardingCompletionResult>;
+    execute: (
+      userId: string,
+      /** Locale the person answered in — ADR-003 §10. */
+      authoredLocale?: Locale | null,
+    ) => Promise<OnboardingCompletionResult>;
   };
   abstract readonly getOnboardingStatusUseCase: {
     execute: (userId: string) => Promise<OnboardingStatus>;

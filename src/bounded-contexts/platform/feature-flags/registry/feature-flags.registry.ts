@@ -8,6 +8,7 @@ import { NOTIFICATIONS_FLAGS } from './groups/notifications.flags';
 import { RESUMES_FLAGS } from './groups/resumes.flags';
 import { SCORING_FLAGS } from './groups/scoring.flags';
 import { SOCIAL_FLAGS } from './groups/social.flags';
+import { TRANSLATION_FLAGS } from './groups/translation.flags';
 
 /**
  * Source of truth for flags that the application code checks.
@@ -29,6 +30,7 @@ export const FEATURE_FLAGS_REGISTRY = [
   ...INTEGRATIONS_FLAGS,
   ...EXPERIMENTS_FLAGS,
   ...SCORING_FLAGS,
+  ...TRANSLATION_FLAGS,
 ] as const satisfies readonly FlagDefinition[];
 
 export type RegisteredFlagKey = (typeof FEATURE_FLAGS_REGISTRY)[number]['key'];
