@@ -205,7 +205,6 @@ const FullUserPreferencesSchema = z.object({
   timezone: z.string(),
   emailNotifications: z.boolean(),
   resumeExpiryAlerts: z.boolean(),
-  weeklyDigest: z.boolean(),
   marketingEmails: z.boolean(),
   emailMilestones: z.boolean(),
   emailShareExpiring: z.boolean(),

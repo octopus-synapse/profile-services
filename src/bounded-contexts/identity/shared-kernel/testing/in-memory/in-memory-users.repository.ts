@@ -75,7 +75,6 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       timezone: prefs.timezone ?? 'UTC',
       emailNotifications: prefs.emailNotifications ?? true,
       resumeExpiryAlerts: prefs.resumeExpiryAlerts ?? true,
-      weeklyDigest: prefs.weeklyDigest ?? false,
       marketingEmails: prefs.marketingEmails ?? false,
       emailMilestones: prefs.emailMilestones ?? true,
       emailShareExpiring: prefs.emailShareExpiring ?? true,
@@ -319,7 +318,6 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
         preferences.emailNotifications ?? existingPrefs?.emailNotifications ?? true,
       resumeExpiryAlerts:
         preferences.resumeExpiryAlerts ?? existingPrefs?.resumeExpiryAlerts ?? true,
-      weeklyDigest: preferences.weeklyDigest ?? existingPrefs?.weeklyDigest ?? false,
       marketingEmails: preferences.marketingEmails ?? existingPrefs?.marketingEmails ?? false,
       emailMilestones: preferences.emailMilestones ?? existingPrefs?.emailMilestones ?? true,
       emailShareExpiring:

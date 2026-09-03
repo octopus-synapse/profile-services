@@ -125,7 +125,6 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       timezone: prefs.timezone,
       emailNotifications: prefs.emailNotifications,
       resumeExpiryAlerts: prefs.resumeExpiryAlerts,
-      weeklyDigest: prefs.weeklyDigest,
       marketingEmails: prefs.marketingEmails,
       emailMilestones: prefs.emailMilestones,
       emailShareExpiring: prefs.emailShareExpiring,
@@ -160,7 +159,6 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         timezone: data.timezone ?? 'UTC',
         emailNotifications: data.emailNotifications ?? true,
         resumeExpiryAlerts: data.resumeExpiryAlerts ?? true,
-        weeklyDigest: data.weeklyDigest ?? false,
         marketingEmails: data.marketingEmails ?? false,
         emailMilestones: data.emailMilestones ?? true,
         emailShareExpiring: data.emailShareExpiring ?? true,
@@ -186,7 +184,6 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         ...(data.resumeExpiryAlerts !== undefined && {
           resumeExpiryAlerts: data.resumeExpiryAlerts,
         }),
-        ...(data.weeklyDigest !== undefined && { weeklyDigest: data.weeklyDigest }),
         ...(data.marketingEmails !== undefined && { marketingEmails: data.marketingEmails }),
         ...(data.emailMilestones !== undefined && { emailMilestones: data.emailMilestones }),
         ...(data.emailShareExpiring !== undefined && {
@@ -257,7 +254,6 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       timezone: hydrated.timezone,
       emailNotifications: hydrated.emailNotifications,
       resumeExpiryAlerts: hydrated.resumeExpiryAlerts,
-      weeklyDigest: hydrated.weeklyDigest,
       marketingEmails: hydrated.marketingEmails,
       emailMilestones: hydrated.emailMilestones,
       emailShareExpiring: hydrated.emailShareExpiring,

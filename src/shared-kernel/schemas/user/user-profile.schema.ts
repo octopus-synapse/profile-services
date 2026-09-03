@@ -83,7 +83,6 @@ export const UpdateFullPreferencesSchema = z
     timezone: z.string().max(50).optional(), // Notifications
     emailNotifications: z.boolean().optional(),
     resumeExpiryAlerts: z.boolean().optional(),
-    weeklyDigest: z.boolean().optional(),
     marketingEmails: z.boolean().optional(),
     emailMilestones: z.boolean().optional(),
     emailShareExpiring: z.boolean().optional(),

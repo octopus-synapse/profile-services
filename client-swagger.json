@@ -52194,9 +52194,6 @@
                         "resumeExpiryAlerts": {
                           "type": "boolean"
                         },
-                        "weeklyDigest": {
-                          "type": "boolean"
-                        },
                         "marketingEmails": {
                           "type": "boolean"
                         },
@@ -52336,7 +52333,6 @@
                         "timezone",
                         "emailNotifications",
                         "resumeExpiryAlerts",
-                        "weeklyDigest",
                         "marketingEmails",
                         "emailMilestones",
                         "emailShareExpiring",
@@ -52440,9 +52436,6 @@
                     "type": "boolean"
                   },
                   "resumeExpiryAlerts": {
-                    "type": "boolean"
-                  },
-                  "weeklyDigest": {
                     "type": "boolean"
                   },
                   "marketingEmails": {
@@ -52615,9 +52608,6 @@
                         "resumeExpiryAlerts": {
                           "type": "boolean"
                         },
-                        "weeklyDigest": {
-                          "type": "boolean"
-                        },
                         "marketingEmails": {
                           "type": "boolean"
                         },
@@ -52757,7 +52747,6 @@
                         "timezone",
                         "emailNotifications",
                         "resumeExpiryAlerts",
-                        "weeklyDigest",
                         "marketingEmails",
                         "emailMilestones",
                         "emailShareExpiring",

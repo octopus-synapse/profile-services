@@ -146,7 +146,6 @@ model UserPreferences {
   // Notifications
   emailNotifications Boolean         @default(true)
   resumeExpiryAlerts Boolean         @default(true)
-  weeklyDigest       Boolean         @default(false)
   marketingEmails    Boolean         @default(false)
   emailMilestones    Boolean         @default(true)
   emailShareExpiring Boolean         @default(true)

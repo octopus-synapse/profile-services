@@ -34,7 +34,6 @@ export type FullUserPreferences = {
   timezone: string;
   emailNotifications: boolean;
   resumeExpiryAlerts: boolean;
-  weeklyDigest: boolean;
   marketingEmails: boolean;
   emailMilestones: boolean;
   emailShareExpiring: boolean;

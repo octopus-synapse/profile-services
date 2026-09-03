@@ -354,7 +354,6 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['hasCompletedOnboarding', 'true'],
   ['emailNotifications', 'true'],
   ['marketingEmails', 'false'],
-  ['weeklyDigest', 'false'],
   ['emailMilestones', 'false'],
   ['emailShareExpiring', 'false'],
   ['resumeExpiryAlerts', 'false'],

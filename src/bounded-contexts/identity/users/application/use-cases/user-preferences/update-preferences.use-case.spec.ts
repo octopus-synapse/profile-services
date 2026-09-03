@@ -30,7 +30,6 @@ describe('UpdatePreferencesUseCase', () => {
         timezone: 'UTC',
         emailNotifications: true,
         resumeExpiryAlerts: true,
-        weeklyDigest: false,
         marketingEmails: false,
         emailMilestones: true,
         emailShareExpiring: true,
