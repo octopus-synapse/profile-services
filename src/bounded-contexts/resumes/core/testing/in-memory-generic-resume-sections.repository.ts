@@ -150,6 +150,7 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
     const item: SectionItemDto = {
       id,
       resumeSectionId,
+      translations: null,
       order,
       isVisible: true,
       content: content as Prisma.JsonValue,
@@ -273,6 +274,7 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
       order: input.order ?? 0,
       isVisible: input.isVisible ?? true,
       content: input.content,
+      translations: input.translations ?? null,
       createdAt: input.createdAt ?? now,
       updatedAt: input.updatedAt ?? now,
     };

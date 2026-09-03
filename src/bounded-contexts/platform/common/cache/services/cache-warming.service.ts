@@ -69,7 +69,6 @@ export class CacheWarmingService {
           jobTitle: true,
           summary: true,
           profileViews: true,
-          primaryLanguage: true,
           accentColor: true,
 
           createdAt: true,
@@ -126,7 +125,6 @@ export class CacheWarmingService {
           jobTitle: true,
           summary: true,
           profileViews: true,
-          primaryLanguage: true,
           accentColor: true,
 
           createdAt: true,

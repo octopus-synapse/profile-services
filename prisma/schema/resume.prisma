@@ -14,10 +14,13 @@ model Resume {
   isPublic Boolean @default(false)
   slug     String? @unique
 
-  // Bilingual content
-  contentPtBr     Json?
-  contentEn       Json?
-  primaryLanguage String @default("pt-BR")
+  // ADR-003: `language` is the canonical (authored) locale; the other locale
+  // is derived. Résumé-level prose in the other locale lives here, keyed by
+  // locale — `{ [locale]: { summary, headline, jobTitle, sourceHash,
+  // translatedAt, origin } }` — with `origin` telling whether the machine
+  // wrote it ("derived") or the person did ("manual" / "diverged"). Per-item
+  // prose is on `SectionItem.translations` with the same envelope.
+  translations Json?
 
   // Tech Persona
   techPersona     String?
@@ -29,6 +32,10 @@ model Resume {
   // address lives on `User.email` and is read via the `user` relation.
   fullName String?
   jobTitle String?
+  // One-line professional headline ("Frontend Engineer @ Vercel"). Moved from
+  // `User.headline` (ADR-003 §7): it is prose, so it needs a locale, and the
+  // résumé is where prose has one.
+  headline String? @db.VarChar(120)
   phone    String?
   location String?
   linkedin String?
@@ -94,5 +101,4 @@ model Resume {
   @@index([createdAt])
   @@index([techPersona])
   @@index([styleId])
-  @@index([primaryLanguage])
 }

@@ -112,7 +112,6 @@ describe('Security Boundaries Integration', () => {
         data: {
           userId: otherUserId,
           title: 'Private Resume',
-          contentPtBr: {},
         },
       });
       otherUserResumeId = otherResume.id;

@@ -23,7 +23,6 @@ async function seedUserResume(app: TestApp, title = 'Test Resume'): Promise<Resu
     data: {
       userId: user.userId,
       title,
-      contentPtBr: { sections: [] },
     },
   });
   return { user, resumeId: resume.id };

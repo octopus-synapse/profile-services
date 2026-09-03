@@ -12,7 +12,7 @@ import { getApp } from './setup';
 /** Create a resume owned by `userId` and mark it the user's primary. */
 async function seedPrimaryResume(app: TestApp, userId: string): Promise<string> {
   const resume = await app.prisma.resume.create({
-    data: { userId, title: 'Scores Test Resume', contentPtBr: { sections: [] } },
+    data: { userId, title: 'Scores Test Resume' },
   });
   await app.prisma.user.update({
     where: { id: userId },

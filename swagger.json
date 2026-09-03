@@ -35523,11 +35523,6 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "contentPtBr": {},
-                        "contentEn": {},
-                        "primaryLanguage": {
-                          "type": "string"
-                        },
                         "techPersona": {
                           "type": "string",
                           "nullable": true
@@ -35807,7 +35802,6 @@
                         "language",
                         "isPublic",
                         "slug",
-                        "primaryLanguage",
                         "techPersona",
                         "techArea",
                         "primaryStack",
@@ -35944,11 +35938,6 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "contentPtBr": {},
-                        "contentEn": {},
-                        "primaryLanguage": {
-                          "type": "string"
-                        },
                         "techPersona": {
                           "type": "string",
                           "nullable": true
@@ -36228,7 +36217,6 @@
                         "language",
                         "isPublic",
                         "slug",
-                        "primaryLanguage",
                         "techPersona",
                         "techArea",
                         "primaryStack",
@@ -40180,11 +40168,6 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "contentPtBr": {},
-                        "contentEn": {},
-                        "primaryLanguage": {
-                          "type": "string"
-                        },
                         "techPersona": {
                           "type": "string",
                           "nullable": true
@@ -40581,7 +40564,6 @@
                         "language",
                         "isPublic",
                         "slug",
-                        "primaryLanguage",
                         "techPersona",
                         "techArea",
                         "primaryStack",

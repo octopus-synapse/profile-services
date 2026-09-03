@@ -12,9 +12,6 @@ export interface CreateMockResumeOptions {
   slug?: string;
   isPublic?: boolean;
   language?: string;
-  primaryLanguage?: string;
-  contentPtBr?: Prisma.JsonValue;
-  contentEn?: Prisma.JsonValue;
   techPersona?: string | null;
   techArea?: string | null;
   primaryStack?: string[];
@@ -53,11 +50,10 @@ const defaultResume: Resume = {
   slug: 'my-resume',
   isPublic: false,
   language: 'pt-BR',
-  primaryLanguage: 'pt-BR',
+  translations: null,
+  headline: null,
   targetRoleId: null,
   targetRoleLabel: null,
-  contentPtBr: null,
-  contentEn: null,
   techPersona: null,
   techArea: null,
   primaryStack: [],

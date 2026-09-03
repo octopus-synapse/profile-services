@@ -26,7 +26,7 @@ async function seedResumeWithVersions(app: TestApp, labels: string[]): Promise<V
     data: {
       userId: user.userId,
       title: 'Versioned Resume',
-      contentPtBr: { sections: [{ type: 'header', data: { name: 'John Doe' } }] },
+      summary: 'John Doe, first draft',
     },
   });
 
@@ -108,11 +108,10 @@ describe('Resume Versions Integration', () => {
       expect(updatedResume).not.toBeNull();
       if (!updatedResume) return;
 
-      // snapshot contains the full resume, but only contentPtBr is restored.
-      const snapshot = firstVersion.snapshot as { contentPtBr: unknown };
-      expect(JSON.stringify(updatedResume.contentPtBr)).toEqual(
-        JSON.stringify(snapshot.contentPtBr),
-      );
+      // The snapshot carries the full resume; the restore puts the mutable
+      // columns back, summary among them.
+      const snapshot = firstVersion.snapshot as { summary: string | null };
+      expect(updatedResume.summary).toBe(snapshot.summary);
     });
 
     it('should create new version after rollback', async () => {

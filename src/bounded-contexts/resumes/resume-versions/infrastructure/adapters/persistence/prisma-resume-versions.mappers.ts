@@ -89,11 +89,7 @@ function setStringOrNull(
   if (typeof value === 'string' || value === null) data[key] = value;
 }
 
-function setString(
-  data: Prisma.ResumeUncheckedUpdateInput,
-  key: 'language' | 'primaryLanguage',
-  value: unknown,
-): void {
+function setString(data: Prisma.ResumeUncheckedUpdateInput, key: 'language', value: unknown): void {
   if (typeof value === 'string') data[key] = value;
 }
 
@@ -152,7 +148,7 @@ function setStringArray(
 
 function setJson(
   data: Prisma.ResumeUncheckedUpdateInput,
-  key: 'contentPtBr' | 'contentEn' | 'customTheme',
+  key: 'customTheme',
   value: unknown,
 ): void {
   if (value === null) {
@@ -176,9 +172,6 @@ export function toResumeUpdateData(
   setString(data, 'language', snapshot.language);
   setBoolean(data, 'isPublic', snapshot.isPublic);
   setStringOrNull(data, 'slug', snapshot.slug);
-  setJson(data, 'contentPtBr', snapshot.contentPtBr);
-  setJson(data, 'contentEn', snapshot.contentEn);
-  setString(data, 'primaryLanguage', snapshot.primaryLanguage);
   setStringOrNull(data, 'techPersona', snapshot.techPersona);
   setStringOrNull(data, 'techArea', snapshot.techArea);
   setStringArray(data, 'primaryStack', snapshot.primaryStack);

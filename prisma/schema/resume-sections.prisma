@@ -99,6 +99,12 @@ model SectionItem {
   resumeSection   ResumeSection @relation(fields: [resumeSectionId], references: [id], onDelete: Cascade)
 
   content Json
+  // Derived-locale copies of `content` (ADR-003): `{ [locale]: { data,
+  // sourceHash, translatedAt, origin } }`. `sourceHash` is the hash of the
+  // canonical `content` the copy was made from — when it no longer matches,
+  // the copy is stale. `origin` "manual"/"diverged" copies are never
+  // overwritten by the translation worker.
+  translations Json?
 
   isVisible Boolean @default(true)
   order     Int     @default(0)

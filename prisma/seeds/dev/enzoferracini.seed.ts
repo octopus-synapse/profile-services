@@ -107,7 +107,6 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
         'Comfortable across the stack with a preference for TypeScript, Svelte, and PostgreSQL.',
       isPublic: true,
       slug: username,
-      primaryLanguage: 'pt-BR',
       language: 'pt-BR',
       styleId: defaultStyle.id,
     },
