@@ -1,3 +1,4 @@
+import { VERIFICATION_CODE_TTL_MINUTES } from '../../../shared-kernel/domain/verification-code.const';
 /**
  * Email Verification Value Object
  *
@@ -25,7 +26,9 @@ export class EmailVerificationToken {
    * distribution over 10^6. Brute-force protection relies on rate limiting +
    * short TTL. Default is 15 minutes.
    */
-  static generateNew(expirationMinutes: number = 15): EmailVerificationToken {
+  static generateNew(
+    expirationMinutes: number = VERIFICATION_CODE_TTL_MINUTES,
+  ): EmailVerificationToken {
     const buf = new Uint32Array(1);
     crypto.getRandomValues(buf);
     const token = (buf[0] % 1_000_000).toString().padStart(6, '0');

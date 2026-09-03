@@ -15,4 +15,5 @@ export * from './password.schema';
 export * from './professional-profile.schema';
 export * from './social-url.schema';
 export * from './text.schema';
+export * from './text-lengths.const';
 export * from './user-fields.schema';

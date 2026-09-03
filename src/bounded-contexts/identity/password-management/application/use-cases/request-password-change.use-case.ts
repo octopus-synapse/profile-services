@@ -1,3 +1,7 @@
+import {
+  VERIFICATION_RESEND_COOLDOWN_SECONDS,
+  verificationCodeExpiresAt,
+} from '@/bounded-contexts/identity/shared-kernel/domain/verification-code.const';
 import { LoggerPort } from '@/shared-kernel';
 import type { EnvConfig } from '@/shared-kernel/config';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
@@ -18,9 +22,6 @@ import type {
 export interface PasswordChangeCodeEmailPort {
   sendPasswordChangeCode(email: string, name: string, code: string): Promise<void>;
 }
-
-const CODE_TTL_MINUTES = 15;
-const RESEND_COOLDOWN_SECONDS = 60;
 
 /** 6 numeric digits via CSPRNG — mirrors the email-verification token VO. */
 function generateCode(): string {
@@ -58,7 +59,7 @@ export class RequestPasswordChangeUseCase implements RequestPasswordChangePort {
     // confirmed; single-use + short TTL + deleted on confirm.
     const pendingPasswordHash = await this.passwordHasher.hash(newPassword);
     const code = generateCode();
-    const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
+    const expiresAt = verificationCodeExpiresAt();
 
     await this.codeStore.deleteUserPurposeTokens(userId, 'PASSWORD_CHANGE');
     await this.codeStore.createPurposeToken({
@@ -75,7 +76,7 @@ export class RequestPasswordChangeUseCase implements RequestPasswordChangePort {
 
     const showTestCode = this.env.NODE_ENV !== 'production' && this.env.BYPASS_2FA === true;
     return {
-      cooldownSeconds: RESEND_COOLDOWN_SECONDS,
+      cooldownSeconds: VERIFICATION_RESEND_COOLDOWN_SECONDS,
       ...(showTestCode ? { testCode: code } : {}),
     };
   }

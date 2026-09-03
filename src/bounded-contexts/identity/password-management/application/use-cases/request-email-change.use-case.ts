@@ -1,3 +1,7 @@
+import {
+  VERIFICATION_RESEND_COOLDOWN_SECONDS,
+  verificationCodeExpiresAt,
+} from '@/bounded-contexts/identity/shared-kernel/domain/verification-code.const';
 import { LoggerPort } from '@/shared-kernel';
 import type { EnvConfig } from '@/shared-kernel/config';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
@@ -21,9 +25,6 @@ import type {
 export interface EmailChangeCodeEmailPort {
   sendEmailChangeCode(email: string, name: string, code: string): Promise<void>;
 }
-
-const CODE_TTL_MINUTES = 15;
-const RESEND_COOLDOWN_SECONDS = 60;
 
 function generateCode(): string {
   const buf = new Uint32Array(1);
@@ -59,7 +60,7 @@ export class RequestEmailChangeUseCase implements RequestEmailChangePort {
     }
 
     const code = generateCode();
-    const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
+    const expiresAt = verificationCodeExpiresAt();
 
     await this.codeStore.deleteUserPurposeTokens(userId, 'EMAIL_CHANGE');
     await this.codeStore.createPurposeToken({
@@ -77,7 +78,7 @@ export class RequestEmailChangeUseCase implements RequestEmailChangePort {
 
     const showTestCode = this.env.NODE_ENV !== 'production' && this.env.BYPASS_2FA === true;
     return {
-      cooldownSeconds: RESEND_COOLDOWN_SECONDS,
+      cooldownSeconds: VERIFICATION_RESEND_COOLDOWN_SECONDS,
       ...(showTestCode ? { testCode: code } : {}),
     };
   }

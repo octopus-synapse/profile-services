@@ -1,6 +1,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { EXAMPLE_BIO, EXAMPLE_DESCRIPTION } from '../params/example-values.const';
+import { EXAMPLE_BIO, EXAMPLE_DESCRIPTION, EXAMPLE_HEADLINE } from '../params/example-values.const';
+import { HEADLINE_MAX_LENGTH } from './text-lengths.const';
 
 extendZodWithOpenApi(z);
 
@@ -33,6 +34,24 @@ export const BioSchema = z
   });
 
 export type Bio = z.infer<typeof BioSchema>;
+
+/**
+ * The one-line professional headline (ADR-003 §7: it lives on the résumé).
+ *
+ * It was declared four times with three different lengths' worth of error
+ * messages and no shared OpenAPI name, while the column behind it is
+ * `VarChar(120)`. One definition keeps the DTO and the column in step.
+ */
+export const HeadlineSchema = z
+  .string()
+  .trim()
+  .max(HEADLINE_MAX_LENGTH, `Headline cannot exceed ${HEADLINE_MAX_LENGTH} characters`)
+  .openapi('Headline', {
+    example: EXAMPLE_HEADLINE,
+    description: `One-line professional headline (up to ${HEADLINE_MAX_LENGTH} characters).`,
+  });
+
+export type Headline = z.infer<typeof HeadlineSchema>;
 
 export type ShortDescriptionDto = z.infer<typeof ShortDescriptionSchema>;
 export type BioDto = z.infer<typeof BioSchema>;

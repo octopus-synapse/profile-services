@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
 import Redis from 'ioredis';
+import {
+  REDIS_DEFAULT_PORT,
+  REDIS_MAX_RETRIES_PER_REQUEST,
+  redisRetryStrategy,
+} from '@/bounded-contexts/platform/common/cache/redis-connection.const';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
@@ -10,9 +15,6 @@ import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types'
 const SNAPSHOT_PREFIX = 'flags:snapshot:';
 const INVALIDATE_CHANNEL = 'flags:invalidate';
 const TTL_SECONDS = 60;
-const REDIS_DEFAULT_PORT = 6379;
-const RETRY_DELAY_MAX = 2000;
-const RETRY_DELAY_MULTIPLIER = 50;
 // P1 #40 — SCAN page size + UNLINK batch concurrency.
 // SCAN_COUNT=200 keeps every Redis "tick" short; UNLINK_BATCH=10 caps
 // the in-flight pipeline so a huge keyspace doesn't queue thousands of
@@ -56,10 +58,9 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
         host,
         port: parseInt(portRaw, 10),
         password,
-        // Match RedisConnectionService: cap retry delay so a misconfigured
-        // host doesn't produce unbounded error spam or crash loops.
-        retryStrategy: (times) => Math.min(times * RETRY_DELAY_MULTIPLIER, RETRY_DELAY_MAX),
-        maxRetriesPerRequest: 3,
+        // The same policy the cache connection uses — see the const module.
+        retryStrategy: redisRetryStrategy,
+        maxRetriesPerRequest: REDIS_MAX_RETRIES_PER_REQUEST,
         lazyConnect: true,
       });
     } catch (err) {

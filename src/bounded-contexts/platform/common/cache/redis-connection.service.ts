@@ -7,11 +7,11 @@ import Redis from 'ioredis';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
-
-const REDIS_DEFAULT_PORT = 6379;
-const RETRY_DELAY_MAX = 2000;
-const RETRY_DELAY_MULTIPLIER = 50;
-const MAX_RETRIES_PER_REQUEST = 3;
+import {
+  REDIS_DEFAULT_PORT,
+  REDIS_MAX_RETRIES_PER_REQUEST,
+  redisRetryStrategy,
+} from './redis-connection.const';
 
 export class RedisConnectionService implements Lifecycle {
   private _client: Redis | null = null;
@@ -51,8 +51,8 @@ export class RedisConnectionService implements Lifecycle {
         host,
         port,
         password,
-        retryStrategy: (times) => Math.min(times * RETRY_DELAY_MULTIPLIER, RETRY_DELAY_MAX),
-        maxRetriesPerRequest: MAX_RETRIES_PER_REQUEST,
+        retryStrategy: redisRetryStrategy,
+        maxRetriesPerRequest: REDIS_MAX_RETRIES_PER_REQUEST,
       });
 
       this._client.on('connect', () => {

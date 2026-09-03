@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import {
   GitHubUrlSchema,
+  HeadlineSchema,
   LinkedInUrlSchema,
   SocialUrlSchema,
 } from '@/shared-kernel/schemas/primitives';
@@ -24,15 +25,13 @@ const SummarySchema = z
   .max(500, 'Summary cannot exceed 500 characters')
   .trim();
 
-const HeadlineSchema = z
-  .string()
-  .trim()
-  .min(1, 'Headline cannot be empty')
-  .max(120, 'Headline cannot exceed 120 characters');
+// Onboarding additionally requires the headline to be non-empty: the step
+// exists to collect it. The length rule is the shared one.
+const RequiredHeadlineSchema = HeadlineSchema.min(1, 'Headline cannot be empty');
 
 export const ProfessionalProfileSchema = z.object({
   title: JobTitleSchema.optional(),
-  headline: HeadlineSchema.optional(),
+  headline: RequiredHeadlineSchema.optional(),
   summary: SummarySchema,
   linkedin: LinkedInUrlSchema.optional(),
   github: GitHubUrlSchema.optional(),

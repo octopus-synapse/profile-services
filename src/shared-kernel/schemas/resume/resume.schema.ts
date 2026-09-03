@@ -2,8 +2,10 @@ import { z } from 'zod';
 import {
   BioSchema,
   GitHubUrlSchema,
+  HeadlineSchema,
   LinkedInUrlSchema,
   PhoneSchema,
+  ROLE_LABEL_MAX_LENGTH,
   SocialUrlSchema,
   UserLocationSchema,
 } from '../primitives';
@@ -46,12 +48,12 @@ export const CreateResumeSchema = z.object({
   language: z.enum(['pt-BR', 'en']).optional(),
   summary: BioSchema.optional(),
   /** One-line professional headline — lives on the résumé (ADR-003 §7). */
-  headline: z.string().trim().max(120).nullable().optional(),
+  headline: HeadlineSchema.nullable().optional(),
   isPublic: z.boolean().default(false), // Personal info
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
   targetRoleId: z.string().max(64).nullish(),
-  targetRoleLabel: z.string().max(120).nullish(),
+  targetRoleLabel: z.string().max(ROLE_LABEL_MAX_LENGTH).nullish(),
   phone: PhoneSchema,
   location: UserLocationSchema,
   linkedin: LinkedInUrlSchema.optional(),

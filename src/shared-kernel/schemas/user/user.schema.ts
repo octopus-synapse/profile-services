@@ -10,6 +10,7 @@ import {
   UserLocationSchema,
 } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { HeadlineSchema } from '../primitives';
 
 /**
  * User DTOs
@@ -25,7 +26,7 @@ export const UpdateUserSchema = z
     name: FullNameSchema.optional(),
     username: UsernameSchema.optional(),
     bio: ShortDescriptionSchema.optional(),
-    headline: z.string().max(120, 'Headline must be 120 characters or less').optional(),
+    headline: HeadlineSchema.optional(),
     location: UserLocationSchema,
     website: SocialUrlSchema.optional(),
     portfolio: SocialUrlSchema.optional(),

@@ -4,6 +4,7 @@ import {
   GitHubUrlSchema,
   LinkedInUrlSchema,
   PhoneSchema,
+  ROLE_LABEL_MAX_LENGTH,
   SocialUrlSchema,
   UserLocationSchema,
 } from '@/shared-kernel/schemas/primitives';
@@ -16,7 +17,7 @@ export const CreateResumeRequestSchema = z.object({
   jobTitle: z.string().max(100).optional(),
   // Desired role for the market-relative Readiness Score (RolePicker in the UI).
   targetRoleId: z.string().max(64).nullish(),
-  targetRoleLabel: z.string().max(120).nullish(),
+  targetRoleLabel: z.string().max(ROLE_LABEL_MAX_LENGTH).nullish(),
   phone: PhoneSchema,
   location: UserLocationSchema,
   linkedin: LinkedInUrlSchema.optional(),

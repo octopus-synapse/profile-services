@@ -884,6 +884,13 @@
         "description": "Free-form city/region/country label (max 100 characters).",
         "example": "São Paulo, Brazil"
       },
+      "Headline": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120,
+        "description": "One-line professional headline (up to 120 characters).",
+        "example": "Backend engineer · distributed systems"
+      },
       "LinkedInUrl": {
         "type": "string",
         "maxLength": 500,
@@ -928,10 +935,15 @@
             "$ref": "#/components/schemas/Bio"
           },
           "headline": {
-            "type": "string",
-            "nullable": true,
-            "maxLength": 120,
-            "description": "One-line professional headline (ADR-003 §7: lives on the résumé, not the user).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Headline"
+              },
+              {
+                "description": "One-line professional headline (ADR-003 §7: lives on the résumé, not the user)."
+              }
+            ],
+            "description": "One-line professional headline (up to 120 characters).",
             "example": "Backend engineer · distributed systems"
           },
           "isPublic": {
@@ -1020,10 +1032,15 @@
             "$ref": "#/components/schemas/Bio"
           },
           "headline": {
-            "type": "string",
-            "nullable": true,
-            "maxLength": 120,
-            "description": "One-line professional headline (ADR-003 §7: lives on the résumé, not the user).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Headline"
+              },
+              {
+                "description": "One-line professional headline (ADR-003 §7: lives on the résumé, not the user)."
+              }
+            ],
+            "description": "One-line professional headline (up to 120 characters).",
             "example": "Backend engineer · distributed systems"
           },
           "isPublic": {
@@ -18496,9 +18513,7 @@
                           "maxLength": 100
                         },
                         "headline": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 120
+                          "$ref": "#/components/schemas/Headline"
                         },
                         "summary": {
                           "type": "string",
@@ -19030,9 +19045,7 @@
                           "maxLength": 100
                         },
                         "headline": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 120
+                          "$ref": "#/components/schemas/Headline"
                         },
                         "summary": {
                           "type": "string",
@@ -19499,9 +19512,7 @@
                           "maxLength": 100
                         },
                         "headline": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 120
+                          "$ref": "#/components/schemas/Headline"
                         },
                         "summary": {
                           "type": "string",
@@ -19961,9 +19972,7 @@
                           "maxLength": 100
                         },
                         "headline": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 120
+                          "$ref": "#/components/schemas/Headline"
                         },
                         "summary": {
                           "type": "string",
@@ -35933,8 +35942,7 @@
                     "$ref": "#/components/schemas/ShortDescription"
                   },
                   "headline": {
-                    "type": "string",
-                    "maxLength": 120
+                    "$ref": "#/components/schemas/Headline"
                   },
                   "location": {
                     "$ref": "#/components/schemas/UserLocation"

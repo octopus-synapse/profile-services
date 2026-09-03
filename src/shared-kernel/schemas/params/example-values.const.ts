@@ -26,6 +26,7 @@ export const EXAMPLE_NAME = 'Fixture User';
 export const EXAMPLE_TITLE = 'Senior Software Engineer';
 export const EXAMPLE_DESCRIPTION = 'A short description of the resource.';
 export const EXAMPLE_BIO = 'Engineer interested in building robust systems.';
+export const EXAMPLE_HEADLINE = 'Backend engineer · distributed systems';
 export const EXAMPLE_PASSWORD = 'Fixture_Password_123!';
 export const EXAMPLE_TOKEN = 'fixture-token-replace-me';
 export const EXAMPLE_HEX_COLOR = '#0066cc';

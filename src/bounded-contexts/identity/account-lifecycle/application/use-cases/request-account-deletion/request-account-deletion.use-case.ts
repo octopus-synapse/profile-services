@@ -1,3 +1,7 @@
+import {
+  VERIFICATION_RESEND_COOLDOWN_SECONDS,
+  verificationCodeExpiresAt,
+} from '@/bounded-contexts/identity/shared-kernel/domain/verification-code.const';
 import { LoggerPort } from '@/shared-kernel';
 import type { EnvConfig } from '@/shared-kernel/config';
 import { EntityNotFoundException, UnauthorizedException } from '@/shared-kernel/exceptions';
@@ -16,9 +20,6 @@ import type { PasswordHasherPort } from '../../../domain/ports/password-hasher.p
 export interface AccountDeletionCodeEmailPort {
   sendAccountDeletionCode(email: string, name: string, code: string): Promise<void>;
 }
-
-const CODE_TTL_MINUTES = 15;
-const RESEND_COOLDOWN_SECONDS = 60;
 
 /** 6 numeric digits via CSPRNG — mirrors the credential-change code flows. */
 function generateCode(): string {
@@ -68,7 +69,7 @@ export class RequestAccountDeletionUseCase implements RequestAccountDeletionPort
     }
 
     const code = generateCode();
-    const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
+    const expiresAt = verificationCodeExpiresAt();
 
     await this.codeStore.deleteUserPurposeTokens(userId, 'ACCOUNT_DELETION');
     await this.codeStore.createPurposeToken({
@@ -84,7 +85,7 @@ export class RequestAccountDeletionUseCase implements RequestAccountDeletionPort
 
     const showTestCode = this.env.NODE_ENV !== 'production' && this.env.BYPASS_2FA === true;
     return {
-      cooldownSeconds: RESEND_COOLDOWN_SECONDS,
+      cooldownSeconds: VERIFICATION_RESEND_COOLDOWN_SECONDS,
       ...(showTestCode ? { testCode: code } : {}),
     };
   }

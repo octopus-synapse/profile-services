@@ -1,3 +1,4 @@
+import { VERIFICATION_CODE_TTL_MINUTES } from '@/bounded-contexts/identity/shared-kernel/domain/verification-code.const';
 import { LoggerPort } from '@/shared-kernel';
 import type { EnvConfig } from '@/shared-kernel/config';
 import { hashToken } from '@/shared-kernel/crypto/token-hash';
@@ -18,8 +19,12 @@ import type {
 } from '../../ports';
 import { RESEND_COOLDOWN_SECONDS } from '../send-verification-email/send-verification-email.use-case';
 
-/** The code's lifetime — also the challenge's cache TTL. */
-export const PRE_SIGNUP_CODE_TTL_MINUTES = 15; // lint-allow-magic-number: the TTL itself, named here
+/**
+ * The code's lifetime — also the challenge's cache TTL. Re-exported rather
+ * than redeclared: pre-signup is the same policy as every other code e-mail
+ * (`verification-code.const`), and the e-mail says the same sentence.
+ */
+export const PRE_SIGNUP_CODE_TTL_MINUTES = VERIFICATION_CODE_TTL_MINUTES;
 
 export class StartPreSignupVerificationUseCase implements StartPreSignupVerificationPort {
   constructor(

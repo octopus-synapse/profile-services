@@ -25,8 +25,10 @@ import {
 import {
   BioSchema,
   GitHubUrlSchema,
+  HeadlineSchema,
   LinkedInUrlSchema,
   PhoneSchema,
+  ROLE_LABEL_MAX_LENGTH,
   SocialUrlSchema,
   UserLocationSchema,
 } from '@/shared-kernel/schemas/primitives';
@@ -77,7 +79,7 @@ export const CreateResumeBody = z
     summary: BioSchema.optional().openapi({
       description: 'Optional long-form summary shown at the top of the resume.',
     }),
-    headline: z.string().trim().max(120).nullable().optional().openapi({
+    headline: HeadlineSchema.nullable().optional().openapi({
       description:
         'One-line professional headline (ADR-003 §7: lives on the résumé, not the user).',
       example: 'Backend engineer · distributed systems',
@@ -103,7 +105,7 @@ export const CreateResumeBody = z
       .openapi({ description: 'Soft reference to the picked RoleTitle (desired role).' }),
     targetRoleLabel: z
       .string()
-      .max(120)
+      .max(ROLE_LABEL_MAX_LENGTH)
       .nullish()
       .openapi({ description: 'Desired role label — drives the market-relative Readiness Score.' }),
     phone: PhoneSchema,
