@@ -64,8 +64,8 @@ export class PrismaResumeTranslationStoreAdapter extends ResumeTranslationStoreP
       sections: row.resumeSections
         .filter((s) => s.sectionType !== null)
         .map((s) => ({
-          sectionTypeKey: s.sectionType!.key,
-          fields: flattenFields((s.sectionType!.definition as { fields?: unknown } | null)?.fields),
+          sectionTypeKey: s.sectionType?.key,
+          fields: flattenFields((s.sectionType?.definition as { fields?: unknown } | null)?.fields),
           items: s.items.map((i) => ({
             id: i.id,
             content: (i.content ?? {}) as Record<string, unknown>,

@@ -25,19 +25,10 @@ import type { BcWorkerBinding, BoundedContextComposition } from '@/shared-kernel
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { FitProfileUseCases } from './application/ports/fit-profile.port';
-import { CreateFitQuestionUseCase } from './application/use-cases/create-fit-question.use-case';
-import { DeleteFitProfileUseCase } from './application/use-cases/delete-fit-profile.use-case';
-import { DeleteFitQuestionUseCase } from './application/use-cases/delete-fit-question.use-case';
 import { ExpireFitProfileUseCase } from './application/use-cases/expire-fit-profile.use-case';
 import { GetFitProfileStatusUseCase } from './application/use-cases/get-fit-profile-status.use-case';
-import { GetFitQuestionUseCase } from './application/use-cases/get-fit-question.use-case';
-import { GetJobFitProfileUseCase } from './application/use-cases/get-job-fit-profile.use-case';
 import { GetOrCreateQuestionSetUseCase } from './application/use-cases/get-or-create-question-set.use-case';
-import { ListFitAnswersUseCase } from './application/use-cases/list-fit-answers.use-case';
-import { ListFitQuestionsUseCase } from './application/use-cases/list-fit-questions.use-case';
 import { SubmitFitAnswersUseCase } from './application/use-cases/submit-fit-answers.use-case';
-import { UpdateFitQuestionUseCase } from './application/use-cases/update-fit-question.use-case';
-import { UpsertJobFitProfileUseCase } from './application/use-cases/upsert-job-fit-profile.use-case';
 import type { JobFitProfileRepositoryPort } from './domain/ports/job-fit-profile.repository.port';
 import type { SimilarityPort } from './domain/ports/similarity.port';
 import type { UserFitProfileRepositoryPort } from './domain/ports/user-fit-profile.repository.port';
@@ -108,15 +99,6 @@ export function buildFitProfileBundle(
       events,
       logger,
     ),
-    listFitAnswers: new ListFitAnswersUseCase(fitAnswers),
-    deleteFitProfile: new DeleteFitProfileUseCase(fitAnswers, userFitProfiles, logger),
-    upsertJobFitProfile: new UpsertJobFitProfileUseCase(jobFitProfiles, events, logger),
-    getJobFitProfile: new GetJobFitProfileUseCase(jobFitProfiles),
-    listFitQuestions: new ListFitQuestionsUseCase(fitQuestions),
-    createFitQuestion: new CreateFitQuestionUseCase(fitQuestions),
-    updateFitQuestion: new UpdateFitQuestionUseCase(fitQuestions),
-    deleteFitQuestion: new DeleteFitQuestionUseCase(fitQuestions),
-    getFitQuestion: new GetFitQuestionUseCase(fitQuestions),
   };
 
   return {

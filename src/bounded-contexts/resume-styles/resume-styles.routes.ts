@@ -7,8 +7,6 @@
  * `Res({ passthrough: true })` wiring.
  */
 
-import { z } from 'zod';
-import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
@@ -19,14 +17,11 @@ import {
 import {
   ApplyStyleBodySchema,
   ApplyStyleResponseSchema,
-  CreateStyleBodySchema,
-  DeleteStyleResponseSchema,
   IdParams,
   ListQuerySchema,
   ResumeIdParams,
   StyleDetailResponseSchema,
   StyleListResponseSchema,
-  UpdateStyleBodySchema,
 } from './resume-styles.routes.schemas';
 
 export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
@@ -95,80 +90,6 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     },
   },
   // ─── Admin CRUD (admin permission gates each route) ───────────────
-  {
-    method: 'POST',
-    path: '/v1/admin/resume-styles',
-    auth: { kind: 'jwt' },
-    permission: Permission.ADMIN_FULL_ACCESS,
-    body: CreateStyleBodySchema,
-    response: StyleDetailResponseSchema,
-    openapi: {
-      summary: 'Create a new ResumeStyle (validates ATS threshold)',
-      tags: ['admin-resume-styles'],
-      description: 'Admin ResumeStyle CRUD',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const body = ctx.body as z.infer<typeof CreateStyleBodySchema>;
-      const created = await bc.createStyle.execute({
-        name: body.name,
-        description: body.description ?? null,
-        typstTemplate: body.typstTemplate,
-        layoutKind: body.layoutKind,
-        styleConfig: body.styleConfig,
-        sectionStyles: body.sectionStyles,
-        authorId: ctx.user!.userId,
-      });
-      return toDetailResponseDto(created);
-    },
-  },
-  {
-    method: 'PATCH',
-    path: '/v1/admin/resume-styles/:id',
-    auth: { kind: 'jwt' },
-    permission: Permission.ADMIN_FULL_ACCESS,
-    params: IdParams,
-    body: UpdateStyleBodySchema,
-    response: StyleDetailResponseSchema,
-    openapi: {
-      summary: 'Update a non-system ResumeStyle',
-      tags: ['admin-resume-styles'],
-      description: 'Admin ResumeStyle CRUD',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
-      const body = ctx.body as z.infer<typeof UpdateStyleBodySchema>;
-      const updated = await bc.updateStyle.execute(id, {
-        name: body.name,
-        description: body.description,
-        typstTemplate: body.typstTemplate,
-        layoutKind: body.layoutKind,
-        styleConfig: body.styleConfig,
-        sectionStyles: body.sectionStyles,
-      });
-      return toDetailResponseDto(updated);
-    },
-  },
-  {
-    method: 'DELETE',
-    path: '/v1/admin/resume-styles/:id',
-    auth: { kind: 'jwt' },
-    permission: Permission.ADMIN_FULL_ACCESS,
-    params: IdParams,
-    response: DeleteStyleResponseSchema,
-    openapi: {
-      summary: 'Delete a non-system ResumeStyle',
-      tags: ['admin-resume-styles'],
-      description: 'Admin ResumeStyle CRUD',
-    },
-    sdk: { exported: true },
-    handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
-      await bc.deleteStyle.execute(id);
-      return null;
-    },
-  },
 
   // ─── Binary stream: generic preview PDF ────────────────────────────
   {

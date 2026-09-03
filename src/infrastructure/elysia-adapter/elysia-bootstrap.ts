@@ -131,7 +131,6 @@ import {
 } from '@/bounded-contexts/resumes/resume-versions/infrastructure/adapters/external-services/job-match-tailor.adapter';
 import { VersionAuditHandler } from '@/bounded-contexts/resumes/resume-versions/infrastructure/handlers/version-audit.handler';
 import { buildResumeVersionsComposition } from '@/bounded-contexts/resumes/resume-versions/resume-versions.composition';
-import { buildAdminSectionTypesComposition } from '@/bounded-contexts/resumes/section-types/application/admin-section-types.composition';
 import { buildTimeCapsuleComposition } from '@/bounded-contexts/resumes/time-capsule/time-capsule.composition';
 import { buildRolesComposition } from '@/bounded-contexts/roles/roles.composition';
 import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalog/skills-catalog.composition';
@@ -737,7 +736,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       deriveNow: (resumeId: string) => translation.deriveNow(resumeId),
     },
   ) as never;
-  const adminSectionTypes = buildAdminSectionTypesComposition(prisma as never, logger);
   const timeCapsule = buildTimeCapsuleComposition(
     prisma as never,
     emailService,
@@ -1153,7 +1151,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     platformEvents,
     search,
     upload,
-    adminSectionTypes,
     resumeQuality,
     resumeStyles,
     jobMatch,

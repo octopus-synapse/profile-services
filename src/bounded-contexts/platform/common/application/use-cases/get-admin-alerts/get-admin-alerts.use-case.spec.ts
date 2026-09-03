@@ -40,7 +40,7 @@ describe('GetAdminAlertsUseCase', () => {
     await useCase.execute();
     repo.setCounts({ usersPendingVerification: 0 });
     now += 31_000;
-    const second = await useCase.execute();
+    const _second = await useCase.execute();
     expect(repo.callCount).toBe(2);
   });
 });
