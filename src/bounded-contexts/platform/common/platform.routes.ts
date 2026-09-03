@@ -8,8 +8,6 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { PlatformUseCases } from './application/ports/platform.port';
 import {
-  AdminAlertsResponseSchema,
-  AdminDashboardMetricsResponseSchema,
   ExportFormatsResponseSchema,
   PlatformStatsResponseSchema,
   SectionTypesResponseSchema,
@@ -18,36 +16,8 @@ import {
 
 export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
   // ─── Admin Alerts ─────────────────────────────────────────────────
-  {
-    method: 'GET',
-    path: '/v1/admin/alerts',
-    auth: { kind: 'jwt' },
-    permission: Permission.PLATFORM_STATS_READ,
-    response: AdminAlertsResponseSchema,
-    openapi: {
-      summary: 'Counts of admin-actionable queues: reports, verifications, stale shadow profiles',
-      tags: ['admin-alerts'],
-      description: 'Admin Alerts API',
-    },
-    sdk: { exported: true },
-    handler: async (_ctx, bc) => bc.getAdminAlerts.execute(),
-  },
 
   // ─── Admin Dashboard ──────────────────────────────────────────────
-  {
-    method: 'GET',
-    path: '/v1/admin/dashboard/metrics',
-    auth: { kind: 'jwt' },
-    permission: Permission.PLATFORM_STATS_READ,
-    response: AdminDashboardMetricsResponseSchema,
-    openapi: {
-      summary: 'Get platform metrics for admin dashboard',
-      tags: ['admin-dashboard'],
-      description: 'Admin Dashboard API',
-    },
-    sdk: { exported: true },
-    handler: async (_ctx, bc) => bc.getAdminDashboardMetrics.execute(),
-  },
 
   // ─── Enums ────────────────────────────────────────────────────────
   {

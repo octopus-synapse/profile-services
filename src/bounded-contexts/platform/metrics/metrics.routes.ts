@@ -6,26 +6,10 @@
  * guard registry under the id `metrics-key`.
  */
 
-import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { MetricsUseCases } from './application/ports/metrics.port';
-import { MetricsOverviewResponseSchema } from './metrics.routes.schemas';
 
 export const metricsRoutes: ReadonlyArray<Route<MetricsUseCases>> = [
-  {
-    method: 'GET',
-    path: '/v1/admin/metrics/overview',
-    auth: { kind: 'jwt' },
-    permission: Permission.PLATFORM_MANAGE,
-    response: MetricsOverviewResponseSchema,
-    openapi: {
-      summary: 'Get all metrics as JSON',
-      tags: ['admin-metrics'],
-      description: 'Admin Metrics API',
-    },
-    sdk: { exported: true },
-    handler: async (_ctx, bc) => bc.getMetricsOverview.execute(),
-  },
   {
     method: 'GET',
     path: '/metrics',

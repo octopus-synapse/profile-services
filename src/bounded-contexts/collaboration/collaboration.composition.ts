@@ -27,13 +27,6 @@ import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { Route } from '@/shared-kernel/http/route.types';
 import type { WebSocketPort } from '@/shared-kernel/websocket/websocket.port';
-
-// admin slice
-import {
-  AdminCollaborationUseCases,
-  buildAdminCollaborationUseCases,
-} from './admin/admin-collaboration.composition';
-import { adminCollaborationRoutes } from './admin/admin-collaboration.routes';
 // chat block slice
 import { buildBlockUseCases } from './chat/application/block.composition';
 // chat slice
@@ -61,9 +54,7 @@ import { PrismaCollaborationRepository } from './sharing/infrastructure/adapters
 import { CollabCommentService } from './sharing/services/collab-comment.service';
 
 export {
-  AdminCollaborationUseCases,
   BlockUseCases,
-  buildAdminCollaborationUseCases,
   buildBlockUseCases,
   buildChatUseCases,
   buildCollaborationUseCases,
@@ -74,13 +65,12 @@ export {
 /**
  * Aggregated bundle for the collaboration BC. Each per-slice route
  * group still consumes its own bundle token (`ChatHttpBundle`,
- * `CollaborationHttpBundle`, `AdminCollaborationUseCases`) — those are
+ * `CollaborationHttpBundle`) — those are
  * preserved as separate keys here so route synthesis stays compatible.
  */
 export interface CollaborationBundle {
   readonly chat: ChatHttpBundle;
   readonly sharing: CollaborationHttpBundle;
-  readonly admin: AdminCollaborationUseCases;
   /**
    * Internal singletons exposed for the optional realtime registration.
    * Module shells use this to wire the Socket.IO gateway; the Elysia
@@ -156,13 +146,9 @@ export function buildCollaborationComposition(
     comments: collabComments,
   };
 
-  // ─── admin slice ────────────────────────────────────────────────────
-  const adminUseCases = buildAdminCollaborationUseCases(prisma);
-
   const useCases: CollaborationBundle = {
     chat: chatBundle,
     sharing: sharingBundle,
-    admin: adminUseCases,
     chatInternals: {
       chat: chatUseCases,
       conversationRepo,
@@ -182,9 +168,6 @@ export function buildCollaborationComposition(
       ...chatRoutes.map((r) => rebindHandlerForSlice<ChatHttpBundle>(r, (b) => b.chat)),
       ...collaborationRoutes.map((r) =>
         rebindHandlerForSlice<CollaborationHttpBundle>(r, (b) => b.sharing),
-      ),
-      ...adminCollaborationRoutes.map((r) =>
-        rebindHandlerForSlice<AdminCollaborationUseCases>(r, (b) => b.admin),
       ),
     ],
     registerChatRealtime: ({ ws, jwt }) =>
