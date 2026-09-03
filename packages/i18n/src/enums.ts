@@ -97,13 +97,6 @@ export const ENUM_DICTIONARY = {
       'pt-BR': 'Versão do currículo restaurada',
     },
   },
-  BadgeKind: {
-    CONTRIBUTOR: { en: 'Contributor', 'pt-BR': 'Contribuidor' },
-    EVENT_SPEAKER: { en: 'Event speaker', 'pt-BR': 'Palestrante em evento' },
-    FIRST_BUILD: { en: 'First build', 'pt-BR': 'Primeiro build' },
-    INTERVIEWS_5: { en: '5 interviews', 'pt-BR': '5 entrevistas' },
-    MENTORED_10: { en: 'Mentored 10', 'pt-BR': 'Mentorou 10' },
-  },
   CollaboratorRole: {
     ADMIN: { en: 'Admin', 'pt-BR': 'Administrador' },
     EDITOR: { en: 'Editor', 'pt-BR': 'Editor' },
@@ -334,12 +327,6 @@ export const ENUM_DICTIONARY = {
     PLATFORM: { en: 'Platform', 'pt-BR': 'Plataforma' },
     SOFT_SKILL: { en: 'Soft skill', 'pt-BR': 'Soft skill' },
     TOOL: { en: 'Tool', 'pt-BR': 'Ferramenta' },
-  },
-  SuccessStoryStatus: {
-    ARCHIVED: { en: 'Archived', 'pt-BR': 'Arquivada' },
-    DRAFT: { en: 'Draft', 'pt-BR': 'Rascunho' },
-    PENDING_REVIEW: { en: 'Pending review', 'pt-BR': 'Aguardando revisão' },
-    PUBLISHED: { en: 'Published', 'pt-BR': 'Publicada' },
   },
   TechAreaType: {
     DATA: { en: 'Data', 'pt-BR': 'Dados' },

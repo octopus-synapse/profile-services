@@ -713,20 +713,6 @@ export async function seedDreddFixtures(
     update: {},
   });
 
-  // ── SuccessStory (for /success-stories/{id} PATCH/DELETE) ─────────
-  await prisma.successStory.upsert({
-    where: { id: EXAMPLE_GENERIC_ID },
-    create: {
-      id: EXAMPLE_GENERIC_ID,
-      userId: EXAMPLE_USER_ID,
-      headline: 'Dredd Fixture Story',
-      beforeText: 'Before the fixture.',
-      afterText: 'After the fixture.',
-      quote: 'Dredd fixture quote.',
-    },
-    update: {},
-  });
-
   // ── WebhookConfig (for /webhooks/{id} PATCH/DELETE/deliveries) ────
   await prisma.webhookConfig.upsert({
     where: { id: EXAMPLE_GENERIC_ID },

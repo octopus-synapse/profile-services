@@ -125,12 +125,6 @@ model User {
   // Automation
   curatedBatches WeeklyCuratedBatch[] @relation("UserCuratedBatches")
 
-  // Badges
-  badges UserBadge[] @relation("UserBadges")
-
-  // Success stories
-  successStories SuccessStory[] @relation("UserSuccessStories")
-
   @@index([username])
   @@index([email])
   @@index([emailVerified])

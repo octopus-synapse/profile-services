@@ -26,8 +26,6 @@ import { CuratedSelectorService } from '@/bounded-contexts/automation/applicatio
 import { buildAutomationComposition } from '@/bounded-contexts/automation/automation.composition';
 import { KeywordJobMatcherAdapter } from '@/bounded-contexts/automation/infrastructure/adapters/external-services/keyword-job-matcher.adapter';
 import { PrismaCuratedSelectorRepository } from '@/bounded-contexts/automation/infrastructure/adapters/persistence/prisma-curated-selector.repository';
-import { buildBadgesComposition } from '@/bounded-contexts/badges/badges.composition';
-import { buildCareerGraphComposition } from '@/bounded-contexts/career-graph/career-graph.composition';
 import { buildCollaborationComposition } from '@/bounded-contexts/collaboration/collaboration.composition';
 import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
 import { buildDslComposition } from '@/bounded-contexts/dsl/dsl.composition';
@@ -120,7 +118,6 @@ import { buildWellKnownComposition } from '@/bounded-contexts/platform/well-know
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
 import { ShareDownloadedEvent } from '@/bounded-contexts/presentation/shared-kernel/domain/events/share-downloaded.event';
 import { ShareAuditHandler } from '@/bounded-contexts/presentation/shared-kernel/infrastructure/handlers/share-audit.handler';
-import { buildRecruitingComposition } from '@/bounded-contexts/recruiting/recruiting.composition';
 import { buildResumeQualityComposition } from '@/bounded-contexts/resume-quality/resume-quality.composition';
 import { buildResumeStylesComposition } from '@/bounded-contexts/resume-styles/resume-styles.composition';
 import { buildResumesCoreComposition } from '@/bounded-contexts/resumes/core/resumes.composition';
@@ -143,7 +140,6 @@ import { buildTimeCapsuleComposition } from '@/bounded-contexts/resumes/time-cap
 import { buildRolesComposition } from '@/bounded-contexts/roles/roles.composition';
 import { buildAdminCatalogUseCases } from '@/bounded-contexts/skills-catalog/admin/admin-catalog.composition';
 import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalog/skills-catalog.composition';
-import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stories/success-stories.composition';
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
 import { OwnershipRegistry } from '@/shared-kernel/authorization';
@@ -414,9 +410,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // NotificationsUseCases); jobs (needs ResumeAnalyticsFacade +
   // EventPublisherPort); notifications (needs CachePort/QueuePort/CronPort
   // adapters instantiated). They land as those services migrate.
-  const badges = buildBadgesComposition(prisma as never, logger);
-  const successStories = buildSuccessStoriesComposition(prisma as never, logger);
-  const careerGraph = buildCareerGraphComposition(prisma as never);
   const uiMetadata = buildUiMetadataComposition(prisma as never, logger);
   const realtime = buildRealtimeComposition({ eventBus, logger });
   for (const l of realtime.lifecycles ?? []) lifecycles.push(l);
@@ -453,7 +446,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
     llm: ai.bundle.llm,
   });
-  const recruiting = buildRecruitingComposition(prisma as never);
   const fitProfile = buildFitProfileComposition(prisma as never, eventBus, logger, queue);
   for (const l of fitProfile.lifecycles ?? []) lifecycles.push(l);
   const metrics = buildMetricsComposition(logger);
@@ -1117,16 +1109,12 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   enableCors(app, { origin: allowlist, isProduction });
   applySecurityHeaders(app);
   for (const bc of [
-    badges,
-    successStories,
-    careerGraph,
     uiMetadata,
     realtime,
     featureFlags,
     dsl,
     oauth,
     importBc,
-    recruiting,
     fitProfile,
     i18n,
     webhooks,
@@ -1276,10 +1264,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const port = config.env.PORT ?? 3010;
   app.listen(port);
   logger.log(`Elysia listening on http://localhost:${port}`, 'ElysiaBootstrap');
-  logger.log(
-    `Try: curl http://localhost:${port}/api/v1/badges/user/test-user-id`,
-    'ElysiaBootstrap',
-  );
+  logger.log(`Try: curl http://localhost:${port}/api/health`, 'ElysiaBootstrap');
 
   // --- SIGTERM / SIGINT: drain via OnShutdownPort (Q36) ---
   // Forward each lifecycle.dispose into the orchestrator. Tasks are

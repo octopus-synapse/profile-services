@@ -321,10 +321,17 @@ describe('XSS Prevention', () => {
   });
 
   describe('JSON Response Safety', () => {
-    it('should use NestJS response handling', () => {
-      // NestJS automatically handles JSON serialization
-      const controllers = grepCodebaseFixed('@Controller', ['node_modules', 'dist', 'test']);
-      expect(controllers.length).toBeGreaterThan(0);
+    it('should serialize responses through route descriptors', () => {
+      // The NestJS-era check looked for `@Controller`; the last mention was a
+      // comment in a bounded context that no longer exists. What enforces JSON
+      // serialization today is the descriptor-driven router: every route is a
+      // `Route<…>` entry whose `response` schema the mounter validates.
+      const descriptors = grepCodebaseFixed('ReadonlyArray<Route<', [
+        'node_modules',
+        'dist',
+        'test',
+      ]);
+      expect(descriptors.length).toBeGreaterThan(0);
     });
   });
 });

@@ -134,14 +134,6 @@ export const ERROR_DICTIONARY = {
     en: 'Automation workers are temporarily unavailable',
     'pt-BR': 'Os workers de automação estão temporariamente indisponíveis',
   },
-  BADGE_ALREADY_AWARDED: {
-    en: 'Badge has already been awarded',
-    'pt-BR': 'Esta conquista já foi concedida',
-  },
-  BADGE_CRITERIA_NOT_MET: {
-    en: 'Badge criteria not met',
-    'pt-BR': 'Os critérios da conquista não foram atingidos',
-  },
   BANNER_ELEMENT_NOT_FOUND: {
     en: 'Banner element not found',
     'pt-BR': 'Elemento do banner não encontrado',
@@ -157,30 +149,6 @@ export const ERROR_DICTIONARY = {
   BUSINESS_RULE_VIOLATION: {
     en: 'Business rule violation',
     'pt-BR': 'Regra de negócio violada',
-  },
-  CANDIDATE_DIRECTORY_UNAVAILABLE: {
-    en: 'Candidate directory is temporarily unavailable',
-    'pt-BR': 'O diretório de candidatos está temporariamente indisponível',
-  },
-  CANDIDATE_POOL_EMPTY: {
-    en: 'No opt-in candidates match the requested criteria',
-    'pt-BR': 'Nenhum candidato corresponde aos critérios informados',
-  },
-  CAREER_COHORT_EMPTY: {
-    en: 'No peers found matching this stack — try broadening the skills',
-    'pt-BR': 'Nenhum profissional similar encontrado — tente ampliar as habilidades',
-  },
-  CAREER_GRAPH_INVALID_MAX_BUCKETS: {
-    en: 'maxBuckets must be between 1 and 50',
-    'pt-BR': 'maxBuckets deve estar entre 1 e 50',
-  },
-  CAREER_GRAPH_REPOSITORY_UNAVAILABLE: {
-    en: 'Career graph data is temporarily unavailable',
-    'pt-BR': 'Os dados do gráfico de carreira estão temporariamente indisponíveis',
-  },
-  CAREER_GRAPH_STACK_REQUIRED: {
-    en: 'Career graph requires at least one stack skill to compare cohorts',
-    'pt-BR': 'O gráfico de carreira exige pelo menos uma habilidade da stack para comparar cohorts',
   },
   CANNOT_APPLY_TO_OWN_JOB: {
     en: 'You cannot apply to your own job',
@@ -618,15 +586,6 @@ export const ERROR_DICTIONARY = {
     en: 'Metrics endpoint is not configured',
     'pt-BR': 'O endpoint de métricas não está configurado',
   },
-  MATCH_CANDIDATES_INVALID_LIMIT: {
-    en: 'limit must be between 1 and 100',
-    'pt-BR': 'limit deve estar entre 1 e 100',
-  },
-  MATCH_CANDIDATES_NO_CRITERIA: {
-    en: 'At least one matching criterion is required (jobSkills, jobMinEnglish, or jobRemotePolicy)',
-    'pt-BR':
-      'Pelo menos um critério de match é obrigatório (jobSkills, jobMinEnglish ou jobRemotePolicy)',
-  },
   MISSING_ANY_REQUIRED_PERMISSION: {
     en: 'Missing at least one required permission',
     'pt-BR': 'Falta pelo menos uma das permissões necessárias',
@@ -972,10 +931,6 @@ export const ERROR_DICTIONARY = {
   STORAGE_UPLOAD_FAILED: {
     en: 'Storage upload failed',
     'pt-BR': 'Falha ao enviar para o storage',
-  },
-  SUCCESS_STORY_ALREADY_PUBLISHED: {
-    en: 'Success story already published',
-    'pt-BR': 'Caso de sucesso já publicado',
   },
   SYNC_COOLDOWN_ACTIVE: {
     en: 'Sync is in cooldown. Try again shortly.',
