@@ -8,6 +8,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheService } from '../cache.service';
 
@@ -76,11 +77,15 @@ export class CacheWarmingService {
         },
       });
 
+      // NOTE: readers of `publicResumeCacheKey` expect the share payload
+      // shape `GetShareBySlugUseCase.getResumeWithCache` builds (row +
+      // generic `sections`); the projection below is narrower. Nothing
+      // invokes this service today — align the shape before wiring it.
       let warmed = 0;
       for (const resume of resumes) {
         if (resume.slug) {
           try {
-            await this.cache.set(`public:resume:${resume.slug}`, resume, CACHE_TTL.POPULAR_RESUME);
+            await this.cache.set(publicResumeCacheKey(resume.id), resume, CACHE_TTL.POPULAR_RESUME);
             warmed++;
           } catch (error) {
             this.stats.errors++;
@@ -130,7 +135,7 @@ export class CacheWarmingService {
       });
 
       if (resume) {
-        await this.cache.set(`public:resume:${slug}`, resume, CACHE_TTL.PUBLIC_RESUME);
+        await this.cache.set(publicResumeCacheKey(resume.id), resume, CACHE_TTL.PUBLIC_RESUME);
         this.stats.itemsWarmed++;
         this.logger.debug(`Warmed cache for resume: ${slug}`, 'CacheWarmingService');
       }

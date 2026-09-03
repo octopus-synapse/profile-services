@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { CachePort } from '../../domain/ports/cache.port';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
@@ -80,7 +81,7 @@ describe('GetShareBySlugUseCase', () => {
       const result = await useCase.getResumeWithCache('resume-123');
 
       expect(result).toEqual(cachedResume as never);
-      expect(cache.get).toHaveBeenCalledWith('public:resume:resume-123');
+      expect(cache.get).toHaveBeenCalledWith(publicResumeCacheKey('resume-123'));
       expect(resumeRepo.findByIdWithSections).not.toHaveBeenCalled();
     });
 
@@ -90,7 +91,7 @@ describe('GetShareBySlugUseCase', () => {
       expect(result).toBeDefined();
       expect(resumeRepo.findByIdWithSections).toHaveBeenCalledWith('resume-123');
       expect(cache.set).toHaveBeenCalledWith(
-        'public:resume:resume-123',
+        publicResumeCacheKey('resume-123'),
         expect.objectContaining({ id: 'resume-123' }),
         60,
       );

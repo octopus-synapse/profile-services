@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
+import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { ResumePublishedEvent } from '../../domain/events';
@@ -172,7 +173,7 @@ export class ResumeShareService {
   }
 
   async getResumeWithCache(resumeId: string) {
-    const cacheKey = `public:resume:${resumeId}`;
+    const cacheKey = publicResumeCacheKey(resumeId);
 
     // Try cache first
     const cached = await this.cache.get<unknown>(cacheKey);

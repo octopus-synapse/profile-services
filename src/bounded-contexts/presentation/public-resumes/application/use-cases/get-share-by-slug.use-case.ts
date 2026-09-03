@@ -5,6 +5,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
+import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { CachePort } from '../../domain/ports/cache.port';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
@@ -26,7 +27,7 @@ export class GetShareBySlugUseCase {
   }
 
   async getResumeWithCache(resumeId: string) {
-    const cacheKey = `public:resume:${resumeId}`;
+    const cacheKey = publicResumeCacheKey(resumeId);
 
     // P1-026 — single-flight: every concurrent request for the same
     // slug used to fan out into N DB hits + N `toGenericSections`
