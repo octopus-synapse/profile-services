@@ -1,7 +1,7 @@
 /**
  * Pure-TS wiring for the fit-profile BC. Zero `@nestjs/*` imports —
- * Phase-1 canonical shape: returns `{ useCases, routes }` as a
- * `BoundedContextComposition`.
+ * Phase-1 canonical shape: returns `{ useCases, routes, workers, lifecycles }`
+ * as a `BoundedContextComposition`.
  *
  * The repository adapters and the default `SimilarityPort` adapter
  * (`WeightedCosineSimilarityAdapter`) are POJOs instantiated here.
@@ -13,15 +13,17 @@
  * `CanActivate` and is framework-bound by design (per the migration
  * plan).
  *
- * The nightly `FitProfileExpireWorker` is registered against the
- * shared `JobQueuePort` via `registerFitProfileJobs(...)` — a separate
- * export the bootstrap calls once `JobQueuePort` is available.
+ * The nightly `FitProfileExpireWorker` is surfaced as a `BcWorkerBinding`
+ * (composition `workers`); its daily tick is scheduled from
+ * `lifecycles[0].init()`. Schedule: 03:00 America/Sao_Paulo — staggered
+ * from the other nightly jobs.
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type EventPublisher, type LoggerPort } from '@/shared-kernel';
-import type { BoundedContextComposition } from '@/shared-kernel/composition';
+import type { BcWorkerBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { FitProfileUseCases } from './application/ports/fit-profile.port';
 import { CreateFitQuestionUseCase } from './application/use-cases/create-fit-question.use-case';
 import { DeleteFitProfileUseCase } from './application/use-cases/delete-fit-profile.use-case';
@@ -140,35 +142,38 @@ export function buildFitProfileComposition(
   prisma: PrismaService,
   events: EventPublisher,
   logger: LoggerPort,
+  queue: JobQueuePort,
 ): BoundedContextComposition<FitProfileUseCases> {
-  const { useCases } = buildFitProfileBundle(prisma, events, logger);
+  const { useCases, extras } = buildFitProfileBundle(prisma, events, logger);
+
+  const expireWorker = new FitProfileExpireWorker(prisma, extras.expireFitProfile, queue, logger);
+
+  const workers: ReadonlyArray<BcWorkerBinding> = [
+    {
+      queue: FIT_PROFILE_EXPIRE_QUEUE,
+      process: expireWorker.process.bind(expireWorker) as BcWorkerBinding['process'],
+    },
+  ];
+
+  const lifecycles: ReadonlyArray<Lifecycle> = [
+    {
+      init: async (): Promise<void> => {
+        await queue.schedule<FitProfileExpireJobData>(
+          FIT_PROFILE_EXPIRE_QUEUE,
+          { kind: 'schedule' },
+          {
+            repeat: { pattern: '0 3 * * *', tz: 'America/Sao_Paulo' },
+            jobId: 'fit-profile-expire-schedule-cron',
+          },
+        );
+      },
+    },
+  ];
 
   return {
     useCases,
     routes: fitProfileRoutes,
+    workers,
+    lifecycles,
   };
-}
-
-/**
- * Registers the fit-profile BC's BullMQ worker + cron schedule against
- * the shared `JobQueuePort`. Called once at app boot from the Elysia
- * bootstrap. Schedule: daily 03:00 America/Sao_Paulo — staggered from
- * the other nightly jobs.
- */
-export function registerFitProfileJobs(
-  queue: JobQueuePort,
-  prisma: PrismaService,
-  expireFitProfile: ExpireFitProfileUseCase,
-  logger: LoggerPort,
-): void {
-  const worker = new FitProfileExpireWorker(prisma, expireFitProfile, queue, logger);
-  queue.register<FitProfileExpireJobData>(FIT_PROFILE_EXPIRE_QUEUE, worker.process.bind(worker));
-  void queue.schedule<FitProfileExpireJobData>(
-    FIT_PROFILE_EXPIRE_QUEUE,
-    { kind: 'schedule' },
-    {
-      repeat: { pattern: '0 3 * * *', tz: 'America/Sao_Paulo' },
-      jobId: 'fit-profile-expire-schedule-cron',
-    },
-  );
 }

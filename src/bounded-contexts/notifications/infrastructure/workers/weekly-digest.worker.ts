@@ -17,8 +17,8 @@ const EXPECTED_DURATION_MS = 15 * 60_000;
  * Idempotent via `UserWeeklyDigestLog`. P0-010 adds a distributed lock
  * so multi-instance deploys don't race the same weekly anchor.
  *
- * Framework-free POJO. Wired by `registerNotificationsJobs` via
- * `CronPort`.
+ * Framework-free POJO. Wired from the notifications composition's
+ * `lifecycles` via `CronPort`.
  */
 export class WeeklyDigestWorker {
   constructor(

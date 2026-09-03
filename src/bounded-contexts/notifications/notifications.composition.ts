@@ -167,43 +167,6 @@ export function buildNotificationsUseCases(
 }
 
 /**
- * Registers cron-driven workers + fan-out tick against the shared
- * `JobQueuePort` / `CronPort`. Kept exported for the Nest shell's
- * side-effect provider; the Elysia path runs the same logic through
- * `lifecycles[0].init()` from the composition.
- */
-export function registerNotificationsJobs(
-  queue: JobQueuePort,
-  cron: CronPort,
-  bundle: NotificationsUseCases,
-  logger: LoggerPort,
-  lock: DistributedLockPort,
-): void {
-  const dailyDigest = new NotificationDigestWorker(bundle, logger, lock);
-  cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
-
-  const weeklyDigest = new WeeklyDigestWorker(bundle, logger, lock);
-  cron.register({ pattern: '0 13 * * 1' }, weeklyDigest.run.bind(weeklyDigest));
-
-  const expiryReminder = new FitProfileExpiryReminderWorker(bundle, queue, logger);
-  queue.register<FitProfileExpiryReminderJobData>(
-    FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-    expiryReminder.process.bind(expiryReminder),
-  );
-  // Daily 09:00 America/Sao_Paulo schedule fan-out tick — enqueued
-  // through the queue's repeat semantics so we don't double-tick when
-  // multiple instances boot.
-  void queue.schedule<FitProfileExpiryReminderJobData>(
-    FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-    { kind: 'schedule' },
-    {
-      repeat: { pattern: '0 9 * * *', tz: 'America/Sao_Paulo' },
-      jobId: 'fit-profile-expiry-reminder-schedule-cron',
-    },
-  );
-}
-
-/**
  * Extra fields the notifications BC carries on top of the canonical
  * `BoundedContextComposition<NotificationsUseCases>` — the SSE bundle
  * + its `kind: 'sse'` routes. The bootstrap mounts them as a separate
@@ -276,6 +239,8 @@ export function buildNotificationsComposition(
       init: async (): Promise<void> => {
         cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
         cron.register({ pattern: '0 13 * * 1' }, weeklyDigest.run.bind(weeklyDigest));
+        // Daily 09:00 America/Sao_Paulo fan-out tick — through the queue's
+        // repeat semantics so multiple instances booting don't double-tick.
         await queue.schedule<FitProfileExpiryReminderJobData>(
           FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
           { kind: 'schedule' },

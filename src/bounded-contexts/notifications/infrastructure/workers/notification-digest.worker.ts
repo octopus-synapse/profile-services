@@ -18,8 +18,8 @@ const EXPECTED_DURATION_MS = 8 * 60_000;
  * distributed lock so the email cap can never be exceeded by parallel
  * pods racing the same digest window.
  *
- * Framework-free POJO. Wired by `registerNotificationsJobs` via
- * `CronPort`.
+ * Framework-free POJO. Wired from the notifications composition's
+ * `lifecycles` via `CronPort`.
  */
 export class NotificationDigestWorker {
   constructor(

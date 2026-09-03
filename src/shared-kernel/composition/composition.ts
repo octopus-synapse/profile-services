@@ -32,6 +32,13 @@ export interface BcEventBinding<TEvent = unknown> {
 export interface BcWorkerBinding<TData = unknown> {
   readonly queue: string;
   readonly process: (job: { data: TData; id?: string }) => Promise<void>;
+  /**
+   * Feature-flag key (a `RegisteredFlagKey`) gating the consumer. When it
+   * resolves false at boot the binding is registered INERT — nothing
+   * consumes the queue — and the bootstrap logs that once. Producers keep
+   * enqueuing; the jobs wait in Redis for a boot where the flag is on.
+   */
+  readonly enabledWhen?: string;
 }
 
 export interface BoundedContextComposition<TBundle = unknown> {

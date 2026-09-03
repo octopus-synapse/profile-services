@@ -21,7 +21,8 @@ const HOURLY_CAP_PER_USER = 5;
 const CTX = 'AutoApplyWorker';
 
 /**
- * Framework-free POJO. Wired by `registerAutomationJobs` via
+ * Framework-free POJO. Surfaced as a `BcWorkerBinding` (composition
+ * `workers`, gated by `automation.enabled`) and registered by the bootstrap via
  * `JobQueuePort` (BullMQ adapter lives in
  * `infrastructure/nest-adapter/bullmq-job-queue.adapter.ts`).
  */

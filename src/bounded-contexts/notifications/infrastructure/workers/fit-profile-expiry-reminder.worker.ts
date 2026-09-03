@@ -27,7 +27,8 @@ const CTX = 'FitProfileExpiryReminderWorker';
  * Scheduled at 09:00 America/Sao_Paulo so reminders land mid-morning
  * (highest open rates), staggered far from the other crons.
  *
- * Framework-free POJO. Wired by `registerNotificationsJobs` via
+ * Framework-free POJO. Surfaced as a `BcWorkerBinding` (composition
+ * `workers`) and registered by the bootstrap via
  * `JobQueuePort`.
  */
 export class FitProfileExpiryReminderWorker {

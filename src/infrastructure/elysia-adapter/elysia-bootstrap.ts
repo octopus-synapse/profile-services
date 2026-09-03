@@ -165,6 +165,7 @@ import { translationRoutes } from '@/bounded-contexts/translation/translation.ro
 import { OwnershipRegistry } from '@/shared-kernel/authorization';
 import type { CachePort } from '@/shared-kernel/cache';
 import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import {
   enableTracking as enablePendingHandlerTracking,
@@ -202,6 +203,7 @@ import { NoopJobQueueAdapter } from './noop-job-queue.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
 import { RedisDistributedLockAdapter } from './redis-distributed-lock.adapter';
+import { registerBcWorkers } from './register-bc-workers';
 import { applySecurityHeaders, enableCors } from './security-headers';
 
 export interface BootstrapHandle {
@@ -476,7 +478,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     getOAuthAccessToken: oauthUseCases.getOAuthAccessToken,
   });
   const recruiting = buildRecruitingComposition(prisma as never);
-  const fitProfile = buildFitProfileComposition(prisma as never, eventBus, logger);
+  const fitProfile = buildFitProfileComposition(prisma as never, eventBus, logger, queue);
+  for (const l of fitProfile.lifecycles ?? []) lifecycles.push(l);
   const metrics = buildMetricsComposition(logger);
   const webhooks = buildWebhooksComposition(prisma as never, logger, safeFetchStrict);
 
@@ -588,7 +591,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
     selector,
     resumeVersions.tailor,
+    emailService,
+    queue,
   );
+  for (const l of automation.lifecycles ?? []) lifecycles.push(l);
 
   // Collaboration: chat / sharing / admin slices over a single bundle.
   const collaboration = buildCollaborationComposition({
@@ -902,6 +908,26 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   ).eventHandlers ?? []) {
     eventBus.on(binding.eventType, binding.handler);
   }
+  for (const l of (jobMatch as BoundedContextComposition).lifecycles ?? []) lifecycles.push(l);
+
+  // --- BC workers → JobQueuePort ---
+  // The composition contract's `workers` leg. Runs as a lifecycle so the
+  // `enabledWhen` flags are read after the feature-flags BC has
+  // reconciled its registry (its lifecycles were pushed above). Every
+  // BC that returns `workers` MUST be listed here — the
+  // `queue-consumers` architecture spec checks this list against the
+  // compositions.
+  lifecycles.push({
+    init: async (): Promise<void> => {
+      await registerBcWorkers({ queue, flags, logger }, [
+        { name: 'notifications', workers: notifications.workers },
+        { name: 'fit-profile', workers: fitProfile.workers },
+        { name: 'automation', workers: automation.workers },
+        { name: 'resume-quality', workers: (resumeQuality as BoundedContextComposition).workers },
+        { name: 'job-match', workers: (jobMatch as BoundedContextComposition).workers },
+      ]);
+    },
+  });
 
   // P0-017: subscribe the Match-cache invalidator to JobUpdatedEvent.
   // Sync attempt + BullMQ fallback (see handler doc for the pattern).

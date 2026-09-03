@@ -1,7 +1,7 @@
 /**
  * Pure-TS wiring for the automation BC. Zero `@nestjs/*` imports — Phase 1
  * canonical shape: `buildAutomationComposition(...deps)` returns
- * `{ useCases, routes }` as a `BoundedContextComposition`.
+ * `{ useCases, routes, workers, lifecycles }` as a `BoundedContextComposition`.
  *
  * Composes both slices (apply-mode + rage-apply) into one bundle. The
  * `CuratedSelectorService` POJO is shared between the rage-apply use
@@ -10,17 +10,19 @@
  * deal with `ResumeTailorService` — a service from the resume-versions BC
  * that the workers also consume directly.
  *
- * `registerAutomationJobs` stays a separate export: the Elysia bootstrap
- * invokes it once it has built the shared `JobQueuePort` adapter, so the
- * BC never references BullMQ or the queue adapter directly.
+ * Both workers are gated by `automation.enabled` (`enabledWhen`): with the
+ * flag off the bootstrap registers them inert, so no tick can ever apply to a
+ * job on a user's behalf without an explicit admin opt-in.
  */
 
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
+import { AUTOMATION_ENABLED_FLAG_KEY } from '@/bounded-contexts/platform/feature-flags/registry/groups/automation.flags';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { LoggerPort } from '@/shared-kernel';
-import type { BoundedContextComposition } from '@/shared-kernel/composition';
+import type { BcWorkerBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
 import { ApproveCuratedItemUseCase } from './application/use-cases/approve-curated-item/approve-curated-item.use-case';
@@ -68,61 +70,78 @@ export function buildAutomationUseCases(
   };
 }
 
-export function buildAutomationComposition(
-  prisma: PrismaService,
-  logger: LoggerPort,
-  selector: CuratedSelectorService,
-  tailor: ResumeTailorService,
-): BoundedContextComposition<AutomationUseCases> {
-  const useCases = buildAutomationUseCases(prisma, logger, selector, tailor);
-
-  return {
-    useCases,
-    routes: automationRoutes,
-  };
-}
-
 /**
- * Registers the automation BC's BullMQ workers + their cron-driven
- * `schedule` ticks against the shared `JobQueuePort`. Called once at
- * app boot from the Elysia bootstrap.
+ * Build the framework-free composition for the automation BC.
+ *
+ * The bootstrap is responsible for:
+ *  - mounting `routes` against `useCases`,
+ *  - calling `queue.register(b.queue, b.process)` for each `workers`
+ *    entry (honouring `enabledWhen`),
+ *  - awaiting `lifecycles[i].init()` at boot (the `queue.schedule` ticks).
  *
  * Schedules:
  *  - Auto-apply: hourly at minute 15 (`15 * * * *`, America/Sao_Paulo) —
  *    staggered away from the weekly-curated tick so the two workers
  *    don't fight for DB connections.
  *  - Weekly-curated: Monday 09:00 America/Sao_Paulo (`0 9 * * 1`).
+ *
+ * The ticks are scheduled regardless of the flag: a repeat job with no
+ * consumer parks a single delayed job in Redis, and it is picked up on the
+ * first boot where `automation.enabled` is on — no re-scheduling needed.
  */
-export function registerAutomationJobs(
-  queue: JobQueuePort,
+export function buildAutomationComposition(
   prisma: PrismaService,
+  logger: LoggerPort,
   selector: CuratedSelectorService,
   tailor: ResumeTailorService,
   email: EmailService,
-  logger: LoggerPort,
-): void {
-  const autoApply = new AutoApplyWorker(prisma, selector, tailor, queue, logger);
-  queue.register<AutoApplyJobData>(AUTO_APPLY_QUEUE, autoApply.process.bind(autoApply));
-  void queue.schedule<AutoApplyJobData>(
-    AUTO_APPLY_QUEUE,
-    { kind: 'schedule' },
-    {
-      repeat: { pattern: '15 * * * *', tz: 'America/Sao_Paulo' },
-      jobId: 'auto-apply-schedule-cron',
-    },
-  );
+  queue: JobQueuePort,
+): BoundedContextComposition<AutomationUseCases> {
+  const useCases = buildAutomationUseCases(prisma, logger, selector, tailor);
 
+  const autoApply = new AutoApplyWorker(prisma, selector, tailor, queue, logger);
   const weeklyCurated = new WeeklyCuratedWorker(prisma, selector, email, queue, logger);
-  queue.register<WeeklyCuratedJobData>(
-    WEEKLY_CURATED_QUEUE,
-    weeklyCurated.process.bind(weeklyCurated),
-  );
-  void queue.schedule<WeeklyCuratedJobData>(
-    WEEKLY_CURATED_QUEUE,
-    { kind: 'schedule' },
+
+  const workers: ReadonlyArray<BcWorkerBinding> = [
     {
-      repeat: { pattern: '0 9 * * 1', tz: 'America/Sao_Paulo' },
-      jobId: 'weekly-curated-schedule-cron',
+      queue: AUTO_APPLY_QUEUE,
+      process: autoApply.process.bind(autoApply) as BcWorkerBinding['process'],
+      enabledWhen: AUTOMATION_ENABLED_FLAG_KEY,
     },
-  );
+    {
+      queue: WEEKLY_CURATED_QUEUE,
+      process: weeklyCurated.process.bind(weeklyCurated) as BcWorkerBinding['process'],
+      enabledWhen: AUTOMATION_ENABLED_FLAG_KEY,
+    },
+  ];
+
+  const lifecycles: ReadonlyArray<Lifecycle> = [
+    {
+      init: async (): Promise<void> => {
+        await queue.schedule<AutoApplyJobData>(
+          AUTO_APPLY_QUEUE,
+          { kind: 'schedule' },
+          {
+            repeat: { pattern: '15 * * * *', tz: 'America/Sao_Paulo' },
+            jobId: 'auto-apply-schedule-cron',
+          },
+        );
+        await queue.schedule<WeeklyCuratedJobData>(
+          WEEKLY_CURATED_QUEUE,
+          { kind: 'schedule' },
+          {
+            repeat: { pattern: '0 9 * * 1', tz: 'America/Sao_Paulo' },
+            jobId: 'weekly-curated-schedule-cron',
+          },
+        );
+      },
+    },
+  ];
+
+  return {
+    useCases,
+    routes: automationRoutes,
+    workers,
+    lifecycles,
+  };
 }

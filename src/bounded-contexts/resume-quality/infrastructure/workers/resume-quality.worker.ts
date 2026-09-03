@@ -28,11 +28,12 @@ export type ResumeQualityJobData = {
  *
  * Stage 2 (processor): pick the job up, run `ComputeQualityUseCase`
  * against the current resume state. Failure inside the use-case surfaces
- * through BullMQ's default retry (3 attempts, exponential backoff,
- * configured in AppModule).
+ * through the queue adapter's default retry policy (3 attempts,
+ * exponential backoff — `DEFAULT_JOB_OPTIONS` in
+ * `infrastructure/elysia-adapter/bullmq-job-queue.adapter.ts`).
  *
- * Framework-free POJO. Wired by the resume-quality module via
- * `JobQueuePort`.
+ * Framework-free POJO. Surfaced as a `BcWorkerBinding` (composition
+ * `workers`) and registered by the bootstrap via `JobQueuePort`.
  */
 const CTX = 'ResumeQualityWorker';
 

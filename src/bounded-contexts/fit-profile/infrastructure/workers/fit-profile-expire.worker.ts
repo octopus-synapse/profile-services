@@ -25,7 +25,8 @@ const CTX = 'FitProfileExpireWorker';
  * America/Sao_Paulo for the same stagger-from-prod-peak reasoning as
  * the other nightly jobs.
  *
- * Framework-free POJO. Wired by `registerFitProfileJobs` via
+ * Framework-free POJO. Surfaced as a `BcWorkerBinding` (composition
+ * `workers`) and registered by the bootstrap via
  * `JobQueuePort`.
  */
 export class FitProfileExpireWorker {

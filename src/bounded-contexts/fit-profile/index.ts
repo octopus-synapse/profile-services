@@ -22,5 +22,4 @@ export {
   buildFitProfileUseCases,
   type FitProfileBuildResult,
   type FitProfileExtras,
-  registerFitProfileJobs,
 } from './fit-profile.composition';

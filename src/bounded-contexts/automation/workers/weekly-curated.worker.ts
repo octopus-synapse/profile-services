@@ -18,7 +18,8 @@ export const WEEKLY_CURATED_QUEUE = 'weekly-curated';
 export type WeeklyCuratedJobData = { kind: 'schedule' } | { kind: 'run-for-user'; userId: string };
 
 /**
- * Framework-free POJO. Wired by `registerAutomationJobs` via
+ * Framework-free POJO. Surfaced as a `BcWorkerBinding` (composition
+ * `workers`, gated by `automation.enabled`) and registered by the bootstrap via
  * `JobQueuePort`.
  */
 export class WeeklyCuratedWorker {

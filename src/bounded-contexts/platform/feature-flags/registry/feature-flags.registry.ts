@@ -1,4 +1,5 @@
 import type { FlagDefinition } from '../domain/types';
+import { AUTOMATION_FLAGS } from './groups/automation.flags';
 import { BILLING_FLAGS } from './groups/billing.flags';
 import { CHAT_FLAGS } from './groups/chat.flags';
 import { EXPERIMENTS_FLAGS } from './groups/experiments.flags';
@@ -31,6 +32,7 @@ export const FEATURE_FLAGS_REGISTRY = [
   ...EXPERIMENTS_FLAGS,
   ...SCORING_FLAGS,
   ...TRANSLATION_FLAGS,
+  ...AUTOMATION_FLAGS,
 ] as const satisfies readonly FlagDefinition[];
 
 export type RegisteredFlagKey = (typeof FEATURE_FLAGS_REGISTRY)[number]['key'];
