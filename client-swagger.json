@@ -1155,7 +1155,7 @@
           "accounts"
         ]
       },
-      "Locale": {
+      "LocaleTag": {
         "type": "string",
         "enum": [
           "en",
@@ -52565,7 +52565,7 @@
                           "nullable": true
                         },
                         "language": {
-                          "$ref": "#/components/schemas/Locale"
+                          "$ref": "#/components/schemas/LocaleTag"
                         },
                         "dateFormat": {
                           "type": "string"
@@ -52986,7 +52986,7 @@
                           "nullable": true
                         },
                         "language": {
-                          "$ref": "#/components/schemas/Locale"
+                          "$ref": "#/components/schemas/LocaleTag"
                         },
                         "dateFormat": {
                           "type": "string"
