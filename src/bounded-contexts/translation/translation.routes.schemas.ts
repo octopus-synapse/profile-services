@@ -141,3 +141,45 @@ export const ResumeTranslationStatusSchema = z
     locales: z.array(LocaleTranslationStatusSchema),
   })
   .openapi('ResumeTranslationStatus');
+
+export const ItemTranslationParams = z.object({
+  resumeId: z.string().uuid().openapi({ example: '01900000-0000-7000-a000-000000000010' }),
+  sectionTypeKey: z.string().openapi({ example: 'work_experience_v1' }),
+  itemId: z.string().uuid().openapi({ example: '01900000-0000-7000-a000-000000000087' }),
+});
+
+export const ItemTranslationLocaleParams = ItemTranslationParams.extend({
+  locale: z.string().openapi({ example: 'en' }),
+});
+
+const ProseRecord = z.record(z.unknown()).openapi({ example: { role: 'Software Engineer' } });
+
+export const ProposeRewriteBody = z
+  .object({
+    locale: z.string().openapi({ example: 'en', description: 'Locale the person edited in.' }),
+    edited: ProseRecord.openapi({ description: 'The item content as edited.' }),
+  })
+  .openapi({ example: { locale: 'en', edited: { role: 'Senior Software Engineer' } } });
+
+export const RewriteProposalSchema = z
+  .object({
+    locale: z.string().openapi({ example: 'pt-BR' }),
+    keys: z.array(z.string().openapi({ example: 'role' })),
+    current: ProseRecord,
+    proposal: ProseRecord,
+  })
+  .openapi('RewriteProposal');
+
+export const WriteItemTranslationBody = z
+  .object({
+    data: ProseRecord,
+    origin: z.enum(['manual', 'diverged']).openapi({ example: 'manual' }),
+  })
+  .openapi({ example: { data: { role: 'Senior Software Engineer' }, origin: 'manual' } });
+
+export const WriteItemTranslationResponseSchema = z
+  .object({
+    sourceHash: z.string().openapi({ example: '3f1c…' }),
+    translatedAt: z.string().openapi({ example: '2026-09-03T12:00:00.000Z' }),
+  })
+  .openapi('WriteItemTranslationResponse');

@@ -1143,6 +1143,59 @@
           ]
         }
       },
+      "RewriteProposal": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "example": "pt-BR"
+          },
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "role"
+            }
+          },
+          "current": {
+            "type": "object",
+            "additionalProperties": {},
+            "example": {
+              "role": "Software Engineer"
+            }
+          },
+          "proposal": {
+            "type": "object",
+            "additionalProperties": {},
+            "example": {
+              "role": "Software Engineer"
+            }
+          }
+        },
+        "required": [
+          "locale",
+          "keys",
+          "current",
+          "proposal"
+        ]
+      },
+      "WriteItemTranslationResponse": {
+        "type": "object",
+        "properties": {
+          "sourceHash": {
+            "type": "string",
+            "example": "3f1c…"
+          },
+          "translatedAt": {
+            "type": "string",
+            "example": "2026-09-03T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "sourceHash",
+          "translatedAt"
+        ]
+      },
       "ResumeTranslationStatus": {
         "type": "object",
         "properties": {
@@ -44913,6 +44966,286 @@
           }
         },
         "x-auth": "jwt"
+      }
+    },
+    "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/{itemId}/rewrite": {
+      "post": {
+        "summary": "Propose the other locale's copy of an item after a hand edit",
+        "description": "Writes nothing. Given the item as edited in one locale, returns what the other locale would say — only the fields the translation policy allows — next to what it says today, so the client can show a diff and accept, refuse or rewrite each change.",
+        "tags": [
+          "translation"
+        ],
+        "operationId": "post_v1_resumes_resumeId_sections_sectionTypeKey_items_itemId_rewrite",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
+            },
+            "required": true,
+            "name": "resumeId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000010"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "work_experience_v1"
+            },
+            "required": true,
+            "name": "sectionTypeKey",
+            "in": "path",
+            "example": "work_experience_v1"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000087"
+            },
+            "required": true,
+            "name": "itemId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000087"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "locale": {
+                    "type": "string",
+                    "description": "Locale the person edited in.",
+                    "example": "en"
+                  },
+                  "edited": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "description": "The item content as edited.",
+                    "example": {
+                      "role": "Software Engineer"
+                    }
+                  }
+                },
+                "required": [
+                  "locale",
+                  "edited"
+                ],
+                "example": {
+                  "locale": "en",
+                  "edited": {
+                    "role": "Senior Software Engineer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewriteProposal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
+      }
+    },
+    "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/{itemId}/translations/{locale}": {
+      "put": {
+        "summary": "Store the person's own version of an item in the derived locale",
+        "description": "`manual`: they wrote or accepted it. `diverged`: they refused the rewrite and keep this copy on purpose. Either way the write-through never overwrites it again. The canonical text is edited through the item itself, not here.",
+        "tags": [
+          "translation"
+        ],
+        "operationId": "put_v1_resumes_resumeId_sections_sectionTypeKey_items_itemId_translations_locale",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
+            },
+            "required": true,
+            "name": "resumeId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000010"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "work_experience_v1"
+            },
+            "required": true,
+            "name": "sectionTypeKey",
+            "in": "path",
+            "example": "work_experience_v1"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000087"
+            },
+            "required": true,
+            "name": "itemId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000087"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "en"
+            },
+            "required": true,
+            "name": "locale",
+            "in": "path",
+            "example": "en"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "example": {
+                      "role": "Software Engineer"
+                    }
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "diverged"
+                    ],
+                    "example": "manual"
+                  }
+                },
+                "required": [
+                  "data",
+                  "origin"
+                ],
+                "example": {
+                  "data": {
+                    "role": "Senior Software Engineer"
+                  },
+                  "origin": "manual"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteItemTranslationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/resumes/{resumeId}/skills": {

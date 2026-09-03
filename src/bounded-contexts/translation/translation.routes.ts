@@ -18,12 +18,18 @@ import { TRANSLATION_FLAG_KEY } from './domain/translation-flags.const';
 import type { TranslationBundle } from './translation.composition';
 import {
   HealthResponseSchema,
+  ItemTranslationLocaleParams,
+  ItemTranslationParams,
   LanguageDetectionsResponseSchema,
+  ProposeRewriteBody,
   ResumeIdParams,
   ResumeTranslationParams,
   ResumeTranslationStatusSchema,
+  RewriteProposalSchema,
   TranslateSimpleSchema,
   TranslationReportSchema,
+  WriteItemTranslationBody,
+  WriteItemTranslationResponseSchema,
 } from './translation.routes.schemas';
 
 /**
@@ -195,5 +201,77 @@ export const translationRoutes: ReadonlyArray<Route<TranslationBundle>> = [
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => bundle.subscribeToProgress(ctx.user!.userId),
+  },
+  {
+    method: 'POST',
+    path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId/rewrite',
+    auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
+    permission: Permission.RESUME_UPDATE,
+    params: ItemTranslationParams,
+    body: ProposeRewriteBody,
+    response: RewriteProposalSchema,
+    openapi: {
+      summary: "Propose the other locale's copy of an item after a hand edit",
+      tags: ['translation'],
+      description:
+        'Writes nothing. Given the item as edited in one locale, returns what the other locale ' +
+        'would say — only the fields the translation policy allows — next to what it says today, ' +
+        'so the client can show a diff and accept, refuse or rewrite each change.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { resumeId, itemId } = ctx.params as { resumeId: string; itemId: string };
+      const body = ctx.body as z.infer<typeof ProposeRewriteBody>;
+      const editedLocale = normalizeLocale(body.locale);
+      if (!editedLocale) throw new EntityNotFoundException('Locale', body.locale);
+      return bundle.proposeRewrite.execute({
+        resumeId,
+        userId: ctx.user!.userId,
+        itemId,
+        editedLocale,
+        edited: body.edited,
+      });
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId/translations/:locale',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_UPDATE,
+    params: ItemTranslationLocaleParams,
+    body: WriteItemTranslationBody,
+    response: WriteItemTranslationResponseSchema,
+    openapi: {
+      summary: "Store the person's own version of an item in the derived locale",
+      tags: ['translation'],
+      description:
+        '`manual`: they wrote or accepted it. `diverged`: they refused the rewrite and keep this ' +
+        'copy on purpose. Either way the write-through never overwrites it again. The canonical ' +
+        'text is edited through the item itself, not here.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const {
+        resumeId,
+        itemId,
+        locale: raw,
+      } = ctx.params as {
+        resumeId: string;
+        itemId: string;
+        locale: string;
+      };
+      const locale = normalizeLocale(raw);
+      if (!locale) throw new EntityNotFoundException('Locale', raw);
+      const body = ctx.body as z.infer<typeof WriteItemTranslationBody>;
+      return bundle.writeItemTranslation.execute({
+        resumeId,
+        userId: ctx.user!.userId,
+        itemId,
+        locale,
+        data: body.data,
+        origin: body.origin,
+      });
+    },
   },
 ];

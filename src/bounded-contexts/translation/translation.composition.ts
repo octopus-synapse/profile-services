@@ -24,10 +24,12 @@ import {
   TranslationCoreService,
   TranslationService,
 } from './application/services';
+import { ProposeItemRewriteUseCase } from './application/use-cases/propose-item-rewrite/propose-item-rewrite.use-case';
 import {
   TranslateResumeIntoLocaleUseCase,
   type TranslationPricing,
 } from './application/use-cases/translate-resume-into-locale/translate-resume-into-locale.use-case';
+import { WriteItemTranslationUseCase } from './application/use-cases/write-item-translation/write-item-translation.use-case';
 import type { ResumeTranslationStorePort } from './domain/ports/resume-translation-store.port';
 import type { TranslationProgress } from './domain/ports/translation-progress.port';
 import { PrismaResumeTranslationStoreAdapter } from './infrastructure/adapters/persistence/prisma-resume-translation-store.adapter';
@@ -50,6 +52,8 @@ export { ResumeTranslationService, TranslationCoreService, TranslationService };
 export interface TranslationBundle {
   readonly service: TranslationService;
   readonly translateResume: TranslateResumeIntoLocaleUseCase;
+  readonly proposeRewrite: ProposeItemRewriteUseCase;
+  readonly writeItemTranslation: WriteItemTranslationUseCase;
   readonly store: ResumeTranslationStorePort;
   /** The user's live channel of translation progress (SSE route). */
   readonly subscribeToProgress: (userId: string) => Observable<SseEvent<TranslationProgress>>;
@@ -89,6 +93,9 @@ export function buildTranslationComposition(deps: BuildTranslationDeps): Transla
     logger,
   );
 
+  const proposeRewrite = new ProposeItemRewriteUseCase(store, translationLlm, logger);
+  const writeItemTranslation = new WriteItemTranslationUseCase(store, logger);
+
   const onChanged = new TranslationOnResumeChangedHandler(queue, logger);
   const eventHandlers: ReadonlyArray<BcEventBinding> = [
     { eventType: ResumeUpdatedEvent.TYPE, handler: onChanged.onResumeChanged.bind(onChanged) },
@@ -109,6 +116,8 @@ export function buildTranslationComposition(deps: BuildTranslationDeps): Transla
     useCases: {
       service,
       translateResume,
+      proposeRewrite,
+      writeItemTranslation,
       store,
       subscribeToProgress: (userId) =>
         sse.subscribe<TranslationProgress>(translationProgressChannel(userId)),
