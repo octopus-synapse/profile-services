@@ -37,7 +37,7 @@ describe('CreateNotificationUseCase', () => {
     const result = await useCase.execute({
       userId: 'u-1',
       actorId: 'u-1',
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
       message: 'self-like',
     });
 
@@ -46,7 +46,7 @@ describe('CreateNotificationUseCase', () => {
   });
 
   it('skips creation when the user has explicitly disabled the type', async () => {
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: false,
       emailEnabled: true,
       emailDelivery: 'INSTANT',
@@ -55,7 +55,7 @@ describe('CreateNotificationUseCase', () => {
     const result = await useCase.execute({
       userId: 'u-1',
       actorId: 'u-2',
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
       message: 'someone liked your post',
     });
 
@@ -74,7 +74,7 @@ describe('CreateNotificationUseCase', () => {
     const result = await useCase.execute({
       userId: 'u-1',
       actorId: 'u-2',
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
       message: 'someone liked your post',
     });
 
@@ -86,7 +86,7 @@ describe('CreateNotificationUseCase', () => {
 
   it('does not send instant email when emailDelivery is DAILY', async () => {
     repo.setRecipient('u-1', { id: 'u-1', name: null, email: 'a@b.com', language: 'en' });
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: true,
       emailEnabled: true,
       emailDelivery: 'DAILY',
@@ -95,7 +95,7 @@ describe('CreateNotificationUseCase', () => {
     await useCase.execute({
       userId: 'u-1',
       actorId: 'u-2',
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
       message: 'hi',
     });
 

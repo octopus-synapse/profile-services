@@ -15,41 +15,6 @@ export interface EnumDescriptor {
 
 const NOTIFICATION_TYPES: EnumValueDescriptor[] = [
   {
-    value: 'POST_LIKED',
-    icon: 'thumbs-up',
-    group: 'engagement',
-    tone: 'info',
-    labels: { 'pt-BR': 'curtiu seu post', en: 'liked your post' },
-  },
-  {
-    value: 'POST_COMMENTED',
-    icon: 'message-circle',
-    group: 'engagement',
-    tone: 'info',
-    labels: { 'pt-BR': 'comentou no seu post', en: 'commented on your post' },
-  },
-  {
-    value: 'POST_REPOSTED',
-    icon: 'repeat',
-    group: 'engagement',
-    tone: 'info',
-    labels: { 'pt-BR': 'repostou seu post', en: 'reposted your post' },
-  },
-  {
-    value: 'POST_BOOKMARKED',
-    icon: 'bookmark',
-    group: 'engagement',
-    tone: 'neutral',
-    labels: { 'pt-BR': 'salvou seu post', en: 'bookmarked your post' },
-  },
-  {
-    value: 'COMMENT_REPLIED',
-    icon: 'reply',
-    group: 'engagement',
-    tone: 'info',
-    labels: { 'pt-BR': 'respondeu seu comentário', en: 'replied to your comment' },
-  },
-  {
     value: 'CONNECTION_REQUEST',
     icon: 'user-plus',
     group: 'connections',

@@ -103,11 +103,6 @@ model User {
   accessModifiers AccessModifier[]
 
   // Feed
-  posts         Post[]         @relation("UserPosts")
-  postComments  PostComment[]  @relation("UserComments")
-  postLikes     PostLike[]     @relation("UserLikes")
-  postBookmarks PostBookmark[] @relation("UserBookmarks")
-  postReports   PostReport[]   @relation("UserReports")
 
   // Upload ownership (P0-005)
   uploads Upload[] @relation("UserUploads")
@@ -125,7 +120,6 @@ model User {
   savedExternalJobs SavedExternalJob[] @relation("UserSavedExternalJobs")
 
   // Feed
-  pollVotes PollVote[] @relation("UserPollVotes")
 
   // Identity tokens
   passwordResetTokens     PasswordResetToken[]

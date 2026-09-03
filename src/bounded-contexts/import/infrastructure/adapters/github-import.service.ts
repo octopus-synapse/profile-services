@@ -29,9 +29,7 @@ type GithubViewer = {
 };
 
 /** Minimum stars before we auto-create a BUILD post for a repo. */
-const BUILD_POST_STAR_THRESHOLD = 5;
 /** Max BUILD posts we create per import — keep the feed usable. */
-const MAX_BUILD_POSTS = 3;
 /** Top N languages we keep as `primaryStack`. */
 const PRIMARY_STACK_SIZE = 10;
 
@@ -75,7 +73,6 @@ const VIEWER_QUERY = `
 export type GithubImportResult = {
   userId: string;
   primaryStack: string[];
-  buildPostsCreated: number;
   profileUpdated: boolean;
 };
 
@@ -117,14 +114,11 @@ export class GithubImportService {
     //    we don't create a Resume implicitly; that's the onboarding flow's job.
     await this.applyPrimaryStack(userId, primaryStack);
 
-    // 4. Create BUILD posts for top-starred repos above the threshold.
-    const buildPostsCreated = await this.createBuildPosts(userId, viewer);
-
     this.logger.log(
-      `GitHub import for ${userId}: ${primaryStack.length} langs, ${buildPostsCreated} builds`,
+      `GitHub import for ${userId}: ${primaryStack.length} langs`,
       'GithubImportService',
     );
-    return { userId, primaryStack, buildPostsCreated, profileUpdated };
+    return { userId, primaryStack, profileUpdated };
   }
 
   private async applyProfileFields(userId: string, viewer: GithubViewer): Promise<boolean> {
@@ -165,35 +159,5 @@ export class GithubImportService {
       where: { id: user.primaryResumeId },
       data: { primaryStack: Array.from(current) },
     });
-  }
-
-  private async createBuildPosts(userId: string, viewer: GithubViewer): Promise<number> {
-    const candidates = viewer.repositories.nodes
-      .filter((r) => r.stargazerCount >= BUILD_POST_STAR_THRESHOLD)
-      .slice(0, MAX_BUILD_POSTS);
-
-    let created = 0;
-    for (const repo of candidates) {
-      // Idempotent: skip if a post already linking to this repo exists.
-      const existing = await this.prisma.post.findFirst({
-        where: { authorId: userId, linkUrl: repo.url },
-        select: { id: true },
-      });
-      if (existing) continue;
-
-      const topics = repo.repositoryTopics.nodes.map((n) => n.topic.name);
-
-      await this.prisma.post.create({
-        data: {
-          authorId: userId,
-          content: repo.description ?? repo.name,
-          hashtags: topics.slice(0, 6),
-          linkUrl: repo.url,
-          imageUrl: repo.openGraphImageUrl ?? null,
-        },
-      });
-      created++;
-    }
-    return created;
   }
 }

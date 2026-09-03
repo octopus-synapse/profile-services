@@ -26,13 +26,13 @@ describe('SendDailyDigestsUseCase', () => {
       email: 'enzo@example.com',
       language: 'en',
     });
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: true,
       emailEnabled: true,
       emailDelivery: 'DAILY',
     });
-    await repo.create({ userId: 'u-1', type: 'POST_LIKED', actorId: 'u-2', message: 'a' });
-    await repo.create({ userId: 'u-1', type: 'POST_LIKED', actorId: 'u-2', message: 'b' });
+    await repo.create({ userId: 'u-1', type: 'MESSAGE_RECEIVED', actorId: 'u-2', message: 'a' });
+    await repo.create({ userId: 'u-1', type: 'MESSAGE_RECEIVED', actorId: 'u-2', message: 'b' });
 
     const result = await useCase.execute();
 
@@ -49,12 +49,12 @@ describe('SendDailyDigestsUseCase', () => {
       email: 'enzo@example.com',
       language: 'en',
     });
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: true,
       emailEnabled: true,
       emailDelivery: 'DAILY',
     });
-    await repo.create({ userId: 'u-1', type: 'POST_LIKED', actorId: 'u-2', message: 'a' });
+    await repo.create({ userId: 'u-1', type: 'MESSAGE_RECEIVED', actorId: 'u-2', message: 'a' });
 
     await useCase.execute();
     const second = await useCase.execute();

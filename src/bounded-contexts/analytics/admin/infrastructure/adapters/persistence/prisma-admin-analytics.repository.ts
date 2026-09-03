@@ -132,12 +132,8 @@ export class PrismaAdminAnalyticsRepository extends AdminAnalyticsRepositoryPort
   }
 
   async getContentStats(): Promise<ContentStats> {
-    const [posts, comments, reactions] = await Promise.all([
-      this.prisma.post.count({ where: { isDeleted: false } }),
-      this.prisma.postComment.count({ where: { isDeleted: false } }),
-      this.prisma.postLike.count(),
-    ]);
-    return { posts, comments, reactions };
+    // The feed is gone; there is no user-generated content left to count.
+    return { posts: 0, comments: 0, reactions: 0 };
   }
 
   async getSocialStats(): Promise<SocialStats> {

@@ -31,7 +31,6 @@ import {
   EXAMPLE_GENERIC_ID,
   EXAMPLE_JOB_ID,
   EXAMPLE_NOTIFICATION_ID,
-  EXAMPLE_POST_ID,
   EXAMPLE_RESUME_ID,
   EXAMPLE_SLUG,
   EXAMPLE_USER_ID,
@@ -290,36 +289,6 @@ export async function seedDreddFixtures(
     update: {},
   });
 
-  // ── Primary fixture post (with EXAMPLE_POST_ID for {postId} routes) ──
-  await prisma.post.upsert({
-    where: { id: EXAMPLE_POST_ID },
-    create: {
-      id: EXAMPLE_POST_ID,
-      authorId: EXAMPLE_USER_ID,
-      content: 'Dredd fixture post body.',
-    },
-    update: {},
-  });
-
-  // ── Generic-id post (for /posts/{id} routes that use EXAMPLE_GENERIC_ID) ─
-  // Carries pollOptions so the contract probe of POST /v1/posts/:id/poll/vote
-  // (which resolves :id → FIXTURE_GENERIC_ID via the fallback in
-  // test/infrastructure/contract/engine/param-resolver.ts) can vote on a
-  // real option. Other post mutations (like, comment, repost, report)
-  // don't care that pollOptions is set.
-  await prisma.post.upsert({
-    where: { id: EXAMPLE_GENERIC_ID },
-    create: {
-      id: EXAMPLE_GENERIC_ID,
-      authorId: EXAMPLE_USER_ID,
-      content: 'Dredd generic post body.',
-      pollOptions: [{ label: 'Option A' }, { label: 'Option B' }],
-    },
-    update: {
-      pollOptions: [{ label: 'Option A' }, { label: 'Option B' }],
-    },
-  });
-
   // ── Conversation (already seeded) ─────────────────────────────────────
   const [participant1Id, participant2Id] =
     EXAMPLE_USER_ID < participantTwoUserId
@@ -342,7 +311,7 @@ export async function seedDreddFixtures(
     create: {
       id: EXAMPLE_NOTIFICATION_ID,
       userId: EXAMPLE_USER_ID,
-      type: NotificationType.POST_LIKED,
+      type: NotificationType.MESSAGE_RECEIVED,
       message: 'Dredd fixture notification.',
     },
     update: {},
@@ -755,18 +724,6 @@ export async function seedDreddFixtures(
       status: ConnectionStatus.PENDING,
     },
     update: { status: ConnectionStatus.PENDING },
-  });
-
-  // ── PostComment (for /posts/comments/{id} DELETE) ─────────────────
-  await prisma.postComment.upsert({
-    where: { id: EXAMPLE_GENERIC_ID },
-    create: {
-      id: EXAMPLE_GENERIC_ID,
-      postId: EXAMPLE_GENERIC_ID,
-      authorId: EXAMPLE_USER_ID,
-      content: 'Dredd fixture post comment.',
-    },
-    update: {},
   });
 
   // ── SuccessStory (for /success-stories/{id} PATCH/DELETE) ─────────

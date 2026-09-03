@@ -30,12 +30,6 @@ async function main() {
   console.log(`[cleanup] Found ${userIds.length} seed users`);
 
   // Delete in order to respect FKs (most models cascade via onDelete, but be explicit)
-  await prisma.pollVote.deleteMany({ where: { userId: { in: userIds } } });
-  await prisma.postBookmark.deleteMany({ where: { userId: { in: userIds } } });
-  await prisma.postLike.deleteMany({ where: { userId: { in: userIds } } });
-  await prisma.postReport.deleteMany({ where: { userId: { in: userIds } } });
-  await prisma.postComment.deleteMany({ where: { authorId: { in: userIds } } });
-  await prisma.post.deleteMany({ where: { authorId: { in: userIds } } });
   await prisma.follow.deleteMany({
     where: { OR: [{ followerId: { in: userIds } }, { followingId: { in: userIds } }] },
   });

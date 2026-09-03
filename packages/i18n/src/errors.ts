@@ -210,14 +210,6 @@ export const ERROR_DICTIONARY = {
     en: 'Cannot delete another user comment',
     'pt-BR': 'Você não pode apagar o comentário de outro usuário',
   },
-  CANNOT_DELETE_OTHERS_COMMENT: {
-    en: 'You can only delete your own comments',
-    'pt-BR': 'Você só pode apagar os seus próprios comentários',
-  },
-  CANNOT_DELETE_OTHERS_POST: {
-    en: 'You can only delete your own posts',
-    'pt-BR': 'Você só pode apagar os seus próprios posts',
-  },
   CANNOT_DELETE_OWN_ACCOUNT_AS_ADMIN: {
     en: 'Cannot delete your own account through the admin interface',
     'pt-BR': 'Você não pode apagar a sua própria conta pela interface de admin',
@@ -410,18 +402,6 @@ export const ERROR_DICTIONARY = {
     en: 'This feature is disabled',
     'pt-BR': 'Este recurso está desativado',
   },
-  FILE_REQUIRED: {
-    en: 'File is required for this operation',
-    'pt-BR': 'Arquivo obrigatório para esta operação',
-  },
-  FILE_TOO_LARGE: {
-    en: 'File is too large',
-    'pt-BR': 'Arquivo muito grande',
-  },
-  FILE_UPLOAD_UNAVAILABLE: {
-    en: 'File upload service is currently unavailable',
-    'pt-BR': 'O serviço de upload de arquivos está indisponível no momento',
-  },
   FORBIDDEN: {
     en: 'Forbidden',
     'pt-BR': 'Acesso negado',
@@ -545,10 +525,6 @@ export const ERROR_DICTIONARY = {
   INVALID_EMPLOYMENT_TYPE_FOR_INTERN_ROLE: {
     en: 'Internship roles must use the Internship employment type, not "{employmentType}"',
     'pt-BR': 'Cargos de estágio precisam usar o tipo Estágio, não "{employmentType}"',
-  },
-  INVALID_FILE_TYPE: {
-    en: 'Invalid file type',
-    'pt-BR': 'Tipo de arquivo inválido',
   },
   INVALID_IMPORT_DATA: {
     en: 'Invalid import data',
@@ -847,38 +823,6 @@ export const ERROR_DICTIONARY = {
   PDF_TOO_LARGE: {
     en: 'PDF file exceeds the maximum allowed size',
     'pt-BR': 'O PDF ultrapassa o tamanho máximo permitido',
-  },
-  POLL_ALREADY_VOTED: {
-    en: 'You have already voted on this poll',
-    'pt-BR': 'Você já votou nesta enquete',
-  },
-  POLL_CLOSED: {
-    en: 'This poll is closed to new votes',
-    'pt-BR': 'Esta enquete está fechada para novos votos',
-  },
-  POLL_OPTION_OUT_OF_RANGE: {
-    en: 'Selected option is out of range for this poll',
-    'pt-BR': 'A opção selecionada está fora do intervalo desta enquete',
-  },
-  POST_ALREADY_REPORTED: {
-    en: 'You have already reported this post',
-    'pt-BR': 'Você já denunciou este post',
-  },
-  POST_ALREADY_REPOSTED: {
-    en: 'You have already reposted this post',
-    'pt-BR': 'Você já repostou esta publicação',
-  },
-  POST_BOOKMARK_NOT_FOUND: {
-    en: 'Bookmark not found',
-    'pt-BR': 'Marcador não encontrado',
-  },
-  POST_LIKE_NOT_FOUND: {
-    en: 'Like not found',
-    'pt-BR': 'Curtida não encontrada',
-  },
-  POST_NOT_FOUND: {
-    en: 'Post not found',
-    'pt-BR': 'Post não encontrado',
   },
   PRIMARY_RESUME_REQUIRED: {
     en: 'A primary resume is required for this operation',

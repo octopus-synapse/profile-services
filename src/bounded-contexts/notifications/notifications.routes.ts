@@ -112,36 +112,6 @@ export const notificationsRoutes: ReadonlyArray<Route<NotificationsUseCases>> = 
         category: 'social' | 'jobs' | 'scoring' | 'system';
       }> = [
         {
-          key: 'POST_LIKED',
-          label: 'Curtidas',
-          description: 'Quando alguém curte seu post',
-          category: 'social',
-        },
-        {
-          key: 'POST_COMMENTED',
-          label: 'Comentários',
-          description: 'Quando alguém comenta seu post',
-          category: 'social',
-        },
-        {
-          key: 'POST_REPOSTED',
-          label: 'Repostagens',
-          description: 'Quando alguém reposta seu conteúdo',
-          category: 'social',
-        },
-        {
-          key: 'POST_BOOKMARKED',
-          label: 'Salvamentos',
-          description: 'Quando alguém salva seu post',
-          category: 'social',
-        },
-        {
-          key: 'COMMENT_REPLIED',
-          label: 'Respostas a comentários',
-          description: 'Quando alguém responde a um comentário seu',
-          category: 'social',
-        },
-        {
           key: 'CONNECTION_REQUEST',
           label: 'Solicitações de conexão',
           description: 'Quando alguém pede para se conectar',

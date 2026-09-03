@@ -261,7 +261,7 @@ export class ResumeSearchService {
     const safeLimit = Math.max(1, Math.min(20, Number(limit) || 5));
     const insensitive = { mode: 'insensitive' as const };
 
-    const [resumeResult, userRows, jobRows, postRows] = await Promise.all([
+    const [resumeResult, userRows, jobRows] = await Promise.all([
       this.search({ query: trimmed, page: 1, limit: safeLimit }),
       this.prisma.user.findMany({
         where: {
@@ -287,12 +287,6 @@ export class ResumeSearchService {
         take: safeLimit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.post.findMany({
-        where: { content: { contains: trimmed, ...insensitive } },
-        select: { id: true, content: true, authorId: true },
-        take: safeLimit,
-        orderBy: { createdAt: 'desc' },
-      }),
     ]);
 
     const resumeItems: GlobalSearchItem[] = resumeResult.items.map((row) => ({
@@ -314,18 +308,11 @@ export class ResumeSearchService {
       href: `/jobs/${j.id}`,
       badge: j.company,
     }));
-    const postItems: GlobalSearchItem[] = postRows.map((p) => ({
-      id: p.id,
-      title: (p.content ?? '').slice(0, 80) || 'Post',
-      snippet: p.content ? p.content.slice(0, 160) : undefined,
-      href: `/feed/${p.id}`,
-    }));
 
     const groups: GlobalSearchGroup[] = [
       { type: 'resumes', label: 'Currículos', items: resumeItems },
       { type: 'users', label: 'Pessoas', items: userItems },
       { type: 'jobs', label: 'Vagas', items: jobItems },
-      { type: 'posts', label: 'Publicações', items: postItems },
     ];
     return { groups };
   }

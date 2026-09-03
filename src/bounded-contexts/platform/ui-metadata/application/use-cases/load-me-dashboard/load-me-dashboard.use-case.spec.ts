@@ -25,7 +25,7 @@ describe('LoadMeDashboardUseCase', () => {
       recentNotifications: [
         {
           id: 'n-1',
-          type: 'POST_LIKED',
+          type: 'MESSAGE_RECEIVED',
           message: 'liked your post',
           messageKey: null,
           messageParams: null,

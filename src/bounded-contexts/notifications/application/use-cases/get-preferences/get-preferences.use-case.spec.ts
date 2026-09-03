@@ -9,9 +9,9 @@ describe('GetPreferencesUseCase', () => {
     const all = await new GetPreferencesUseCase(repo).execute('u-1');
 
     expect(all.length).toBeGreaterThan(0);
-    const liked = all.find((p) => p.type === 'POST_LIKED');
+    const liked = all.find((p) => p.type === 'MESSAGE_RECEIVED');
     expect(liked).toEqual({
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
       enabled: true,
       inAppEnabled: true,
       emailEnabled: true,
@@ -22,7 +22,7 @@ describe('GetPreferencesUseCase', () => {
 
   it('honours explicit overrides', async () => {
     const repo = new InMemoryNotificationsRepository();
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: false,
       inAppEnabled: false,
       emailEnabled: false,
@@ -31,9 +31,9 @@ describe('GetPreferencesUseCase', () => {
     });
 
     const all = await new GetPreferencesUseCase(repo).execute('u-1');
-    const liked = all.find((p) => p.type === 'POST_LIKED');
+    const liked = all.find((p) => p.type === 'MESSAGE_RECEIVED');
     expect(liked).toEqual({
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
       enabled: false,
       inAppEnabled: false,
       emailEnabled: false,

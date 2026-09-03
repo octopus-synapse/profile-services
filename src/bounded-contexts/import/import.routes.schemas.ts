@@ -168,7 +168,6 @@ export const GithubParsedProfileResponseSchema = z.object({
 
 export const GithubImportResponseSchema = z.object({
   primaryStack: z.array(z.string()),
-  buildPostsCreated: z.number().int(),
   profileUpdated: z.boolean(),
 });
 

@@ -41,7 +41,6 @@ import {
 } from '@/bounded-contexts/export/domain/events';
 import { buildExportComposition } from '@/bounded-contexts/export/export.composition';
 import { ExportAuditHandler } from '@/bounded-contexts/export/infrastructure/handlers/export-audit.handler';
-import { buildFeedComposition } from '@/bounded-contexts/feed/feed.composition';
 import {
   buildFitProfileBundle,
   buildFitProfileComposition,
@@ -531,17 +530,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     config,
   );
   resumeAnalytics.registerCron(cron, distributedLock);
-
-  // Feed needs notifications.useCases.createNotification + s3 + cache
-  // (P1-028 — short-window cache around the timeline assemble).
-  const feed = buildFeedComposition(
-    prisma as never,
-    logger,
-    s3,
-    { createNotification: notifications.useCases.createNotification },
-    safeFetch,
-    cache,
-  );
 
   // Jobs needs llm + email + eventBus + safeFetch
   // (P0-#9: job-import-from-url uses safeFetch to block SSRF instead of the
@@ -1231,7 +1219,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     notifications,
     resumeVersions,
     resumeAnalytics,
-    feed,
     jobs,
     social,
     automation,

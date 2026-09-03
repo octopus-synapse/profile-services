@@ -23,61 +23,6 @@ export interface NotificationTemplate {
 export type NotificationDictionary = Readonly<Record<string, NotificationTemplate>>;
 
 export const NOTIFICATION_DICTIONARY = {
-  POST_LIKED: {
-    title: {
-      en: '{actorName} liked your post',
-      'pt-BR': '{actorName} curtiu seu post',
-    },
-    body: {
-      en: '{actorName} liked your post "{postExcerpt}"',
-      'pt-BR': '{actorName} curtiu seu post "{postExcerpt}"',
-    },
-    params: ['actorName', 'postExcerpt'],
-  },
-  POST_COMMENTED: {
-    title: {
-      en: '{actorName} commented on your post',
-      'pt-BR': '{actorName} comentou no seu post',
-    },
-    body: {
-      en: '{actorName} commented: "{commentExcerpt}"',
-      'pt-BR': '{actorName} comentou: "{commentExcerpt}"',
-    },
-    params: ['actorName', 'commentExcerpt'],
-  },
-  POST_REPOSTED: {
-    title: {
-      en: '{actorName} reposted your post',
-      'pt-BR': '{actorName} repostou seu post',
-    },
-    body: {
-      en: '{actorName} reposted "{postExcerpt}"',
-      'pt-BR': '{actorName} repostou "{postExcerpt}"',
-    },
-    params: ['actorName', 'postExcerpt'],
-  },
-  POST_BOOKMARKED: {
-    title: {
-      en: '{actorName} saved your post',
-      'pt-BR': '{actorName} salvou seu post',
-    },
-    body: {
-      en: '{actorName} bookmarked "{postExcerpt}"',
-      'pt-BR': '{actorName} salvou "{postExcerpt}"',
-    },
-    params: ['actorName', 'postExcerpt'],
-  },
-  COMMENT_REPLIED: {
-    title: {
-      en: '{actorName} replied to your comment',
-      'pt-BR': '{actorName} respondeu ao seu comentário',
-    },
-    body: {
-      en: '{actorName} replied: "{replyExcerpt}"',
-      'pt-BR': '{actorName} respondeu: "{replyExcerpt}"',
-    },
-    params: ['actorName', 'replyExcerpt'],
-  },
   CONNECTION_REQUEST: {
     title: {
       en: '{actorName} wants to connect',

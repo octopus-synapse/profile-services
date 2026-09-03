@@ -264,7 +264,6 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
       const result = await bc.githubImport.import(ctx.user!.userId);
       return {
         primaryStack: result.primaryStack,
-        buildPostsCreated: result.buildPostsCreated,
         profileUpdated: result.profileUpdated,
       };
     },

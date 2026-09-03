@@ -30,11 +30,6 @@ export abstract class NotificationsSseBundle {
 // Mirrors `NotificationType` from the Prisma enum — keep in sync with
 // `src/bounded-contexts/notifications/domain/entities/notification.ts`.
 export const NOTIFICATION_TYPES = [
-  'POST_LIKED',
-  'POST_COMMENTED',
-  'POST_REPOSTED',
-  'POST_BOOKMARKED',
-  'COMMENT_REPLIED',
   'CONNECTION_REQUEST',
   'CONNECTION_ACCEPTED',
   'FOLLOW_NEW',
@@ -70,10 +65,10 @@ export const PaginationQuery = z.object({
 });
 
 export const TypeParam = z
-  .object({ type: z.enum(NOTIFICATION_TYPES).openapi({ example: 'POST_LIKED' }) })
+  .object({ type: z.enum(NOTIFICATION_TYPES).openapi({ example: 'MESSAGE_RECEIVED' }) })
   .openapi({
     example: {
-      type: 'POST_LIKED',
+      type: 'MESSAGE_RECEIVED',
     },
   });
 

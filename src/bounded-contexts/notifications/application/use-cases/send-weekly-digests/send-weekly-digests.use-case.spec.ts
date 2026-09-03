@@ -29,7 +29,7 @@ describe('SendWeeklyDigestsUseCase', () => {
   });
 
   it('emails every eligible user when they have non-zero activity', async () => {
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: true,
       emailEnabled: true,
       emailDelivery: 'WEEKLY',
@@ -49,7 +49,7 @@ describe('SendWeeklyDigestsUseCase', () => {
   });
 
   it('skips users with zero activity', async () => {
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: true,
       emailEnabled: true,
       emailDelivery: 'WEEKLY',
@@ -63,7 +63,7 @@ describe('SendWeeklyDigestsUseCase', () => {
   });
 
   it('is idempotent inside the same ISO week', async () => {
-    repo.setPreferenceRow('u-1', 'POST_LIKED', {
+    repo.setPreferenceRow('u-1', 'MESSAGE_RECEIVED', {
       enabled: true,
       emailEnabled: true,
       emailDelivery: 'WEEKLY',

@@ -5,7 +5,7 @@ import { SetPreferenceUseCase } from './set-preference.use-case';
 describe('SetPreferenceUseCase', () => {
   it('inserts a new preference row with defaults applied', async () => {
     const repo = new InMemoryNotificationsRepository();
-    const result = await new SetPreferenceUseCase(repo).execute('u-1', 'POST_LIKED', {
+    const result = await new SetPreferenceUseCase(repo).execute('u-1', 'MESSAGE_RECEIVED', {
       enabled: false,
     });
 
@@ -16,8 +16,8 @@ describe('SetPreferenceUseCase', () => {
   it('merges partial updates into existing rows', async () => {
     const repo = new InMemoryNotificationsRepository();
     const useCase = new SetPreferenceUseCase(repo);
-    await useCase.execute('u-1', 'POST_LIKED', { enabled: false, emailDelivery: 'DAILY' });
-    const result = await useCase.execute('u-1', 'POST_LIKED', { emailEnabled: false });
+    await useCase.execute('u-1', 'MESSAGE_RECEIVED', { enabled: false, emailDelivery: 'DAILY' });
+    const result = await useCase.execute('u-1', 'MESSAGE_RECEIVED', { emailEnabled: false });
 
     expect(result.enabled).toBe(false);
     expect(result.emailEnabled).toBe(false);

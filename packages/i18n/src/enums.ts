@@ -258,7 +258,6 @@ export const ENUM_DICTIONARY = {
   },
   NotificationType: {
     APPLICATION_STALE: { en: 'Application stale', 'pt-BR': 'Candidatura parada' },
-    COMMENT_REPLIED: { en: 'Reply to your comment', 'pt-BR': 'Resposta ao seu comentário' },
     CONNECTION_ACCEPTED: { en: 'Connection accepted', 'pt-BR': 'Conexão aceita' },
     CONNECTION_RECOMMENDATION: {
       en: 'Connection recommendation',
@@ -276,10 +275,6 @@ export const ENUM_DICTIONARY = {
       'pt-BR': 'Novas recomendações de vagas',
     },
     MESSAGE_RECEIVED: { en: 'New message', 'pt-BR': 'Nova mensagem' },
-    POST_BOOKMARKED: { en: 'Post bookmarked', 'pt-BR': 'Post salvo' },
-    POST_COMMENTED: { en: 'New comment', 'pt-BR': 'Novo comentário' },
-    POST_LIKED: { en: 'Post liked', 'pt-BR': 'Post curtido' },
-    POST_REPOSTED: { en: 'Post reposted', 'pt-BR': 'Post repostado' },
     RESUME_QUALITY_IMPROVED: {
       en: 'Resume quality improved',
       'pt-BR': 'Qualidade do currículo melhorou',
@@ -310,11 +305,6 @@ export const ENUM_DICTIONARY = {
     HYBRID: { en: 'Hybrid', 'pt-BR': 'Híbrido' },
     ONSITE: { en: 'Onsite', 'pt-BR': 'Presencial' },
     REMOTE: { en: 'Remote', 'pt-BR': 'Remoto' },
-  },
-  ReportStatus: {
-    DISMISSED: { en: 'Dismissed', 'pt-BR': 'Descartada' },
-    PENDING: { en: 'Pending', 'pt-BR': 'Pendente' },
-    REVIEWED: { en: 'Reviewed', 'pt-BR': 'Revisada' },
   },
   RoleSeniority: {
     INTERN: { en: 'Intern', 'pt-BR': 'Estagiário' },
