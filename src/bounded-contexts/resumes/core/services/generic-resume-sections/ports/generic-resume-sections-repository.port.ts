@@ -23,6 +23,9 @@ export abstract class GenericResumeSectionsRepositoryPort {
 
   abstract findResumeOwner(resumeId: string): Promise<{ id: string; userId: string } | null>;
 
+  /** Canonical locale of the résumé (ADR-003) — what `?locale=` resolves against. */
+  abstract findResumeLanguage(resumeId: string): Promise<string | null>;
+
   abstract findResumeSections(resumeId: string): Promise<ResumeSectionDto[]>;
 
   // `semanticKind` is surfaced so the section-item use-cases can tag the
@@ -78,7 +81,11 @@ export abstract class GenericResumeSectionsUseCases {
   abstract readonly listSectionTypesUseCase: { execute: () => Promise<SectionTypeDto[]> };
   abstract readonly listSectionGroupsUseCase: { execute: () => Promise<SectionGroupDto[]> };
   abstract readonly listResumeSectionsUseCase: {
-    execute: (resumeId: string, userId: string) => Promise<ResumeSectionDto[]>;
+    execute: (
+      resumeId: string,
+      userId: string,
+      locale?: 'pt-BR' | 'en' | 'all',
+    ) => Promise<ResumeSectionDto[]>;
   };
   abstract readonly createSectionItemUseCase: {
     execute: (

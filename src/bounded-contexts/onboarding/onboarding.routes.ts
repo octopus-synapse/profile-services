@@ -255,6 +255,11 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
           resolveAuthoredLocale(ctx),
         );
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+        // Both locales from day one (ADR-003 §13) — enqueued after the
+        // commit; a failure here must not undo a completed onboarding.
+        if (result.resumeId) {
+          void bundle.onResumeReady?.(result.resumeId).catch(() => undefined);
+        }
         return result;
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);
@@ -465,6 +470,11 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
           resolveAuthoredLocale(ctx),
         );
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+        // Both locales from day one (ADR-003 §13) — enqueued after the
+        // commit; a failure here must not undo a completed onboarding.
+        if (result.resumeId) {
+          void bundle.onResumeReady?.(result.resumeId).catch(() => undefined);
+        }
         return result;
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);

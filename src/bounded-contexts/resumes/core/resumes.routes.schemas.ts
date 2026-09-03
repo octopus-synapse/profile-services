@@ -54,6 +54,15 @@ export const ResumeIdAndTypeKeyAndItemIdParam = ResumeIdParamSchema.extend({
 
 export const LocaleQuery = z.object({ locale: z.string().optional() });
 
+/** `?locale=` for the sections read: a locale tag, or `all` for the raw rows with their translations. */
+export const SectionsLocaleQuerySchema = z.object({
+  locale: z.string().optional().openapi({
+    description:
+      "Language version of the items: `pt-BR`, `en`, or `all` (raw rows with the `translations` map). Omitted = the résumé's own language.",
+    example: 'en',
+  }),
+});
+
 export const CreateResumeBody = z
   .object({
     title: z
@@ -61,6 +70,10 @@ export const CreateResumeBody = z
       .min(1)
       .max(100)
       .openapi({ description: 'Resume title shown in the user dashboard (max 100 chars).' }),
+    language: z.enum(['pt-BR', 'en']).optional().openapi({
+      description:
+        'Canonical (authored) locale of the résumé. Changing it makes the other locale the derived one.',
+    }),
     summary: BioSchema.optional().openapi({
       description: 'Optional long-form summary shown at the top of the resume.',
     }),

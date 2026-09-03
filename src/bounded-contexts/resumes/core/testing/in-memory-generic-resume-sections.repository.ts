@@ -51,6 +51,10 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
     return this.resumes.get(resumeId) ?? null;
   }
 
+  async findResumeLanguage(resumeId: string): Promise<string | null> {
+    return this.resumes.has(resumeId) ? 'pt-BR' : null;
+  }
+
   async findResumeSections(resumeId: string): Promise<ResumeSectionDto[]> {
     return Array.from(this.resumeSections.values())
       .filter((rs) => rs.resumeId === resumeId)

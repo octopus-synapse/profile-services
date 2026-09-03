@@ -5,15 +5,25 @@
  * token (no separate Use-Cases port today).
  */
 
+import { LOCALES, type Locale } from '@packages/i18n';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { TranslationService } from './application/services';
+import { derivedState, envelopeFor, hashSource } from '@/shared-kernel/i18n/translation-envelope';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import { selectTranslatableFieldKeys } from './domain/policies/field-translation.policy';
+import type { TranslatableResume } from './domain/ports/resume-translation-store.port';
 import { TRANSLATION_FLAG_KEY } from './domain/translation-flags.const';
+import type { TranslationBundle } from './translation.composition';
 import {
   HealthResponseSchema,
   LanguageDetectionsResponseSchema,
+  ResumeIdParams,
+  ResumeTranslationParams,
+  ResumeTranslationStatusSchema,
   TranslateSimpleSchema,
+  TranslationReportSchema,
 } from './translation.routes.schemas';
 
 /**
@@ -33,7 +43,53 @@ const LLM_ROUTE_GUARDS = [
   { id: 'feature-flag', metadata: { key: TRANSLATION_FLAG_KEY } },
 ] as const;
 
-export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
+/** Per-locale rollup of what the client shows next to the switcher. */
+function statusFor(resume: TranslatableResume) {
+  return LOCALES.map((locale: Locale) => {
+    if (locale === resume.language) {
+      return {
+        locale,
+        role: 'canonical' as const,
+        items: { total: 0, current: 0, stale: 0, missing: 0, manual: 0, diverged: 0 },
+        prose: 'n/a' as const,
+      };
+    }
+    const items = { total: 0, current: 0, stale: 0, missing: 0, manual: 0, diverged: 0 };
+    for (const section of resume.sections) {
+      const keys = selectTranslatableFieldKeys(section.sectionTypeKey, section.fields);
+      for (const item of section.items) {
+        const subset = Object.fromEntries(
+          keys.filter((k) => item.content[k] != null).map((k) => [k, item.content[k]]),
+        );
+        if (Object.keys(subset).length === 0) continue;
+        items.total++;
+        const env = envelopeFor(item.translations, locale);
+        if (env?.origin === 'manual') items.manual++;
+        else if (env?.origin === 'diverged') items.diverged++;
+        else items[derivedState(env, hashSource(subset))]++;
+      }
+    }
+    const proseSubset = Object.fromEntries(
+      Object.entries(resume.prose).filter(([, v]) => typeof v === 'string' && v.trim()),
+    );
+    const proseEnv = envelopeFor(resume.translations, locale);
+    const prose =
+      Object.keys(proseSubset).length === 0
+        ? ('n/a' as const)
+        : proseEnv?.origin === 'manual' || proseEnv?.origin === 'diverged'
+          ? proseEnv.origin
+          : derivedState(proseEnv, hashSource(proseSubset));
+    return { locale, role: 'derived' as const, items, prose };
+  });
+}
+
+async function ownedResume(bundle: TranslationBundle, resumeId: string, userId: string) {
+  const resume = await bundle.store.load(resumeId);
+  if (!resume || resume.userId !== userId) throw new EntityNotFoundException('Resume', resumeId);
+  return resume;
+}
+
+export const translationRoutes: ReadonlyArray<Route<TranslationBundle>> = [
   {
     method: 'GET',
     path: '/v1/translation/health',
@@ -46,8 +102,8 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
       description: 'Translation API',
     },
     sdk: { exported: true },
-    handler: async (_ctx, service) => {
-      const isAvailable = await service.checkServiceHealth();
+    handler: async (_ctx, bundle) => {
+      const isAvailable = await bundle.service.checkServiceHealth();
       return {
         status: isAvailable ? 'healthy' : 'unavailable',
         timestamp: new Date().toISOString(),
@@ -68,10 +124,59 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
       description: 'Translation API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
-      const detections = await service.detectLanguage(dto.text);
+      const detections = await bundle.service.detectLanguage(dto.text);
       return { detections };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/resumes/:resumeId/translations/:locale',
+    auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
+    permission: Permission.RESUME_UPDATE,
+    params: ResumeTranslationParams,
+    response: TranslationReportSchema,
+    openapi: {
+      summary: 'Derive the résumé into a locale now (ADR-003)',
+      tags: ['translation'],
+      description:
+        'Runs the bilingual write-through inline for the first switch, so the person sees the ' +
+        'result in the same session. Progress per section streams on the user channel; the ' +
+        'response is the final report. Unchanged items cost nothing; copies the person edited ' +
+        'are never overwritten.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { resumeId, locale: raw } = ctx.params as { resumeId: string; locale: string };
+      const locale = normalizeLocale(raw);
+      if (!locale) throw new EntityNotFoundException('Locale', raw);
+      await ownedResume(bundle, resumeId, ctx.user!.userId);
+      const report = await bundle.translateResume.execute(resumeId, { locale });
+      const { costUsdMicros: _cost, ...wire } = report;
+      return wire;
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/resumes/:resumeId/translations',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_READ,
+    params: ResumeIdParams,
+    response: ResumeTranslationStatusSchema,
+    openapi: {
+      summary: 'Translation state of each locale of a résumé',
+      tags: ['translation'],
+      description:
+        'For the canonical locale, `role: canonical`. For the other, how many items are current, ' +
+        'stale (canonical text changed since), missing, or hand-written (manual / diverged).',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { resumeId } = ctx.params as { resumeId: string };
+      const resume = await ownedResume(bundle, resumeId, ctx.user!.userId);
+      return { resumeId, language: resume.language, locales: statusFor(resume) };
     },
   },
 ];

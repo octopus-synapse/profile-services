@@ -53,6 +53,14 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
     });
   }
 
+  async findResumeLanguage(resumeId: string): Promise<string | null> {
+    const row = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { language: true },
+    });
+    return row?.language ?? null;
+  }
+
   findResumeSections(resumeId: string) {
     return this.prisma.resumeSection.findMany({
       where: { resumeId },

@@ -50,6 +50,18 @@ export const MgmtSectionItemSchema = z.object({
   order: z.number().int(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
+  // ADR-003 — present on a locale-resolved read (`?locale=<tag>`):
+  contentLocale: z.string().optional().openapi({ example: 'en' }),
+  origin: z
+    .enum(['canonical', 'derived', 'manual', 'diverged'])
+    .optional()
+    .openapi({ example: 'derived' }),
+  translationState: z
+    .enum(['canonical', 'current', 'stale', 'missing'])
+    .optional()
+    .openapi({ example: 'current' }),
+  // Present on `?locale=all`: `{ [locale]: { data, sourceHash, translatedAt, origin } }`.
+  translations: JsonObjectSchema.nullable().optional().openapi({ example: null }),
 });
 
 export const MgmtResumeSectionSchema = z.object({

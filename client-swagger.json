@@ -928,6 +928,14 @@
             "maxLength": 100,
             "description": "Resume title shown in the user dashboard (max 100 chars)."
           },
+          "language": {
+            "type": "string",
+            "enum": [
+              "pt-BR",
+              "en"
+            ],
+            "description": "Canonical (authored) locale of the résumé. Changing it makes the other locale the derived one."
+          },
           "summary": {
             "$ref": "#/components/schemas/Bio"
           },
@@ -1004,6 +1012,14 @@
             "minLength": 1,
             "maxLength": 100,
             "description": "Resume title shown in the user dashboard (max 100 chars)."
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "pt-BR",
+              "en"
+            ],
+            "description": "Canonical (authored) locale of the résumé. Changing it makes the other locale the derived one."
           },
           "summary": {
             "$ref": "#/components/schemas/Bio"
@@ -1125,6 +1141,166 @@
               ]
             }
           ]
+        }
+      },
+      "ResumeTranslationStatus": {
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string",
+            "example": "01900000-0000-7000-a000-000000000010"
+          },
+          "language": {
+            "type": "string",
+            "example": "pt-BR"
+          },
+          "locales": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "locale": {
+                  "type": "string",
+                  "example": "en"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "canonical",
+                    "derived"
+                  ],
+                  "example": "derived"
+                },
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "example": 12
+                    },
+                    "current": {
+                      "type": "integer",
+                      "example": 9
+                    },
+                    "stale": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "missing": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "manual": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "diverged": {
+                      "type": "integer",
+                      "example": 1
+                    }
+                  },
+                  "required": [
+                    "total",
+                    "current",
+                    "stale",
+                    "missing",
+                    "manual",
+                    "diverged"
+                  ]
+                },
+                "prose": {
+                  "type": "string",
+                  "enum": [
+                    "current",
+                    "stale",
+                    "missing",
+                    "manual",
+                    "diverged",
+                    "n/a"
+                  ],
+                  "example": "current"
+                }
+              },
+              "required": [
+                "locale",
+                "role",
+                "items",
+                "prose"
+              ]
+            }
+          }
+        },
+        "required": [
+          "resumeId",
+          "language",
+          "locales"
+        ]
+      },
+      "TranslationReport": {
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string",
+            "example": "01900000-0000-7000-a000-000000000010"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed",
+              "skipped"
+            ],
+            "example": "completed"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "flag-off",
+              "monthly-cap",
+              "provider-unavailable",
+              "error"
+            ],
+            "example": "monthly-cap"
+          },
+          "sectionsTranslated": {
+            "type": "integer",
+            "example": 4
+          },
+          "itemsTranslated": {
+            "type": "integer",
+            "example": 9
+          },
+          "itemsSkipped": {
+            "type": "integer",
+            "example": 3
+          },
+          "tokensUsed": {
+            "type": "integer",
+            "example": 1240
+          }
+        },
+        "required": [
+          "resumeId",
+          "locale",
+          "status",
+          "sectionsTranslated",
+          "itemsTranslated",
+          "itemsSkipped",
+          "tokensUsed"
+        ],
+        "example": {
+          "resumeId": "01900000-0000-7000-a000-000000000010",
+          "locale": "en",
+          "status": "completed",
+          "sectionsTranslated": 4,
+          "itemsTranslated": 9,
+          "itemsSkipped": 3,
+          "tokensUsed": 1240
         }
       },
       "ConnectedAccountsResponse": {
@@ -39908,6 +40084,36 @@
                                         "format": "date-time",
                                         "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                         "example": "2026-05-07T00:00:00.000Z"
+                                      },
+                                      "contentLocale": {
+                                        "type": "string",
+                                        "example": "en"
+                                      },
+                                      "origin": {
+                                        "type": "string",
+                                        "enum": [
+                                          "canonical",
+                                          "derived",
+                                          "manual",
+                                          "diverged"
+                                        ],
+                                        "example": "derived"
+                                      },
+                                      "translationState": {
+                                        "type": "string",
+                                        "enum": [
+                                          "canonical",
+                                          "current",
+                                          "stale",
+                                          "missing"
+                                        ],
+                                        "example": "current"
+                                      },
+                                      "translations": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "additionalProperties": {},
+                                        "example": null
                                       }
                                     },
                                     "required": [
@@ -40528,6 +40734,36 @@
                                       "format": "date-time",
                                       "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                       "example": "2026-05-07T00:00:00.000Z"
+                                    },
+                                    "contentLocale": {
+                                      "type": "string",
+                                      "example": "en"
+                                    },
+                                    "origin": {
+                                      "type": "string",
+                                      "enum": [
+                                        "canonical",
+                                        "derived",
+                                        "manual",
+                                        "diverged"
+                                      ],
+                                      "example": "derived"
+                                    },
+                                    "translationState": {
+                                      "type": "string",
+                                      "enum": [
+                                        "canonical",
+                                        "current",
+                                        "stale",
+                                        "missing"
+                                      ],
+                                      "example": "current"
+                                    },
+                                    "translations": {
+                                      "type": "object",
+                                      "nullable": true,
+                                      "additionalProperties": {},
+                                      "example": null
                                     }
                                   },
                                   "required": [
@@ -43604,6 +43840,16 @@
             "name": "resumeId",
             "in": "path",
             "example": "01900000-0000-7000-a000-000000000010"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Language version of the items: `pt-BR`, `en`, or `all` (raw rows with the `translations` map). Omitted = the résumé's own language.",
+              "example": "en"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
           }
         ],
         "responses": {
@@ -43834,6 +44080,36 @@
                                   "format": "date-time",
                                   "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                   "example": "2026-05-07T00:00:00.000Z"
+                                },
+                                "contentLocale": {
+                                  "type": "string",
+                                  "example": "en"
+                                },
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "canonical",
+                                    "derived",
+                                    "manual",
+                                    "diverged"
+                                  ],
+                                  "example": "derived"
+                                },
+                                "translationState": {
+                                  "type": "string",
+                                  "enum": [
+                                    "canonical",
+                                    "current",
+                                    "stale",
+                                    "missing"
+                                  ],
+                                  "example": "current"
+                                },
+                                "translations": {
+                                  "type": "object",
+                                  "nullable": true,
+                                  "additionalProperties": {},
+                                  "example": null
                                 }
                               },
                               "required": [
@@ -44266,6 +44542,36 @@
                           "format": "date-time",
                           "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                           "example": "2026-05-07T00:00:00.000Z"
+                        },
+                        "contentLocale": {
+                          "type": "string",
+                          "example": "en"
+                        },
+                        "origin": {
+                          "type": "string",
+                          "enum": [
+                            "canonical",
+                            "derived",
+                            "manual",
+                            "diverged"
+                          ],
+                          "example": "derived"
+                        },
+                        "translationState": {
+                          "type": "string",
+                          "enum": [
+                            "canonical",
+                            "current",
+                            "stale",
+                            "missing"
+                          ],
+                          "example": "current"
+                        },
+                        "translations": {
+                          "type": "object",
+                          "nullable": true,
+                          "additionalProperties": {},
+                          "example": null
                         }
                       },
                       "required": [
@@ -44525,6 +44831,36 @@
                           "format": "date-time",
                           "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                           "example": "2026-05-07T00:00:00.000Z"
+                        },
+                        "contentLocale": {
+                          "type": "string",
+                          "example": "en"
+                        },
+                        "origin": {
+                          "type": "string",
+                          "enum": [
+                            "canonical",
+                            "derived",
+                            "manual",
+                            "diverged"
+                          ],
+                          "example": "derived"
+                        },
+                        "translationState": {
+                          "type": "string",
+                          "enum": [
+                            "canonical",
+                            "current",
+                            "stale",
+                            "missing"
+                          ],
+                          "example": "current"
+                        },
+                        "translations": {
+                          "type": "object",
+                          "nullable": true,
+                          "additionalProperties": {},
+                          "example": null
                         }
                       },
                       "required": [
@@ -45636,6 +45972,175 @@
         },
         "x-auth": "jwt",
         "x-permission": "resume:read"
+      }
+    },
+    "/api/v1/resumes/{resumeId}/translations": {
+      "get": {
+        "summary": "Translation state of each locale of a résumé",
+        "description": "For the canonical locale, `role: canonical`. For the other, how many items are current, stale (canonical text changed since), missing, or hand-written (manual / diverged).",
+        "tags": [
+          "translation"
+        ],
+        "operationId": "get_v1_resumes_resumeId_translations",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
+            },
+            "required": true,
+            "name": "resumeId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000010"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeTranslationStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
+      }
+    },
+    "/api/v1/resumes/{resumeId}/translations/{locale}": {
+      "post": {
+        "summary": "Derive the résumé into a locale now (ADR-003)",
+        "description": "Runs the bilingual write-through inline for the first switch, so the person sees the result in the same session. Progress per section streams on the user channel; the response is the final report. Unchanged items cost nothing; copies the person edited are never overwritten.",
+        "tags": [
+          "translation"
+        ],
+        "operationId": "post_v1_resumes_resumeId_translations_locale",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
+            },
+            "required": true,
+            "name": "resumeId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000010"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Target locale: `en` or `pt-BR`.",
+              "example": "en"
+            },
+            "required": true,
+            "name": "locale",
+            "in": "path",
+            "example": "en"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/versions": {

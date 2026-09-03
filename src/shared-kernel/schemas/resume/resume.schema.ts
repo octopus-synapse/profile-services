@@ -42,6 +42,8 @@ export type ResumeTemplate = z.infer<typeof ResumeTemplateEnum>;
  */
 export const CreateResumeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
+  /** Canonical (authored) locale — `pt-BR` or `en` (ADR-003). */
+  language: z.enum(['pt-BR', 'en']).optional(),
   summary: BioSchema.optional(),
   isPublic: z.boolean().default(false), // Personal info
   fullName: z.string().max(100).optional(),

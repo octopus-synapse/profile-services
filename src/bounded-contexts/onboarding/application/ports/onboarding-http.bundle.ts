@@ -34,4 +34,10 @@ export abstract class OnboardingHttpBundle {
   abstract readonly activateExtras: ActivateOnboardingExtrasUseCase;
   /** Live résumé preview from saved progress (resume-style picker). */
   abstract readonly renderOnboardingPreview: RenderOnboardingPreviewUseCase;
+  /**
+   * Called with the résumé id once completion has committed (ADR-003 §13:
+   * a new account leaves onboarding with both locales). Never inside the
+   * transaction — the LLM call has no business in a 120s tx window.
+   */
+  abstract readonly onResumeReady?: (resumeId: string) => Promise<void>;
 }

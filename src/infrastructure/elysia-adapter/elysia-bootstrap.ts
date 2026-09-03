@@ -712,6 +712,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     // context or every guarded route keeps 403ing for up to 60s after
     // onboarding ("couldn't load your profile" on the Profile tab).
     invalidateAuthContext: (userId: string) => authorization.checks.invalidateCache(userId),
+    onResumeReady: (resumeId: string) => translation.deriveNow(resumeId),
   } as never) as never;
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;
@@ -773,7 +774,27 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const skillsCatalogAdmin = buildAdminCatalogUseCases(prisma as never, logger);
 
   // Translation — provider is the BC AI's TranslationLlmPort (OpenAI).
-  const translation = buildTranslationComposition(ai.bundle.translation, logger) as never;
+  // Bilingual write-through (ADR-003): the BC declares its event handlers
+  // and worker; both are registered below with everyone else's.
+  const translation = buildTranslationComposition({
+    translationLlm: ai.bundle.translation,
+    logger,
+    prisma: prisma as never,
+    queue,
+    sse: sseStream,
+    flags,
+    pricing: {
+      priceUsdMicrosPer1kTokens: Number(
+        config.getOrDefault<string>('OPENAI_TRANSLATION_PRICE_USD_MICROS_PER_1K_TOKENS', '0'),
+      ),
+      monthlyCapUsdMicros: BigInt(
+        config.getOrDefault<string>('TRANSLATION_MONTHLY_CAP_USD_MICROS', '1000000'),
+      ),
+    },
+  });
+  for (const binding of translation.eventHandlers ?? []) {
+    eventBus.on(binding.eventType, binding.handler);
+  }
 
   // MEC sync — public catalog routes (`/api/v1/mec/...`).
   const mecSync = buildMecSyncUseCases(prisma as never, cache, logger);
@@ -830,6 +851,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
         { name: 'automation', workers: automation.workers },
         { name: 'resume-quality', workers: (resumeQuality as BoundedContextComposition).workers },
         { name: 'job-match', workers: (jobMatch as BoundedContextComposition).workers },
+        { name: 'translation', workers: translation.workers },
       ]);
     },
   });

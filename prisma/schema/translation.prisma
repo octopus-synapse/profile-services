@@ -1,0 +1,16 @@
+// Translation cost ledger (ADR-003 §9). One row per LLM run of the
+// bilingual write-through; the monthly cap sums it per user.
+
+model TranslationCostEntry {
+  id            String   @id @default(dbgenerated("uuidv7()"))
+  userId        String
+  resumeId      String
+  locale        String
+  tokensUsed    Int
+  costUsdMicros BigInt   @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([resumeId])
+  @@map("translation_cost_entries")
+}

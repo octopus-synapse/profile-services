@@ -65,6 +65,8 @@ export interface OnboardingDeps {
    * authorization BC skip it.
    */
   readonly invalidateAuthContext?: (userId: string) => void;
+  /** Post-commit hook — the bilingual write-through enqueues the other locale here. */
+  readonly onResumeReady?: (resumeId: string) => Promise<void>;
 }
 
 export interface OnboardingBundle {
@@ -81,6 +83,7 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
     validateLocation,
     renderResumeHtml,
     invalidateAuthContext,
+    onResumeReady,
   } = deps;
 
   const useCases = buildOnboardingUseCases(
@@ -127,6 +130,7 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
     admin,
     activateExtras,
     renderOnboardingPreview,
+    ...(onResumeReady ? { onResumeReady } : {}),
   };
 
   return { httpBundle };

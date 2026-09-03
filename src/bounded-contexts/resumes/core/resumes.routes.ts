@@ -18,7 +18,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import { PAGINATION } from '@/shared-kernel/constants/pagination.constants';
 import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import { normalizeLocale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
 import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
 import { renderResumeThumbnailSvg } from './presenters/resume-thumbnail-svg.presenter';
@@ -49,6 +49,7 @@ import {
   ResumeSectionTypesDataSchema,
   ResumeSlotsResponseSchema,
   SectionItemBody,
+  SectionsLocaleQuerySchema,
   UpdateResumeBody,
   UserIdParam,
 } from './resumes.routes.schemas';
@@ -371,6 +372,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     path: '/v1/resumes/:resumeId/sections',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    query: SectionsLocaleQuerySchema,
     response: ResumeSectionsListResponseSchema,
     openapi: {
       summary: 'List sections and items for a resume',
@@ -380,7 +382,13 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
-      const sections = await bc.listResumeSectionsUseCase.execute(resumeId, ctx.user!.userId);
+      const raw = (ctx.query as { locale?: string } | undefined)?.locale;
+      const locale = raw === 'all' ? 'all' : (normalizeLocale(raw) ?? undefined);
+      const sections = await bc.listResumeSectionsUseCase.execute(
+        resumeId,
+        ctx.user!.userId,
+        locale,
+      );
       return { sections };
     },
   },

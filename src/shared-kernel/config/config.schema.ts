@@ -257,6 +257,10 @@ export const EnvConfigSchema = z
     // Translation reuses OPENAI_MODEL but caps output tokens separately —
     // single-call resume translations need more headroom than tailor/extract.
     OPENAI_TRANSLATION_MAX_TOKENS: PositiveIntString.optional(),
+    // Bilingual write-through brakes (ADR-003 §9). Price unset = cost recorded
+    // as 0 (tokens still logged); cap unset = US$1.00/user/month.
+    OPENAI_TRANSLATION_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
+    TRANSLATION_MONTHLY_CAP_USD_MICROS: PositiveIntString.optional(),
 
     // --- Analytics (PostHog) ---
     POSTHOG_HOST: OptionalUrl,
