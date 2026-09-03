@@ -24,11 +24,6 @@ model User {
   username          String?   @unique
   usernameUpdatedAt DateTime?
   photoURL          String?
-  /// DEPRECATED (ADR-003 §7): prose lives on the primary résumé (`Resume.summary`,
-  /// `Resume.headline`). Readers prefer the résumé; these are the fallback for
-  /// accounts that never finished onboarding, and are dropped in the cleanup step.
-  bio               String?   @db.Text
-  headline          String?   @db.VarChar(120)
   location          String?
   phone             String?
   website           String?

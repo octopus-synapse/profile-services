@@ -56,8 +56,6 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
         username: true,
         name: true,
         photoURL: true,
-        bio: true,
-        headline: true,
         location: true,
         website: true,
         portfolio: true,
@@ -72,8 +70,8 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
     const prose = proseOf(primaryResume, locale);
     return {
       ...user,
-      headline: prose?.headline ?? user.headline,
-      bio: prose?.summary ?? user.bio,
+      headline: prose?.headline ?? null,
+      bio: prose?.summary ?? null,
       allowSearchEngineIndex: preferences?.allowSearchEngineIndex ?? false,
     };
   }
@@ -97,8 +95,6 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
         username: true,
         name: true,
         photoURL: true,
-        bio: true,
-        headline: true,
         location: true,
         phone: true,
         website: true,
@@ -115,8 +111,8 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
     const { primaryResume, ...user } = row;
     return {
       ...user,
-      headline: primaryResume?.headline ?? user.headline,
-      bio: primaryResume?.summary ?? user.bio,
+      headline: primaryResume?.headline ?? null,
+      bio: primaryResume?.summary ?? null,
     };
   }
 
@@ -132,8 +128,8 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
     // `photoURL` for the profile read). Keep them in sync on this path so a
     // set/clear via the profile actually reflects on the next read.
     const { image, bio, headline, ...rest } = data;
-    // Prose goes to the primary résumé (ADR-003 §7); the `User` columns are
-    // written too until they are dropped, so nothing reads stale text.
+    // Prose goes to the primary résumé (ADR-003 §7). A person with no
+    // résumé yet has nowhere to keep it — the onboarding will write it.
     if (bio !== undefined || headline !== undefined) {
       const owner = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -153,8 +149,6 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
       where: { id: userId },
       data: {
         ...rest,
-        ...(bio !== undefined ? { bio } : {}),
-        ...(headline !== undefined ? { headline } : {}),
         ...(image !== undefined ? { image, photoURL: image } : {}),
       },
     });

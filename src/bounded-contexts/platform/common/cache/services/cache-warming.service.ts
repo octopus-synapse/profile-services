@@ -169,7 +169,6 @@ export class CacheWarmingService {
           name: true,
           email: true,
           username: true,
-          bio: true,
           preferences: true,
         },
         take: 1,

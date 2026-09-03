@@ -49,8 +49,6 @@ const defaultUser: User = {
   usernameUpdatedAt: null,
   phone: null,
   location: null,
-  bio: null,
-  headline: null,
   website: null,
   linkedin: null,
   github: null,
