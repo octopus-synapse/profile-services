@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { AuditLogPort } from '@/shared-kernel/audit';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { EntityNotFoundException, ValidationException } from '@/shared-kernel/exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 import { UpdateFullPreferencesUseCase } from './update-full-preferences.use-case';
@@ -67,6 +67,25 @@ describe('UpdateFullPreferencesUseCase', () => {
 
     // CRITICAL: No envelope fields
     expect(result).not.toHaveProperty('success');
+  });
+
+  it('canonicalises the UI language before writing (pt_BR → pt-BR, en-US → en)', async () => {
+    await useCase.execute('user-1', { language: 'pt_BR' });
+    expect(repository.upsertFullPreferences).toHaveBeenLastCalledWith('user-1', {
+      language: 'pt-BR',
+    });
+
+    await useCase.execute('user-1', { language: 'en-US' });
+    expect(repository.upsertFullPreferences).toHaveBeenLastCalledWith('user-1', {
+      language: 'en',
+    });
+  });
+
+  it('rejects a language no served locale matches', async () => {
+    await expect(useCase.execute('user-1', { language: 'fr' })).rejects.toThrow(
+      ValidationException,
+    );
+    expect(repository.upsertFullPreferences).not.toHaveBeenCalled();
   });
 
   it('throws EntityNotFoundException when user does not exist', async () => {

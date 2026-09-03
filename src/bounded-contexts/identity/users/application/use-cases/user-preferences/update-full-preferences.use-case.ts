@@ -1,6 +1,7 @@
 import { AuditLogPort } from '@/shared-kernel/audit';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { EntityNotFoundException, ValidationException } from '@/shared-kernel/exceptions';
 import type { LoggerPort } from '@/shared-kernel/logger';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import type {
   FullUserPreferences,
   UpdateFullPreferencesData,
@@ -19,13 +20,14 @@ export class UpdateFullPreferencesUseCase {
     private readonly logger: LoggerPort,
   ) {}
 
-  async execute(userId: string, data: UpdateFullPreferencesData): Promise<FullUserPreferences> {
+  async execute(userId: string, input: UpdateFullPreferencesData): Promise<FullUserPreferences> {
     const exists = await this.repository.userExists(userId);
 
     if (!exists) {
       throw new EntityNotFoundException('User');
     }
 
+    const data = withCanonicalLanguage(input);
     const result = await this.repository.upsertFullPreferences(userId, data);
 
     await this.auditLog.log({
@@ -43,4 +45,22 @@ export class UpdateFullPreferencesUseCase {
 
     return result;
   }
+}
+
+/**
+ * `UserPreferences.language` is the UI locale and is stored as a free
+ * string, so `pt_BR` / `PT-br` / `en-US` all used to land verbatim and no
+ * locale-aware read recognised them. Canonicalise at the write boundary
+ * (ADR-003 §11 vocabulary: `pt-BR` / `en`); a string that names no served
+ * locale is a client error, not something to guess at.
+ */
+function withCanonicalLanguage(data: UpdateFullPreferencesData): UpdateFullPreferencesData {
+  if (data.language === undefined) return data;
+  const language = normalizeLocale(data.language);
+  if (!language) {
+    throw new ValidationException(`Unsupported language "${data.language}"`, {
+      language: ['unsupported'],
+    });
+  }
+  return { ...data, language };
 }

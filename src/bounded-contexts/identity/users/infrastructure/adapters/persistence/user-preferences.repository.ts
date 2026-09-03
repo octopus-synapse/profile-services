@@ -8,6 +8,7 @@ import type {
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import { readJsonColumn } from '@/shared-kernel/persistence/json-column';
+import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import {
   type FullUserPreferences,
   type OneClickApplyConfig,
@@ -17,6 +18,16 @@ import {
   type UserPreferences,
   UserPreferencesRepositoryPort,
 } from '../../../application/ports/user-preferences.port';
+
+/**
+ * Read boundary for `UserPreferences.language`: rows written before the
+ * write boundary normalised (and any legacy spelling the migration left
+ * alone) still come out as a canonical locale. `'en'` is the column's
+ * default — the UI locale, not the résumé's.
+ */
+function uiLocale(raw: string): string {
+  return normalizeLocale(raw) ?? 'en';
+}
 
 /** Shape that Prisma hands us back when we include applyCriteria on the row. */
 type PrismaCriteria = {
@@ -68,7 +79,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
 
     return {
       theme: prefs.theme,
-      language: prefs.language,
+      language: uiLocale(prefs.language),
       emailNotifications: prefs.emailNotifications,
     };
   }
@@ -109,7 +120,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       theme: prefs.theme,
       palette: prefs.palette,
       bannerColor: prefs.bannerColor,
-      language: prefs.language,
+      language: uiLocale(prefs.language),
       dateFormat: prefs.dateFormat,
       timezone: prefs.timezone,
       emailNotifications: prefs.emailNotifications,
@@ -241,7 +252,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       theme: hydrated.theme,
       palette: hydrated.palette,
       bannerColor: hydrated.bannerColor,
-      language: hydrated.language,
+      language: uiLocale(hydrated.language),
       dateFormat: hydrated.dateFormat,
       timezone: hydrated.timezone,
       emailNotifications: hydrated.emailNotifications,

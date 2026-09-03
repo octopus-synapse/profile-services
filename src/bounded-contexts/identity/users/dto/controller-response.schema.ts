@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { LocaleSchema } from '@/shared-kernel/schemas/primitives/locale.schema';
 
 // ============================================================================
 // Pagination
@@ -197,7 +198,7 @@ const FullUserPreferencesSchema = z.object({
   theme: z.string(),
   palette: z.string(),
   bannerColor: z.string().nullable(),
-  language: z.string(),
+  language: LocaleSchema,
   dateFormat: z.string(),
   timezone: z.string(),
   emailNotifications: z.boolean(),
