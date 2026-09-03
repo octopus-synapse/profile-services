@@ -12,6 +12,15 @@ const CTX = 'PrismaTargetRoleCoverage';
  * in-demand skills of the résumé's `targetRoleLabel`. Returns `null` when
  * there's no target role or its skills can't be resolved — the readiness
  * use-case then falls back to count-based coverage.
+ *
+ * The label is always the CANONICAL one — what the person typed, in the
+ * résumé's authored language (`Resume.targetRoleLabel`). The job title is a
+ * translated field (`JOB_TITLE: YES` in `field-translation.policy.ts`), but a
+ * derived label must never feed readiness: the role-skills adapter keys its
+ * cache and its LLM prompt by this string, so a per-locale variant would
+ * split the cache and score the same résumé differently per UI locale.
+ * When the translation layer lands, translated labels live beside the
+ * canonical column, and this read stays on the canonical one.
  */
 export class PrismaTargetRoleCoverage extends TargetRoleCoveragePort {
   constructor(
@@ -28,11 +37,13 @@ export class PrismaTargetRoleCoverage extends TargetRoleCoveragePort {
         where: { id: resumeId },
         select: { targetRoleLabel: true, primaryStack: true, language: true },
       });
-      const roleLabel = resume?.targetRoleLabel?.trim();
-      if (!roleLabel) return null;
+      // Canonical (authored-language) label — see the class doc. Not the
+      // seam for a translated label.
+      const canonicalRoleLabel = resume?.targetRoleLabel?.trim();
+      if (!canonicalRoleLabel) return null;
 
       const [roleSkills, userSkills] = await Promise.all([
-        this.roleSkills.getInDemandSkills(roleLabel, resume?.language ?? null),
+        this.roleSkills.getInDemandSkills(canonicalRoleLabel, resume?.language ?? null),
         this.prisma.userSkillProficiency.findMany({
           where: { userId },
           select: { skillName: true },

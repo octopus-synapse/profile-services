@@ -136,6 +136,11 @@ export class ResumesRepository extends ResumesRepositoryPort {
           experienceYears: source.experienceYears,
           fullName: source.fullName,
           jobTitle: source.jobTitle,
+          // The target role is content, not publish state: readiness keys
+          // off `targetRoleLabel`, so a copy without it silently lost its
+          // market-relative coverage.
+          targetRoleId: source.targetRoleId,
+          targetRoleLabel: source.targetRoleLabel,
           phone: source.phone,
           location: source.location,
           linkedin: source.linkedin,
