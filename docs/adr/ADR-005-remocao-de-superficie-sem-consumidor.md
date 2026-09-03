@@ -107,11 +107,25 @@ planejada.
 
 ### Buracos que a auditoria abriu, não fechou
 
-- **Consentimento LGPD não é gravado.** O diálogo do cadastro é um checkbox
-  local; `POST /v1/consent` nunca é chamado. Ligar os dois entrou no plano.
+- **Reaceitação de termos não existe de ponta a ponta.** O aceite inicial
+  **é** gravado: o cadastro envia `acceptedTosVersion` e
+  `acceptedPrivacyVersion`, e `CreateAccountUseCase` persiste os dois
+  consentimentos com IP e user agent. O que falta é o depois: quando a versão
+  publicada muda, `consentGuardStage` é um no-op (não bloqueia nada) e o app
+  não tem tela para aceitar a nova versão, então `/v1/users/me/accept-consent`
+  e `/consent-status` nunca são chamados. Fechar o ciclo entrou no plano.
 - **Validação de username perdeu cobertura de integração.** Ela era afirmada
   por `PUT /v1/onboarding/progress`; deve ser repontada para
   `PATCH /v1/users/username` e `POST /v1/users/username/validate`.
+- **Existem dois sistemas de vaga.** O app usa `/v1/jobs/external/*` (busca
+  agregada, salvar, "você se candidatou?") e ele funciona ponta a ponta, com
+  tela de detalhe e acompanhamento de candidaturas. As 14 rotas órfãs em
+  `/v1/jobs/*` são um **quadro de vagas interno**: publicar, editar, apagar,
+  ver candidatos, importar vaga por URL, mais candidatar-se e favoritar uma
+  vaga interna. A metade do empregador é outro produto; a metade do candidato
+  duplica o fluxo externo. Decisão pendente do dono.
+- **Importação do LinkedIn é um esqueleto.** `/v1/resumes/imports/linkedin`
+  lança 503 por desenho. A tela de importação oferece só PDF.
 
 ## Consequências
 
