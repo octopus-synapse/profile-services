@@ -30,7 +30,8 @@ Recommended production tags:
 - DogStatsD domain event metrics:
   - `profile_services.domain.events`
 - Postgres and Redis Autodiscovery checks from Docker labels.
-- MinIO and LibreTranslate HTTP checks from `infra/docker/datadog/conf.d/http_check.d/conf.yaml`.
+- HTTP checks from `infra/docker/datadog/conf.d/http_check.d/conf.yaml`: MinIO liveness and the backend's translation health (`GET /api/v1/translation/health`, cached 1h, never reaches the LLM provider).
+- BullMQ queue depth via the Redis check's `keys` option (see below).
 
 ## Privacy Rules
 
@@ -49,7 +50,7 @@ Create a dashboard with:
 - Latency p95/p99 from `profile_services.http.request.duration_ms` grouped by `route`.
 - Top endpoints by request volume grouped by `route`.
 - Domain events: `sum:profile_services.domain.events{env:production,service:profile-services} by {event_type}.as_count()`
-- Container restarts and health for `profile-backend`, `profile-postgres`, `profile-redis`, `profile-minio`, and `profile-libretranslate`.
+- Container restarts and health for `profile-backend`, `profile-postgres`, `profile-redis`, and `profile-minio`.
 - Postgres and Redis integration panels from Datadog's built-in dashboards.
 
 ## Starter Monitors
@@ -60,6 +61,30 @@ Create a dashboard with:
 - Auth abuse signal: alert when `profile_services.domain.events{event_type:auth.login.failed}` spikes above baseline.
 - Critical processing failures: alert on `event_type:export.failed` or failed scoring/job events above baseline.
 - Postgres/Redis health: alert on failed integration checks or connection saturation.
+- Translation health: alert when `http_check` `profile-backend-translation-health` is down for 10 minutes.
+- BullMQ backlog and stalls: see the next section.
+
+## BullMQ Queues
+
+There is no BullMQ exporter in the app and none is needed: BullMQ keeps
+every queue as plain Redis keys, and the `redisdb` Autodiscovery check on
+`profile-redis` (label in `docker-compose.yml`) already scans them via its
+`keys` option — `bull:*:wait`, `bull:*:active`, `bull:*:failed`,
+`bull:*:stalled`. Each shows up as `redis.key.length` tagged `key:<name>`,
+so the alerting is Datadog configuration only; nothing in `src/` changes.
+
+Queues in play (consumers are registered by `registerBcWorkers` at boot;
+the boot log lists each one as `consuming` or `inert`): `resume-quality`,
+`job-match-recompute`, `daily-recommendations`, `fit-profile-expiry-reminder`,
+`fit-profile-expire`, `cache-invalidation`, and — gated by the
+`automation.enabled` flag, off by default — `auto-apply`, `weekly-curated`.
+
+Monitors:
+
+- Backlog: `avg:redis.key.length{key:bull:*:wait}` by `key` above 100 for 15 minutes. A queue that only ever grows has no consumer — check the boot log for `Worker registered`.
+- Stalled: `max:redis.key.length{key:bull:*:stalled}` by `key` above 0 for 5 minutes. A stalled job is one whose worker stopped heartbeating (usually a crashed or wedged process).
+- Failures: `max:redis.key.length{key:bull:*:failed}` by `key` increasing by more than 10 over 1 hour. Jobs land here only after the adapter's 3 attempts.
+- Inert-on-purpose queues (`auto-apply`, `weekly-curated` while the flag is off) hold at most one delayed repeat job and never appear in `wait`; exclude them from the backlog monitor if the flag stays off.
 
 ## Validation Checklist
 

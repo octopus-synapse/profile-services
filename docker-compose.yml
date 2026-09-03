@@ -34,7 +34,7 @@ services:
       com.datadoghq.tags.version: ${IMAGE_TAG:-latest}
       com.datadoghq.ad.logs: '[{"source":"redis","service":"profile-redis"}]'
       com.datadoghq.ad.checks: >-
-        {"redisdb":{"init_config":{},"instances":[{"host":"%%host%%","port":6379,"password":"${DD_REDIS_PASSWORD:-${REDIS_PASSWORD:-redis}}"}]}}
+        {"redisdb":{"init_config":{},"instances":[{"host":"%%host%%","port":6379,"password":"${DD_REDIS_PASSWORD:-${REDIS_PASSWORD:-redis}}","keys":["bull:*:wait","bull:*:active","bull:*:failed","bull:*:stalled"],"warn_on_missing_keys":false}]}}
     volumes:
       - redis_data:/data
     networks:

@@ -1156,6 +1156,15 @@
           "accounts"
         ]
       },
+      "Locale": {
+        "type": "string",
+        "enum": [
+          "en",
+          "pt-BR"
+        ],
+        "description": "BCP-47 locale tag. Supported locales: en, pt-BR.",
+        "example": "pt-BR"
+      },
       "CreateWebhookRequest": {
         "type": "object",
         "properties": {
@@ -35188,6 +35197,16 @@
           "onboarding"
         ],
         "operationId": "post_v1_onboarding",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -65784,7 +65803,7 @@
                           "nullable": true
                         },
                         "language": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/Locale"
                         },
                         "dateFormat": {
                           "type": "string"
@@ -66205,7 +66224,7 @@
                           "nullable": true
                         },
                         "language": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/Locale"
                         },
                         "dateFormat": {
                           "type": "string"

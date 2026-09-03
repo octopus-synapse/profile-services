@@ -8,9 +8,15 @@ instances:
       - env:prod
       - service:profile-minio
 
-  - name: profile-libretranslate-languages
-    url: http://profile-libretranslate:5000/languages
+  # Translation subsystem health, served by the backend itself (the
+  # LibreTranslate container this used to probe no longer exists — the
+  # provider is an LLM behind the translation BC). The endpoint is cached
+  # for an hour and never reaches the provider, so polling it is free.
+  # Port mirrors `BACKEND_PORT`'s default in docker-compose.yml.
+  - name: profile-backend-translation-health
+    url: http://profile-backend:3001/api/v1/translation/health
     timeout: 5
     tags:
       - env:prod
-      - service:profile-libretranslate
+      - service:profile-services
+      - check:translation-health
