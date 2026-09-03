@@ -116,7 +116,6 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   refreshTokens           RefreshToken[]
   loginAttempts           LoginAttempt[]
-  webhooks                WebhookConfig[]          @relation("UserWebhooks")
 
   // Automation
   curatedBatches WeeklyCuratedBatch[] @relation("UserCuratedBatches")

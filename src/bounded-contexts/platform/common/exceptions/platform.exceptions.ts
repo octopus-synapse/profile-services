@@ -104,23 +104,6 @@ export class InvalidTestSuiteException extends ValidationException {
 }
 
 /**
- * F5.I.3 SKIP — owned by `platform/webhooks` BC (out of lot 2 scope).
- * Terminal webhook delivery error — raised inside the retry loop so the outer
- * catch can log it with structured detail. If it ever escapes the retry, the
- * envelope carries a stable code instead of leaking HTTP status text.
- */
-export class WebhookDeliveryFailedException extends DomainException {
-  readonly code: string = 'WEBHOOK_DELIVERY_FAILED';
-  readonly statusHint = 502;
-  constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-  ) {
-    super(`HTTP ${status}: ${statusText}`);
-  }
-}
-
-/**
  * Repository used before onModuleInit finished. Programmer error — typed so
  * the envelope surfaces a stable code if DI wiring ever regresses in prod.
  */

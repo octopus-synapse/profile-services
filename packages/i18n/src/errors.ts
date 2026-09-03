@@ -1125,10 +1125,6 @@ export const ERROR_DICTIONARY = {
     en: 'Verification token was already sent. Wait a moment before retrying.',
     'pt-BR': 'Token de verificação já foi enviado. Aguarde um pouco antes de tentar de novo.',
   },
-  WEBHOOK_DELIVERY_FAILED: {
-    en: 'Webhook delivery failed',
-    'pt-BR': 'Falha na entrega do webhook',
-  },
   AUTHENTICATED_USER_MISSING: {
     en: 'Authenticated user not present on request',
     'pt-BR': 'Usuário autenticado não está presente na requisição',
@@ -1297,10 +1293,6 @@ export const ERROR_DICTIONARY = {
   URL_REQUIRED: {
     en: 'URL is required',
     'pt-BR': 'URL é obrigatória',
-  },
-  WEBHOOK_NOT_FOUND: {
-    en: 'Webhook not found',
-    'pt-BR': 'Webhook não encontrado',
   },
   FIT_QUESTION_NOT_FOUND: {
     en: 'Question not found',

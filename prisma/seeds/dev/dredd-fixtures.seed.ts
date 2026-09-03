@@ -713,19 +713,6 @@ export async function seedDreddFixtures(
     update: {},
   });
 
-  // ── WebhookConfig (for /webhooks/{id} PATCH/DELETE/deliveries) ────
-  await prisma.webhookConfig.upsert({
-    where: { id: EXAMPLE_GENERIC_ID },
-    create: {
-      id: EXAMPLE_GENERIC_ID,
-      userId: EXAMPLE_USER_ID,
-      url: 'https://fixture.example.com/webhook',
-      secret: 'dredd-fixture-secret',
-      events: ['resume.created'],
-    },
-    update: {},
-  });
-
   // ── UserSkillProficiency (for /users/{userId}/skills/{skill}/* routes) ─
   await prisma.userSkillProficiency.upsert({
     where: { userId_skillName: { userId: EXAMPLE_USER_ID, skillName: 'Fixture User' } },

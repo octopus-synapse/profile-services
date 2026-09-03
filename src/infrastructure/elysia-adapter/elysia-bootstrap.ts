@@ -113,7 +113,6 @@ import { buildRealtimeComposition } from '@/bounded-contexts/platform/realtime/r
 import { buildTestRunnerComposition } from '@/bounded-contexts/platform/test-runner/test-runner.composition';
 import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-runner.routes';
 import { buildUiMetadataComposition } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.composition';
-import { buildWebhooksComposition } from '@/bounded-contexts/platform/webhooks/webhooks.composition';
 import { buildWellKnownComposition } from '@/bounded-contexts/platform/well-known/well-known.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
 import { ShareDownloadedEvent } from '@/bounded-contexts/presentation/shared-kernel/domain/events/share-downloaded.event';
@@ -151,7 +150,7 @@ import {
   enableTracking as enablePendingHandlerTracking,
   track as trackPendingHandler,
 } from '@/shared-kernel/event-bus/pending-handler-tracker';
-import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
+import { SafeFetchAdapter } from '@/shared-kernel/http';
 import { buildCorsAllowlist } from '@/shared-kernel/http/cors-allowlist';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
@@ -269,10 +268,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // P1 #45/#46 — pass through `SAFE_FETCH_MAX_BYTES` so operators can
   // tighten the body cap per environment without rebuilding the image.
   // The schema default (5 MB) keeps existing deploys at the same cap.
-  const safeFetchStrict = new SafeFetchStrictAdapter({
-    defaultTimeoutMs: 15_000,
-    maxResponseBytes: config.env.SAFE_FETCH_MAX_BYTES,
-  });
   // P0-010: distributed lock — used by `runGuardedJob` to ensure that
   // each scheduled cron worker runs at most once per tick across pods.
   // Redis-backed (SETNX + Lua release) when REDIS_HOST is set. Falls
@@ -457,7 +452,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const fitProfile = buildFitProfileComposition(prisma as never, eventBus, logger, queue);
   for (const l of fitProfile.lifecycles ?? []) lifecycles.push(l);
   const metrics = buildMetricsComposition(logger);
-  const webhooks = buildWebhooksComposition(prisma as never, logger, safeFetchStrict);
 
   // Notifications: needs cache + sse + queue (skipped — Redis-bound) +
   // cron + eventBus + email. The cron/queue scheduler bits are wrapped
@@ -1154,7 +1148,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     importBc,
     fitProfile,
     i18n,
-    webhooks,
     notifications,
     resumeVersions,
     jobs,
