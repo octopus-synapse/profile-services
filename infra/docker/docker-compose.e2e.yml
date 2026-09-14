@@ -40,7 +40,7 @@ services:
 
   # One-shot bucket creation so the export upload has a target.
   minio-init:
-    image: minio/mc:${MINIO_MC_VERSION:-RELEASE.2024-10-08T09-37-26Z}
+    image: quay.io/minio/mc:${MINIO_MC_VERSION:-RELEASE.2024-10-08T09-37-26Z}
     container_name: profile-minio-init-e2e
     depends_on:
       minio:

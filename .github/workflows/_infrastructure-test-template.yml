@@ -163,7 +163,7 @@ jobs:
               # ("`/bin/sh` is not a recognized command").
               docker run --rm --network host \
                 --entrypoint /bin/sh \
-                minio/mc:RELEASE.2024-10-08T09-37-26Z -c "
+                quay.io/minio/mc:RELEASE.2024-10-08T09-37-26Z -c "
                   mc alias set local http://localhost:9100 minioadmin minioadmin &&
                   mc mb local/profile-uploads --ignore-existing &&
                   mc anonymous set download local/profile-uploads"
