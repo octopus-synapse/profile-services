@@ -31,6 +31,7 @@ import {
 const TailorOutputSchema = z.object({
   summary: z.string().nullable(),
   jobTitle: z.string().nullable(),
+  coverLetter: z.string().nullable().optional().default(null),
   bullets: z
     .array(
       z.object({

@@ -5322,6 +5322,206 @@
         ]
       }
     },
+    "/api/v1/billing/patch-go": {
+      "get": {
+        "summary": "Patch Go subscription and monthly usage",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "get_v1_billing_patch_go",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "used": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "periodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-14T00:00:00.000Z"
+                    },
+                    "cancelAtPeriodEnd": {
+                      "type": "boolean",
+                      "example": false
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "status",
+                    "active",
+                    "used",
+                    "limit",
+                    "periodEnd",
+                    "cancelAtPeriodEnd"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/patch-go/checkout": {
+      "post": {
+        "summary": "Create a Patch Go subscription Checkout session",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_patch_go_checkout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "market": {
+                    "type": "string",
+                    "enum": [
+                      "BRL",
+                      "USD"
+                    ]
+                  }
+                },
+                "required": [
+                  "market"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/patch-go/portal": {
+      "post": {
+        "summary": "Open the Stripe customer portal for Patch Go",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_patch_go_portal",
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
     "/api/v1/chat/blocked": {
       "get": {
         "summary": "Get all blocked users",
@@ -26309,6 +26509,10 @@
                       "type": "string",
                       "format": "uuid"
                     },
+                    "coverLetter": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "summary": {
                       "type": "object",
                       "nullable": true,
@@ -26377,6 +26581,7 @@
                   },
                   "required": [
                     "versionId",
+                    "coverLetter",
                     "summary",
                     "jobTitle",
                     "bullets"
@@ -28844,6 +29049,10 @@
                         ]
                       }
                     },
+                    "coverLetter": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "changes": {
                       "type": "array",
                       "items": {
@@ -28948,6 +29157,7 @@
                     "summary",
                     "jobTitle",
                     "bullets",
+                    "coverLetter",
                     "changes",
                     "match"
                   ]
@@ -37029,6 +37239,9 @@
     },
     {
       "name": "automation"
+    },
+    {
+      "name": "billing"
     },
     {
       "name": "chat"

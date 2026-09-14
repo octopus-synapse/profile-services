@@ -796,6 +796,18 @@
       "en": "Password does not meet security requirements",
       "pt-BR": "A senha não atende aos requisitos de segurança"
     },
+    "PATCH_GO_LIMIT_REACHED": {
+      "en": "You have used all 30 preparations in this billing cycle",
+      "pt-BR": "Você usou os 30 preparos deste ciclo de cobrança"
+    },
+    "PATCH_GO_NOT_CONFIGURED": {
+      "en": "Patch Go checkout is not available yet",
+      "pt-BR": "A assinatura Patch Go ainda não está disponível"
+    },
+    "PATCH_GO_REQUIRED": {
+      "en": "Patch Go is required to prepare a resume for this job",
+      "pt-BR": "É preciso assinar o Patch Go para preparar o currículo para esta vaga"
+    },
     "PDF_BUFFER_REQUIRED": {
       "en": "PDF file buffer is required",
       "pt-BR": "O buffer do PDF é obrigatório"

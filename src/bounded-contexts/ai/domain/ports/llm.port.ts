@@ -44,6 +44,8 @@ export type TailorResumeOutput = {
   jobTitle: string | null;
   /** One entry per bullet the LLM chose to change; omit unchanged items. */
   bullets: TailorResumeBullet[];
+  /** Reviewable draft based only on facts in the resume and posting. */
+  coverLetter?: string | null;
 };
 
 /** Structured resume the PDF extractor returns. Kept intentionally small —

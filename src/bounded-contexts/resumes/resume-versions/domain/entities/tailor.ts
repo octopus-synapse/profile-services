@@ -30,11 +30,13 @@ export type TailorResumeResult = {
   summary: string | null;
   jobTitle: string | null;
   bullets: TailorBullet[];
+  coverLetter: string | null;
   match: TailorMatchEstimate | null;
 };
 
 export type TailoredVersionDiff = {
   versionId: string;
+  coverLetter: string | null;
   summary: { before: string | null; after: string | null } | null;
   jobTitle: { before: string | null; after: string | null } | null;
   bullets: Array<{ id: string; before: string; after: string; highlights: string[] }>;
@@ -108,5 +110,6 @@ export type TailoredSnapshot = {
     summary: string | null;
     jobTitle: string | null;
     bullets: TailorBullet[];
+    coverLetter?: string | null;
   };
 };

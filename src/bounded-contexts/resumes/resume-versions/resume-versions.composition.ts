@@ -23,6 +23,7 @@ import { GetTailoredVersionsUseCase } from './application/use-cases/get-tailored
 import { GetVersionsUseCase } from './application/use-cases/get-versions/get-versions.use-case';
 import { RestoreVersionUseCase } from './application/use-cases/restore-version/restore-version.use-case';
 import { TailorResumeForJobUseCase } from './application/use-cases/tailor-resume-for-job/tailor-resume-for-job.use-case';
+import type { PreparationMeterPort } from './domain/ports/preparation-meter.port';
 import type { ResumeVersionsRepositoryPort } from './domain/ports/resume-versions.repository.port';
 import type { TailorMatchPort } from './domain/ports/tailor-match.port';
 import { LlmResumeTailorAdapter } from './infrastructure/adapters/external-services/llm-resume-tailor.adapter';
@@ -50,6 +51,7 @@ export function buildResumeVersionsUseCases(
   events: ResumeEventPublisher,
   tailorMatch: TailorMatchPort | null = null,
   repository: ResumeVersionsRepositoryPort = buildResumeVersionsRepository(prisma, logger),
+  meter: PreparationMeterPort | null = null,
 ): ResumeVersionsUseCases {
   // Repos
   const repo = repository;
@@ -64,7 +66,7 @@ export function buildResumeVersionsUseCases(
     createSnapshot,
     getVersions: new GetVersionsUseCase(repo),
     restoreVersion: new RestoreVersionUseCase(repo, createSnapshot, events, logger),
-    tailorResumeForJob: new TailorResumeForJobUseCase(repo, tailorLlm, logger, tailorMatch),
+    tailorResumeForJob: new TailorResumeForJobUseCase(repo, tailorLlm, logger, tailorMatch, meter),
     getTailoredVersions: new GetTailoredVersionsUseCase(repo),
     getTailoredVersionDiff: new GetTailoredVersionDiffUseCase(repo),
   };
@@ -89,6 +91,7 @@ export function buildResumeVersionsComposition(
   llm: LlmPort,
   events: ResumeEventPublisher,
   tailorMatch: TailorMatchPort | null = null,
+  meter: PreparationMeterPort | null = null,
 ): BoundedContextComposition<ResumeVersionsUseCases> & ResumeVersionsCompositionExtras {
   const repository = buildResumeVersionsRepository(prisma, logger);
   const useCases = buildResumeVersionsUseCases(
@@ -98,6 +101,7 @@ export function buildResumeVersionsComposition(
     events,
     tailorMatch,
     repository,
+    meter,
   );
   const tailor = new ResumeTailorService(
     useCases.tailorResumeForJob,

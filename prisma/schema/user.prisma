@@ -120,6 +120,10 @@ model User {
   // Automation
   curatedBatches WeeklyCuratedBatch[] @relation("UserCuratedBatches")
 
+  // Patch Go billing and monthly preparation usage.
+  patchGoBilling PatchGoBilling?
+  patchGoUsage   PatchGoUsage[]
+
   @@index([username])
   @@index([email])
   @@index([emailVerified])

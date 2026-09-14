@@ -20,6 +20,7 @@ type SnapshotEnvelope = {
     bullets?: Array<{ id: string; content: string }>;
   };
   tailored?: {
+    coverLetter?: string | null;
     summary?: string | null;
     jobTitle?: string | null;
     bullets?: Array<{ id: string; original: string; tailored: string; highlights?: string[] }>;
@@ -45,6 +46,7 @@ export class GetTailoredVersionDiffUseCase {
 
     return {
       versionId: version.id,
+      coverLetter: tailored.coverLetter ?? null,
       summary:
         tailored.summary !== undefined && tailored.summary !== null
           ? { before: master.summary ?? null, after: tailored.summary }

@@ -23,6 +23,7 @@ describe('TailorResumeForJobUseCase', () => {
     llm = new StubResumeTailorLlm(() => ({
       summary: 'tailored summary',
       jobTitle: 'Senior Engineer',
+      coverLetter: 'I built the tools this role needs and would welcome a conversation.',
       bullets: [
         { id: 'item-1', original: 'shipped', tailored: 'shipped at scale', highlights: ['scale'] },
       ],
@@ -110,12 +111,15 @@ describe('TailorResumeForJobUseCase', () => {
 
     expect(result.versionNumber).toBe(1);
     expect(result.summary).toBe('tailored summary');
+    expect(result.coverLetter).toContain('I built the tools');
     expect(result.bullets).toHaveLength(1);
     expect(result.label).toContain('Acme');
 
     const tailored = await repository.findTailoredVersions(resumeId);
     expect(tailored).toHaveLength(1);
     expect(tailored[0].tailoredJobId).toBe('job-1');
+    const saved = await repository.findResumeVersionById(result.versionId);
+    expect(saved?.snapshot).toMatchObject({ tailored: { coverLetter: result.coverLetter } });
   });
 
   it('wraps LLM failures in TailorEngineUnavailableException', async () => {
@@ -139,6 +143,41 @@ describe('TailorResumeForJobUseCase', () => {
         jobDescription: 'this is a long enough job description for the use case',
       }),
     ).rejects.toBeInstanceOf(TailorEngineUnavailableException);
+  });
+
+  it('reserves one preparation on success and releases it when tailoring fails', async () => {
+    repository.seedTailorResume({
+      id: resumeId,
+      userId,
+      summary: null,
+      jobTitle: null,
+      primaryStack: [],
+      resumeSections: [],
+    });
+    const calls: string[] = [];
+    const reservation = { userId, periodStart: new Date('2026-09-01') };
+    const meter = {
+      reserve: async () => {
+        calls.push('reserve');
+        return reservation;
+      },
+      release: async () => {
+        calls.push('release');
+      },
+    };
+    const jobDescription = 'this is a long enough job description for the use case';
+    const success = new TailorResumeForJobUseCase(repository, llm, stubLogger, null, meter);
+    await success.execute({ resumeId, userId, jobDescription });
+    expect(calls).toEqual(['reserve']);
+
+    const failingLlm = new StubResumeTailorLlm(() => {
+      throw new Error('provider outage');
+    });
+    const failing = new TailorResumeForJobUseCase(repository, failingLlm, stubLogger, null, meter);
+    await expect(failing.execute({ resumeId, userId, jobDescription })).rejects.toBeInstanceOf(
+      TailorEngineUnavailableException,
+    );
+    expect(calls).toEqual(['reserve', 'reserve', 'release']);
   });
 
   it('accepts a free-text job description with title/company defaults', async () => {

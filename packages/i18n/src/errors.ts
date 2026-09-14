@@ -538,6 +538,18 @@ export const ERROR_DICTIONARY = {
     en: 'External job provider request failed',
     'pt-BR': 'Falha na requisição ao provedor externo de vagas',
   },
+  PATCH_GO_REQUIRED: {
+    en: 'Patch Go is required to prepare a resume for this job',
+    'pt-BR': 'É preciso assinar o Patch Go para preparar o currículo para esta vaga',
+  },
+  PATCH_GO_LIMIT_REACHED: {
+    en: 'You have used all 30 preparations in this billing cycle',
+    'pt-BR': 'Você usou os 30 preparos deste ciclo de cobrança',
+  },
+  PATCH_GO_NOT_CONFIGURED: {
+    en: 'Patch Go checkout is not available yet',
+    'pt-BR': 'A assinatura Patch Go ainda não está disponível',
+  },
   INVALID_APPLICATION_STATE: {
     en: 'Application state does not allow this transition',
     'pt-BR': 'O estado da candidatura não permite essa transição',

@@ -28,6 +28,7 @@ import type {
   TailorMatchEstimate,
   TailorResumeResult,
 } from '../../../domain/entities/tailor';
+import { PreparationMeterPort } from '../../../domain/ports/preparation-meter.port';
 import { ResumeTailorLlmPort } from '../../../domain/ports/resume-tailor-llm.port';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
 import { TailorMatchPort } from '../../../domain/ports/tailor-match.port';
@@ -40,78 +41,94 @@ export class TailorResumeForJobUseCase {
     private readonly logger: LoggerPort,
     /** Best-effort compatibility estimate; null disables the signal. */
     private readonly match: TailorMatchPort | null = null,
+    private readonly meter: PreparationMeterPort | null = null,
   ) {}
 
   async execute(input: TailorJobInput): Promise<TailorResumeResult> {
     const resume = await this.loadOwnedResume(input.resumeId, input.userId);
     const resolved = await this.resolveJob(input);
+    const reservation = (await this.meter?.reserve(input.userId)) ?? null;
 
-    let tailored: Awaited<ReturnType<typeof this.llm.tailorResume>>;
     try {
-      tailored = await this.llm.tailorResume({
-        resume: {
+      let tailored: Awaited<ReturnType<typeof this.llm.tailorResume>>;
+      try {
+        tailored = await this.llm.tailorResume({
+          resume: {
+            summary: resume.summary,
+            jobTitle: resume.jobTitle,
+            primaryStack: resume.primaryStack,
+            sections: resume.resumeSections.map((section) => ({
+              key: section.sectionType.key,
+              semanticKind: section.sectionType.semanticKind,
+              items: section.items.map((item) => ({ id: item.id, content: item.content })),
+            })),
+          },
+          job: resolved.job,
+        });
+      } catch (err) {
+        // The LLM port can fail in many ways (rate limit, network, provider
+        // outage). Wrap in a typed domain exception so the global filter
+        // emits a translated 503 instead of a raw 500 — and so retry logic
+        // upstream can branch on `err instanceof TailorEngineUnavailableException`.
+        this.logger.warn(
+          `Tailor LLM failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`,
+          'TailorResumeForJobUseCase',
+        );
+        throw new TailorEngineUnavailableException();
+      }
+
+      const label = this.labelFor(resolved.job);
+
+      const snapshot = {
+        master: {
           summary: resume.summary,
           jobTitle: resume.jobTitle,
-          primaryStack: resume.primaryStack,
-          sections: resume.resumeSections.map((section) => ({
-            key: section.sectionType.key,
-            semanticKind: section.sectionType.semanticKind,
-            items: section.items.map((item) => ({ id: item.id, content: item.content })),
-          })),
+          bullets: this.flattenBullets(resume),
         },
-        job: resolved.job,
+        tailored: {
+          summary: tailored.summary,
+          jobTitle: tailored.jobTitle,
+          bullets: tailored.bullets,
+          coverLetter: tailored.coverLetter ?? null,
+        },
+      };
+
+      // P1 #16 — adapter allocates versionNumber under the unique
+      // constraint with retry, so two concurrent tailor calls for the
+      // same resume both succeed with distinct sequential numbers.
+      const created = await this.repository.createNextResumeVersion(resume.id, {
+        snapshot,
+        label,
+        isTailored: true,
+        tailoredJobId: resolved.internalJobId,
+        tailoredExternalJobId: resolved.externalJobId,
+        tailoredJobTitleSnapshot: resolved.job.title,
+        tailoredJobCompanySnapshot: resolved.job.company,
       });
-    } catch (err) {
-      // The LLM port can fail in many ways (rate limit, network, provider
-      // outage). Wrap in a typed domain exception so the global filter
-      // emits a translated 503 instead of a raw 500 — and so retry logic
-      // upstream can branch on `err instanceof TailorEngineUnavailableException`.
-      this.logger.warn(
-        `Tailor LLM failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`,
-        'TailorResumeForJobUseCase',
-      );
-      throw new TailorEngineUnavailableException();
-    }
 
-    const label = this.labelFor(resolved.job);
+      const match = await this.estimateMatch(input, resolved, tailored.bullets);
 
-    const snapshot = {
-      master: {
-        summary: resume.summary,
-        jobTitle: resume.jobTitle,
-        bullets: this.flattenBullets(resume),
-      },
-      tailored: {
+      return {
+        versionId: created.id,
+        versionNumber: created.versionNumber,
+        label: created.label ?? label,
         summary: tailored.summary,
         jobTitle: tailored.jobTitle,
         bullets: tailored.bullets,
-      },
-    };
-
-    // P1 #16 — adapter allocates versionNumber under the unique
-    // constraint with retry, so two concurrent tailor calls for the
-    // same resume both succeed with distinct sequential numbers.
-    const created = await this.repository.createNextResumeVersion(resume.id, {
-      snapshot,
-      label,
-      isTailored: true,
-      tailoredJobId: resolved.internalJobId,
-      tailoredExternalJobId: resolved.externalJobId,
-      tailoredJobTitleSnapshot: resolved.job.title,
-      tailoredJobCompanySnapshot: resolved.job.company,
-    });
-
-    const match = await this.estimateMatch(input, resolved, tailored.bullets);
-
-    return {
-      versionId: created.id,
-      versionNumber: created.versionNumber,
-      label: created.label ?? label,
-      summary: tailored.summary,
-      jobTitle: tailored.jobTitle,
-      bullets: tailored.bullets,
-      match,
-    };
+        coverLetter: tailored.coverLetter ?? null,
+        match,
+      };
+    } catch (err) {
+      try {
+        await this.meter?.release(reservation);
+      } catch (releaseError) {
+        this.logger.warn(
+          `Could not release preparation reservation: ${releaseError instanceof Error ? releaseError.message : 'unknown'}`,
+          'TailorResumeForJobUseCase',
+        );
+      }
+      throw err;
+    }
   }
 
   private async loadOwnedResume(resumeId: string, userId: string): Promise<ResumeForTailor> {

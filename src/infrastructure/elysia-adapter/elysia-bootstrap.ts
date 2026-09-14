@@ -26,6 +26,9 @@ import { CuratedSelectorService } from '@/bounded-contexts/automation/applicatio
 import { buildAutomationComposition } from '@/bounded-contexts/automation/automation.composition';
 import { KeywordJobMatcherAdapter } from '@/bounded-contexts/automation/infrastructure/adapters/external-services/keyword-job-matcher.adapter';
 import { PrismaCuratedSelectorRepository } from '@/bounded-contexts/automation/infrastructure/adapters/persistence/prisma-curated-selector.repository';
+import { PatchGoBilling } from '@/bounded-contexts/billing/patch-go.billing';
+import { patchGoRoutes } from '@/bounded-contexts/billing/patch-go.routes';
+import { registerPatchGoWebhook } from '@/bounded-contexts/billing/patch-go.webhook';
 import { buildCollaborationComposition } from '@/bounded-contexts/collaboration/collaboration.composition';
 import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
 import { buildDslComposition } from '@/bounded-contexts/dsl/dsl.composition';
@@ -243,6 +246,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const prisma = new PrismaClient(createPrismaClientOptions());
   await prisma.$connect();
   logger.log('Prisma connected', 'ElysiaBootstrap');
+  const patchGo = new PatchGoBilling(prisma, config.env);
 
   const userSnapshot = new PrismaUserSnapshotAdapter(prisma);
   // Cache is needed by the auth extractor (token-valid-after gate) and
@@ -482,6 +486,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     ai.bundle.llm,
     resumeEvents,
     tailorMatch,
+    patchGo,
   );
 
   // Jobs needs llm + email + eventBus + safeFetch
@@ -1190,6 +1195,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     },
     { bundle: mecSync, routes: mecSyncRoutes },
     { bundle: platformUseCases, routes: platformRoutes },
+    { bundle: patchGo, routes: patchGoRoutes },
     {
       bundle: (onboarding as { useCases: unknown }).useCases ?? onboarding,
       // `buildOnboardingComposition` returns both sets, but this group was
@@ -1232,6 +1238,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       { prefix: '/api', pipeline, i18n: i18n.translation },
     );
   }
+
+  registerPatchGoWebhook(app, patchGo, logger);
 
   // SSE bundles use a different bundle type than the BC's main
   // useCases — mount them separately.

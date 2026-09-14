@@ -64,6 +64,7 @@ describe('GetTailoredVersionDiffUseCase', () => {
           bullets: [{ id: 'b-1', content: 'old bullet' }],
         },
         tailored: {
+          coverLetter: 'A factual letter for this role.',
           summary: 'new summary',
           jobTitle: 'new title',
           bullets: [
@@ -79,6 +80,7 @@ describe('GetTailoredVersionDiffUseCase', () => {
     const diff = await useCase.execute(resumeId, versionId, userId);
 
     expect(diff.versionId).toBe(versionId);
+    expect(diff.coverLetter).toBe('A factual letter for this role.');
     expect(diff.summary).toEqual({ before: 'old summary', after: 'new summary' });
     expect(diff.jobTitle).toEqual({ before: 'old title', after: 'new title' });
     expect(diff.bullets).toEqual([

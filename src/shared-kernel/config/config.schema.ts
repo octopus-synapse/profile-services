@@ -258,6 +258,13 @@ export const EnvConfigSchema = z
     // not record cost. Unset = reported as 0.
     OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
     OPENAI_EMBEDDING_MODEL: z.string().optional(),
+
+    // Patch Go is opt-in until checkout, webhook and prices are configured.
+    PATCH_GO_ENABLED: BooleanString.optional(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+    STRIPE_PRICE_BRL_MONTHLY: z.string().optional(),
+    STRIPE_PRICE_USD_MONTHLY: z.string().optional(),
     // Translation reuses OPENAI_MODEL but caps output tokens separately —
     // single-call resume translations need more headroom than tailor/extract.
     OPENAI_TRANSLATION_MAX_TOKENS: PositiveIntString.optional(),
@@ -302,6 +309,23 @@ export const EnvConfigSchema = z
     SAFE_FETCH_MAX_BYTES: z.coerce.number().int().positive().default(5_000_000),
   })
   .superRefine((data, ctx) => {
+    if (data.PATCH_GO_ENABLED) {
+      for (const key of [
+        'STRIPE_SECRET_KEY',
+        'STRIPE_WEBHOOK_SECRET',
+        'STRIPE_PRICE_BRL_MONTHLY',
+        'STRIPE_PRICE_USD_MONTHLY',
+        'FRONTEND_URL',
+      ] as const) {
+        if (!data[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: `${key} is required when PATCH_GO_ENABLED=true`,
+          });
+        }
+      }
+    }
     if (data.NODE_ENV !== 'production') return;
     // P1-#A1-17: BCRYPT_COST floor of 10 only applies in production.
     // Test/dev are allowed to lower it (typically to 4) for speed.

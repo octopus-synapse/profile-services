@@ -90,6 +90,7 @@ export const TailorBulletSchema = z.object({
 
 export const TailoredVersionDiffResponseSchema = z.object({
   versionId: z.string().uuid(),
+  coverLetter: z.string().nullable(),
   summary: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
   jobTitle: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
   bullets: z.array(
@@ -127,6 +128,7 @@ export const TailorResumeResponseSchema = z.object({
   summary: z.string().nullable(),
   jobTitle: z.string().nullable(),
   bullets: z.array(TailorBulletSchema),
+  coverLetter: z.string().nullable(),
   changes: z.array(TailorChangeSchema),
   match: TailorMatchEstimateSchema.nullable(),
 });

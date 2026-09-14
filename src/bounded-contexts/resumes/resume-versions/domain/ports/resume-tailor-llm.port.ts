@@ -36,6 +36,7 @@ export type TailorLlmOutput = {
   summary: string | null;
   jobTitle: string | null;
   bullets: TailorLlmBullet[];
+  coverLetter?: string | null;
 };
 
 export abstract class ResumeTailorLlmPort {

@@ -1,0 +1,24 @@
+model PatchGoBilling {
+  userId               String   @id
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  priceId              String?
+  status               String   @default("none")
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  cancelAtPeriodEnd    Boolean  @default(false)
+  updatedAt            DateTime @updatedAt
+
+  @@map("patch_go_billing")
+}
+
+model PatchGoUsage {
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periodStart DateTime
+  count       Int      @default(0)
+
+  @@id([userId, periodStart])
+  @@map("patch_go_usage")
+}
