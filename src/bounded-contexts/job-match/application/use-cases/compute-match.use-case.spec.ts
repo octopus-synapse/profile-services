@@ -1,8 +1,4 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  SimilarityPort,
-  type SimilarityResult,
-} from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
 import type { EventPublisher } from '@/shared-kernel';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 
@@ -27,7 +23,6 @@ import {
   SemanticMatcherPort,
   type SemanticMatchResult,
 } from '../../domain/ports/semantic-matcher.port';
-import { type UserFitState, UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import type { MatchBreakdown } from '../../domain/types';
 import { ComputeMatchUseCase } from './compute-match.use-case';
 
@@ -46,15 +41,6 @@ class FakeJobLoader extends JobLoaderPort {
   }
   async load() {
     return this.job;
-  }
-}
-
-class FakeFitState extends UserFitStatePort {
-  constructor(private readonly status: UserFitState['status']) {
-    super();
-  }
-  async getStatus(userId: string): Promise<UserFitState> {
-    return { userId, status: this.status };
   }
 }
 
@@ -84,25 +70,6 @@ class FakeSemantic extends SemanticMatcherPort {
   async match() {
     if (this.result instanceof Error) throw this.result;
     return this.result;
-  }
-}
-
-class FakeSimilarity extends SimilarityPort {
-  constructor(
-    private readonly roleResult: SimilarityResult,
-    private readonly cultureResult: SimilarityResult = {
-      score: null,
-      algorithm: 'weighted-cosine',
-      rulesVersion: '1.0.0',
-    },
-  ) {
-    super();
-  }
-  async role() {
-    return this.roleResult;
-  }
-  async culture() {
-    return this.cultureResult;
   }
 }
 
@@ -136,10 +103,6 @@ function defaultJob(overrides: Partial<JobForMatch> = {}): JobForMatch {
   };
 }
 
-function similarityOk(score: number): SimilarityResult {
-  return { score, algorithm: 'weighted-cosine', rulesVersion: '1.0.0' };
-}
-
 describe('ComputeMatchUseCase', () => {
   let cache: InMemoryMatchCache;
 
@@ -151,23 +114,19 @@ describe('ComputeMatchUseCase', () => {
     overrides: {
       exists?: boolean;
       job?: JobForMatch | null;
-      fit?: UserFitState['status'];
       keywords?: readonly string[];
       requirements?: RequirementsMatchResult | Error;
       semantic?: SemanticMatchResult | Error;
-      similarity?: FakeSimilarity;
     } = {},
   ) {
     return new ComputeMatchUseCase(
       new FakeResumeExistence(overrides.exists ?? true),
       new FakeJobLoader(overrides.job === undefined ? defaultJob() : overrides.job),
-      new FakeFitState(overrides.fit ?? 'responded'),
       new FakeKeywordSource(overrides.keywords ?? ['Rust', 'Tokio']),
       new FakeRequirements(
         overrides.requirements ?? { score: 80, detail: { matchedSlots: [], missingSlots: [] } },
       ),
       new FakeSemantic(overrides.semantic ?? { score: 75 }),
-      overrides.similarity ?? new FakeSimilarity(similarityOk(60)),
       cache,
       stubEventPublisher,
       stubLogger,
@@ -188,26 +147,23 @@ describe('ComputeMatchUseCase', () => {
     ).rejects.toBeInstanceOf(JobMatchJobNotFoundException);
   });
 
-  it.each([
-    'never',
-    'expired',
-  ] as const)('computes Match without a current Fit profile (%s)', async (status) => {
-    const useCase = build({ fit: status });
+  it('computes Match without consulting a Fit profile', async () => {
+    const useCase = build();
     const result = await useCase.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' });
     expect(result.subScores.fit.score).toBeNull();
     expect(result.effectiveWeights.fit).toBe(0);
     expect(result.overallScore).toBe(85);
   });
 
-  it('composes the overall score from the four sub-scores when everything succeeds', async () => {
+  it('composes the overall score from three job-related sub-scores', async () => {
     const useCase = build();
     const result = await useCase.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' });
     expect(result.subScores.keyword.score).toBe(100);
     expect(result.subScores.requirements.score).toBe(80);
     expect(result.subScores.semantic.score).toBe(75);
-    expect(result.subScores.fit.score).toBe(60);
-    expect(result.overallScore).toBeGreaterThan(0);
-    expect(result.overallScore).toBeLessThanOrEqual(100);
+    expect(result.subScores.fit.score).toBeNull();
+    expect(result.effectiveWeights.fit).toBe(0);
+    expect(result.overallScore).toBe(85);
     expect(cache.writes).toBe(1);
   });
 
@@ -217,23 +173,18 @@ describe('ComputeMatchUseCase', () => {
     expect(result.subScores.semantic.score).toBeNull();
     expect(result.effectiveWeights.semantic).toBe(0);
     // Remaining weights must still sum to 1
-    const sum =
-      result.effectiveWeights.keyword +
-      result.effectiveWeights.requirements +
-      result.effectiveWeights.fit;
+    const sum = result.effectiveWeights.keyword + result.effectiveWeights.requirements;
     expect(sum).toBeCloseTo(1, 5);
     expect(result.overallScore).toBeGreaterThan(0);
   });
 
-  it('folds Culture Match into the Fit sub-score when the job has a cultural profile', async () => {
-    const similarity = new FakeSimilarity(similarityOk(80), similarityOk(40));
+  it('does not score a cultural profile in candidate Match', async () => {
     const useCase = build({
       job: defaultJob({ culturalProfileCaptured: true, companyId: 'c1' }),
-      similarity,
     });
     const result = await useCase.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' });
-    // Fit = 0.4 * culture(40) + 0.6 * role(80) = 16 + 48 = 64
-    expect(result.subScores.fit.score).toBe(64);
+    expect(result.subScores.fit.score).toBeNull();
+    expect(result.overallScore).toBe(85);
   });
 
   it('serves a cached breakdown when present and does not rerun sub-scores', async () => {

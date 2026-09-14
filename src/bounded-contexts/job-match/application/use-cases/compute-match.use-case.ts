@@ -1,4 +1,3 @@
-import { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { MatchComputedEvent } from '../../domain/events';
 import {
@@ -11,7 +10,6 @@ import { RequirementsMatcherPort } from '../../domain/ports/requirements-matcher
 import { ResumeExistencePort } from '../../domain/ports/resume-existence.port';
 import { ResumeKeywordSourcePort } from '../../domain/ports/resume-keyword-source.port';
 import { SemanticMatcherPort } from '../../domain/ports/semantic-matcher.port';
-import { UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import { blendMatch } from '../../domain/rules/blend-match.rules';
 import { scoreKeywordMatch } from '../../domain/rules/keyword-match.rules';
 import { MATCH_RULES_VERSION, type MatchBreakdown, type SubScoreResult } from '../../domain/types';
@@ -24,7 +22,7 @@ export interface ComputeMatchInput {
 
 /**
  * Orchestrator for the Match Score. Enforces resume and job existence, then
- * fans out to the four sub-score providers in parallel. Each provider
+ * fans out to three job-related sub-score providers in parallel. Each provider
  * is behind its own port so AI failures degrade gracefully: the blender
  * drops any `null` sub-score and renormalises the remaining weights so
  * the final number is still a proper 0–100.
@@ -33,17 +31,15 @@ export interface ComputeMatchInput {
  * captured when the user actually applies, and that capture lives on
  * the `Application` row (owned by another context). Here we return the
  * breakdown inline and optionally hit the cache so repeated views of
- * the same job in the same day don't spin up four AI calls.
+ * the same job in the same day don't repeat AI calls.
  */
 export class ComputeMatchUseCase {
   constructor(
     private readonly resumeExistence: ResumeExistencePort,
     private readonly jobLoader: JobLoaderPort,
-    private readonly fitState: UserFitStatePort,
     private readonly keywordSource: ResumeKeywordSourcePort,
     private readonly requirementsMatcher: RequirementsMatcherPort,
     private readonly semanticMatcher: SemanticMatcherPort,
-    private readonly similarity: SimilarityPort,
     private readonly cache: MatchCachePort,
     private readonly events: EventPublisher,
     private readonly logger: LoggerPort,
@@ -53,13 +49,9 @@ export class ComputeMatchUseCase {
     const startedAt = Date.now();
     const { userId, resumeId, jobId } = input;
 
-    // Fit is an optional signal. A first-time candidate can see Match
-    // without completing the questionnaire; the blender redistributes
-    // its weight when no current Fit profile is available.
-    const [exists, job, fit] = await Promise.all([
+    const [exists, job] = await Promise.all([
       this.resumeExistence.exists(resumeId),
       this.jobLoader.load(jobId),
-      this.fitState.getStatus(userId),
     ]);
     if (!exists) throw new JobMatchResumeNotFoundException(resumeId);
     if (!job) throw new JobMatchJobNotFoundException(jobId);
@@ -68,7 +60,7 @@ export class ComputeMatchUseCase {
     // Version-rich key so mutations anywhere in the graph bust the
     // cache naturally — `rulesVersion` is part of the key so a blend
     // tweak invalidates without ops needing to FLUSHDB.
-    const cacheKey = `match:${resumeId}:${jobId}:${userId}:${fit.status}:${MATCH_RULES_VERSION}`;
+    const cacheKey = `match:${resumeId}:${jobId}:${userId}:${MATCH_RULES_VERSION}`;
     const cached = await this.cache.get(cacheKey);
     if (cached) {
       await this.publishComputed({
@@ -83,8 +75,8 @@ export class ComputeMatchUseCase {
     }
 
     // ── P1-027 Single-flight: take a brief lock so concurrent
-    // requests for the same (resume, job, user) don't all spend 4 AI
-    // calls each. Lock TTL = 30s — long enough for the four providers
+    // requests for the same (resume, job, user) don't repeat AI
+    // calls. Lock TTL = 30s — long enough for the providers
     // to complete, short enough that a crash doesn't pin the cache.
     const lockKey = `${cacheKey}:lock`;
     const lock = await this.cache.acquireLock(lockKey, 30);
@@ -110,13 +102,14 @@ export class ComputeMatchUseCase {
     }
 
     try {
-      // ── Fan out to the four providers concurrently ────────────────
-      const [keywords, requirements, semantic, fitSub] = await Promise.all([
+      // Candidate Match uses only job-related evidence. Keep the Fit field
+      // null for clients that still consume the existing breakdown schema.
+      const [keywords, requirements, semantic] = await Promise.all([
         this.runKeyword(resumeId, job.keywords),
         this.runRequirements(resumeId, jobId, job),
         this.runSemantic(resumeId, jobId),
-        fit.status === 'responded' ? this.runFit(userId, jobId, job) : { score: null },
       ]);
+      const fitSub: SubScoreResult = { score: null };
 
       const subScores = { keyword: keywords, requirements, semantic, fit: fitSub } satisfies Record<
         string,
@@ -233,38 +226,6 @@ export class ComputeMatchUseCase {
         `Semantic sub-score failed: ${(err as Error).message}`,
         'ComputeMatchUseCase',
       );
-      return { score: null };
-    }
-  }
-
-  private async runFit(
-    userId: string,
-    jobId: string,
-    job: Awaited<ReturnType<JobLoaderPort['load']>>,
-  ): Promise<SubScoreResult> {
-    try {
-      const role = await this.similarity.role(userId, jobId);
-      // Company-side culture signal is optional. Only consult it when
-      // the recruiter captured a profile; otherwise role-only is the
-      // honest answer and the blend treats it as any other sub-score.
-      if (job?.culturalProfileCaptured && job?.companyId) {
-        const culture = await this.similarity.culture(userId, job.companyId);
-        if (role.score !== null && culture.score !== null) {
-          // α = 0.4 culture, β = 0.6 role — culture is a shared
-          // company-level signal, role is per-vacancy and thus more
-          // specific to this application.
-          return {
-            score: Math.round(culture.score * 0.4 + role.score * 0.6),
-            detail: { culture: culture.score, role: role.score },
-          };
-        }
-      }
-      return {
-        score: role.score,
-        detail: role.score === null ? undefined : { role: role.score },
-      };
-    } catch (err) {
-      this.logger.warn(`Fit sub-score failed: ${(err as Error).message}`, 'ComputeMatchUseCase');
       return { score: null };
     }
   }

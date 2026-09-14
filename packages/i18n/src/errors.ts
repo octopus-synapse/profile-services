@@ -1234,10 +1234,6 @@ export const ERROR_DICTIONARY = {
     en: 'Authenticated user is missing on the request',
     'pt-BR': 'Usuário autenticado ausente na requisição',
   },
-  JOB_MATCH_FIT_PROFILE_REQUIRED: {
-    en: 'Fit profile is required to compute matches',
-    'pt-BR': 'É necessário ter um perfil de fit para calcular matches',
-  },
   JOB_MATCH_JOB_NOT_FOUND: {
     en: 'Job not found',
     'pt-BR': 'Vaga não encontrada',

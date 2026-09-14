@@ -44,7 +44,7 @@ Run these against staging before flipping production.
 - [ ] `GET /v1/resume-styles` returns exactly 2 system styles, both with `styleScore ≥ 85`.
 - [ ] `GET /v1/resumes/:id/quality` returns a `ResumeQualityScoreHistory`-backed payload (not the old `ResumeAnalytics` shape).
 - [ ] `POST /v1/fit-profile/answers` with 25 fake answers persists, returns a vector, and sets `expiresAt = now + 90d`.
-- [ ] `POST /v1/match` with a standard user who has no fit profile returns `403 fit_profile_required`.
+- [x] `POST /v1/match` with a standard user who has no fit profile computes job-related signals (Match rules v1.2).
 - [ ] `POST /v1/admin/resume-styles` with a 2-column `styleConfig` returns 422.
 - [ ] `PATCH /v1/admin/resume-styles/:id` lowering the score returns 422 from the trigger.
 - [ ] `git grep -iE "ats-scoring|ats-validation|ResumeTemplate|ResumeTheme|templates-v2|serializer-v2|typst-wasm"` returns zero matches in `src/`.

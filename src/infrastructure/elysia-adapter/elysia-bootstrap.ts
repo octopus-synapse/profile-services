@@ -823,7 +823,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     flags: flags as never,
     embeddings: ai.bundle.embeddings,
     scoringLlm: ai.bundle.scoringLlm,
-    similarity: fitProfileBundle.extras.similarity,
     notifications: notifications.useCases,
     eventBus,
     eventPublisher: eventBus,

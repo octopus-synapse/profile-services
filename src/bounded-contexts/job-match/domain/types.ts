@@ -28,24 +28,20 @@ export interface MatchBreakdown {
 
 /** Semver of the Match blend logic. Bumping invalidates cached results
  * (when Redis caching lands in Task #20). */
-export const MATCH_RULES_VERSION = '1.1.0';
+export const MATCH_RULES_VERSION = '1.2.0';
 
 /**
  * Default top-level weights — must sum to 1.0. The split follows the
  * taxonomy in docs/scoring/README.md:
  *
- * - Keyword 25% — cheap code signal, catches stack alignment
- * - Requirements 30% — dominant because "does the candidate meet the
- *   hard gate" (years, languages, certifications) is the single highest
- *   predictor of ATS pass-through
- * - Semantic 25% — embedding similarity of CV body vs JD body; high
- *   signal but noisy
- * - Fit 20% when available — optional work-preference signal (delegated
- *   to fit-profile/); its weight is reallocated when unanswered or expired
+ * Candidate Match currently uses job-related evidence only. These are the
+ * previous keyword/requirements/semantic weights renormalised without Fit.
+ * Personality-vector Fit remains outside the overall score until a validated
+ * work-preference model replaces it; introversion must not lower Match.
  */
 export const MATCH_WEIGHTS = {
-  keyword: 0.25,
-  requirements: 0.3,
-  semantic: 0.25,
-  fit: 0.2,
+  keyword: 0.3125,
+  requirements: 0.375,
+  semantic: 0.3125,
+  fit: 0,
 } as const satisfies Record<SubScoreKey, number>;

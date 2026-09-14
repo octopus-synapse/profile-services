@@ -7,14 +7,11 @@
  * side shared across users) and the per-pair breakdown 24h.
  *
  * Per-item failures are skipped, not surfaced — a row without a score
- * simply renders without a chip. Without a responded fit profile the
- * whole batch short-circuits to an empty list (matching the single
- * compute's hard invariant, minus the 4xx noise).
+ * simply renders without a chip. A Fit questionnaire is not required.
  */
 
 import { LoggerPort } from '@/shared-kernel';
 import { type ScoreRank, scoreToRank } from '@/shared-kernel/scoring';
-import { UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import type { ComputeMatchUseCase } from './compute-match.use-case';
 
 export interface ComputeMatchBatchInput {
@@ -34,16 +31,12 @@ const CONCURRENCY = 4;
 export class ComputeMatchBatchUseCase {
   constructor(
     private readonly computeMatch: ComputeMatchUseCase,
-    private readonly fitState: UserFitStatePort,
     private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: ComputeMatchBatchInput): Promise<{ scores: BatchMatchScore[] }> {
     const jobIds = [...new Set(input.jobIds)];
     if (jobIds.length === 0) return { scores: [] };
-
-    const fit = await this.fitState.getStatus(input.userId);
-    if (fit.status !== 'responded') return { scores: [] };
 
     const byId = new Map<string, BatchMatchScore>();
     let cursor = 0;

@@ -16,18 +16,16 @@ function subs(partial: Partial<Record<SubScoreKey, number | null>>) {
 }
 
 describe('blendMatch', () => {
-  it('returns the exact weighted average when all four sub-scores are present', () => {
+  it('excludes Fit even when a legacy caller supplies a score', () => {
     const result = blendMatch(subs({ keyword: 80, requirements: 70, semantic: 90, fit: 60 }));
-    // 80*0.25 + 70*0.30 + 90*0.25 + 60*0.20 = 20 + 21 + 22.5 + 12 = 75.5 → 76
-    expect(result.overallScore).toBe(76);
+    // 80*0.3125 + 70*0.375 + 90*0.3125 = 79.375 → 79
+    expect(result.overallScore).toBe(79);
     expect(result.effectiveWeights).toEqual(MATCH_WEIGHTS);
   });
 
   it('renormalises the weights when one sub-score is null', () => {
     const result = blendMatch(subs({ keyword: 80, requirements: 80, semantic: 80, fit: null }));
-    // Fit is null → remaining weights are keyword(0.25) + requirements(0.30)
-    // + semantic(0.25) = 0.80. Renormalised each becomes /0.80 → 0.3125,
-    // 0.375, 0.3125. Score: 80 on all → 80.
+    // The three active weights already sum to 1. Fit has zero weight.
     expect(result.overallScore).toBe(80);
     expect(result.effectiveWeights.fit).toBe(0);
     const remainingSum =
@@ -50,6 +48,12 @@ describe('blendMatch', () => {
     expect(result.overallScore).toBe(0);
     // Every effective weight stays 0 so the caller can tell the score
     // is meaningless and surface an "AI unavailable" banner.
+    expect(Object.values(result.effectiveWeights)).toEqual([0, 0, 0, 0]);
+  });
+
+  it('returns 0 when only the inactive Fit signal is present', () => {
+    const result = blendMatch(subs({ keyword: null, requirements: null, semantic: null, fit: 90 }));
+    expect(result.overallScore).toBe(0);
     expect(Object.values(result.effectiveWeights)).toEqual([0, 0, 0, 0]);
   });
 

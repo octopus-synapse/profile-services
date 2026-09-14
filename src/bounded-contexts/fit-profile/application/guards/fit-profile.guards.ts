@@ -36,13 +36,9 @@ export function requireAuthenticatedUserId(user: AuthenticatedUserLike | null | 
 
 /**
  * Asserts the caller has a current Fit Profile vector and returns the
- * status view. Routes guarded by Job Match / Match Explanation should
- * call this before invoking the underlying use case so the surface
- * carries the localizable `FIT_PROFILE_REQUIRED` envelope.
- *
- * Pass `exceptionFactory` to throw a BC-specific exception (e.g.
- * `JobMatchFitProfileRequiredException`) while keeping the lifecycle
- * branching (never / expired) here — Q23 in the duplication audit.
+ * status view for workflows that explicitly depend on the questionnaire.
+ * Candidate Match and tailoring do not call this guard.
+ * Pass `exceptionFactory` to preserve a workflow-specific error envelope.
  */
 export async function requireCurrentFitProfile(
   userId: string,

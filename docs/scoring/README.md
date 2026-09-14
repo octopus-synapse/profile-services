@@ -10,10 +10,10 @@ This document defines a single, unambiguous taxonomy everyone can point at.
 
 ## Top-level scores
 
-There are **three** top-level scores. Each belongs to a single subject (the thing being scored). They may have sub-scores that compose into the top-level number.
+There are **four** top-level scores. Each belongs to a single subject (the thing being scored). They may have sub-scores that compose into the top-level number.
 
 ```
-📊 Scores (3 top-level, S/A/B/C/D/F grading system)
+📊 Scores (4 top-level, S/A/B/C/D/F grading system)
 ├─ Style Score                           (atomic)           → ResumeStyle
 ├─ Resume Quality Score                                     → Resume
 │   ├─ sub: Completeness Score           (deterministic)
@@ -21,14 +21,12 @@ There are **three** top-level scores. Each belongs to a single subject (the thin
 ├─ Readiness Score                                          → Resume (master only)
 │   ├─ factor: Quality      (latest Resume Quality Score)
 │   ├─ factor: Coverage     (breadth of distinct skills)
-│   └─ factor: Fit freshness(fit-questionnaire lifecycle)
+│   └─ factor: Fit freshness(questionnaire lifecycle; separate from Match)
 └─ Match Score                                              → (Resume, Job)
     ├─ sub: Keyword Match                (deterministic)
     ├─ sub: Requirements Match           (AI normalizes + code compares)
     ├─ sub: Semantic Match               (AI: embeddings)
-    └─ sub: Fit Score                    (delegates to fit-profile/)
-        ├─ Culture Match = similarity(User, Company) × α
-        └─ Role Match    = similarity(User, Job)    × β
+    └─ sub: Fit Score                    (reserved, null and weight 0)
 ```
 
 ### Style Score
@@ -53,8 +51,8 @@ There are **three** top-level scores. Each belongs to a single subject (the thin
 ### Readiness Score
 
 - **Subject:** the master (`primaryResumeId`) `Resume`
-- **Question answered:** "how ready is my resume to compete in the market?" — the single **job-independent** number the Match Score can't provide (Match needs a `(resume, job)` pair + a valid fit profile).
-- **No job context required.** Owned by `job-match/` (reuses its keyword + fit-state adapters).
+- **Question answered:** "how ready is my resume to compete in the market?" — the single **job-independent** number the Match Score can't provide (Match needs a `(resume, job)` pair).
+- **No job context required.** Owned by `job-match/` (reuses its keyword + fit-state adapters). Fit freshness is a questionnaire-completion signal, not a personality rating.
 - **Deterministic blend (v1)** of signals already computed (no extra AI calls): `0.55·Quality + 0.25·Coverage + 0.20·Fit-freshness`, renormalising any unavailable factor so a brand-new resume still yields a proper 0-100.
 - **Computed:** event-driven on `ResumeQualityComputedEvent` for the master (so it always blends a fresh Quality number); also on-demand inside `GET /v1/me/scores`. History append-only in `ReadinessScoreHistory` (feeds the trend chart).
 - **Served by:** `GET /v1/me/scores` (unified payload: Readiness + Quality + Style + Fit, each with its `rank`).
@@ -64,12 +62,13 @@ There are **three** top-level scores. Each belongs to a single subject (the thin
 
 - **Subject:** a `(Resume, Job)` pair
 - **Question answered:** "does this CV fit this specific job?"
-- **Requires:** a valid `UserFitProfile` (not expired). Without it, Match Score returns 403.
+- **Requires:** a resume and a job. The Fit questionnaire is optional.
 - Sub-scores:
   - **Keyword Match** (code): exact + stemming + curated synonyms + fuzzy (Levenshtein ≤ 2)
   - **Requirements Match** (AI + code): AI normalizes ambiguous resume strings ("Proficient Portuguese" → C2); code compares against structured slots the recruiter filled
   - **Semantic Match** (AI): embeddings similarity between resume sections and job description
-  - **Fit Score:** composed of `Culture Match × α + Role Match × β`, delegated to `fit-profile/`
+  - **Fit Score:** retained as a null compatibility field with zero weight. Personality and extroversion do not affect candidate Match.
+- **Weights (v1.2):** Keyword 31.25%, Requirements 37.5%, Semantic 31.25%. If a provider is unavailable, its weight is redistributed among available signals.
 - **Computed:** on-demand, cached in Redis with hierarchical keys; composed of cached sub-computations so only what changed gets recomputed
 - **Persisted:** only on deliberate user action (apply/save) as a snapshot on the `Application` row
 
@@ -92,14 +91,14 @@ carries the computed `rank` so no client re-derives the ladder.
 
 ## Transparency per actor
 
-Users see most explanations; the Fit Score reason is hidden from the user on purpose to prevent gaming of the 3-month questionnaire. Recruiters always see everything.
+Users see explanations for each active Match signal. A future recruiter view must use validated, job-relevant preferences rather than a hidden personality score.
 
 | Score | User sees "why"? | Recruiter sees "why"? |
 |---|---|---|
 | Style | ✅ | ✅ |
 | Resume Quality (+ sub-scores) | ✅ | ✅ |
 | Match → Keyword / Requirements / Semantic | ✅ | ✅ |
-| Match → Fit | ❌ | ✅ |
+| Match → Fit | inactive | inactive |
 
 ## Bounded-context ownership (single source of truth)
 
@@ -113,7 +112,7 @@ Users see most explanations; the Fit Score reason is hidden from the user on pur
 
 Dependency graph:
 - `resume-quality` → `ai`
-- `job-match` → `ai`, `fit-profile`
+- `job-match` → `ai`, `fit-profile` (Readiness only)
 - `resume-styles` stands alone
 
 ## Component vocabulary (names used in code and docs)
@@ -135,7 +134,7 @@ Admins and recruiters are exempt. Gates enforce invariants; never bypass silentl
 
 | Gate | What blocks |
 |---|---|
-| Fit profile not answered / expired (>180 days) | Auto-Apply, AI Tailor (resume rewrite), apply to internal Patch jobs, view Match Score (+ all sub-scores including Keyword/Requirements/Semantic) |
+| Fit profile not answered / expired (>180 days) | Legacy internal application flows may still require Fit. Candidate Match and AI tailoring do not. |
 | Resume Quality < 50 | Auto-Apply, apply to internal Patch jobs. PDF export is warning-only. |
 | ResumeStyle below ATS-safe threshold | Blocked at creation (422). Only admins can create styles. |
 

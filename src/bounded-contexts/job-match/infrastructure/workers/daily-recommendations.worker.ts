@@ -35,8 +35,8 @@ const JOB_RECENCY_DAYS = 7;
  *
  * Flow:
  *  1. Cron tick (every 3d at 04:00) → `schedule` job.
- *  2. `schedule` scans active users with a primary resume + valid fit
- *     profile, fans one `compute-for-user` job per user.
+ *  2. `schedule` scans active users with a primary resume, then fans one
+ *     `compute-for-user` job per user.
  *  3. `compute-for-user` loads the user's primary resume's `techArea`,
  *     queries recent matching jobs (capped), computes Match Score for
  *     each via `ComputeMatchUseCase`, keeps the top-N, and emits a
@@ -80,16 +80,11 @@ export class DailyRecommendationsWorker {
       return;
     }
     const cutoff = new Date(Date.now() - ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-    // Active = logged in within the window AND has both a primary
-    // resume and a still-valid (vector populated, not yet expired) fit
-    // profile. Without these we'd just produce an unactionable email.
+    // Active = logged in within the window with a primary resume.
     const candidates = await this.prisma.user.findMany({
       where: {
         lastLoginAt: { gte: cutoff },
         primaryResumeId: { not: null },
-        fitProfile: {
-          AND: [{ NOT: { vectorJson: { equals: 'null' } } }, { expiresAt: { gt: new Date() } }],
-        },
       },
       select: { id: true },
     });

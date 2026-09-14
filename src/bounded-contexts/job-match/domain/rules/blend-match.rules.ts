@@ -6,7 +6,7 @@ import {
 } from '../types';
 
 /**
- * Blends the four sub-scores into the overall Match Score.
+ * Blends the active job-related sub-scores into the overall Match Score.
  *
  * When a sub-score is `null` (provider declined or AI failure), its
  * slot is dropped from the weighted average and the remaining weights
@@ -21,7 +21,7 @@ export function blendMatch(
   subScores: Record<SubScoreKey, SubScoreResult>,
 ): Pick<MatchBreakdown, 'overallScore' | 'effectiveWeights'> {
   const presentKeys = (Object.keys(MATCH_WEIGHTS) as SubScoreKey[]).filter(
-    (k) => subScores[k].score !== null,
+    (k) => MATCH_WEIGHTS[k] > 0 && subScores[k].score !== null,
   );
 
   // No usable signal — return 0 rather than NaN. The caller can still

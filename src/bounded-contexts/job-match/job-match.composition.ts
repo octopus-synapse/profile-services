@@ -13,7 +13,6 @@
  *    via `JobQueuePort.schedule(...)` repeat semantics.
  *
  * Cross-BC deps (the bootstrap injects already-built collaborators):
- *  - `SimilarityPort` from `fit-profile/`.
  *  - `NotificationsUseCases` from `notifications/`.
  *  - AI ports (`ScoringLlmPort`, `EmbeddingsPort`) from `ai/`.
  *  - `FeatureFlagService` from `platform/feature-flags/`.
@@ -22,7 +21,6 @@
 
 import type { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
 import type { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
-import type { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
 import { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
@@ -78,7 +76,6 @@ export interface JobMatchDeps {
   readonly flags: FeatureFlagService;
   readonly embeddings: EmbeddingsPort;
   readonly scoringLlm: ScoringLlmPort;
-  readonly similarity: SimilarityPort;
   readonly notifications: NotificationsUseCases;
   readonly eventBus: EventBusPort;
   readonly eventPublisher: EventPublisher;
@@ -87,7 +84,7 @@ export interface JobMatchDeps {
 }
 
 export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
-  const { prisma, cache, flags, embeddings, scoringLlm, similarity, eventPublisher, logger } = deps;
+  const { prisma, cache, flags, embeddings, scoringLlm, eventPublisher, logger } = deps;
 
   const resumeExistence = new PrismaResumeExistence(prisma);
   const jobLoader = new PrismaJobLoader(prisma, logger);
@@ -100,16 +97,14 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
   const computeMatch = new ComputeMatchUseCase(
     resumeExistence,
     jobLoader,
-    fitState,
     keywordSource,
     requirementsMatcher,
     semanticMatcher,
-    similarity,
     matchCache,
     eventPublisher,
     logger,
   );
-  const computeMatchBatch = new ComputeMatchBatchUseCase(computeMatch, fitState, logger);
+  const computeMatchBatch = new ComputeMatchBatchUseCase(computeMatch, logger);
 
   // Readiness: job-independent master-resume score. Reuses the keyword +
   // fit-state adapters above; adds a quality-source read + its own

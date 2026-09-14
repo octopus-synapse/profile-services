@@ -15,9 +15,8 @@ const CTX = 'FitProfileExpireWorker';
 /**
  * Nightly sweeper that flips stale `UserFitProfile` rows into the
  * "expired" state. The user-facing symptom of expiry is `GET
- * /v1/fit-profile/me` returning `status: 'expired'` and the Match
- * Score endpoint replying `409 fit_profile_required` — both fall out
- * naturally from the TTL column we read without any code path here.
+ * /v1/fit-profile/me` returning `status: 'expired'`. Match and tailoring
+ * remain available without a current Fit profile.
  *
  * We still run the worker because `ExpireFitProfileUseCase` emits
  * lifecycle side-effects (notifications, audit log entries, remap
