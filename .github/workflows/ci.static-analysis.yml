@@ -7,11 +7,9 @@ jobs:
   test:
     uses: octopus-synapse/octopus-workflows/.github/workflows/_static-analysis-template.yml@v1
     with:
-      test-command: "bun test --config=config/bunfig.static-analysis.toml"
+      # The shared workflow does not generate Prisma Client. The descriptor
+      # audit imports enum-backed route modules, so generate it first.
+      test-command: "bunx prisma generate --config ./prisma.config.ts && bun test --config=config/bunfig.static-analysis.toml"
       test-name: "Static analysis"
       timeout: 10
-      # Route descriptor tests import Prisma enum-backed modules. Without a
-      # generated client, those imports were silently skipped and the live
-      # route count appeared smaller than the committed OpenAPI document.
-      with-prisma: true
     secrets: inherit
