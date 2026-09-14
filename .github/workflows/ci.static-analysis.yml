@@ -10,4 +10,8 @@ jobs:
       test-command: "bun test --config=config/bunfig.static-analysis.toml"
       test-name: "Static analysis"
       timeout: 10
+      # Route descriptor tests import Prisma enum-backed modules. Without a
+      # generated client, those imports were silently skipped and the live
+      # route count appeared smaller than the committed OpenAPI document.
+      with-prisma: true
     secrets: inherit

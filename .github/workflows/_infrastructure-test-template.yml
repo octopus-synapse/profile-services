@@ -144,7 +144,7 @@ jobs:
 
       - name: Start MinIO
         # Manual container, like Postgres above: a GHA `services:` block
-        # can't override the image command, and `minio/minio` needs
+        # can't override the image command, and MinIO needs
         # `server /data` to start at all.
         if: inputs.needs-object-storage
         run: |
@@ -153,7 +153,7 @@ jobs:
             -e MINIO_ROOT_USER=minioadmin \
             -e MINIO_ROOT_PASSWORD=minioadmin \
             -p 9100:9000 \
-            minio/minio:RELEASE.2024-10-13T13-34-11Z server /data
+            quay.io/minio/minio:RELEASE.2024-10-13T13-34-11Z server /data
           for i in {1..30}; do
             if curl -sf http://localhost:9100/minio/health/live > /dev/null; then
               echo "MinIO is ready."

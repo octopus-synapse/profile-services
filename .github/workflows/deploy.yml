@@ -171,6 +171,11 @@ jobs:
           JSEARCH_RAPIDAPI_KEY: ${{ secrets.JSEARCH_RAPIDAPI_KEY }}
           JSEARCH_RAPIDAPI_HOST: ${{ secrets.JSEARCH_RAPIDAPI_HOST }}
           LOGO_DEV_SECRET_KEY: ${{ secrets.LOGO_DEV_SECRET_KEY }}
+          PATCH_GO_ENABLED: ${{ vars.PATCH_GO_ENABLED || 'false' }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_PRICE_BRL_MONTHLY: ${{ secrets.STRIPE_PRICE_BRL_MONTHLY }}
+          STRIPE_PRICE_USD_MONTHLY: ${{ secrets.STRIPE_PRICE_USD_MONTHLY }}
         run: |
           set -euo pipefail
           TEMPLATE="$PWD/infra/deploy/env.prod.template"
@@ -183,6 +188,11 @@ jobs:
           # Fail before touching anything if a secret is missing or empty.
           MISSING=""
           for v in $NEEDED; do
+            # Empty Stripe secrets are valid while Patch Go is disabled.
+            # Once enabled, fail before changing the live environment.
+            case "$v" in
+              STRIPE_*) [ "$PATCH_GO_ENABLED" = "true" ] || continue ;;
+            esac
             [ -n "$(printenv "$v" || true)" ] || MISSING="$MISSING $v"
           done
           if [ -n "$MISSING" ]; then

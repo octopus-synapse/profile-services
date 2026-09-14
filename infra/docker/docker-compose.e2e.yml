@@ -24,7 +24,7 @@ services:
   # mapping uses 9100, not 9000, so a locally-running dev MinIO still
   # doesn't collide.
   minio:
-    image: minio/minio:${MINIO_VERSION:-RELEASE.2024-10-13T13-34-11Z}
+    image: quay.io/minio/minio:${MINIO_VERSION:-RELEASE.2024-10-13T13-34-11Z}
     container_name: profile-minio-e2e
     command: server /data --console-address ":9001"
     ports:

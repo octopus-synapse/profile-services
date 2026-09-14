@@ -59,7 +59,6 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       onboardingCompletedAt: new Date(),
       phone: '+55 11 99999-0000',
       location: 'São Paulo, SP',
-      bio: 'Software engineer building tools for other engineers.',
       github: 'enzoferracini',
       linkedin: 'enzoferracini',
       // Job-seeker marker — required for onboarding + fit-profile + match gates.
