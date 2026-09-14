@@ -23,6 +23,7 @@ import { GetTailoredVersionsUseCase } from './application/use-cases/get-tailored
 import { GetVersionsUseCase } from './application/use-cases/get-versions/get-versions.use-case';
 import { RestoreVersionUseCase } from './application/use-cases/restore-version/restore-version.use-case';
 import { TailorResumeForJobUseCase } from './application/use-cases/tailor-resume-for-job/tailor-resume-for-job.use-case';
+import type { ResumeVersionsRepositoryPort } from './domain/ports/resume-versions.repository.port';
 import type { TailorMatchPort } from './domain/ports/tailor-match.port';
 import { LlmResumeTailorAdapter } from './infrastructure/adapters/external-services/llm-resume-tailor.adapter';
 import { PrismaResumeVersionsRepository } from './infrastructure/adapters/persistence/prisma-resume-versions.repository';
@@ -30,15 +31,28 @@ import { resumeVersionsRoutes } from './resume-versions.routes';
 
 export { ResumeTailorService, ResumeVersionService, ResumeVersionsUseCases };
 
+/**
+ * The BC's persistence adapter as a port instance. Extracted so the
+ * composition can hand the *same* instance to a consumer that needs the port
+ * directly (the dev-only tailor lab) instead of constructing a second one.
+ */
+export function buildResumeVersionsRepository(
+  prisma: PrismaService,
+  logger: LoggerPort,
+): ResumeVersionsRepositoryPort {
+  return new PrismaResumeVersionsRepository(prisma, logger);
+}
+
 export function buildResumeVersionsUseCases(
   prisma: PrismaService,
   logger: LoggerPort,
   llm: LlmPort,
   events: ResumeEventPublisher,
   tailorMatch: TailorMatchPort | null = null,
+  repository: ResumeVersionsRepositoryPort = buildResumeVersionsRepository(prisma, logger),
 ): ResumeVersionsUseCases {
   // Repos
-  const repo = new PrismaResumeVersionsRepository(prisma, logger);
+  const repo = repository;
 
   // External adapters
   const tailorLlm = new LlmResumeTailorAdapter(llm);
@@ -61,6 +75,12 @@ export interface ResumeVersionsCompositionExtras {
   readonly tailor: ResumeTailorService;
   /** Version service facade exposed for `resumes/core` cross-BC consumer. */
   readonly versionService: ResumeVersionService;
+  /**
+   * The persistence port itself, for consumers that compose their own
+   * use-cases over it — today only the dev-only tailor lab, which needs an
+   * LLM run that deliberately does not persist a version.
+   */
+  readonly repository: ResumeVersionsRepositoryPort;
 }
 
 export function buildResumeVersionsComposition(
@@ -70,7 +90,15 @@ export function buildResumeVersionsComposition(
   events: ResumeEventPublisher,
   tailorMatch: TailorMatchPort | null = null,
 ): BoundedContextComposition<ResumeVersionsUseCases> & ResumeVersionsCompositionExtras {
-  const useCases = buildResumeVersionsUseCases(prisma, logger, llm, events, tailorMatch);
+  const repository = buildResumeVersionsRepository(prisma, logger);
+  const useCases = buildResumeVersionsUseCases(
+    prisma,
+    logger,
+    llm,
+    events,
+    tailorMatch,
+    repository,
+  );
   const tailor = new ResumeTailorService(
     useCases.tailorResumeForJob,
     useCases.getTailoredVersions,
@@ -87,5 +115,6 @@ export function buildResumeVersionsComposition(
     routes: resumeVersionsRoutes,
     tailor,
     versionService,
+    repository,
   };
 }

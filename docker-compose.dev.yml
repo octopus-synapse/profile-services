@@ -152,6 +152,16 @@ services:
       # set both in the host `.env` to enable it.
       JSEARCH_RAPIDAPI_KEY: ${JSEARCH_RAPIDAPI_KEY:-}
       JSEARCH_RAPIDAPI_HOST: ${JSEARCH_RAPIDAPI_HOST:-}
+      # OpenAI. Unset = the adapter only warns at boot and every AI call
+      # (tailoring, quality scoring, extraction, the /api/dev/tailor-lab
+      # prompt lab) fails at request time; set OPENAI_API_KEY in the host
+      # `.env`. The price var only feeds the lab's per-run cost estimate.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_MAX_TOKENS: ${OPENAI_MAX_TOKENS:-1500}
+      # Numeric default, not `:-`: compose turns an unset var into an empty
+      # string, and the config schema's integer regex rejects "" at boot.
+      OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS: ${OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS:-0}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}

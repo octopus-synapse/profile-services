@@ -2,7 +2,6 @@ import { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/simi
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { MatchComputedEvent } from '../../domain/events';
 import {
-  JobMatchFitProfileRequiredException,
   JobMatchJobNotFoundException,
   JobMatchResumeNotFoundException,
 } from '../../domain/exceptions/job-match.exceptions';
@@ -24,8 +23,7 @@ export interface ComputeMatchInput {
 }
 
 /**
- * Orchestrator for the Match Score. Enforces the hard invariants up
- * front (resume exists, job exists, user has a valid fit profile), then
+ * Orchestrator for the Match Score. Enforces resume and job existence, then
  * fans out to the four sub-score providers in parallel. Each provider
  * is behind its own port so AI failures degrade gracefully: the blender
  * drops any `null` sub-score and renormalises the remaining weights so
@@ -55,7 +53,9 @@ export class ComputeMatchUseCase {
     const startedAt = Date.now();
     const { userId, resumeId, jobId } = input;
 
-    // ── Hard invariants ─────────────────────────────────────────────
+    // Fit is an optional signal. A first-time candidate can see Match
+    // without completing the questionnaire; the blender redistributes
+    // its weight when no current Fit profile is available.
     const [exists, job, fit] = await Promise.all([
       this.resumeExistence.exists(resumeId),
       this.jobLoader.load(jobId),
@@ -63,15 +63,12 @@ export class ComputeMatchUseCase {
     ]);
     if (!exists) throw new JobMatchResumeNotFoundException(resumeId);
     if (!job) throw new JobMatchJobNotFoundException(jobId);
-    if (fit.status !== 'responded') {
-      throw new JobMatchFitProfileRequiredException(fit.status === 'expired' ? 'expired' : 'never');
-    }
 
     // ── Cache lookup ────────────────────────────────────────────────
     // Version-rich key so mutations anywhere in the graph bust the
     // cache naturally — `rulesVersion` is part of the key so a blend
     // tweak invalidates without ops needing to FLUSHDB.
-    const cacheKey = `match:${resumeId}:${jobId}:${userId}:${MATCH_RULES_VERSION}`;
+    const cacheKey = `match:${resumeId}:${jobId}:${userId}:${fit.status}:${MATCH_RULES_VERSION}`;
     const cached = await this.cache.get(cacheKey);
     if (cached) {
       await this.publishComputed({
@@ -118,7 +115,7 @@ export class ComputeMatchUseCase {
         this.runKeyword(resumeId, job.keywords),
         this.runRequirements(resumeId, jobId, job),
         this.runSemantic(resumeId, jobId),
-        this.runFit(userId, jobId, job),
+        fit.status === 'responded' ? this.runFit(userId, jobId, job) : { score: null },
       ]);
 
       const subScores = { keyword: keywords, requirements, semantic, fit: fitSub } satisfies Record<

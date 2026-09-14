@@ -2,9 +2,8 @@
  * Route descriptors for the resume-versions BC. Replaces the read-only
  * version endpoints in `ResumeVersionController` and the entire
  * `ResumeTailorController` — including `POST .../tailor`. The
- * `RequireFitProfileGuard` + `RequireMinQualityGuard` chain is wired
- * via the synthesizer guard registry under ids `fit-profile` and
- * `min-quality`. The min-quality metadata (threshold + resume-param
+ * `RequireMinQualityGuard` is wired via the synthesizer guard registry
+ * under `min-quality`. The min-quality metadata (threshold + resume-param
  * name) travels as `route.guards[*].metadata`; the pipeline stage hands
  * it to the bootstrap's check, which gates the `:resumeId` resume at
  * the declared threshold (see `resolveMinQualityTarget`).
@@ -122,9 +121,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     },
   },
 
-  // ─── Tailored versions (read-only; tailor POST stays in legacy
-  //     controller because of `RequireFitProfileGuard` +
-  //     `RequireMinQualityGuard`). ─────────────────────────────────
+  // ─── Tailored versions ────────────────────────────────────────────
   {
     method: 'GET',
     path: '/v1/resumes/:resumeId/tailored-versions',
@@ -171,7 +168,6 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     body: TailorResumeBody,
     statusCode: 200,
     guards: [
-      { id: 'fit-profile' },
       { id: 'min-quality', metadata: { min: 50, resumeParam: 'resumeId' } },
       { id: 'external-api' },
     ],

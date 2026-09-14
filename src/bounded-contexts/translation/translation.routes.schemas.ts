@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { TRANSLATION_REPORT_EXAMPLE } from './translation-report-example.const';
 
 export const TranslateTextSchema = z
   .object({
@@ -98,20 +99,23 @@ export const TranslationReportSchema = z
       .enum(['flag-off', 'monthly-cap', 'provider-unavailable', 'error'])
       .optional()
       .openapi({ example: 'monthly-cap' }),
-    sectionsTranslated: z.number().int().openapi({ example: 4 }),
-    itemsTranslated: z.number().int().openapi({ example: 9 }),
-    itemsSkipped: z.number().int().openapi({ example: 3 }),
-    tokensUsed: z.number().int().openapi({ example: 1240 }),
+    sectionsTranslated: z
+      .number()
+      .int()
+      .openapi({ example: TRANSLATION_REPORT_EXAMPLE.sectionsTranslated }),
+    itemsTranslated: z
+      .number()
+      .int()
+      .openapi({ example: TRANSLATION_REPORT_EXAMPLE.itemsTranslated }),
+    itemsSkipped: z.number().int().openapi({ example: TRANSLATION_REPORT_EXAMPLE.itemsSkipped }),
+    tokensUsed: z.number().int().openapi({ example: TRANSLATION_REPORT_EXAMPLE.tokensUsed }),
   })
   .openapi('TranslationReport', {
     example: {
       resumeId: '01900000-0000-7000-a000-000000000010',
       locale: 'en',
       status: 'completed',
-      sectionsTranslated: 4,
-      itemsTranslated: 9,
-      itemsSkipped: 3,
-      tokensUsed: 1240,
+      ...TRANSLATION_REPORT_EXAMPLE,
     },
   });
 
@@ -123,7 +127,7 @@ const LocaleTranslationStatusSchema = z.object({
   role: z.enum(['canonical', 'derived']).openapi({ example: 'derived' }),
   items: z.object({
     total: count(12),
-    current: count(9),
+    current: count(TRANSLATION_REPORT_EXAMPLE.itemsTranslated),
     stale: count(1),
     missing: count(0),
     manual: count(1),

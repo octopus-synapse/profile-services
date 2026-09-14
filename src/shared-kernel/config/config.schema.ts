@@ -253,6 +253,10 @@ export const EnvConfigSchema = z
     // populate ResumeQualityScoreHistory.costUsdMicros. Optional — unset
     // leaves cost tracking at 0.
     OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
+    // Price (USD-micros per 1k tokens) for the tailor model. Read only by the
+    // dev-only prompt lab to estimate per-run spend; production tailoring does
+    // not record cost. Unset = reported as 0.
+    OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
     OPENAI_EMBEDDING_MODEL: z.string().optional(),
     // Translation reuses OPENAI_MODEL but caps output tokens separately —
     // single-call resume translations need more headroom than tailor/extract.

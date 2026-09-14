@@ -16,6 +16,11 @@ import {
   type TailorResumeInput,
   type TailorResumeOutput,
 } from '../../domain/ports/llm.port';
+import type {
+  TailorLabLlmPort,
+  TailorResumeDebug,
+  TailorResumeOverrides,
+} from '../../domain/ports/tailor-lab-llm.port';
 import { EXTRACT_JOB_SYSTEM_PROMPT } from '../../domain/prompts/extract-job.v1';
 import { EXTRACT_RESUME_SYSTEM_PROMPT } from '../../domain/prompts/extract-resume.v1';
 import {
@@ -88,10 +93,17 @@ const ExtractedResumeSchema = z.object({
 
 const CTX = 'OpenAIAdapter';
 
-export class OpenAIAdapter extends LlmPort implements Lifecycle {
+/**
+ * Sampling temperature for tailoring. Low on purpose: rule 1 of the system
+ * prompt forbids inventing facts, and creativity here reads as fabrication.
+ */
+const DEFAULT_TAILOR_TEMPERATURE = 0.2;
+
+export class OpenAIAdapter extends LlmPort implements Lifecycle, TailorLabLlmPort {
   private client!: OpenAI;
   private model!: string;
   private maxTokens!: number;
+  private tailorPriceUsdMicrosPer1kTokens = 0;
 
   constructor(
     private readonly config: ConfigPort,
@@ -118,23 +130,74 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     this.client = new OpenAI({ apiKey: apiKey ?? 'unset', timeout: 60_000, maxRetries: 0 });
     this.model = this.config.get<string>('OPENAI_MODEL') ?? 'gpt-4o-mini';
     this.maxTokens = Number(this.config.get<string>('OPENAI_MAX_TOKENS') ?? '1500');
+    this.tailorPriceUsdMicrosPer1kTokens = Number(
+      this.config.get<string>('OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS') ?? '0',
+    );
   }
 
+  /** `TailorLabLlmPort` — the prompt the lab pre-fills its editor with. */
+  readonly defaultSystemPrompt = TAILOR_RESUME_SYSTEM_PROMPT;
+
   async tailorResume(input: TailorResumeInput): Promise<TailorResumeOutput> {
+    // No overrides — every knob collapses to the production default, so the
+    // request sent here is byte-identical to what it was before `runTailor`
+    // was extracted.
+    return (await this.runTailor(input)).output;
+  }
+
+  /**
+   * DEV-ONLY. See `TailorLabLlmPort` — the prompt lab needs the overrides and
+   * the telemetry; nothing in the production path may call this.
+   */
+  async tailorResumeDebug(
+    input: TailorResumeInput,
+    overrides?: TailorResumeOverrides,
+  ): Promise<{ output: TailorResumeOutput; debug: TailorResumeDebug }> {
+    return this.runTailor(input, overrides);
+  }
+
+  private async runTailor(
+    input: TailorResumeInput,
+    overrides?: TailorResumeOverrides,
+  ): Promise<{ output: TailorResumeOutput; debug: TailorResumeDebug }> {
     this.assertConfigured();
 
+    const model = overrides?.model ?? this.model;
+    const temperature = overrides?.temperature ?? DEFAULT_TAILOR_TEMPERATURE;
+    const maxTokens = overrides?.maxTokens ?? this.maxTokens;
+    const systemPrompt = overrides?.systemPrompt ?? TAILOR_RESUME_SYSTEM_PROMPT;
+    const userMessage = buildTailorResumeUserMessage(input);
+
+    const startedAt = performance.now();
     const response = await this.client.chat.completions.create({
-      model: this.model,
-      max_tokens: this.maxTokens,
-      temperature: 0.2,
+      model,
+      max_tokens: maxTokens,
+      temperature,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: TAILOR_RESUME_SYSTEM_PROMPT },
-        { role: 'user', content: buildTailorResumeUserMessage(input) },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
       ],
     });
+    const latencyMs = Math.round(performance.now() - startedAt);
 
     const raw = response.choices[0]?.message?.content ?? '';
+    const totalTokens = response.usage?.total_tokens ?? 0;
+    const debug: TailorResumeDebug = {
+      systemPrompt,
+      userMessage,
+      model,
+      temperature,
+      maxTokens,
+      promptTokens: response.usage?.prompt_tokens ?? 0,
+      completionTokens: response.usage?.completion_tokens ?? 0,
+      totalTokens,
+      latencyMs,
+      costUsdMicros: this.toTailorCostUsdMicros(totalTokens),
+      finishReason: response.choices[0]?.finish_reason ?? null,
+      responseRaw: raw,
+    };
+
     if (!raw) {
       throw new AiEmptyResponseException('tailorResume');
     }
@@ -146,7 +209,8 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
       // P0-#12: don't log `raw` here — the response can echo back the user's
       // resume content, including PII (email, phone, addresses, work history).
       // A short fingerprint is enough to correlate this error with a specific
-      // generation in the OpenAI dashboard if needed.
+      // generation in the OpenAI dashboard if needed. (`debug.responseRaw`
+      // carries it, but that only ever leaves via the dev-only lab response.)
       this.logger.error('Failed to JSON.parse OpenAI tailor response', {
         context: CTX,
         stack: err instanceof Error ? err.stack : undefined,
@@ -163,7 +227,17 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
       );
       throw new AiInvalidOutputException('tailorResume');
     }
-    return result.data;
+    return { output: result.data, debug };
+  }
+
+  /**
+   * tokens × price-per-1k, rounded to whole USD-micros. A `number` rather than
+   * the `bigint` its Prisma-bound sibling returns: this one is serialised to
+   * JSON, and `JSON.stringify` throws on BigInt.
+   */
+  private toTailorCostUsdMicros(tokensUsed: number): number {
+    if (this.tailorPriceUsdMicrosPer1kTokens <= 0 || tokensUsed <= 0) return 0;
+    return Math.round((tokensUsed / 1000) * this.tailorPriceUsdMicrosPer1kTokens);
   }
 
   async extractResumeFromText(text: string): Promise<ExtractedResume> {

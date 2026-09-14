@@ -18,6 +18,7 @@ import type { ConfigPort } from '@/shared-kernel/config';
 import type { EmbeddingsPort } from './domain/ports/embeddings.port';
 import type { LlmPort } from './domain/ports/llm.port';
 import type { ScoringLlmPort } from './domain/ports/scoring-llm.port';
+import type { TailorLabLlmPort } from './domain/ports/tailor-lab-llm.port';
 import type { TranslationLlmPort } from './domain/ports/translation-llm.port';
 import { OpenAIAdapter } from './infrastructure/adapters/openai.adapter';
 import { OpenAIEmbeddingsAdapter } from './infrastructure/adapters/openai-embeddings.adapter';
@@ -33,6 +34,14 @@ export interface AiBundle {
 
 export interface AiComposition {
   readonly bundle: AiBundle;
+  /**
+   * The same OpenAI adapter instance as `bundle.llm`, typed for its dev-only
+   * debug surface. Kept OUT of `AiBundle` on purpose: every production
+   * consumer sees `LlmPort` and nothing else, so the override/telemetry
+   * surface is reachable only by a caller that asks for it by name — today
+   * just the tailor prompt lab.
+   */
+  readonly tailorLabLlm: TailorLabLlmPort;
   /** Mirrors the `OPENAI_ADAPTER_INIT` side-effect from the Nest module —
    * the text adapter only finishes constructing its client in `init()`.
    * Bootstrap (Nest factory + Elysia POC) must await this before serving. */
@@ -61,6 +70,7 @@ export function buildAiComposition(
       embeddings: embeddingsAdapter,
       translation: translationAdapter,
     },
+    tailorLabLlm: llmAdapter,
     init: async () => {
       await llmAdapter.init();
     },

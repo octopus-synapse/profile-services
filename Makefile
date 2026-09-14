@@ -1,4 +1,4 @@
-.PHONY: help dev prod build up down logs clean restart status
+.PHONY: help dev prod build up down logs clean restart status tailor-lab-setup
 
 DOCKER_COMPOSE ?= docker compose
 
@@ -11,6 +11,8 @@ help:
 	@echo "  make dev-build        - Build and start development environment"
 	@echo "  make dev-down         - Stop development environment"
 	@echo "  make dev-logs         - Show development logs"
+	@echo "  make tailor-lab-setup EMAIL=you@example.com"
+	@echo "                        - Satisfy the tailor gates for the prompt lab"
 	@echo ""
 	@echo "Production:"
 	@echo "  make prod             - Start production environment"
@@ -56,6 +58,14 @@ dev-down:
 
 dev-logs:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml logs -f
+
+# Prepares an account for the dev-only prompt lab at /api/dev/tailor-lab:
+# seeds the fit-profile and quality-score rows the tailor gates require.
+# Re-run after `make dev` — the container re-seeds on every start.
+tailor-lab-setup:
+	@test -n "$(EMAIL)" || (echo "Usage: make tailor-lab-setup EMAIL=you@example.com" && exit 1)
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml exec backend \
+	  bun run scripts/dev/prepare-tailor-lab.ts --email $(EMAIL)
 
 # ==========================================
 # Production Environment

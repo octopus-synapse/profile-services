@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tailor prompt lab</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1b1e24; --panel-2: #22262e; --line: #2f343d;
+    --ink: #e6e8ec; --muted: #939aa6; --accent: #7aa2f7; --ok: #7fd4a0;
+    --warn: #e0af68; --bad: #f7768e; --mark: #3d4b2f;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 13px/1.5 var(--mono); }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+       margin: 0 0 8px; font-weight: 600; }
+  button { font: inherit; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line);
+           border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); color: #10131a; border-color: var(--accent); font-weight: 600; }
+  input, select, textarea { font: inherit; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 7px; width: 100%; }
+  textarea { resize: vertical; }
+  label { display: block; color: var(--muted); margin: 10px 0 3px; font-size: 11px;
+          text-transform: uppercase; letter-spacing: .06em; }
+  fieldset { border: 1px solid var(--line); border-radius: 4px; margin: 8px 0 0; padding: 8px 10px 10px; }
+  legend { color: var(--muted); font-size: 11px; padding: 0 4px; }
+  details { border: 1px solid var(--line); border-radius: 4px; margin-top: 8px; }
+  summary { cursor: pointer; padding: 6px 9px; color: var(--muted); }
+  details > *:not(summary) { padding: 0 9px 9px; }
+  pre { white-space: pre-wrap; word-break: break-word; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 4px; padding: 8px; margin: 6px 0 0;
+        max-height: 320px; overflow: auto; font-size: 12px; }
+  mark { background: var(--mark); color: var(--ink); border-radius: 2px; padding: 0 1px; }
+
+  header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+           padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header .grow { flex: 1; }
+  header input { width: auto; min-width: 150px; }
+  #session { color: var(--muted); }
+  #session.on { color: var(--ok); }
+  #session.off { color: var(--bad); }
+
+  main { display: grid; grid-template-columns: 340px minmax(0, 1fr) 380px; gap: 10px;
+         padding: 10px; align-items: start; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
+  @media (max-width: 1200px) { main { grid-template-columns: 1fr; } }
+
+  .row { display: flex; gap: 6px; align-items: center; }
+  .row > * { flex: 1; }
+  .row > .fixed { flex: 0 0 auto; }
+  .radio { display: flex; align-items: center; gap: 6px; color: var(--ink);
+           text-transform: none; letter-spacing: 0; font-size: 13px; margin: 4px 0; }
+  .radio input { width: auto; }
+
+  .runs { display: grid; gap: 10px; }
+  .runs.ab { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 900px) { .runs.ab { grid-template-columns: 1fr; } }
+  .slot { border: 1px solid var(--line); border-radius: 5px; padding: 9px; background: var(--panel-2); }
+  .slot header { background: none; border: 0; padding: 0 0 8px; }
+  .badge { font-size: 11px; border: 1px solid var(--line); border-radius: 10px;
+           padding: 1px 8px; color: var(--muted); }
+  .bullet { border-top: 1px solid var(--line); padding: 8px 0; }
+  .bullet:first-of-type { border-top: 0; }
+  .was { color: var(--muted); text-decoration: line-through; margin-bottom: 3px; }
+  .kv { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 12px; }
+  .kv b { color: var(--ink); font-weight: 600; }
+  .err { color: var(--bad); white-space: pre-wrap; }
+  .warn { color: var(--warn); }
+  .muted { color: var(--muted); }
+  iframe { width: 100%; height: 480px; background: #fff; border: 1px solid var(--line); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <strong>Tailor prompt lab</strong>
+  <span class="badge">dev only</span>
+  <span id="session" class="off">checking…</span>
+  <span class="grow"></span>
+  <input id="email" type="email" placeholder="email" autocomplete="username" />
+  <input id="password" type="password" placeholder="password" autocomplete="current-password" />
+  <button type="button" id="login" class="fixed">Sign in</button>
+  <button type="button" id="logout" class="fixed">Sign out</button>
+  <button type="button" id="reload" class="fixed">Reload lists</button>
+</header>
+
+<main>
+  <!-- ── Input ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Input</h2>
+
+    <label for="resume">Resume</label>
+    <select id="resume"></select>
+
+    <fieldset>
+      <legend>Job</legend>
+      <label class="radio"><input type="radio" name="src" value="job" checked /> Seeded job</label>
+      <select id="job"></select>
+      <details id="jobFields"><summary>requirements &amp; skills sent to the prompt</summary>
+        <pre id="jobFieldsBody"></pre>
+      </details>
+
+      <label class="radio"><input type="radio" name="src" value="url" /> From a link</label>
+      <div class="row">
+        <input id="url" type="url" placeholder="https://…/job-posting" />
+        <button type="button" id="fetchUrl" class="fixed">Fetch</button>
+      </div>
+      <div id="urlNote" class="muted" style="font-size:12px;margin-top:4px">
+        LinkedIn and Gupy block this — fall back to pasting the text.
+      </div>
+
+      <label class="radio"><input type="radio" name="src" value="text" /> Pasted text</label>
+      <div class="row">
+        <input id="jobTitle" placeholder="job title" />
+        <input id="jobCompany" placeholder="company" />
+      </div>
+      <textarea id="jobDescription" rows="7" placeholder="paste the job description…"
+                style="margin-top:6px"></textarea>
+    </fieldset>
+
+    <label for="systemPrompt">System prompt
+      <button type="button" id="restorePrompt" style="float:right;padding:1px 7px">restore default</button>
+    </label>
+    <textarea id="systemPrompt" rows="16"></textarea>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label for="model">Model</label>
+        <input id="model" list="models" />
+        <datalist id="models">
+          <option value="gpt-4o-mini"></option>
+          <option value="gpt-4o"></option>
+          <option value="gpt-4.1-mini"></option>
+        </datalist>
+      </div>
+      <div class="fixed" style="width:110px">
+        <label for="maxTokens">Max tokens</label>
+        <input id="maxTokens" type="number" min="64" max="16000" step="64" />
+      </div>
+    </div>
+
+    <label for="temperature">Temperature <span id="tempOut" class="muted"></span></label>
+    <input id="temperature" type="range" min="0" max="2" step="0.05" />
+
+    <div class="row" style="margin-top:12px">
+      <button type="button" id="runA" class="primary">Run into A</button>
+      <button type="button" id="runB">Run into B</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button type="button" id="exportJson">Export runs as JSON</button>
+      <button type="button" id="clearRuns">Clear</button>
+    </div>
+    <div id="status" class="muted" style="margin-top:8px"></div>
+  </section>
+
+  <!-- ── Result ────────────────────────────────────────────── -->
+  <section>
+    <h2>Result</h2>
+    <div id="delta" class="kv" style="margin-bottom:8px"></div>
+    <div id="results" class="runs"></div>
+    <div id="previewWrap" style="margin-top:10px"></div>
+  </section>
+
+  <!-- ── Debug ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Debug</h2>
+    <div id="debug"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  // The response envelope was removed post-T6: handlers return the payload
+  // directly, so there is no `.data` to unwrap here.
+  async function api(path, options = {}) {
+    const res = await fetch(path, {
+      credentials: 'same-origin',
+      headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+      ...options,
+    });
+    const text = await res.text();
+    let body = null;
+    try { body = text ? JSON.parse(text) : null; } catch { body = { raw: text }; }
+    if (!res.ok) {
+      const err = new Error((body && (body.message || body.code)) || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.body = body;
+      throw err;
+    }
+    return body;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const runs = { A: null, B: null };
+  let defaults = null;
+  let jobsById = new Map();
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  }
+
+  /**
+   * Marks every highlight occurrence. Ranges are collected on the RAW text and
+   * merged before any escaping, so a keyword can never match the markup this
+   * function itself emits.
+   */
+  function highlight(text, highlights) {
+    const src = String(text ?? '');
+    const ranges = [];
+    for (const h of new Set((highlights || []).filter((x) => x && x.trim()))) {
+      const rx = new RegExp(h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      let m;
+      while ((m = rx.exec(src))) {
+        ranges.push([m.index, m.index + m[0].length]);
+        if (m.index === rx.lastIndex) rx.lastIndex++;
+      }
+    }
+    ranges.sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const r of ranges) {
+      const last = merged[merged.length - 1];
+      if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+      else merged.push([r[0], r[1]]);
+    }
+    let out = '', cursor = 0;
+    for (const [s, e] of merged) {
+      out += `${escapeHtml(src.slice(cursor, s))}<mark>${escapeHtml(src.slice(s, e))}</mark>`;
+      cursor = e;
+    }
+    return out + escapeHtml(src.slice(cursor));
+  }
+
+  function setStatus(msg, cls = 'muted') {
+    $('status').className = cls;
+    $('status').textContent = msg;
+  }
+
+  function source() {
+    return document.querySelector('input[name="src"]:checked').value;
+  }
+
+  // ── session ───────────────────────────────────────────────
+  async function refreshSession() {
+    try {
+      await api('/api/v1/resumes?limit=1');
+      $('session').textContent = 'session ok';
+      $('session').className = 'on';
+      return true;
+    } catch (err) {
+      $('session').textContent = err.status === 401 ? 'signed out' : `session: ${err.message}`;
+      $('session').className = 'off';
+      return false;
+    }
+  }
+
+  $('login').onclick = async () => {
+    try {
+      await api('/api/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: $('email').value, password: $('password').value }),
+      });
+      $('password').value = '';
+      await boot();
+    } catch (err) { setStatus(`login failed: ${err.message}`, 'err'); }
+  };
+
+  $('logout').onclick = async () => {
+    try { await api('/api/v1/auth/logout', { method: 'POST' }); } catch { /* already gone */ }
+    await refreshSession();
+  };
+
+  // ── lists ─────────────────────────────────────────────────
+  async function loadResumes() {
+    const page = await api('/api/v1/resumes?limit=50');
+    const items = page.items || [];
+    $('resume').innerHTML = items.length
+      ? items.map((r) => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.title || r.id)}</option>`).join('')
+      : '<option value="">— no resume on this account —</option>';
+  }
+
+  async function loadJobs() {
+    const page = await api('/api/v1/jobs?limit=50');
+    const items = page.items || [];
+    jobsById = new Map(items.map((j) => [j.id, j]));
+    $('job').innerHTML = items.length
+      ? items.map((j) =>
+          `<option value="${escapeHtml(j.id)}">${escapeHtml(j.title)} — ${escapeHtml(j.company)}</option>`).join('')
+      : '<option value="">— no seeded job —</option>';
+    renderJobFields();
+  }
+
+  function renderJobFields() {
+    const job = jobsById.get($('job').value);
+    $('jobFieldsBody').textContent = job
+      ? JSON.stringify({ requirements: job.requirements || [], skills: job.skills || [] }, null, 2)
+      : '(none)';
+  }
+  $('job').onchange = renderJobFields;
+
+  $('reload').onclick = async () => {
+    try { await Promise.all([loadResumes(), loadJobs()]); setStatus('lists reloaded'); }
+    catch (err) { setStatus(err.message, 'err'); }
+  };
+
+  // ── defaults ──────────────────────────────────────────────
+  async function loadDefaults() {
+    defaults = await api('/api/v1/dev/tailor-lab/defaults');
+    restoreDefaults();
+  }
+  function restoreDefaults() {
+    if (!defaults) return;
+    $('systemPrompt').value = defaults.systemPrompt;
+    $('model').value = defaults.model;
+    $('maxTokens').value = defaults.maxTokens;
+    $('temperature').value = defaults.temperature;
+    $('tempOut').textContent = Number(defaults.temperature).toFixed(2);
+  }
+  $('restorePrompt').onclick = restoreDefaults;
+  $('temperature').oninput = () => {
+    $('tempOut').textContent = Number($('temperature').value).toFixed(2);
+  };
+
+  // ── job from url ──────────────────────────────────────────
+  $('fetchUrl').onclick = async () => {
+    const url = $('url').value.trim();
+    if (!url) return;
+    setStatus('fetching the posting…');
+    $('fetchUrl').disabled = true;
+    try {
+      const { preview } = await api('/api/v1/dev/tailor-lab/job-from-url', {
+        method: 'POST', body: JSON.stringify({ url }),
+      });
+      $('jobTitle').value = preview.title || '';
+      $('jobCompany').value = preview.company || '';
+      const extra = [
+        preview.description || '',
+        preview.requirements?.length ? `\n\nRequirements:\n- ${preview.requirements.join('\n- ')}` : '',
+        preview.skills?.length ? `\n\nSkills: ${preview.skills.join(', ')}` : '',
+      ].join('');
+      $('jobDescription').value = extra.trim();
+      document.querySelector('input[name="src"][value="text"]').checked = true;
+      setStatus('fetched — review the text below, then run', 'ok');
+    } catch (err) {
+      // The likely cases: the site blocks the bot User-Agent, or it renders
+      // client-side and the served HTML strips to nothing.
+      setStatus(`could not read that link (${err.message}). Paste the text instead.`, 'warn');
+      document.querySelector('input[name="src"][value="text"]').checked = true;
+      $('jobDescription').focus();
+    } finally { $('fetchUrl').disabled = false; }
+  };
+
+  // ── run ───────────────────────────────────────────────────
+  function buildBody() {
+    const body = {
+      dryRun: true,
+      model: $('model').value.trim() || undefined,
+      temperature: Number($('temperature').value),
+      maxTokens: Number($('maxTokens').value) || undefined,
+    };
+    if ($('systemPrompt').value !== defaults?.systemPrompt) {
+      body.systemPrompt = $('systemPrompt').value;
+    }
+    if (source() === 'job') {
+      body.jobId = $('job').value || undefined;
+    } else {
+      body.jobDescription = $('jobDescription').value;
+      body.jobTitle = $('jobTitle').value || undefined;
+      body.jobCompany = $('jobCompany').value || undefined;
+    }
+    return body;
+  }
+
+  async function run(slot) {
+    const resumeId = $('resume').value;
+    if (!resumeId) return setStatus('pick a resume first', 'err');
+    const body = buildBody();
+    const started = Date.now();
+    setStatus(`running ${slot}…`);
+    $('runA').disabled = $('runB').disabled = true;
+    try {
+      const result = await api(
+        `/api/v1/dev/tailor-lab/resumes/${encodeURIComponent(resumeId)}/run`,
+        { method: 'POST', body: JSON.stringify(body) },
+      );
+      runs[slot] = { request: body, resumeId, result, at: new Date().toISOString() };
+      setStatus(`${slot} done in ${Date.now() - started} ms`, 'ok');
+    } catch (err) {
+      // The dev use case does not wrap LLM failures, so a schema violation or
+      // a provider 400 (e.g. a model that rejects `temperature`) shows up here
+      // verbatim instead of as a generic 503.
+      runs[slot] = { request: body, resumeId, error: err.body || { message: err.message }, at: new Date().toISOString() };
+      setStatus(`${slot} failed: ${err.message}`, 'err');
+    } finally {
+      $('runA').disabled = $('runB').disabled = false;
+      render();
+    }
+  }
+  $('runA').onclick = () => run('A');
+  $('runB').onclick = () => run('B');
+  $('clearRuns').onclick = () => { runs.A = runs.B = null; $('previewWrap').innerHTML = ''; render(); };
+  $('exportJson').onclick = () => {
+    const blob = new Blob([JSON.stringify(runs, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tailor-lab-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // ── save + preview ────────────────────────────────────────
+  async function save(slot) {
+    const run = runs[slot];
+    if (!run?.result) return;
+    setStatus(`saving ${slot} as a tailored version…`);
+    try {
+      const { versionId, versionNumber } = await api(
+        `/api/v1/dev/tailor-lab/resumes/${encodeURIComponent(run.resumeId)}/save`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            summary: run.result.summary,
+            jobTitle: run.result.jobTitle,
+            bullets: run.result.bullets,
+            jobId: run.request.jobId,
+            job: { title: run.result.job.title, company: run.result.job.company },
+          }),
+        },
+      );
+      setStatus(`saved as version ${versionNumber} — rendering preview…`, 'ok');
+      const { html } = await api(
+        `/api/v1/export/resume/preview?resumeId=${encodeURIComponent(run.resumeId)}&versionId=${encodeURIComponent(versionId)}`,
+      );
+      const frame = document.createElement('iframe');
+      frame.srcdoc = html;
+      $('previewWrap').innerHTML = '';
+      $('previewWrap').append(frame);
+    } catch (err) { setStatus(`save failed: ${err.message}`, 'err'); }
+  }
+
+  // ── render ────────────────────────────────────────────────
+  function renderSlot(slot) {
+    const run = runs[slot];
+    const el = document.createElement('div');
+    el.className = 'slot';
+    if (!run) {
+      el.innerHTML = `<header><span class="badge">${slot}</span></header><div class="muted">no run yet</div>`;
+      return el;
+    }
+    if (run.error) {
+      el.innerHTML = `<header><span class="badge">${slot}</span></header>
+        <pre class="err">${escapeHtml(JSON.stringify(run.error, null, 2))}</pre>`;
+      return el;
+    }
+    const r = run.result;
+    const changed = r.bullets.filter((b) => b.original !== b.tailored).length;
+    const parts = [
+      `<header class="kv"><span class="badge">${slot}</span>
+        <span><b>${r.bullets.length}</b> bullets, <b>${changed}</b> changed</span>
+        ${r.job ? `<span class="muted">${escapeHtml(r.job.title)} · ${escapeHtml(r.job.company)}</span>` : ''}
+       </header>`,
+    ];
+    if (r.summary) {
+      parts.push(`<div class="bullet"><div class="muted">summary</div>
+        <div>${highlight(r.summary, [])}</div></div>`);
+    }
+    if (r.jobTitle) {
+      parts.push(`<div class="bullet"><div class="muted">job title</div>
+        <div>${escapeHtml(r.jobTitle)}</div></div>`);
+    }
+    for (const b of r.bullets) {
+      parts.push(`<div class="bullet">
+        <div class="was">${escapeHtml(b.original)}</div>
+        <div>${highlight(b.tailored, b.highlights)}</div>
+      </div>`);
+    }
+    parts.push(`<div style="margin-top:9px"><button data-save="${slot}">Save this run</button></div>`);
+    el.innerHTML = parts.join('');
+    el.querySelector(`[data-save="${slot}"]`).onclick = () => save(slot);
+    return el;
+  }
+
+  function renderDebug() {
+    const wrap = $('debug');
+    wrap.innerHTML = '';
+    for (const slot of ['A', 'B']) {
+      const run = runs[slot];
+      if (!run?.result) continue;
+      const d = run.result.debug;
+      const box = document.createElement('div');
+      box.style.marginBottom = '12px';
+      const chars = d.userMessage.length;
+      box.innerHTML = `
+        <div class="kv">
+          <span class="badge">${slot}</span>
+          <span><b>${escapeHtml(d.model)}</b></span>
+          <span>temp <b>${d.temperature}</b></span>
+          <span>${d.promptTokens}+${d.completionTokens} = <b>${d.totalTokens}</b> tok</span>
+          <span><b>${d.latencyMs}</b> ms</span>
+          <span>US$ <b>${(d.costUsdMicros / 1e6).toFixed(6)}</b></span>
+        </div>
+        ${d.finishReason === 'length'
+          ? `<div class="err">finish_reason = length → the answer was TRUNCATED by max_tokens.
+             A schema error here is a budget problem, not a bad prompt.</div>` : ''}
+        <div class="${chars > 40000 ? 'warn' : 'muted'}" style="margin-top:4px">
+          user message: ${chars.toLocaleString()} chars${chars > 40000 ? ' — large enough to crowd the context' : ''}
+        </div>
+        <details><summary>system prompt as sent</summary><pre>${escapeHtml(d.systemPrompt)}</pre></details>
+        <details><summary>user message as sent</summary><pre>${escapeHtml(d.userMessage)}</pre></details>
+        <details><summary>raw response</summary><pre>${escapeHtml(d.responseRaw)}</pre></details>`;
+      wrap.append(box);
+    }
+    if (!wrap.children.length) wrap.innerHTML = '<div class="muted">run something first</div>';
+  }
+
+  function renderDelta() {
+    const a = runs.A?.result?.debug, b = runs.B?.result?.debug;
+    if (!a || !b) return ($('delta').innerHTML = '');
+    const diff = (x, y) => (y - x >= 0 ? `+${y - x}` : `${y - x}`);
+    const bulletsA = new Map(runs.A.result.bullets.map((x) => [x.id, x.tailored]));
+    let differing = 0;
+    for (const x of runs.B.result.bullets) if (bulletsA.get(x.id) !== x.tailored) differing++;
+    $('delta').innerHTML = `
+      <span class="muted">A → B</span>
+      <span>tokens <b>${diff(a.totalTokens, b.totalTokens)}</b></span>
+      <span>latency <b>${diff(a.latencyMs, b.latencyMs)} ms</b></span>
+      <span>cost <b>${((b.costUsdMicros - a.costUsdMicros) / 1e6).toFixed(6)}</b></span>
+      <span><b>${differing}</b> bullets differ</span>`;
+  }
+
+  function render() {
+    const both = runs.A && runs.B;
+    $('results').className = both ? 'runs ab' : 'runs';
+    $('results').innerHTML = '';
+    $('results').append(renderSlot('A'));
+    if (both) $('results').append(renderSlot('B'));
+    renderDebug();
+    renderDelta();
+  }
+
+  // ── boot ──────────────────────────────────────────────────
+  async function boot() {
+    render();
+    if (!(await refreshSession())) return setStatus('sign in to load resumes and jobs', 'warn');
+    try {
+      await Promise.all([loadResumes(), loadJobs(), loadDefaults()]);
+      setStatus('ready');
+    } catch (err) { setStatus(err.message, 'err'); }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -28988,7 +28988,6 @@
         },
         "x-auth": "jwt",
         "x-guards": [
-          "fit-profile",
           "min-quality",
           "external-api"
         ]

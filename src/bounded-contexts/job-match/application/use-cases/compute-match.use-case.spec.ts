@@ -12,7 +12,6 @@ const stubEventPublisher: EventPublisher = {
 } as unknown as EventPublisher;
 
 import {
-  JobMatchFitProfileRequiredException,
   JobMatchJobNotFoundException,
   JobMatchResumeNotFoundException,
 } from '../../domain/exceptions/job-match.exceptions';
@@ -189,15 +188,15 @@ describe('ComputeMatchUseCase', () => {
     ).rejects.toBeInstanceOf(JobMatchJobNotFoundException);
   });
 
-  it('throws when the user has no fit profile (or expired)', async () => {
-    const expired = build({ fit: 'expired' });
-    await expect(
-      expired.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' }),
-    ).rejects.toBeInstanceOf(JobMatchFitProfileRequiredException);
-    const never = build({ fit: 'never' });
-    await expect(
-      never.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' }),
-    ).rejects.toBeInstanceOf(JobMatchFitProfileRequiredException);
+  it.each([
+    'never',
+    'expired',
+  ] as const)('computes Match without a current Fit profile (%s)', async (status) => {
+    const useCase = build({ fit: status });
+    const result = await useCase.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' });
+    expect(result.subScores.fit.score).toBeNull();
+    expect(result.effectiveWeights.fit).toBe(0);
+    expect(result.overallScore).toBe(85);
   });
 
   it('composes the overall score from the four sub-scores when everything succeeds', async () => {

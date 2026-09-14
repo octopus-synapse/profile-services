@@ -28,7 +28,7 @@ export interface MatchBreakdown {
 
 /** Semver of the Match blend logic. Bumping invalidates cached results
  * (when Redis caching lands in Task #20). */
-export const MATCH_RULES_VERSION = '1.0.0';
+export const MATCH_RULES_VERSION = '1.1.0';
 
 /**
  * Default top-level weights — must sum to 1.0. The split follows the
@@ -40,8 +40,8 @@ export const MATCH_RULES_VERSION = '1.0.0';
  *   predictor of ATS pass-through
  * - Semantic 25% — embedding similarity of CV body vs JD body; high
  *   signal but noisy
- * - Fit 20% — behavioural vector match (delegated to fit-profile/);
- *   kept lighter because personality is a long-tail factor not a gate
+ * - Fit 20% when available — optional work-preference signal (delegated
+ *   to fit-profile/); its weight is reallocated when unanswered or expired
  */
 export const MATCH_WEIGHTS = {
   keyword: 0.25,

@@ -100,6 +100,7 @@ import { platformRoutes } from '@/bounded-contexts/platform/common/platform.rout
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
 import { buildS3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.composition';
 import { buildConfigComposition } from '@/bounded-contexts/platform/config/config.composition';
+import { buildTailorLabComposition } from '@/bounded-contexts/platform/dev-lab/tailor-lab.composition';
 import { buildDocsComposition } from '@/bounded-contexts/platform/docs/docs.composition';
 import { buildFeatureFlagsComposition } from '@/bounded-contexts/platform/feature-flags/feature-flags.composition';
 import { RedisFlagCache } from '@/bounded-contexts/platform/feature-flags/infrastructure/cache/redis-flag-cache.service';
@@ -1256,6 +1257,28 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     { bundle: docs.useCases, routes: docs.routes },
     { prefix: '/api', pipeline, i18n: i18n.translation },
   );
+
+  // Resume-tailoring prompt lab — `/api/dev/tailor-lab`. Development only:
+  // the check is `=== 'development'` rather than `!isProduction` on purpose,
+  // because `test` is where the contract probes run and a probe firing the
+  // lab's run endpoint would spend a real OpenAI call on every CI pipeline.
+  if (config.env.NODE_ENV === 'development') {
+    const tailorLab = buildTailorLabComposition({
+      repository: resumeVersions.repository,
+      llm: ai.tailorLabLlm,
+      jobUrlPreview: jobs.useCases.importJobFromUrl,
+      config,
+    });
+    mountRoutes(
+      app,
+      { bundle: tailorLab.useCases, routes: tailorLab.routes },
+      { prefix: '/api', pipeline, i18n: i18n.translation },
+    );
+    logger.warn(
+      'DEV LAB mounted at /api/dev/tailor-lab — development builds only',
+      'ElysiaBootstrap',
+    );
+  }
 
   // V2 D75: Mobile Universal Links / App Links discovery files.
   // Mounted at the **root** path (no `/api` prefix) because Apple's
