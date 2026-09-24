@@ -4,8 +4,8 @@
  * in `resume-quality.composition.ts` — Nest-free.
  */
 
-import type { ComputeQualityUseCase } from '../use-cases/compute-quality.use-case';
 import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
+import type { ComputeQualityUseCase } from '../use-cases/compute-quality.use-case';
 import type { GetLatestQualityUseCase } from '../use-cases/get-latest-quality.use-case';
 
 export abstract class ResumeQualityUseCases {

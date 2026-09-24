@@ -17,6 +17,8 @@
  * so that a future rename would start out compliant with the house rules.
  */
 
+import { AuthenticationRequiredException } from '@/shared-kernel/authorization';
+import type { HttpCtx } from '@/shared-kernel/http/context';
 import { withHeaders } from '@/shared-kernel/http/route';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
@@ -95,7 +97,7 @@ export const tailorLabDevRoutes: ReadonlyArray<Route<TailorLabBundle>> = [
       const body = ctx.body as TailorLabRunBodyType;
       return bc.runTailorLab.execute({
         resumeId,
-        userId: ctx.user!.userId,
+        userId: authenticatedUserId(ctx),
         jobId: body.jobId,
         jobDescription: body.jobDescription,
         jobTitle: body.jobTitle,
@@ -132,7 +134,7 @@ export const tailorLabDevRoutes: ReadonlyArray<Route<TailorLabBundle>> = [
       const body = ctx.body as TailorLabSaveBodyType;
       return bc.saveTailorLabRun.execute({
         resumeId,
-        userId: ctx.user!.userId,
+        userId: authenticatedUserId(ctx),
         summary: body.summary,
         jobTitle: body.jobTitle,
         bullets: body.bullets,
@@ -161,3 +163,8 @@ export const tailorLabDevRoutes: ReadonlyArray<Route<TailorLabBundle>> = [
     },
   },
 ];
+
+function authenticatedUserId(ctx: Pick<HttpCtx, 'user'>): string {
+  if (!ctx.user) throw new AuthenticationRequiredException();
+  return ctx.user.userId;
+}

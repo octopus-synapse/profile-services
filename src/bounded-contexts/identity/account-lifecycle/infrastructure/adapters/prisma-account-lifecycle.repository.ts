@@ -1,4 +1,5 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import {
   AccountData,
   AccountIdentitySignals,
@@ -131,7 +132,7 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
     // analytics that must survive an LGPD erasure. We do it INSIDE the
     // same transaction so a failure leaves the User row in place (no
     // partial delete that would also lose the snapshot opportunity).
-    await this.prisma.$transaction(async (tx) => {
+    await runInTransaction(this.prisma, async (tx) => {
       // 1. Anonymise application history (drops userId, keeps shape).
       await tx.$executeRaw`
         INSERT INTO "AnonymizedApplicationStat" ("id", "jobId", "company", "status", "occurredAt", "createdAt")

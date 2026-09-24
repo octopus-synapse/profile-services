@@ -57,6 +57,7 @@ describe('CompleteUnverifiedAccountUseCase', () => {
         },
       },
       new InMemoryEventBus(),
+      stubLogger,
     );
   });
 

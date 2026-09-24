@@ -9,6 +9,7 @@ import type { Locale } from '@packages/i18n';
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import {
   type CompletionResult,
   OnboardingCompletionPort,
@@ -34,7 +35,8 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     data: OnboardingData,
     authoredLocale?: Locale | null,
   ): Promise<CompletionResult> {
-    return this.prisma.$transaction(
+    return runInTransaction(
+      this.prisma,
       async (tx) => {
         const resume = await this.resumeAdapter.upsertResumeWithTx(
           tx,

@@ -146,7 +146,11 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle, TailorLabLlmPor
     const { output, debug } = await this.runTailor(input);
     return {
       ...output,
-      usage: { model: debug.model, inputTokens: debug.promptTokens, outputTokens: debug.completionTokens },
+      usage: {
+        model: debug.model,
+        inputTokens: debug.promptTokens,
+        outputTokens: debug.completionTokens,
+      },
     };
   }
 

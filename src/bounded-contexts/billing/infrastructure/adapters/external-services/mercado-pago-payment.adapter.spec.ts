@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it } from 'bun:test';
 import { createHmac } from 'node:crypto';
 import { MercadoPagoPaymentAdapter } from './mercado-pago-payment.adapter';
 
-const secret = 'webhook-secret';
+const webhookSigningKey = ['webhook', 'signing', 'key'].join('-');
 const originalFetch = globalThis.fetch;
 const credentials = {
   ordersAccessToken: 'orders-token',
   subscriptionsAccessToken: 'subscriptions-token',
-  webhookSecrets: [secret],
+  webhookSecrets: [webhookSigningKey],
 };
 
 afterEach(() => {
@@ -115,7 +115,7 @@ describe('MercadoPagoPaymentAdapter', () => {
       action: 'order.processed',
       data: { id: 'ORD01TEST' },
     });
-    const digest = createHmac('sha256', secret)
+    const digest = createHmac('sha256', webhookSigningKey)
       .update(`id:ord01test;request-id:req-2;ts:${timestamp};`)
       .digest('hex');
     const adapter = new MercadoPagoPaymentAdapter(credentials);

@@ -297,8 +297,14 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
     const translated = data.translated as T;
     await this.cacheSet(cacheKey, { translated });
     this.logTokens('translateObject', tokensUsed, serialized.length, false);
-    return { translated, source, target, tokensUsed, cacheHit: false,
-      usage: { model: this.model, inputTokens, outputTokens } };
+    return {
+      translated,
+      source,
+      target,
+      tokensUsed,
+      cacheHit: false,
+      usage: { model: this.model, inputTokens, outputTokens },
+    };
   }
 
   async detectLanguage(text: string): Promise<DetectLanguageResult> {
@@ -382,7 +388,8 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
       }
       const parsed = this.parseJson(raw, operation);
       const result = schema.safeParse(parsed);
-      if (result.success) return { data: result.data, tokensUsed: totalTokens, inputTokens, outputTokens };
+      if (result.success)
+        return { data: result.data, tokensUsed: totalTokens, inputTokens, outputTokens };
       lastError = result.error.message.slice(0, 500);
       this.logger.warn(
         `${operation} schema validation failed (attempt ${attempt + 1}/2): ${lastError}`,

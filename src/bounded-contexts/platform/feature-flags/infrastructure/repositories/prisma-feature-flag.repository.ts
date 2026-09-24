@@ -1,4 +1,5 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import { FeatureFlagNotFoundException } from '../../domain/exceptions/feature-flag.exceptions';
 import {
   FeatureFlagRepositoryPort,
@@ -58,7 +59,7 @@ export class PrismaFeatureFlagRepository extends FeatureFlagRepositoryPort {
   }
 
   async upsertFromRegistry(inputs: UpsertFlagInput[]): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
+    await runInTransaction(this.prisma, async (tx) => {
       for (const input of inputs) {
         await tx.featureFlag.upsert({
           where: { key: input.key },

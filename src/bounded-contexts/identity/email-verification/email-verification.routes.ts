@@ -66,17 +66,17 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     body: StartPreSignupVerificationSchema,
     response: StartPreSignupVerificationResponseSchema,
     guards: [
-      // Production caps sends at 5/5min per IP. Local development uses a
-      // larger budget because several test accounts share the same loopback
-      // address; the per-e-mail 60s cooldown still applies in every env.
+      // Keep the same deterministic policy in every environment so route
+      // metadata remains statically auditable. Tests that need isolation use
+      // a fresh limiter; the per-e-mail cooldown remains an independent gate.
       {
         id: 'rate-limit',
         metadata: {
-          points: process.env.NODE_ENV === 'production' ? 5 : 30,
+          points: 5, // lint-allow-magic-number: security policy documented above
           durationSeconds: 300,
           keyStrategy: 'ip',
         },
-      }, // lint-allow-magic-number: explicit per-environment send budgets
+      },
       { id: 'multi-step-flow' },
     ],
     openapi: {

@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import type { PrismaLikeClient } from './prisma-types';
 
 /**
@@ -18,11 +18,16 @@ import type { PrismaLikeClient } from './prisma-types';
 export async function runInTransaction<T>(
   client: PrismaLikeClient,
   operation: (tx: PrismaLikeClient) => Promise<T>,
+  options?: {
+    maxWait?: number;
+    timeout?: number;
+    isolationLevel?: Prisma.TransactionIsolationLevel;
+  },
 ): Promise<T> {
   if (isTransactionClient(client)) {
     return operation(client);
   }
-  return (client as PrismaClient).$transaction((tx) => operation(tx));
+  return (client as PrismaClient).$transaction((tx) => operation(tx), options);
 }
 
 function isTransactionClient(client: PrismaLikeClient): boolean {

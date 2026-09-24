@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type {
   OnboardingStatus,
   TransactionClient,
@@ -63,6 +64,10 @@ export class OnboardingRepository extends OnboardingRepositoryPort {
     fn: (tx: TransactionClient) => Promise<T>,
     options?: { timeout?: number },
   ): Promise<T> {
-    return this.prisma.$transaction(fn as (tx: Prisma.TransactionClient) => Promise<T>, options);
+    return runInTransaction(
+      this.prisma,
+      fn as (tx: Prisma.TransactionClient) => Promise<T>,
+      options,
+    );
   }
 }

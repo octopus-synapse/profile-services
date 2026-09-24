@@ -1,4 +1,5 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import {
   FitAnswerRepositoryPort,
   type FitAnswerWrite,
@@ -12,16 +13,18 @@ export class PrismaFitAnswerRepository extends FitAnswerRepositoryPort {
 
   async saveBatch(answers: readonly FitAnswerWrite[]): Promise<readonly SavedFitAnswer[]> {
     if (answers.length === 0) return [];
-    const created = await this.prisma.$transaction(
-      answers.map((a) =>
-        this.prisma.fitAnswer.create({
-          data: {
-            userId: a.userId,
-            questionId: a.questionId,
-            questionSetId: a.questionSetId,
-            rawValue: a.rawValue,
-          },
-        }),
+    const created = await runInTransaction(this.prisma, (tx) =>
+      Promise.all(
+        answers.map((answer) =>
+          tx.fitAnswer.create({
+            data: {
+              userId: answer.userId,
+              questionId: answer.questionId,
+              questionSetId: answer.questionSetId,
+              rawValue: answer.rawValue,
+            },
+          }),
+        ),
       ),
     );
     return created.map((row) => this.toDomain(row));

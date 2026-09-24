@@ -1,5 +1,5 @@
-import type { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
+import type { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import type { ComputeMatchBatchUseCase } from './application/use-cases/compute-match-batch.use-case';
 import type { ComputeReadinessUseCase } from './application/use-cases/compute-readiness.use-case';
 import type { GetMeScoresUseCase } from './application/use-cases/get-me-scores.use-case';

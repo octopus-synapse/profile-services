@@ -31,46 +31,54 @@ export class ManageSubscriptionUseCase {
     });
   }
 
-  async createPaymentMethodSession(userId: string, requestedReturnUrl?: string) {
+  async createPaymentMethodSession(userId: string, requestedReturnTarget?: string) {
     const subscription = await this.store.findCurrentSubscription(userId, this.clock.now());
     if (!subscription?.providerSubscriptionId) throw new PatchGoRequiredException();
     const token = this.ids.token();
     await this.store.createPaymentMethodSession({
       subscriptionId: subscription.id,
       tokenHash: this.ids.hash(token),
-      returnUrl: this.allowedReturnUrl(requestedReturnUrl),
+      returnUrl: this.allowedReturnUrl(requestedReturnTarget),
       expiresAt: new Date(this.clock.now().getTime() + SESSION_TTL_MS),
     });
     return {
-      url: `${this.config.frontendUrl}/billing/payment-method?session=${encodeURIComponent(token)}`,
+      // Fragments stay client-side: the one-time token does not leak into
+      // server access logs, proxy logs, analytics, or Referer headers.
+      url: `${this.config.frontendUrl}/billing/payment-method#token=${encodeURIComponent(token)}`,
     };
   }
 
   async getPaymentMethodSession(token: string) {
-    const session = await this.store.findPaymentMethodSession(this.ids.hash(token));
-    if (!session || session.usedAt || session.expiresAt <= this.clock.now())
+    const paymentMethodState = await this.store.findPaymentMethodSession(this.ids.hash(token));
+    if (
+      !paymentMethodState ||
+      paymentMethodState.usedAt ||
+      paymentMethodState.expiresAt <= this.clock.now()
+    )
       throw new PatchGoRequiredException();
     return {
       publicKey: this.config.subscriptionsPublicKey ?? '',
-      plan: session.plan,
-      returnUrl: session.returnUrl,
+      plan: paymentMethodState.plan,
+      returnUrl: paymentMethodState.returnUrl,
     };
   }
 
   async updatePaymentMethod(sessionToken: string, cardToken: string) {
     const provider = this.requireProvider();
-    const session = await this.store.findPaymentMethodSession(this.ids.hash(sessionToken));
+    const paymentMethodState = await this.store.findPaymentMethodSession(
+      this.ids.hash(sessionToken),
+    );
     if (
-      !session?.providerSubscriptionId ||
-      session.usedAt ||
-      session.expiresAt <= this.clock.now() ||
+      !paymentMethodState?.providerSubscriptionId ||
+      paymentMethodState.usedAt ||
+      paymentMethodState.expiresAt <= this.clock.now() ||
       !cardToken
     )
       throw new PatchGoRequiredException();
-    await provider.updatePaymentMethod(session.providerSubscriptionId, cardToken);
-    if (!(await this.store.consumePaymentMethodSession(session.id, this.clock.now())))
+    await provider.updatePaymentMethod(paymentMethodState.providerSubscriptionId, cardToken);
+    if (!(await this.store.consumePaymentMethodSession(paymentMethodState.id, this.clock.now())))
       throw new PatchGoRequiredException();
-    return { returnUrl: session.returnUrl };
+    return { returnUrl: paymentMethodState.returnUrl };
   }
 
   async payments(userId: string, page = 1, limit = 20) {

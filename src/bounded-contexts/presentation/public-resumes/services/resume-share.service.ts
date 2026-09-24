@@ -4,6 +4,7 @@ import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { publicResumeCacheKey } from '@/shared-kernel/cache/public-resume-cache-key';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { resolveResumeProse, resolveStoredItem } from '@/shared-kernel/i18n/translation-envelope';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { type Locale, parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumePublishedEvent } from '../../domain/events';
@@ -45,7 +46,7 @@ export class ResumeShareService {
       ? await Bun.password.hash(dto.password, { algorithm: 'bcrypt', cost: 10 })
       : null;
 
-    const { share, ownerId } = await this.prisma.$transaction(async (tx) => {
+    const { share, ownerId } = await runInTransaction(this.prisma, async (tx) => {
       const existing = await tx.resumeShare.findUnique({ where: { slug } });
       if (existing) {
         throw new ResumeShareSlugTakenException();

@@ -44,7 +44,11 @@ export interface TranslateBatchResult {
 }
 
 export interface TranslateObjectResult<T extends JsonValue> {
-  readonly usage?: { readonly model: string; readonly inputTokens: number; readonly outputTokens: number };
+  readonly usage?: {
+    readonly model: string;
+    readonly inputTokens: number;
+    readonly outputTokens: number;
+  };
   readonly translated: T;
   readonly source: SourceLanguage;
   readonly target: TranslationLanguage;

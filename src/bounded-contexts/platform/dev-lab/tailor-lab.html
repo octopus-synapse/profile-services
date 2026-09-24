@@ -213,12 +213,13 @@
   function highlight(text, highlights) {
     const src = String(text ?? '');
     const ranges = [];
-    for (const h of new Set((highlights || []).filter((x) => x && x.trim()))) {
+    for (const h of new Set((highlights || []).filter((x) => x?.trim()))) {
       const rx = new RegExp(h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      let m;
-      while ((m = rx.exec(src))) {
+      let m = rx.exec(src);
+      while (m) {
         ranges.push([m.index, m.index + m[0].length]);
         if (m.index === rx.lastIndex) rx.lastIndex++;
+        m = rx.exec(src);
       }
     }
     ranges.sort((a, b) => a[0] - b[0]);
@@ -520,7 +521,10 @@
 
   function renderDelta() {
     const a = runs.A?.result?.debug, b = runs.B?.result?.debug;
-    if (!a || !b) return ($('delta').innerHTML = '');
+    if (!a || !b) {
+      $('delta').innerHTML = '';
+      return;
+    }
     const diff = (x, y) => (y - x >= 0 ? `+${y - x}` : `${y - x}`);
     const bulletsA = new Map(runs.A.result.bullets.map((x) => [x.id, x.tailored]));
     let differing = 0;

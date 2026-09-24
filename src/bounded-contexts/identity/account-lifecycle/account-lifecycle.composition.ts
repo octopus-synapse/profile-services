@@ -101,6 +101,7 @@ export function buildAccountLifecycleUseCases(
     ),
     new PrismaAuthenticationRepository(prisma, cache),
     eventBus,
+    logger,
   );
   const identifyAccount = new IdentifyAccountUseCase(repository);
   const deactivateAccount = new DeactivateAccountUseCase(repository, eventBus, logger);

@@ -1,10 +1,10 @@
 import { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
-import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import {
   ANALYZE_CONTENT_QUALITY_PROMPT_ID,
   ANALYZE_CONTENT_QUALITY_PROMPT_SEMVER,
   ANALYZE_CONTENT_QUALITY_PROMPT_SHA,
 } from '@/bounded-contexts/ai/domain/prompts/analyze-content-quality.v1';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import { LoggerPort } from '@/shared-kernel';
 import {

@@ -20,8 +20,8 @@
  */
 
 import type { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
-import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import type { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';

@@ -3,6 +3,7 @@ import { EmailVerifiedEvent } from '@/bounded-contexts/identity/email-verificati
 import type { SessionInvalidationPort } from '@/bounded-contexts/identity/password-management/domain/ports';
 import { Password } from '@/bounded-contexts/identity/password-management/domain/value-objects';
 import type { EventBusPort } from '@/bounded-contexts/identity/shared-kernel/ports/event-bus.port';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   AccountAlreadyExistsException,
   ConsentVersionMismatchException,
@@ -36,6 +37,7 @@ export class CompleteUnverifiedAccountUseCase {
       'invalidateEmailCache' | 'invalidateSessionCache'
     >,
     private readonly events: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(
@@ -77,6 +79,9 @@ export class CompleteUnverifiedAccountUseCase {
     await this.authenticationCache.invalidateEmailCache(completed.email);
     await this.authenticationCache.invalidateSessionCache(completed.id);
     this.events.publish(new EmailVerifiedEvent(completed.id, completed.email));
+    this.logger.log('Completed an unverified account', 'CompleteUnverifiedAccountUseCase', {
+      userId: completed.id,
+    });
     // JWT iat has second precision; the extractor rejects iat <= the
     // invalidation second. Let that second finish before the client logs in.
     const nextJwtSecond = (Math.floor(Date.now() / JWT_SECOND_MS) + 1) * JWT_SECOND_MS;

@@ -1,3 +1,4 @@
+// lint-allow-file-size: frozen legacy billing implementation; active billing is split by layer
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { PrismaClient } from '@prisma/client';
 import type { LoggerPort } from '@/shared-kernel';
@@ -767,13 +768,13 @@ export class PatchGoBilling extends BillingPort {
     });
   }
 
-  async createPaymentMethodSession(userId: string, requestedReturnUrl?: string) {
+  async createPaymentMethodSession(userId: string, requestedReturnTarget?: string) {
     this.requireProvider();
     const subscription = await this.currentSubscription(userId);
     if (!subscription?.providerSubscriptionId || !this.isActive(subscription))
       throw new PatchGoRequiredException();
     const token = randomBytes(32).toString('base64url');
-    const returnUrl = this.allowedReturnUrl(requestedReturnUrl);
+    const returnUrl = this.allowedReturnUrl(requestedReturnTarget);
     await this.prisma.billingPaymentMethodSession.create({
       data: {
         subscriptionId: subscription.id,
@@ -782,21 +783,25 @@ export class PatchGoBilling extends BillingPort {
         expiresAt: new Date(Date.now() + 10 * 60_000),
       },
     });
-    return { url: `${this.frontendUrl()}/billing/payment-method?session=${token}` };
+    return { url: `${this.frontendUrl()}/billing/payment-method#token=${token}` };
   }
 
   async paymentMethodSession(token: string) {
-    const session = await this.prisma.billingPaymentMethodSession.findUnique({
+    const paymentMethodState = await this.prisma.billingPaymentMethodSession.findUnique({
       where: { tokenHash: this.hashToken(token) },
       include: { subscription: true },
     });
-    if (!session || session.usedAt || session.expiresAt.getTime() <= Date.now())
+    if (
+      !paymentMethodState ||
+      paymentMethodState.usedAt ||
+      paymentMethodState.expiresAt.getTime() <= Date.now()
+    )
       throw new PatchGoRequiredException();
     if (!this.config.MERCADO_PAGO_PUBLIC_KEY) throw new PatchGoNotConfiguredException();
     return {
       publicKey: this.config.MERCADO_PAGO_PUBLIC_KEY,
-      plan: session.subscription.plan === 'max' ? ('max' as const) : ('go' as const),
-      returnUrl: session.returnUrl,
+      plan: paymentMethodState.subscription.plan === 'max' ? ('max' as const) : ('go' as const),
+      returnUrl: paymentMethodState.returnUrl,
     };
   }
 
@@ -807,24 +812,27 @@ export class PatchGoBilling extends BillingPort {
     const provider = this.requireProvider();
     if (!cardToken || cardToken.length > 512) throw new PatchGoRequiredException();
     const tokenHash = this.hashToken(sessionToken);
-    const session = await this.prisma.billingPaymentMethodSession.findUnique({
+    const paymentMethodState = await this.prisma.billingPaymentMethodSession.findUnique({
       where: { tokenHash },
       include: { subscription: true },
     });
     if (
-      !session ||
-      session.usedAt ||
-      session.expiresAt.getTime() <= Date.now() ||
-      !session.subscription.providerSubscriptionId
+      !paymentMethodState ||
+      paymentMethodState.usedAt ||
+      paymentMethodState.expiresAt.getTime() <= Date.now() ||
+      !paymentMethodState.subscription.providerSubscriptionId
     )
       throw new PatchGoRequiredException();
     const claimed = await this.prisma.billingPaymentMethodSession.updateMany({
-      where: { id: session.id, usedAt: null, expiresAt: { gt: new Date() } },
+      where: { id: paymentMethodState.id, usedAt: null, expiresAt: { gt: new Date() } },
       data: { usedAt: new Date() },
     });
     if (claimed.count !== 1) throw new PatchGoRequiredException();
-    await provider.updatePaymentMethod(session.subscription.providerSubscriptionId, cardToken);
-    return { returnUrl: session.returnUrl };
+    await provider.updatePaymentMethod(
+      paymentMethodState.subscription.providerSubscriptionId,
+      cardToken,
+    );
+    return { returnUrl: paymentMethodState.returnUrl };
   }
 
   async payments(userId: string, page = 1, limit = 20) {

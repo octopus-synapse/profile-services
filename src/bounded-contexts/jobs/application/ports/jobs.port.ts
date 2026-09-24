@@ -3,6 +3,7 @@
  * the Nest DI token. Wiring lives in `jobs.composition.ts` — Nest-free.
  */
 
+import type { PaidAccessPort } from '@/bounded-contexts/billing';
 import type { ApplyToJobUseCase } from '../use-cases/apply-to-job/apply-to-job.use-case';
 import type { BookmarkJobUseCase } from '../use-cases/bookmark-job/bookmark-job.use-case';
 import type { CreateJobUseCase } from '../use-cases/create-job/create-job.use-case';
@@ -31,7 +32,6 @@ import type { UnbookmarkJobUseCase } from '../use-cases/unbookmark-job/unbookmar
 import type { UnsaveExternalJobUseCase } from '../use-cases/unsave-external-job/unsave-external-job.use-case';
 import type { UpdateJobUseCase } from '../use-cases/update-job/update-job.use-case';
 import type { WithdrawApplicationUseCase } from '../use-cases/withdraw-application/withdraw-application.use-case';
-import type { PaidAccessPort } from '@/bounded-contexts/billing';
 
 export abstract class JobsUseCases {
   readonly billing?: PaidAccessPort;

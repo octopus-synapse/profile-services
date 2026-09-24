@@ -4,6 +4,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type { CuratedSelectorService } from '../application/services/curated-selector.service';
 import {
   AutoApplyAllPicksFailedException,
@@ -136,7 +137,7 @@ export class AutoApplyWorker {
           jobId: pick.jobId,
         });
 
-        await this.prisma.$transaction(async (tx) => {
+        await runInTransaction(this.prisma, async (tx) => {
           const raceCheck = await tx.jobApplication.findUnique({
             where: { jobId_userId: { jobId: pick.jobId, userId } },
           });

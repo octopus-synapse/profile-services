@@ -1,5 +1,6 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { hashToken } from '@/shared-kernel/crypto';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import { InvalidResetTokenException } from '../../../domain/exceptions';
 import { PasswordResetTokenPort } from '../../../domain/ports';
 
@@ -59,7 +60,7 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
    */
   async validateAndConsumeToken(plaintext: string): Promise<string> {
     const tokenHash = hashToken(plaintext);
-    return this.prisma.$transaction(async (tx) => {
+    return runInTransaction(this.prisma, async (tx) => {
       const resetToken = await tx.passwordResetToken.findUnique({
         where: { token: tokenHash },
       });
