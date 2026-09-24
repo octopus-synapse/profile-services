@@ -309,6 +309,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         sectionTypeKey,
         ctx.user!.userId,
         body.content ?? {},
+        body.initialTranslation,
       );
       return { item };
     },

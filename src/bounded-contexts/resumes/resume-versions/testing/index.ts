@@ -187,7 +187,7 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     }
   }
 
-  async findResumeForTailor(resumeId: string): Promise<ResumeForTailor | null> {
+  async findResumeForTailor(resumeId: string, _locale?: 'pt-BR' | 'en'): Promise<ResumeForTailor | null> {
     return this.tailorResumes.get(resumeId) ?? null;
   }
 

@@ -2,29 +2,30 @@ import type Elysia from 'elysia';
 import type { LoggerPort } from '@/shared-kernel';
 import type { PatchGoBilling } from './patch-go.billing';
 
-/** Stripe needs the untouched request body to verify its signature. */
+/** Mercado Pago signs the resource id, request id and timestamp. */
 export function registerPatchGoWebhook(
   app: Elysia,
   billing: PatchGoBilling,
   logger: LoggerPort,
 ): void {
   app.post(
-    '/api/v1/billing/stripe-webhook',
+    '/api/v1/billing/webhooks/mercado-pago',
     async ({ request, set }) => {
       if (!billing.enabled) {
         set.status = 404;
         return { received: false };
       }
-      const signature = request.headers.get('stripe-signature');
-      if (!signature) {
+      const signature = request.headers.get('x-signature');
+      const requestId = request.headers.get('x-request-id');
+      if (!signature || !requestId) {
         set.status = 400;
         return { received: false };
       }
-      let event: Awaited<ReturnType<PatchGoBilling['constructEvent']>>;
+      let event: ReturnType<PatchGoBilling['verifyWebhook']>;
       try {
-        event = await billing.constructEvent(await request.text(), signature);
+        event = billing.verifyWebhook(await request.text(), signature, requestId);
       } catch {
-        logger.warn('Rejected invalid Patch Go webhook signature', 'PatchGoWebhook');
+        logger.warn('Rejected invalid Mercado Pago webhook signature', 'BillingWebhook');
         set.status = 400;
         return { received: false };
       }
@@ -32,8 +33,8 @@ export function registerPatchGoWebhook(
         await billing.handleEvent(event);
         return { received: true };
       } catch (err) {
-        logger.error(`Patch Go webhook failed: ${err instanceof Error ? err.message : 'unknown'}`, {
-          context: 'PatchGoWebhook',
+        logger.error(`Mercado Pago webhook failed: ${err instanceof Error ? err.message : 'unknown'}`, {
+          context: 'BillingWebhook',
         });
         set.status = 500;
         return { received: false };

@@ -1,4 +1,5 @@
 import { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import {
   ANALYZE_CONTENT_QUALITY_PROMPT_ID,
   ANALYZE_CONTENT_QUALITY_PROMPT_SEMVER,
@@ -36,11 +37,15 @@ export class AiContentQualityAdapter extends ContentQualityPort {
      * (default) leaves `costUsdMicros` at 0 — cost tracking is opt-in
      * via the `OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS` env. */
     private readonly priceUsdMicrosPer1kTokens: number = 0,
+    private readonly billing?: PaidAccessPort & AiUsageRecorderPort,
   ) {
     super();
   }
 
   async analyze(resume: ResumeForCompleteness): Promise<ContentQualityResult> {
+    if (resume.userId && this.billing && !(await this.billing.isPaid(resume.userId))) {
+      return this.empty();
+    }
     if (!(await this.flags.isEnabled(CONTENT_QUALITY_FLAG, null))) {
       return this.empty();
     }
@@ -57,6 +62,16 @@ export class AiContentQualityAdapter extends ContentQualityPort {
         bullets,
         language: resume.language ?? null,
       });
+      if (resume.userId && result.usage) {
+        await this.billing
+          ?.recordAiUsage({ userId: resume.userId, operation: 'score-content', ...result.usage })
+          .catch((error) =>
+            this.logger.warn(
+              `Could not record quality cost: ${error instanceof Error ? error.message : 'unknown'}`,
+              'AiContentQualityAdapter',
+            ),
+          );
+      }
       return {
         score: result.score,
         issues: result.issues.map(mapAiIssueToQualityIssue),

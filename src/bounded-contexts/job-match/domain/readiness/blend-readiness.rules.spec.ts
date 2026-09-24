@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import {
-  blendReadiness,
-  scoreCoverage,
-  scoreFitFreshness,
-  scoreOverlapCoverage,
-} from './blend-readiness.rules';
+import { blendReadiness, scoreCoverage, scoreOverlapCoverage } from './blend-readiness.rules';
 import {
   READINESS_COVERAGE_TARGET,
   READINESS_WEIGHTS,
@@ -59,28 +54,21 @@ describe('scoreOverlapCoverage', () => {
   });
 });
 
-describe('scoreFitFreshness', () => {
-  it('maps status to a sub-score', () => {
-    expect(scoreFitFreshness('responded')).toBe(100);
-    expect(scoreFitFreshness('expired')).toBe(40);
-    expect(scoreFitFreshness('never')).toBe(0);
-  });
-});
-
 describe('blendReadiness', () => {
   it('returns the exact weighted average when all factors are present', () => {
     const result = blendReadiness(factors({ quality: 80, coverage: 60, fit: 100 }));
-    // 80*0.55 + 60*0.25 + 100*0.20 = 44 + 15 + 20 = 79
-    expect(result.overallScore).toBe(79);
+    // Fit is ignored even if a legacy caller supplies it.
+    // 80*0.6875 + 60*0.3125 = 73.75 → 74
+    expect(result.overallScore).toBe(74);
     expect(result.effectiveWeights).toEqual(READINESS_WEIGHTS);
   });
 
   it('renormalises when quality is unavailable (brand-new resume)', () => {
     const result = blendReadiness(factors({ quality: null, coverage: 80, fit: 80 }));
-    // quality dropped → coverage(0.25)+fit(0.20)=0.45; both 80 → 80
     expect(result.overallScore).toBe(80);
     expect(result.effectiveWeights.quality).toBe(0);
-    expect(result.effectiveWeights.coverage + result.effectiveWeights.fit).toBeCloseTo(1, 5);
+    expect(result.effectiveWeights.coverage).toBe(1);
+    expect(result.effectiveWeights.fit).toBe(0);
   });
 
   it('returns 0 (not NaN) when no factor is available', () => {

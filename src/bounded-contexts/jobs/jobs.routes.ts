@@ -102,6 +102,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
+      await bc.billing?.requirePaid(ctx.user!.userId);
       const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       const result = await bc.listRecommendedJobs.execute(ctx.user!.userId, page, limit);
       return { ...result, items: result.items.map(toRecommendedExternalJobResponseDto) };

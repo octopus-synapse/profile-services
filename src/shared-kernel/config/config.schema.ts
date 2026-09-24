@@ -259,17 +259,28 @@ export const EnvConfigSchema = z
     OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
     OPENAI_EMBEDDING_MODEL: z.string().optional(),
 
-    // Patch Go is opt-in until checkout, webhook and prices are configured.
-    PATCH_GO_ENABLED: BooleanString.optional(),
-    STRIPE_SECRET_KEY: z.string().optional(),
-    STRIPE_WEBHOOK_SECRET: z.string().optional(),
-    STRIPE_PRICE_BRL_MONTHLY: z.string().optional(),
-    STRIPE_PRICE_USD_MONTHLY: z.string().optional(),
+    // Billing is opt-in until Mercado Pago checkout and webhooks are configured.
+    BILLING_ENABLED: BooleanString.optional(),
+    BILLING_CARD_ENABLED: BooleanString.optional(),
+    BILLING_PIX_ENABLED: BooleanString.optional(),
+    BILLING_PROVIDER: z.literal('mercado_pago').default('mercado_pago'),
+    MERCADO_PAGO_ORDERS_ACCESS_TOKEN: z.string().optional(),
+    MERCADO_PAGO_ORDERS_PUBLIC_KEY: z.string().optional(),
+    MERCADO_PAGO_ORDERS_WEBHOOK_SECRET: z.string().optional(),
+    MERCADO_PAGO_SUBSCRIPTIONS_ACCESS_TOKEN: z.string().optional(),
+    MERCADO_PAGO_SUBSCRIPTIONS_PUBLIC_KEY: z.string().optional(),
+    MERCADO_PAGO_SUBSCRIPTIONS_WEBHOOK_SECRET: z.string().optional(),
+    AI_COST_BRL_PER_USD: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/u)
+      .refine((value) => Number(value) > 0)
+      .optional(),
     // Translation reuses OPENAI_MODEL but caps output tokens separately —
     // single-call resume translations need more headroom than tailor/extract.
     OPENAI_TRANSLATION_MAX_TOKENS: PositiveIntString.optional(),
     // Bilingual write-through brakes (ADR-003 §9). Price unset = cost recorded
-    // as 0 (tokens still logged); cap unset = US$1.00/user/month.
+    // as 0 (tokens still logged); cap unset = disabled. The Free plan has
+    // a separate 20-action quota, while paid cost limits are alerts.
     OPENAI_TRANSLATION_PRICE_USD_MICROS_PER_1K_TOKENS: PositiveIntString.optional(),
     TRANSLATION_MONTHLY_CAP_USD_MICROS: PositiveIntString.optional(),
 
@@ -309,19 +320,33 @@ export const EnvConfigSchema = z
     SAFE_FETCH_MAX_BYTES: z.coerce.number().int().positive().default(5_000_000),
   })
   .superRefine((data, ctx) => {
-    if (data.PATCH_GO_ENABLED) {
-      for (const key of [
-        'STRIPE_SECRET_KEY',
-        'STRIPE_WEBHOOK_SECRET',
-        'STRIPE_PRICE_BRL_MONTHLY',
-        'STRIPE_PRICE_USD_MONTHLY',
-        'FRONTEND_URL',
-      ] as const) {
+    if (data.BILLING_ENABLED) {
+      for (const key of ['AI_COST_BRL_PER_USD', 'FRONTEND_URL'] as const) {
         if (!data[key]) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: [key],
-            message: `${key} is required when PATCH_GO_ENABLED=true`,
+            message: `${key} is required when BILLING_ENABLED=true`,
+          });
+        }
+      }
+      const providerKeys: Array<keyof typeof data> = [
+        'MERCADO_PAGO_ORDERS_ACCESS_TOKEN',
+        'MERCADO_PAGO_ORDERS_WEBHOOK_SECRET',
+      ];
+      if (data.BILLING_CARD_ENABLED !== false)
+        providerKeys.push(
+          'MERCADO_PAGO_ORDERS_PUBLIC_KEY',
+          'MERCADO_PAGO_SUBSCRIPTIONS_ACCESS_TOKEN',
+          'MERCADO_PAGO_SUBSCRIPTIONS_PUBLIC_KEY',
+          'MERCADO_PAGO_SUBSCRIPTIONS_WEBHOOK_SECRET',
+        );
+      for (const key of providerKeys) {
+        if (!data[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: `${key} is required when its billing flow is enabled`,
           });
         }
       }

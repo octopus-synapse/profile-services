@@ -188,6 +188,8 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
         jobDescription: body?.jobDescription,
         jobTitle: body?.jobTitle,
         jobCompany: body?.jobCompany,
+        candidateContext: body?.candidateContext,
+        targetLocale: body?.targetLocale,
       })) as Record<string, unknown>;
 
       // Convert the legacy `{bullets:[{id,original,tailored,highlights}], summary, jobTitle}`

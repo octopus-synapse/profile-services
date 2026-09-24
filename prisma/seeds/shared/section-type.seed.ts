@@ -555,6 +555,22 @@ export const sectionTypes: SectionTypeSeedData[] = [
           semanticRole: 'EXPIRY_DATE',
           meta: { label: 'Expiry Date' },
         },
+        {
+          key: 'credentialId',
+          type: 'string',
+          required: false,
+          nullable: true,
+          semanticRole: 'CREDENTIAL_ID',
+          meta: { label: 'Exam Code' },
+        },
+        {
+          key: 'credentialUrl',
+          type: 'string',
+          required: false,
+          nullable: true,
+          semanticRole: 'URL',
+          meta: { label: 'Credential Link', widget: 'url' },
+        },
       ],
       ats: {
         isMandatory: false,
@@ -571,7 +587,12 @@ export const sectionTypes: SectionTypeSeedData[] = [
       export: {
         jsonResume: {
           sectionKey: 'certificates',
-          fieldMapping: { name: 'name', issuer: 'issuer', issueDate: 'date' },
+          fieldMapping: {
+            name: 'name',
+            issuer: 'issuer',
+            issueDate: 'date',
+            credentialUrl: 'url',
+          },
         },
         dsl: { sectionId: 'certifications', astType: 'certifications' },
         docx: {

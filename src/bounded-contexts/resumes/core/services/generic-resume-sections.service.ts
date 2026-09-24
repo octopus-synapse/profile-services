@@ -16,12 +16,18 @@ export class GenericResumeSectionsService {
     sectionTypeKey: string,
     userId: string,
     content: Record<string, unknown>,
+    initialTranslation?: {
+      locale: 'en' | 'pt-BR';
+      data: Record<string, unknown>;
+      origin: 'manual' | 'diverged';
+    },
   ) {
     return this.useCases.createSectionItemUseCase.execute(
       resumeId,
       sectionTypeKey,
       userId,
       content,
+      initialTranslation,
     );
   }
 

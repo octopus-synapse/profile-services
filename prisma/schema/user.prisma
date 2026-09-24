@@ -121,8 +121,13 @@ model User {
   curatedBatches WeeklyCuratedBatch[] @relation("UserCuratedBatches")
 
   // Patch Go billing and monthly preparation usage.
-  patchGoBilling PatchGoBilling?
   patchGoUsage   PatchGoUsage[]
+  patchFreeTranslationUsage PatchFreeTranslationUsage[]
+  patchAiUsage PatchAiUsage[]
+  billingSubscriptions BillingSubscription[]
+  billingPurchases BillingPurchase[]
+  billingEntitlements BillingEntitlement[]
+  billingCreditEntries BillingCreditEntry[]
 
   @@index([username])
   @@index([email])

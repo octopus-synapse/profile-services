@@ -35,6 +35,7 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
     const row = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       select: {
+        userId: true,
         fullName: true,
         summary: true,
         jobTitle: true,
@@ -104,6 +105,7 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
     }
 
     return {
+      userId: row.userId,
       fullName: row.fullName,
       summary: row.summary,
       jobTitle: row.jobTitle,

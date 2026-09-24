@@ -27,6 +27,11 @@ export interface ContentQualityIssue {
 }
 
 export interface ContentQualityResult {
+  readonly usage?: {
+    readonly model: string;
+    readonly inputTokens: number;
+    readonly outputTokens: number;
+  };
   readonly score: number; // 0..100
   readonly issues: readonly ContentQualityIssue[];
   readonly tokensUsed: number;
@@ -50,6 +55,11 @@ export interface NormalizedLanguage {
 }
 
 export interface NormalizedRequirementsResult {
+  readonly usage?: {
+    readonly model: string;
+    readonly inputTokens: number;
+    readonly outputTokens: number;
+  };
   readonly minYears: number | null;
   readonly languages: readonly NormalizedLanguage[];
   readonly certifications: readonly string[];

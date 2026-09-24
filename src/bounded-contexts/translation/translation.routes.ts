@@ -21,6 +21,7 @@ import {
   ItemTranslationLocaleParams,
   ItemTranslationParams,
   LanguageDetectionsResponseSchema,
+  NewItemTranslationParams,
   ProposeRewriteBody,
   ResumeIdParams,
   ResumeTranslationParams,
@@ -201,6 +202,37 @@ export const translationRoutes: ReadonlyArray<Route<TranslationBundle>> = [
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => bundle.subscribeToProgress(ctx.user!.userId),
+  },
+  {
+    method: 'POST',
+    path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/preview-translation',
+    auth: { kind: 'jwt' },
+    guards: LLM_ROUTE_GUARDS,
+    permission: Permission.RESUME_UPDATE,
+    params: NewItemTranslationParams,
+    body: ProposeRewriteBody,
+    response: RewriteProposalSchema,
+    openapi: {
+      summary: 'Preview the other-language copy before creating a section item',
+      tags: ['translation'],
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { resumeId, sectionTypeKey } = ctx.params as {
+        resumeId: string;
+        sectionTypeKey: string;
+      };
+      const body = ctx.body as z.infer<typeof ProposeRewriteBody>;
+      const editedLocale = normalizeLocale(body.locale);
+      if (!editedLocale) throw new EntityNotFoundException('Locale', body.locale);
+      return bundle.proposeRewrite.proposeNew({
+        resumeId,
+        sectionTypeKey,
+        userId: ctx.user!.userId,
+        editedLocale,
+        edited: body.edited,
+      });
+    },
   },
   {
     method: 'POST',

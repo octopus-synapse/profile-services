@@ -1,4 +1,9 @@
 export type {
+  CompleteUnverifiedAccountCommand,
+  CompleteUnverifiedAccountResult,
+} from './complete-unverified-account.port';
+export { CompleteUnverifiedAccountPort } from './complete-unverified-account.port';
+export type {
   ConfirmAccountDeletionCommand,
   ConfirmAccountDeletionResult,
 } from './confirm-account-deletion.port';

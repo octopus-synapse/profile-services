@@ -61,7 +61,9 @@ function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
       else if (f.type === 'boolean') uiType = 'checkbox';
       else
         uiType =
-          typeof meta.widget === 'string' && meta.widget === 'textarea' ? 'textarea' : 'text';
+          typeof meta.widget === 'string' && (meta.widget === 'textarea' || meta.widget === 'url')
+            ? meta.widget
+            : 'text';
 
       return {
         key: fieldKey,

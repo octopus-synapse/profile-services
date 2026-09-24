@@ -38,6 +38,7 @@ function csvEnumParam<T extends Record<string, string>>(enumObject: T, example: 
 
 export const ExternalJobListQuerySchema = makePaginationSchema(ExternalJobListSortFields).extend({
   q: z.string().max(200).optional(),
+  location: z.string().max(200).optional(),
   workMode: csvEnumParam(RemotePolicy, 'REMOTE,HYBRID'),
   employmentType: csvEnumParam(JobType, 'FULL_TIME,CONTRACT'),
   postedWithin: z.enum(POSTED_WITHIN_VALUES).optional(),
@@ -52,6 +53,7 @@ export const ExternalJobItemSchema = z.object({
   externalId: z.string().openapi({ example: 'BreJXMXqEoK60_-dAAAAAA==' }),
   title: z.string(),
   company: z.string(),
+  companyDomain: z.string().nullable().optional().openapi({ example: 'example.com' }),
   location: z.string().nullable(),
   isRemote: z.boolean().openapi({
     example: true,
@@ -75,6 +77,11 @@ export const ExternalJobsListResponseSchema = PaginatedResponseSchema(ExternalJo
 // Saved rows render the same card shape; `savedAt` orders the list.
 export const SavedExternalJobItemSchema = z.object({
   savedId: z.string(),
+  listingId: z
+    .string()
+    .nullable()
+    .optional()
+    .openapi({ example: '01900000-0000-7000-a000-000000000003' }),
   savedAt: IsoDateTimeSchema,
   externalId: z.string(),
   title: z.string(),

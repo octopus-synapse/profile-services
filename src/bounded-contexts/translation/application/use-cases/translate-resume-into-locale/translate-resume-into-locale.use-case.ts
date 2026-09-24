@@ -17,6 +17,7 @@ import type {
   JsonValue,
   TranslationLlmPort,
 } from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
+import type { AiUsageRecorderPort, FreeTranslationMeterPort } from '@/bounded-contexts/billing';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -83,6 +84,7 @@ export class TranslateResumeIntoLocaleUseCase {
     private readonly pricing: TranslationPricing,
     private readonly logger: LoggerPort,
     private readonly now: () => Date = () => new Date(),
+    private readonly billing?: FreeTranslationMeterPort & AiUsageRecorderPort,
   ) {}
 
   async execute(
@@ -165,11 +167,18 @@ export class TranslateResumeIntoLocaleUseCase {
           pending.push({ item, subset, hash });
         }
 
-        if (pending.length > 0) {
+        const remaining = this.billing
+          ? await this.billing.freeTranslationRemaining(resume.userId)
+          : Number.POSITIVE_INFINITY;
+        const admitted = pending.slice(0, remaining);
+        itemsSkipped += pending.length - admitted.length;
+        if (admitted.length > 0) {
           const payload = Object.fromEntries(
-            pending.map((p) => [p.item.id, p.subset]),
+            admitted.map((p) => [p.item.id, p.subset]),
           ) as JsonValue;
-          const result = await this.llm.translateObject(
+          const result = await this.translateWithQuota(
+            resume.userId,
+            admitted.length,
             payload,
             toLlm(resume.language),
             toLlm(locale),
@@ -177,7 +186,7 @@ export class TranslateResumeIntoLocaleUseCase {
           tokensUsed += result.tokensUsed;
           const translated = result.translated as Record<string, Record<string, unknown>>;
           const translatedAt = this.now().toISOString();
-          for (const p of pending) {
+          for (const p of admitted) {
             const data = translated[p.item.id];
             if (!data) continue;
             await this.store.saveItemTranslation(p.item.id, locale, {
@@ -201,8 +210,14 @@ export class TranslateResumeIntoLocaleUseCase {
         const existing = envelopeFor(resume.translations, locale);
         const untouched = existing && existing.origin !== 'derived';
         const fresh = existing && existing.sourceHash === hash && !options.force;
-        if (!untouched && !fresh) {
-          const result = await this.llm.translateObject(
+        if (
+          !untouched &&
+          !fresh &&
+          (!this.billing || (await this.billing.freeTranslationRemaining(resume.userId)) > 0)
+        ) {
+          const result = await this.translateWithQuota(
+            resume.userId,
+            1,
             prose as JsonValue,
             toLlm(resume.language),
             toLlm(locale),
@@ -265,6 +280,38 @@ export class TranslateResumeIntoLocaleUseCase {
   private toCost(tokensUsed: number): bigint {
     if (this.pricing.priceUsdMicrosPer1kTokens <= 0 || tokensUsed <= 0) return 0n;
     return BigInt(Math.round((tokensUsed / 1000) * this.pricing.priceUsdMicrosPer1kTokens));
+  }
+
+  private async translateWithQuota(
+    userId: string,
+    actions: number,
+    data: JsonValue,
+    source: LlmLocale,
+    target: LlmLocale,
+  ) {
+    const reservation = (await this.billing?.reserveFreeTranslation(userId, actions)) ?? null;
+    try {
+      const result = await this.llm.translateObject(data, source, target);
+      if (result.cacheHit) await this.billing?.releaseFreeTranslation(reservation);
+      if (result.usage) {
+        try {
+          await this.billing?.recordAiUsage({
+            userId,
+            operation: 'translate-resume',
+            ...result.usage,
+          });
+        } catch (error) {
+          this.logger.warn(
+            `Could not record translation cost: ${error instanceof Error ? error.message : 'unknown'}`,
+            CTX,
+          );
+        }
+      }
+      return result;
+    } catch (error) {
+      await this.billing?.releaseFreeTranslation(reservation);
+      throw error;
+    }
   }
 }
 

@@ -39,7 +39,14 @@ const HELPER_IMPORT = /\b(buildPaginatedResponse|buildFixedListResponse)\b/;
 
 const FILE_SUFFIXES = ['.routes.ts', '.use-case.ts', '.service.ts', '.presenter.ts'];
 
-const SKIP_PATH_FRAGMENTS = ['__tests__', '__mocks__', '/testing/', '.spec.ts', '.test.ts'];
+const SKIP_PATH_FRAGMENTS = [
+  '__tests__',
+  '__mocks__',
+  '/testing/',
+  '/billing-deprecated/',
+  '.spec.ts',
+  '.test.ts',
+];
 
 const ALLOWLIST_FILES = new Set<string>([
   HELPER_FILE,

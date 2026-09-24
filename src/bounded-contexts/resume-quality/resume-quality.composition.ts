@@ -12,6 +12,7 @@
  */
 
 import type { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
@@ -87,6 +88,7 @@ export function buildResumeQualityComposition(
   logger: LoggerPort,
   queue: JobQueuePort,
   scoringPriceUsdMicrosPer1kTokens = 0,
+  billing?: PaidAccessPort & AiUsageRecorderPort,
 ): BoundedContextComposition<ResumeQualityUseCases> {
   const resumeLoader = new PrismaResumeLoader(prisma);
   const contentQuality = new AiContentQualityAdapter(
@@ -94,6 +96,7 @@ export function buildResumeQualityComposition(
     flags,
     logger,
     scoringPriceUsdMicrosPer1kTokens,
+    billing,
   );
   const repository = new PrismaQualityScoreRepository(prisma, logger);
   const sectionCatalog = new PrismaSectionAtsCatalogAdapter(prisma);
@@ -106,6 +109,7 @@ export function buildResumeQualityComposition(
     logger,
     sectionCatalog,
   );
+  if (billing) Object.assign(useCases, { billing });
 
   // --- Event handlers (POJO @OnEvent replacement) ---
   // `ResumeUpdatedEvent.TYPE` → enqueue a (possibly debounced) recompute.

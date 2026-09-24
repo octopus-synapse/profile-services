@@ -61,8 +61,14 @@ describe('StartPreSignupVerificationUseCase', () => {
     expect(result.testCode).toBe(sender.sent[0]!.code);
   });
 
-  it('rejects an e-mail that already has an account', async () => {
+  it('allows an existing unverified account to receive a code', async () => {
     repository.seedUser('user-1', EMAIL, false);
+    await useCase.execute({ email: EMAIL });
+    expect(sender.sent).toHaveLength(1);
+  });
+
+  it('rejects an e-mail that already has a verified account', async () => {
+    repository.seedUser('user-1', EMAIL, true);
 
     await expect(useCase.execute({ email: EMAIL })).rejects.toBeInstanceOf(
       EmailAlreadyRegisteredException,

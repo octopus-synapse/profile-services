@@ -130,7 +130,7 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle, TailorLabLlmPor
     // expires.
     this.client = new OpenAI({ apiKey: apiKey ?? 'unset', timeout: 60_000, maxRetries: 0 });
     this.model = this.config.get<string>('OPENAI_MODEL') ?? 'gpt-4o-mini';
-    this.maxTokens = Number(this.config.get<string>('OPENAI_MAX_TOKENS') ?? '1500');
+    this.maxTokens = Number(this.config.get<string>('OPENAI_MAX_TOKENS') ?? '4000');
     this.tailorPriceUsdMicrosPer1kTokens = Number(
       this.config.get<string>('OPENAI_TAILOR_PRICE_USD_MICROS_PER_1K_TOKENS') ?? '0',
     );
@@ -143,7 +143,11 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle, TailorLabLlmPor
     // No overrides — every knob collapses to the production default, so the
     // request sent here is byte-identical to what it was before `runTailor`
     // was extracted.
-    return (await this.runTailor(input)).output;
+    const { output, debug } = await this.runTailor(input);
+    return {
+      ...output,
+      usage: { model: debug.model, inputTokens: debug.promptTokens, outputTokens: debug.completionTokens },
+    };
   }
 
   /**

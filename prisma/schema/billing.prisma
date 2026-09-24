@@ -1,16 +1,183 @@
-model PatchGoBilling {
-  userId               String   @id
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeCustomerId     String?  @unique
-  stripeSubscriptionId String?  @unique
-  priceId              String?
-  status               String   @default("none")
-  periodStart          DateTime?
-  periodEnd            DateTime?
-  cancelAtPeriodEnd    Boolean  @default(false)
-  updatedAt            DateTime @updatedAt
+/// Provider-neutral subscription projection.
+model BillingSubscription {
+  id                     String    @id @default(dbgenerated("uuidv7()"))
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider               String
+  providerSubscriptionId String?   @unique
+  providerPayerId        String?
+  providerVersion        Int?
+  checkoutUrl            String?
+  plan                   String
+  pendingPlan            String?
+  status                 String
+  amountCents            Int
+  currency               String    @default("BRL")
+  periodStart            DateTime?
+  periodEnd              DateTime?
+  nextPaymentAt          DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  lastSyncedAt           DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  payments               BillingPayment[]
+  paymentMethodSessions  BillingPaymentMethodSession[]
+  purchases              BillingPurchase[]
 
-  @@map("patch_go_billing")
+  @@index([userId, updatedAt])
+  @@index([status, nextPaymentAt])
+  @@map("billing_subscriptions")
+}
+
+/// A server-priced checkout attempt. Provider payloads are intentionally
+/// limited to the fields required to resume a short-lived checkout.
+model BillingPurchase {
+  id                     String               @id @default(dbgenerated("uuidv7()"))
+  userId                 String
+  user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId         String?
+  subscription           BillingSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  offerCode              String
+  plan                   String
+  kind                   String
+  status                 String               @default("created")
+  amountCents            Int
+  listAmountCents        Int
+  prorationCreditCents  Int                  @default(0)
+  creditAppliedCents     Int                  @default(0)
+  currency               String               @default("BRL")
+  termMonths             Int
+  provider               String               @default("mercado_pago")
+  providerOrderId        String?              @unique
+  providerPaymentId      String?              @unique
+  providerSubscriptionId String?
+  externalReference      String               @unique
+  pixQrCode              String?
+  pixQrCodeBase64        String?
+  pixTicketUrl           String?
+  expiresAt              DateTime
+  approvedAt             DateTime?
+  failedAt               DateTime?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  entitlements           BillingEntitlement[]
+  creditEntries          BillingCreditEntry[]
+
+  @@index([userId, createdAt])
+  @@index([offerCode, status, expiresAt])
+  @@index([status, expiresAt])
+  @@map("billing_purchases")
+}
+
+/// Provider-independent paid access. Quota windows are derived from
+/// quotaAnchorAt so prepaid annual access still resets every month.
+model BillingEntitlement {
+  id             String          @id @default(dbgenerated("uuidv7()"))
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchaseId     String?
+  purchase       BillingPurchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  source         String
+  sourceRef      String
+  plan           String
+  status         String          @default("active")
+  startsAt       DateTime
+  endsAt         DateTime
+  quotaAnchorAt  DateTime
+  terminatedAt   DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([source, sourceRef])
+  @@index([userId, startsAt, endsAt])
+  @@map("billing_entitlements")
+}
+
+/// Immutable BRL ledger. Positive amounts credit the user; negative amounts
+/// consume or reverse credit. A purchase link makes every movement auditable.
+model BillingCreditEntry {
+  id          String           @id @default(dbgenerated("uuidv7()"))
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchaseId  String?
+  purchase    BillingPurchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  amountCents Int
+  currency    String           @default("BRL")
+  reason      String
+  reference   String           @unique
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, createdAt])
+  @@map("billing_credit_entries")
+}
+
+model BillingPayment {
+  id                String              @id @default(dbgenerated("uuidv7()"))
+  subscriptionId    String
+  subscription      BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  providerPaymentId String              @unique
+  status            String
+  amountCents       Int
+  currency          String
+  paidAt            DateTime?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([subscriptionId, paidAt])
+  @@map("billing_payments")
+}
+
+model BillingWebhookEvent {
+  id              String    @id @default(dbgenerated("uuidv7()"))
+  provider        String
+  providerEventId String
+  type            String
+  resourceId      String
+  status          String    @default("processing")
+  attempts        Int       @default(1)
+  lastError       String?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([provider, providerEventId])
+  @@index([status, updatedAt])
+  @@map("billing_webhook_events")
+}
+
+/// Transactional outbox for durable, at-least-once billing domain events.
+model BillingDomainEventOutbox {
+  id            String    @id @default(dbgenerated("uuidv7()"))
+  eventId       String    @unique
+  eventType     String
+  aggregateId   String
+  schemaVersion Int       @default(1)
+  payload       Json
+  occurredAt    DateTime
+  publishedAt   DateTime?
+  attempts      Int       @default(0)
+  lastError     String?
+  nextAttemptAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+
+  @@index([publishedAt, nextAttemptAt, occurredAt])
+  @@map("billing_domain_event_outbox")
+}
+
+model BillingPaymentMethodSession {
+  id             String              @id @default(dbgenerated("uuidv7()"))
+  subscriptionId String
+  subscription   BillingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  tokenHash      String              @unique
+  returnUrl      String
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime            @default(now())
+
+  @@index([subscriptionId, expiresAt])
+  @@map("billing_payment_method_sessions")
 }
 
 model PatchGoUsage {
@@ -21,4 +188,31 @@ model PatchGoUsage {
 
   @@id([userId, periodStart])
   @@map("patch_go_usage")
+}
+
+model PatchFreeTranslationUsage {
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monthStart DateTime
+  count      Int      @default(0)
+
+  @@id([userId, monthStart])
+  @@map("patch_free_translation_usage")
+}
+
+model PatchAiUsage {
+  id               String   @id @default(dbgenerated("uuidv7()"))
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operation        String
+  plan             String
+  model            String
+  inputTokens      Int
+  outputTokens     Int
+  costUsdMicros    BigInt?
+  costBrlMicros    BigInt?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("patch_ai_usage")
 }

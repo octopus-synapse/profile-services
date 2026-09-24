@@ -249,7 +249,7 @@ export class ResumeSearchService {
   }
 
   /**
-   * Multi-type search across resumes, users, jobs, posts. Each group is
+   * Search people and jobs. Each group is
    * capped at `limit`; results are returned in the canonical group order
    * the frontend expects.
    */
@@ -261,15 +261,13 @@ export class ResumeSearchService {
     const safeLimit = Math.max(1, Math.min(20, Number(limit) || 5));
     const insensitive = { mode: 'insensitive' as const };
 
-    const [resumeResult, userRows, jobRows] = await Promise.all([
-      this.search({ query: trimmed, page: 1, limit: safeLimit }),
+    const [userRows, jobRows] = await Promise.all([
       this.prisma.user.findMany({
         where: {
           isActive: true,
           OR: [
             { name: { contains: trimmed, ...insensitive } },
             { username: { contains: trimmed, ...insensitive } },
-            { primaryResume: { summary: { contains: trimmed, ...insensitive } } },
           ],
         },
         select: {
@@ -295,12 +293,6 @@ export class ResumeSearchService {
       }),
     ]);
 
-    const resumeItems: GlobalSearchItem[] = resumeResult.items.map((row) => ({
-      id: row.id,
-      title: row.fullName ?? row.jobTitle ?? 'Untitled',
-      snippet: row.summary ? row.summary.slice(0, 160) : undefined,
-      href: `/resumes/${row.slug ?? row.id}`,
-    }));
     const userItems: GlobalSearchItem[] = userRows.map((u) => ({
       id: u.id,
       title: u.name ?? u.username ?? 'User',
@@ -316,7 +308,6 @@ export class ResumeSearchService {
     }));
 
     const groups: GlobalSearchGroup[] = [
-      { type: 'resumes', label: 'Currículos', items: resumeItems },
       { type: 'users', label: 'Pessoas', items: userItems },
       { type: 'jobs', label: 'Vagas', items: jobItems },
     ];

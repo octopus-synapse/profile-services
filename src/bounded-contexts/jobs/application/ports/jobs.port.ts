@@ -10,6 +10,7 @@ import type { DeleteJobUseCase } from '../use-cases/delete-job/delete-job.use-ca
 import type { EnsureSubmittedEventUseCase } from '../use-cases/ensure-submitted-event/ensure-submitted-event.use-case';
 import type { FindSimilarJobsUseCase } from '../use-cases/find-similar-jobs/find-similar-jobs.use-case';
 import type { GetCompanyResponseStatsUseCase } from '../use-cases/get-company-response-stats/get-company-response-stats.use-case';
+import type { GetExternalJobUseCase } from '../use-cases/get-external-job/get-external-job.use-case';
 import type { GetJobUseCase } from '../use-cases/get-job/get-job.use-case';
 import type { ImportJobFromUrlUseCase } from '../use-cases/import-job-from-url/import-job-from-url.use-case';
 import type { ListApplicationTimelineUseCase } from '../use-cases/list-application-timeline/list-application-timeline.use-case';
@@ -30,8 +31,10 @@ import type { UnbookmarkJobUseCase } from '../use-cases/unbookmark-job/unbookmar
 import type { UnsaveExternalJobUseCase } from '../use-cases/unsave-external-job/unsave-external-job.use-case';
 import type { UpdateJobUseCase } from '../use-cases/update-job/update-job.use-case';
 import type { WithdrawApplicationUseCase } from '../use-cases/withdraw-application/withdraw-application.use-case';
+import type { PaidAccessPort } from '@/bounded-contexts/billing';
 
 export abstract class JobsUseCases {
+  readonly billing?: PaidAccessPort;
   // Catalog
   abstract readonly listJobs: ListJobsUseCase;
   abstract readonly listMyJobs: ListMyJobsUseCase;
@@ -59,6 +62,7 @@ export abstract class JobsUseCases {
 
   // External listings (JSearch daily batch)
   abstract readonly listExternalJobs: ListExternalJobsUseCase;
+  abstract readonly getExternalJob: GetExternalJobUseCase;
   abstract readonly saveExternalJob: SaveExternalJobUseCase;
   abstract readonly unsaveExternalJob: UnsaveExternalJobUseCase;
   abstract readonly markExternalJobApplied: MarkExternalJobAppliedUseCase;

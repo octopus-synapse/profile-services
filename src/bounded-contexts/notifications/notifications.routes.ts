@@ -118,18 +118,6 @@ export const notificationsRoutes: ReadonlyArray<Route<NotificationsUseCases>> = 
           category: 'jobs',
         },
         {
-          key: 'FIT_PROFILE_EXPIRED',
-          label: 'Perfil de fit expirado',
-          description: 'Seu questionário de fit precisa ser refeito',
-          category: 'scoring',
-        },
-        {
-          key: 'FIT_PROFILE_EXPIRY_REMINDER',
-          label: 'Lembrete de fit',
-          description: 'Aviso 7/3/1 dias antes do fit expirar',
-          category: 'scoring',
-        },
-        {
           key: 'MATCH_RECOMMENDATIONS_READY',
           label: 'Novos matches',
           description: 'Recomendações diárias prontas',

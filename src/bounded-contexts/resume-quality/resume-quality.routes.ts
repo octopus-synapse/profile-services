@@ -33,6 +33,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
+      await bc.billing?.requirePaid(ctx.user!.userId);
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.getLatestQuality.execute(resumeId);
       if (!snapshot) throw new ResumeQualitySnapshotMissingException();
@@ -53,6 +54,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
+      await bc.billing?.requirePaid(ctx.user!.userId);
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.computeQuality.execute(resumeId);
       return toQualitySnapshotResponseDto(snapshot, localeOf(ctx));

@@ -29,12 +29,12 @@ export interface MeScoresView {
 }
 
 /**
- * Composes the master resume's job-independent scores (Readiness,
- * Quality, Style, Fit) into one view for the Desempenho hub. Readiness
+ * Composes the master resume's active job-independent scores (Readiness,
+ * Quality and Style) into one view for the Desempenho hub. Readiness
  * is computed on-demand (persist:false) so the number is always fresh
  * even between background recomputes; its trend comes from the history
- * table. Cold-start safe: when the user has no primary resume, only
- * Readiness (computable from fit alone) and Fit are returned.
+ * table. Cold-start safe: when the user has no primary resume, Readiness
+ * resolves to zero and the client presents its onboarding state.
  */
 export class GetMeScoresUseCase {
   constructor(
@@ -60,10 +60,8 @@ export class GetMeScoresUseCase {
   }
 
   private async buildView(userId: string, resumeId: string | null): Promise<MeScoresView> {
-    const fit = await this.reads.getFitLifecycle(userId);
-
-    // Readiness is always computable — with no resume it still reflects
-    // fit freshness — so the hero always has a headline number.
+    // Readiness remains cold-start safe when there is no resume. The empty
+    // resume id makes its active factors resolve to zero/null.
     const readinessResumeId = resumeId ?? '';
     const [{ breakdown }, readinessTrend, quality, styleScore, qualityTrend] = await Promise.all([
       this.computeReadiness.execute({ userId, resumeId: readinessResumeId, persist: false }),
@@ -83,7 +81,9 @@ export class GetMeScoresUseCase {
       readiness: { breakdown, trend: readinessTrend },
       quality: quality ? { latest: quality, trend: qualityTrend } : null,
       style: styleScore === null ? null : { score: styleScore },
-      fit,
+      // Legacy contract slot. Fit is disabled and is not read from storage,
+      // displayed, gated on, or included in any score.
+      fit: { status: 'never', expiresAt: null },
     };
   }
 }

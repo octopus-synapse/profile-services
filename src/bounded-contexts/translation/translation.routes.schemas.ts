@@ -152,6 +152,8 @@ export const ItemTranslationParams = z.object({
   itemId: z.string().uuid().openapi({ example: '01900000-0000-7000-a000-000000000087' }),
 });
 
+export const NewItemTranslationParams = ItemTranslationParams.omit({ itemId: true });
+
 export const ItemTranslationLocaleParams = ItemTranslationParams.extend({
   locale: z.string().openapi({ example: 'en' }),
 });

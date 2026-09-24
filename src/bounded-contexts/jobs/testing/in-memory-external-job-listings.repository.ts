@@ -47,9 +47,19 @@ export class InMemoryExternalJobListingsRepository extends ExternalJobListingsRe
   ): Promise<{ items: ExternalJobListingRecord[]; total: number }> {
     const q = filters.q?.toLowerCase();
     const filtered = this.rows.filter((r) => {
-      if (q && !r.title.toLowerCase().includes(q) && !r.company.toLowerCase().includes(q)) {
+      if (
+        q &&
+        !r.title.toLowerCase().includes(q) &&
+        !r.company.toLowerCase().includes(q) &&
+        !(r.description ?? '').toLowerCase().includes(q)
+      ) {
         return false;
       }
+      if (
+        filters.location &&
+        !(r.location ?? '').toLowerCase().includes(filters.location.toLowerCase())
+      )
+        return false;
       if (filters.workMode?.length && !filters.workMode.includes(r.workMode)) return false;
       if (
         filters.employmentType?.length &&
@@ -66,6 +76,10 @@ export class InMemoryExternalJobListingsRepository extends ExternalJobListingsRe
 
   async findListingById(id: string): Promise<ExternalJobListingRecord | null> {
     return this.rows.find((r) => r.id === id) ?? null;
+  }
+
+  async findListingByExternalId(externalId: string): Promise<ExternalJobListingRecord | null> {
+    return this.rows.find((row) => row.externalId === externalId) ?? null;
   }
 
   async deleteFetchedBefore(cutoff: Date): Promise<number> {

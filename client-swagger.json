@@ -179,6 +179,58 @@
         "description": "6-digit numeric TOTP code from the authenticator app.",
         "example": "123456"
       },
+      "CompleteUnverifiedAccountResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "email"
+        ]
+      },
+      "CompleteUnverifiedAccountRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "password": {
+            "$ref": "#/components/schemas/Password"
+          },
+          "emailVerificationToken": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptedTosVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptedPrivacyVersion": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "emailVerificationToken",
+          "acceptedTosVersion",
+          "acceptedPrivacyVersion"
+        ],
+        "example": {
+          "email": "jane.doe@example.com",
+          "password": "SecurePass123!",
+          "emailVerificationToken": "signed-email-verification-token",
+          "acceptedTosVersion": "1.0.0",
+          "acceptedPrivacyVersion": "1.0.0"
+        }
+      },
       "ConfirmPreSignupVerificationResponse": {
         "type": "object",
         "properties": {
@@ -357,6 +409,22 @@
           "newPassword": "NewSecurePass456!"
         }
       },
+      "Page": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000,
+        "default": 1,
+        "description": "1-indexed page number for offset pagination (max 1000).",
+        "example": 1
+      },
+      "Limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100,
+        "default": 20,
+        "description": "Items per page (max 100).",
+        "example": 20
+      },
       "PasswordPolicy": {
         "type": "object",
         "properties": {
@@ -410,22 +478,6 @@
           "requireSpecialChar": true,
           "specialChars": "@$!%*?&"
         }
-      },
-      "Page": {
-        "type": "integer",
-        "minimum": 1,
-        "maximum": 1000,
-        "default": 1,
-        "description": "1-indexed page number for offset pagination (max 1000).",
-        "example": 1
-      },
-      "Limit": {
-        "type": "integer",
-        "minimum": 1,
-        "maximum": 100,
-        "default": 20,
-        "description": "Items per page (max 100).",
-        "example": 20
       },
       "SocialUrl": {
         "type": "string",
@@ -3655,10 +3707,56 @@
         ]
       }
     },
+    "/api/v1/auth/complete-unverified-account": {
+      "post": {
+        "summary": "Complete an unverified account after email verification",
+        "description": "Updates the existing account in place after a verified email code. Invalidates old sessions; sign-in and any required 2FA follow this step.",
+        "tags": [
+          "accounts"
+        ],
+        "operationId": "completeUnverifiedAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteUnverifiedAccountRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteUnverifiedAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit",
+          "multi-step-flow"
+        ]
+      }
+    },
     "/api/v1/auth/email-verification/confirm": {
       "post": {
-        "summary": "Confirm pre-signup e-mail verification code",
-        "description": "Checks the 6-digit code sent by /start and, on success, returns the registration token `POST /v1/accounts` accepts as `emailVerificationToken` — the account is then created with the e-mail already verified.",
+        "summary": "Confirm identifier-first e-mail verification code",
+        "description": "Checks the 6-digit code sent by /start and returns an email verification token. A new account sends it to POST /v1/accounts; a pending account sends it to POST /v1/auth/complete-unverified-account.",
         "tags": [
           "email-verification"
         ],
@@ -3841,8 +3939,8 @@
     },
     "/api/v1/auth/email-verification/start": {
       "post": {
-        "summary": "Start pre-signup e-mail verification (identifier-first)",
-        "description": "Sends a 6-digit code to an e-mail that has no account yet — step 2 of the unified \"sign in or create account\" flow (e-mail → code → password). Rejects e-mails that already have an account; the code lives 15 minutes and resends respect a 60s cooldown.",
+        "summary": "Start identifier-first e-mail verification",
+        "description": "Sends a 6-digit code to a new e-mail or an existing account awaiting verification. Rejects verified accounts; the code lives 15 minutes and resends respect a 60s cooldown.",
         "tags": [
           "email-verification"
         ],
@@ -5322,13 +5420,655 @@
         ]
       }
     },
-    "/api/v1/billing/patch-go": {
-      "get": {
-        "summary": "Patch Go subscription and monthly usage",
+    "/api/v1/billing/checkouts": {
+      "post": {
+        "summary": "Create a card or Pix checkout",
         "tags": [
           "billing"
         ],
-        "operationId": "get_v1_billing_patch_go",
+        "operationId": "post_v1_billing_checkouts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "offerCode": {
+                    "type": "string",
+                    "enum": [
+                      "go_card_month",
+                      "max_card_month",
+                      "go_pix_quarter",
+                      "max_pix_quarter",
+                      "go_pix_year",
+                      "max_pix_year",
+                      "max_pix_year_founder"
+                    ]
+                  }
+                },
+                "required": [
+                  "offerCode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "offerCode": {
+                      "type": "string",
+                      "enum": [
+                        "go_card_month",
+                        "max_card_month",
+                        "go_pix_quarter",
+                        "max_pix_quarter",
+                        "go_pix_year",
+                        "max_pix_year",
+                        "max_pix_year_founder"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "card",
+                        "pix"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "amountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 39990
+                    },
+                    "listAmountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "example": 47988
+                    },
+                    "creditAppliedCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "BRL"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "publicKey": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "APP_USR-public-key"
+                    },
+                    "qrCode": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "qrCodeBase64": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "iVBORw0KGgoAAAANSUhEUgAA"
+                    },
+                    "ticketUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://www.mercadopago.com.br/payments/1/ticket"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offerCode",
+                    "kind",
+                    "status",
+                    "amountCents",
+                    "listAmountCents",
+                    "creditAppliedCents",
+                    "currency",
+                    "expiresAt",
+                    "publicKey",
+                    "qrCode",
+                    "qrCodeBase64",
+                    "ticketUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/checkouts/{id}": {
+      "get": {
+        "summary": "Read a checkout",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "get_v1_billing_checkouts_id",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resource UUID (path parameter).",
+              "example": "01900000-0000-7000-a000-000000000001"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "offerCode": {
+                      "type": "string",
+                      "enum": [
+                        "go_card_month",
+                        "max_card_month",
+                        "go_pix_quarter",
+                        "max_pix_quarter",
+                        "go_pix_year",
+                        "max_pix_year",
+                        "max_pix_year_founder"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "card",
+                        "pix"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "amountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 39990
+                    },
+                    "listAmountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "example": 47988
+                    },
+                    "creditAppliedCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "BRL"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "publicKey": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "APP_USR-public-key"
+                    },
+                    "qrCode": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "qrCodeBase64": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "iVBORw0KGgoAAAANSUhEUgAA"
+                    },
+                    "ticketUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://www.mercadopago.com.br/payments/1/ticket"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offerCode",
+                    "kind",
+                    "status",
+                    "amountCents",
+                    "listAmountCents",
+                    "creditAppliedCents",
+                    "currency",
+                    "expiresAt",
+                    "publicKey",
+                    "qrCode",
+                    "qrCodeBase64",
+                    "ticketUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/checkouts/{id}/card": {
+      "post": {
+        "summary": "Submit tokenized card",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_checkouts_id_card",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resource UUID (path parameter).",
+              "example": "01900000-0000-7000-a000-000000000001"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000001"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cardToken": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 512,
+                    "example": "card-token-example"
+                  },
+                  "paymentMethodId": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 64,
+                    "example": "visa"
+                  },
+                  "installments": {
+                    "type": "number",
+                    "enum": [
+                      1
+                    ],
+                    "default": 1
+                  }
+                },
+                "required": [
+                  "cardToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "offerCode": {
+                      "type": "string",
+                      "enum": [
+                        "go_card_month",
+                        "max_card_month",
+                        "go_pix_quarter",
+                        "max_pix_quarter",
+                        "go_pix_year",
+                        "max_pix_year",
+                        "max_pix_year_founder"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "card",
+                        "pix"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "amountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 39990
+                    },
+                    "listAmountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "example": 47988
+                    },
+                    "creditAppliedCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "BRL"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "publicKey": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "APP_USR-public-key"
+                    },
+                    "qrCode": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "qrCodeBase64": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "iVBORw0KGgoAAAANSUhEUgAA"
+                    },
+                    "ticketUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://www.mercadopago.com.br/payments/1/ticket"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offerCode",
+                    "kind",
+                    "status",
+                    "amountCents",
+                    "listAmountCents",
+                    "creditAppliedCents",
+                    "currency",
+                    "expiresAt",
+                    "publicKey",
+                    "qrCode",
+                    "qrCodeBase64",
+                    "ticketUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/offers": {
+      "get": {
+        "summary": "List billing offers",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "get_v1_billing_offers",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "go_card_month",
+                              "max_card_month",
+                              "go_pix_quarter",
+                              "max_pix_quarter",
+                              "go_pix_year",
+                              "max_pix_year",
+                              "max_pix_year_founder"
+                            ]
+                          },
+                          "plan": {
+                            "type": "string",
+                            "enum": [
+                              "go",
+                              "max"
+                            ]
+                          },
+                          "paymentMethod": {
+                            "type": "string",
+                            "enum": [
+                              "card",
+                              "pix"
+                            ]
+                          },
+                          "recurring": {
+                            "type": "boolean",
+                            "example": false
+                          },
+                          "termMonths": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "enum": [
+                                  1
+                                ]
+                              },
+                              {
+                                "type": "number",
+                                "enum": [
+                                  3
+                                ]
+                              },
+                              {
+                                "type": "number",
+                                "enum": [
+                                  12
+                                ]
+                              }
+                            ]
+                          },
+                          "amountCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "example": 39990
+                          },
+                          "listAmountCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "example": 47988
+                          },
+                          "currency": {
+                            "type": "string",
+                            "enum": [
+                              "BRL"
+                            ]
+                          },
+                          "founderLimit": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "example": 100
+                          },
+                          "founderRemaining": {
+                            "type": "integer",
+                            "nullable": true,
+                            "minimum": 0,
+                            "example": 87
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "plan",
+                          "paymentMethod",
+                          "recurring",
+                          "termMonths",
+                          "amountCents",
+                          "listAmountCents",
+                          "currency",
+                          "founderRemaining"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/subscription": {
+      "get": {
+        "summary": "Current billing status",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "get_v1_billing_subscription",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5346,6 +6086,22 @@
                     "active": {
                       "type": "boolean"
                     },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "pendingPlan": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "go",
+                        "max"
+                      ]
+                    },
                     "used": {
                       "type": "integer"
                     },
@@ -5355,21 +6111,56 @@
                     "periodEnd": {
                       "type": "string",
                       "nullable": true,
-                      "example": "2026-10-14T00:00:00.000Z"
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "quotaPeriodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "renews": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "billingSource": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "mercado_pago_subscription"
+                    },
+                    "creditBalanceCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
                     },
                     "cancelAtPeriodEnd": {
                       "type": "boolean",
                       "example": false
+                    },
+                    "freeTranslationsUsed": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "freeTranslationsLimit": {
+                      "type": "integer",
+                      "example": 20
                     }
                   },
                   "required": [
                     "enabled",
                     "status",
                     "active",
+                    "plan",
+                    "pendingPlan",
                     "used",
                     "limit",
                     "periodEnd",
-                    "cancelAtPeriodEnd"
+                    "quotaPeriodEnd",
+                    "renews",
+                    "billingSource",
+                    "creditBalanceCents",
+                    "cancelAtPeriodEnd",
+                    "freeTranslationsUsed",
+                    "freeTranslationsLimit"
                   ]
                 }
               }
@@ -5399,29 +6190,163 @@
         "x-auth": "jwt"
       }
     },
-    "/api/v1/billing/patch-go/checkout": {
+    "/api/v1/billing/subscription/cancel": {
       "post": {
-        "summary": "Create a Patch Go subscription Checkout session",
+        "summary": "Cancel subscription renewal",
         "tags": [
           "billing"
         ],
-        "operationId": "post_v1_billing_patch_go_checkout",
+        "operationId": "post_v1_billing_subscription_cancel",
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "pendingPlan": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "used": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "periodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "quotaPeriodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "renews": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "billingSource": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "mercado_pago_subscription"
+                    },
+                    "creditBalanceCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "cancelAtPeriodEnd": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "freeTranslationsUsed": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "freeTranslationsLimit": {
+                      "type": "integer",
+                      "example": 20
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "status",
+                    "active",
+                    "plan",
+                    "pendingPlan",
+                    "used",
+                    "limit",
+                    "periodEnd",
+                    "quotaPeriodEnd",
+                    "renews",
+                    "billingSource",
+                    "creditBalanceCents",
+                    "cancelAtPeriodEnd",
+                    "freeTranslationsUsed",
+                    "freeTranslationsLimit"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/subscription/payment-method": {
+      "post": {
+        "summary": "Update subscription card",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_subscription_payment_method",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "market": {
+                  "sessionToken": {
                     "type": "string",
-                    "enum": [
-                      "BRL",
-                      "USD"
-                    ]
+                    "minLength": 20,
+                    "maxLength": 200,
+                    "example": "session-token-example-1234"
+                  },
+                  "cardToken": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 512,
+                    "example": "card-token-example"
                   }
                 },
                 "required": [
-                  "market"
+                  "sessionToken",
+                  "cardToken"
                 ]
               }
             }
@@ -5435,9 +6360,67 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "returnUrl": {
+                      "type": "string",
+                      "example": "https://patchcareers.org/go"
+                    }
+                  },
+                  "required": [
+                    "returnUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public"
+      }
+    },
+    "/api/v1/billing/subscription/payment-method-session": {
+      "post": {
+        "summary": "Create card update session",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_subscription_payment_method_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "returnUrl": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "https://patchcareers.org/go"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
                     "url": {
                       "type": "string",
-                      "format": "uri"
+                      "format": "uri",
+                      "example": "https://patchcareers.org/billing/payment-method"
                     }
                   },
                   "required": [
@@ -5471,28 +6454,193 @@
         "x-auth": "jwt"
       }
     },
-    "/api/v1/billing/patch-go/portal": {
-      "post": {
-        "summary": "Open the Stripe customer portal for Patch Go",
+    "/api/v1/billing/subscription/payment-method-session/{token}": {
+      "get": {
+        "summary": "Read card update session",
         "tags": [
           "billing"
         ],
-        "operationId": "post_v1_billing_patch_go_portal",
+        "operationId": "get_v1_billing_subscription_payment_method_session_token",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 20,
+              "maxLength": 200,
+              "example": "fixture-token-replace-me"
+            },
+            "required": true,
+            "name": "token",
+            "in": "path",
+            "example": "fixture-token-replace-me"
+          }
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "url": {
+                    "publicKey": {
                       "type": "string",
-                      "format": "uri"
+                      "example": "APP_USR-public-key"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "returnUrl": {
+                      "type": "string",
+                      "example": "https://patchcareers.org/go"
                     }
                   },
                   "required": [
-                    "url"
+                    "publicKey",
+                    "plan",
+                    "returnUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public"
+      }
+    },
+    "/api/v1/billing/subscription/payments": {
+      "get": {
+        "summary": "List subscription payments",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "get_v1_billing_subscription_payments",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Page"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Limit"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "amountCents": {
+                            "type": "integer",
+                            "example": 3999
+                          },
+                          "currency": {
+                            "type": "string"
+                          },
+                          "paidAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "2026-09-24T12:00:00.000Z"
+                          },
+                          "periodStart": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "2026-09-24T12:00:00.000Z"
+                          },
+                          "periodEnd": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "2026-10-24T12:00:00.000Z"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "amountCents",
+                          "currency",
+                          "paidAt",
+                          "periodStart",
+                          "periodEnd"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -11001,6 +12149,15 @@
           {
             "schema": {
               "type": "string",
+              "maxLength": 200
+            },
+            "required": false,
+            "name": "location",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Comma-separated list (any-of match).",
               "example": "REMOTE,HYBRID"
             },
@@ -11058,6 +12215,11 @@
                           },
                           "company": {
                             "type": "string"
+                          },
+                          "companyDomain": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "example.com"
                           },
                           "location": {
                             "type": "string",
@@ -11277,6 +12439,11 @@
                         "properties": {
                           "savedId": {
                             "type": "string"
+                          },
+                          "listingId": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "01900000-0000-7000-a000-000000000003"
                           },
                           "savedAt": {
                             "type": "string",
@@ -11642,6 +12809,184 @@
                     "savedId",
                     "hasApplied",
                     "appliedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
+      }
+    },
+    "/api/v1/jobs/external/{id}": {
+      "get": {
+        "summary": "Get an external listing or an owned saved snapshot by id",
+        "description": "Resolves job detail links without requiring a previous catalog request.",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "get_v1_jobs_external_id",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resource UUID (path parameter).",
+              "example": "01900000-0000-7000-a000-000000000001"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "externalId": {
+                      "type": "string",
+                      "example": "BreJXMXqEoK60_-dAAAAAA=="
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "company": {
+                      "type": "string"
+                    },
+                    "companyDomain": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "example.com"
+                    },
+                    "location": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "isRemote": {
+                      "type": "boolean",
+                      "description": "Raw upstream remote flag. Deprecated — read `workMode` instead.",
+                      "example": true
+                    },
+                    "workMode": {
+                      "type": "string",
+                      "enum": [
+                        "REMOTE",
+                        "HYBRID",
+                        "ONSITE"
+                      ],
+                      "example": "REMOTE"
+                    },
+                    "employmentType": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "INTERNSHIP",
+                        "CONTRACT",
+                        "FULL_TIME",
+                        "PART_TIME",
+                        "VOLUNTEER",
+                        "FREELANCE"
+                      ]
+                    },
+                    "applyUrl": {
+                      "type": "string"
+                    },
+                    "publisher": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Indeed"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "postedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
+                    "fetchedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
+                    "isSaved": {
+                      "type": "boolean"
+                    },
+                    "savedId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Id of the caller’s saved row for this listing; null when not saved."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "externalId",
+                    "title",
+                    "company",
+                    "location",
+                    "isRemote",
+                    "workMode",
+                    "employmentType",
+                    "applyUrl",
+                    "publisher",
+                    "description",
+                    "postedAt",
+                    "fetchedAt",
+                    "isSaved",
+                    "savedId"
                   ]
                 }
               }
@@ -12323,6 +13668,11 @@
                           },
                           "company": {
                             "type": "string"
+                          },
+                          "companyDomain": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "example.com"
                           },
                           "location": {
                             "type": "string",
@@ -28142,6 +29492,46 @@
                   "content": {
                     "type": "object",
                     "additionalProperties": {}
+                  },
+                  "initialTranslation": {
+                    "type": "object",
+                    "properties": {
+                      "locale": {
+                        "type": "string",
+                        "enum": [
+                          "pt-BR",
+                          "en"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "origin": {
+                        "type": "string",
+                        "enum": [
+                          "manual",
+                          "diverged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "locale",
+                      "data",
+                      "origin"
+                    ]
                   }
                 },
                 "example": {
@@ -28283,6 +29673,130 @@
           }
         },
         "x-auth": "jwt"
+      }
+    },
+    "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/preview-translation": {
+      "post": {
+        "summary": "Preview the other-language copy before creating a section item",
+        "tags": [
+          "translation"
+        ],
+        "operationId": "post_v1_resumes_resumeId_sections_sectionTypeKey_items_preview_translation",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
+            },
+            "required": true,
+            "name": "resumeId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000010"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "work_experience_v1"
+            },
+            "required": true,
+            "name": "sectionTypeKey",
+            "in": "path",
+            "example": "work_experience_v1"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "locale": {
+                    "type": "string",
+                    "description": "Locale the person edited in.",
+                    "example": "en"
+                  },
+                  "edited": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "description": "The item content as edited.",
+                    "example": {
+                      "role": "Software Engineer"
+                    }
+                  }
+                },
+                "required": [
+                  "locale",
+                  "edited"
+                ],
+                "example": {
+                  "locale": "en",
+                  "edited": {
+                    "role": "Senior Software Engineer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewriteProposal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update",
+        "x-guards": [
+          "rate-limit",
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/{itemId}": {
@@ -28431,6 +29945,46 @@
                   "content": {
                     "type": "object",
                     "additionalProperties": {}
+                  },
+                  "initialTranslation": {
+                    "type": "object",
+                    "properties": {
+                      "locale": {
+                        "type": "string",
+                        "enum": [
+                          "pt-BR",
+                          "en"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "origin": {
+                        "type": "string",
+                        "enum": [
+                          "manual",
+                          "diverged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "locale",
+                      "data",
+                      "origin"
+                    ]
                   }
                 },
                 "example": {
@@ -28983,6 +30537,17 @@
                   "jobCompany": {
                     "type": "string",
                     "maxLength": 200
+                  },
+                  "candidateContext": {
+                    "type": "string",
+                    "maxLength": 3000
+                  },
+                  "targetLocale": {
+                    "type": "string",
+                    "enum": [
+                      "pt-BR",
+                      "en"
+                    ]
                   }
                 },
                 "example": {
@@ -29002,6 +30567,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "targetLocale": {
+                      "type": "string",
+                      "enum": [
+                        "pt-BR",
+                        "en"
+                      ]
+                    },
                     "versionId": {
                       "type": "string",
                       "format": "uuid"
@@ -29151,6 +30723,7 @@
                     }
                   },
                   "required": [
+                    "targetLocale",
                     "versionId",
                     "versionNumber",
                     "label",
@@ -30037,8 +31610,8 @@
     },
     "/api/v1/search/global": {
       "get": {
-        "summary": "Global multi-type search (resumes, users, jobs, posts)",
-        "description": "Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Groups: `resumes`, `users`, `jobs`, `posts`.",
+        "summary": "Search people and jobs",
+        "description": "Returns people and jobs grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}`. Groups: `users`, `jobs`.",
         "tags": [
           "search"
         ],
@@ -30085,9 +31658,7 @@
                             "type": "string",
                             "enum": [
                               "users",
-                              "jobs",
-                              "resumes",
-                              "posts"
+                              "jobs"
                             ]
                           },
                           "label": {
@@ -35555,20 +37126,12 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         },
         "x-auth": "jwt",
-        "x-permission": "user:profile_read"
+        "x-guards": [
+          "skip-tos-check"
+        ]
       },
       "patch": {
         "summary": "Update all user preferences",
@@ -35969,20 +37532,12 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         },
         "x-auth": "jwt",
-        "x-permission": "user:profile_update"
+        "x-guards": [
+          "skip-tos-check"
+        ]
       }
     },
     "/api/v1/users/profile": {

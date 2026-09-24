@@ -61,6 +61,7 @@ export abstract class GenericResumeSectionsRepositoryPort {
     resumeSectionId: string,
     order: number,
     content: Prisma.InputJsonValue,
+    translations?: Prisma.InputJsonValue,
   ): Promise<SectionItemDto>;
 
   abstract updateSectionItem(
@@ -93,6 +94,11 @@ export abstract class GenericResumeSectionsUseCases {
       sectionTypeKey: string,
       userId: string,
       content: Record<string, unknown>,
+      initialTranslation?: {
+        locale: 'en' | 'pt-BR';
+        data: Record<string, unknown>;
+        origin: 'manual' | 'diverged';
+      },
     ) => Promise<SectionItemDto>;
   };
   abstract readonly updateSectionItemUseCase: {

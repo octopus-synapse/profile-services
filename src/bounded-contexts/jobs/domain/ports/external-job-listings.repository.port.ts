@@ -16,6 +16,7 @@ export interface ExternalJobListingRecord extends ExternalJobPosting {
 export interface ExternalJobListFilters {
   /** Free-text match over title/company (case-insensitive contains). */
   readonly q?: string;
+  readonly location?: string;
   /** Any-of match; empty/undefined means "any work mode". */
   readonly workMode?: readonly RemotePolicy[];
   /** Any-of match; empty/undefined means "any employment type". */
@@ -50,6 +51,8 @@ export abstract class ExternalJobListingsRepositoryPort {
   ): Promise<{ items: ExternalJobListingRecord[]; total: number }>;
 
   abstract findListingById(id: string): Promise<ExternalJobListingRecord | null>;
+
+  abstract findListingByExternalId(externalId: string): Promise<ExternalJobListingRecord | null>;
 
   /** Retention sweep — returns the number of rows deleted. */
   abstract deleteFetchedBefore(cutoff: Date): Promise<number>;

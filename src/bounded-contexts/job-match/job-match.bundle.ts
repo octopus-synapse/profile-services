@@ -1,4 +1,5 @@
 import type { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import type { ComputeMatchBatchUseCase } from './application/use-cases/compute-match-batch.use-case';
 import type { ComputeReadinessUseCase } from './application/use-cases/compute-readiness.use-case';
 import type { GetMeScoresUseCase } from './application/use-cases/get-me-scores.use-case';
@@ -9,6 +10,7 @@ import type { GetMeScoresUseCase } from './application/use-cases/get-me-scores.u
  * scores endpoint joined the context.
  */
 export interface JobMatchBundle {
+  readonly billing: PaidAccessPort & AiUsageRecorderPort;
   readonly computeMatch: ComputeMatchUseCase;
   readonly computeMatchBatch: ComputeMatchBatchUseCase;
   readonly computeReadiness: ComputeReadinessUseCase;

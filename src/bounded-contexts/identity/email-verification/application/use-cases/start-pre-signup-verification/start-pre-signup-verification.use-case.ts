@@ -40,13 +40,10 @@ export class StartPreSignupVerificationUseCase implements StartPreSignupVerifica
   ): Promise<StartPreSignupVerificationResult> {
     const { email } = command;
 
-    // Identifier-first: the client only reaches this step after `identify`
-    // said the e-mail is free, but the check must not be client-trusted —
-    // sending a "verify your e-mail" code for an account the requester may
-    // not own is a confusion/abuse vector. (Existence is already public via
-    // /v1/auth/identify, so this leaks nothing new.)
+    // The same code flow serves new addresses and accounts awaiting email
+    // verification. Never send a new code for an already verified account.
     const existing = await this.repository.findUserByEmail(email);
-    if (existing) {
+    if (existing?.emailVerified) {
       throw new EmailAlreadyRegisteredException(email);
     }
 

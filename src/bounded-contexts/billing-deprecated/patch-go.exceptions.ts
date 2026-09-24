@@ -16,6 +16,14 @@ export class PatchGoLimitReachedException extends DomainException {
   }
 }
 
+export class PatchFreeTranslationLimitReachedException extends DomainException {
+  readonly code = 'PATCH_FREE_TRANSLATION_LIMIT_REACHED';
+  readonly statusHint = 429;
+  constructor() {
+    super('Patch Free monthly AI translation limit reached');
+  }
+}
+
 export class PatchGoNotConfiguredException extends DomainException {
   readonly code = 'PATCH_GO_NOT_CONFIGURED';
   readonly statusHint = 503;

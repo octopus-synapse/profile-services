@@ -7,6 +7,7 @@
 import type { ExternalJobListItem } from '../application/use-cases/list-external-jobs/list-external-jobs.use-case';
 import type { RecommendedExternalJobItem } from '../application/use-cases/list-recommended-jobs/list-recommended-jobs.use-case';
 import type { SavedExternalJobRecord } from '../domain/ports/saved-external-jobs.repository.port';
+import { employerDomain } from './employer-domain';
 
 export function toExternalJobResponseDto(record: ExternalJobListItem) {
   return {
@@ -14,6 +15,7 @@ export function toExternalJobResponseDto(record: ExternalJobListItem) {
     externalId: record.externalId,
     title: record.title,
     company: record.company,
+    companyDomain: employerDomain(record.raw),
     location: record.location,
     isRemote: record.isRemote,
     workMode: record.workMode,
@@ -36,6 +38,7 @@ export function toRecommendedExternalJobResponseDto(record: RecommendedExternalJ
 export function toSavedExternalJobResponseDto(record: SavedExternalJobRecord) {
   return {
     savedId: record.id,
+    listingId: record.listingId ?? null,
     savedAt: record.createdAt.toISOString(),
     externalId: record.externalId,
     title: record.title,

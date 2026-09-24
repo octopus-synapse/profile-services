@@ -33,6 +33,10 @@ import {
   MessageResponseSchema,
 } from './account-lifecycle.routes.schemas';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
+import {
+  CompleteUnverifiedAccountResponseSchema,
+  CompleteUnverifiedAccountSchema,
+} from './application/use-cases/complete-unverified-account/complete-unverified-account.schema';
 import { ConfirmAccountDeletionSchema } from './application/use-cases/confirm-account-deletion/confirm-account-deletion.schema';
 import { CreateAccountSchema } from './application/use-cases/create-account/create-account.schema';
 import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.schema';
@@ -41,6 +45,33 @@ import { RequestAccountDeletionSchema } from './application/use-cases/request-ac
 import { toConsentHistoryResponseDto } from './infrastructure/presenters/get-consent-history.presenter';
 
 export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCases>> = [
+  {
+    method: 'POST',
+    path: '/v1/auth/complete-unverified-account',
+    statusCode: 200,
+    auth: { kind: 'public' },
+    body: CompleteUnverifiedAccountSchema,
+    response: CompleteUnverifiedAccountResponseSchema,
+    guards: [
+      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 300, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
+    openapi: {
+      summary: 'Complete an unverified account after email verification',
+      tags: ['accounts'],
+      description:
+        'Updates the existing account in place after a verified email code. Invalidates old sessions; sign-in and any required 2FA follow this step.',
+    },
+    sdk: { exported: true, name: 'completeUnverifiedAccount' },
+    handler: async (ctx, bc) => {
+      const dto = ctx.body as z.infer<typeof CompleteUnverifiedAccountSchema>;
+      return bc.completeUnverifiedAccount.execute({
+        ...dto,
+        ipAddress: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
+    },
+  },
   {
     method: 'POST',
     path: '/v1/accounts',

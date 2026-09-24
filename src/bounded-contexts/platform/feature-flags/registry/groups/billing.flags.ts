@@ -16,9 +16,9 @@ export const BILLING_FLAGS = [
     dependsOn: ['billing'],
   },
   {
-    key: 'billing.stripe',
-    name: 'Stripe',
-    description: 'Integração com Stripe para pagamentos',
+    key: 'billing.mercado-pago',
+    name: 'Mercado Pago',
+    description: 'Integração com Mercado Pago para pagamentos',
     defaultEnabled: true,
     dependsOn: ['billing'],
   },

@@ -110,9 +110,14 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
     });
   }
 
-  createSectionItem(resumeSectionId: string, order: number, content: Prisma.InputJsonValue) {
+  createSectionItem(
+    resumeSectionId: string,
+    order: number,
+    content: Prisma.InputJsonValue,
+    translations?: Prisma.InputJsonValue,
+  ) {
     return this.prisma.sectionItem.create({
-      data: { resumeSectionId, order, content },
+      data: { resumeSectionId, order, content, ...(translations ? { translations } : {}) },
     });
   }
 

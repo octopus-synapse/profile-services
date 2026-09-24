@@ -30,6 +30,7 @@ const POSTED_WITHIN_HOURS: Record<PostedWithin, number> = {
 
 export interface ListExternalJobsInput {
   readonly q?: string;
+  readonly location?: string;
   readonly workMode?: readonly RemotePolicy[];
   readonly employmentType?: readonly JobType[];
   readonly postedWithin?: PostedWithin;
@@ -63,6 +64,7 @@ export class ListExternalJobsUseCase {
     const { items, total } = await this.repository.listListings(
       {
         q: input.q,
+        location: input.location,
         workMode: input.workMode,
         employmentType: input.employmentType,
         postedAfter,

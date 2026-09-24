@@ -50,9 +50,34 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
       expect(res.status).toBe(403);
       expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
     });
+
+    it('still requires email verification to change language', async () => {
+      const me = await freshInDbUser(app, { skipEmailVerify: true, skipOnboarding: true });
+      const res = await app.request
+        .patch('/api/v1/users/preferences/full')
+        .set(me.bearer())
+        .send({ language: 'pt-BR' });
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
+    });
   });
 
   describe('Stage 2 — verified but not onboarded', () => {
+    it('lets the user save and reload their language before onboarding is complete', async () => {
+      const me = await freshInDbUser(app, { skipOnboarding: true });
+
+      const saved = await app.request
+        .patch('/api/v1/users/preferences/full')
+        .set(me.bearer())
+        .send({ language: 'pt-BR' });
+      expect(saved.status).toBe(200);
+      expect(saved.body.preferences.language).toBe('pt-BR');
+
+      const loaded = await app.request.get('/api/v1/users/preferences/full').set(me.bearer());
+      expect(loaded.status).toBe(200);
+      expect(loaded.body.preferences.language).toBe('pt-BR');
+    });
+
     it('clears the email gate but keeps onboarding pending', async () => {
       const me = await freshInDbUser(app, { skipOnboarding: true });
       const session = await app.request.get('/api/v1/auth/session').set(me.bearer());

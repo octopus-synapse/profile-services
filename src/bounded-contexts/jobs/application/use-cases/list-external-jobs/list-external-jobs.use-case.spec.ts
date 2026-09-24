@@ -16,6 +16,8 @@ async function seededRepo() {
     buildExternalJobPosting({
       externalId: 'a',
       title: 'Dev Backend',
+      description: 'Build APIs with PostgreSQL.',
+      location: 'São Paulo',
       isRemote: true,
       workMode: 'REMOTE',
       postedAt: new Date('2026-06-12T08:00:00.000Z'),
@@ -28,6 +30,8 @@ async function seededRepo() {
     buildExternalJobPosting({
       externalId: 'b',
       title: 'QA Pleno',
+      description: 'Automate quality assurance with Playwright.',
+      location: 'Curitiba',
       company: 'Beta SA',
       employmentType: 'CONTRACT',
       workMode: 'HYBRID',
@@ -41,6 +45,8 @@ async function seededRepo() {
     buildExternalJobPosting({
       externalId: 'c',
       title: 'Estágio Mobile',
+      description: 'Develop mobile interfaces.',
+      location: 'São Paulo',
       company: 'Gamma',
       employmentType: 'INTERNSHIP',
       // postedAt stays null — recency falls back to fetchedAt (2026-06-10).
@@ -71,7 +77,7 @@ describe('ListExternalJobsUseCase', () => {
     expect(result.hasPrev).toBe(false);
   });
 
-  it('filters by free text over title/company', async () => {
+  it('filters by free text over title, company and skills in the description', async () => {
     const { useCase } = await makeUseCase();
 
     const byTitle = await useCase.execute({ q: 'backend' });
@@ -79,6 +85,18 @@ describe('ListExternalJobsUseCase', () => {
 
     const byCompany = await useCase.execute({ q: 'beta' });
     expect(byCompany.items.map((i) => i.externalId)).toEqual(['b']);
+    expect(
+      (await useCase.execute({ q: 'PostgreSQL' })).items.map((item) => item.externalId),
+    ).toEqual(['a']);
+    expect(
+      (
+        await useCase.execute({
+          location: 'São Paulo',
+          workMode: ['REMOTE'],
+          postedWithin: 'TODAY',
+        })
+      ).items.map((item) => item.externalId),
+    ).toEqual(['a']);
   });
 
   it('filters by workMode and employmentType as any-of sets', async () => {

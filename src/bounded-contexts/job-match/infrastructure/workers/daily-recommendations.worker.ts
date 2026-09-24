@@ -1,3 +1,4 @@
+import type { PaidAccessPort } from '@/bounded-contexts/billing';
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
@@ -60,6 +61,7 @@ export class DailyRecommendationsWorker {
     private readonly notifications: NotificationsUseCases,
     private readonly queue: JobQueuePort,
     private readonly logger: LoggerPort,
+    private readonly billing?: PaidAccessPort,
   ) {}
 
   async process(job: { data: DailyRecommendationsJobData; id?: string }): Promise<void> {
@@ -101,6 +103,7 @@ export class DailyRecommendationsWorker {
   }
 
   private async computeForUser(userId: string): Promise<void> {
+    if (this.billing && !(await this.billing.isPaid(userId))) return;
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { primaryResumeId: true, primaryResume: { select: { techArea: true } } },

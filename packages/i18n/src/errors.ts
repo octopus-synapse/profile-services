@@ -539,16 +539,28 @@ export const ERROR_DICTIONARY = {
     'pt-BR': 'Falha na requisição ao provedor externo de vagas',
   },
   PATCH_GO_REQUIRED: {
-    en: 'Patch Go is required to prepare a resume for this job',
-    'pt-BR': 'É preciso assinar o Patch Go para preparar o currículo para esta vaga',
+    en: 'Patch Go or Max is required for Match, scores, and resume preparation',
+    'pt-BR': 'É preciso assinar o Patch Go ou Max para Match, notas e preparo do currículo',
   },
   PATCH_GO_LIMIT_REACHED: {
-    en: 'You have used all 30 preparations in this billing cycle',
-    'pt-BR': 'Você usou os 30 preparos deste ciclo de cobrança',
+    en: 'You have used all preparations in this billing cycle',
+    'pt-BR': 'Você usou todos os preparos deste ciclo de cobrança',
+  },
+  PATCH_FREE_TRANSLATION_LIMIT_REACHED: {
+    en: 'You have used all 20 AI translations this month',
+    'pt-BR': 'Você usou as 20 traduções por IA deste mês',
   },
   PATCH_GO_NOT_CONFIGURED: {
     en: 'Patch Go checkout is not available yet',
     'pt-BR': 'A assinatura Patch Go ainda não está disponível',
+  },
+  BILLING_INVARIANT_VIOLATION: {
+    en: 'The billing operation conflicts with its current state.',
+    'pt-BR': 'A operação de cobrança conflita com o estado atual.',
+  },
+  BILLING_BUSY: {
+    en: 'Another billing operation is already in progress. Try again shortly.',
+    'pt-BR': 'Outra operação de cobrança já está em andamento. Tente novamente em instantes.',
   },
   INVALID_APPLICATION_STATE: {
     en: 'Application state does not allow this transition',

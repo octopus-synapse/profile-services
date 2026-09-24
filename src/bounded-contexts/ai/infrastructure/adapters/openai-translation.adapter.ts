@@ -289,7 +289,7 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
       { role: 'system', content: TRANSLATE_SYSTEM_PROMPT },
       { role: 'user', content: buildTranslateObjectUserMessage({ object: obj, source, target }) },
     ];
-    const { data, tokensUsed } = await this.callWithRetry(
+    const { data, tokensUsed, inputTokens, outputTokens } = await this.callWithRetry(
       'translateObject',
       messages,
       TranslateObjectOutputSchema,
@@ -297,7 +297,8 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
     const translated = data.translated as T;
     await this.cacheSet(cacheKey, { translated });
     this.logTokens('translateObject', tokensUsed, serialized.length, false);
-    return { translated, source, target, tokensUsed, cacheHit: false };
+    return { translated, source, target, tokensUsed, cacheHit: false,
+      usage: { model: this.model, inputTokens, outputTokens } };
   }
 
   async detectLanguage(text: string): Promise<DetectLanguageResult> {
@@ -347,9 +348,11 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
         v: unknown,
       ) => { success: true; data: T } | { success: false; error: { message: string } };
     },
-  ): Promise<{ data: T; tokensUsed: number }> {
+  ): Promise<{ data: T; tokensUsed: number; inputTokens: number; outputTokens: number }> {
     let lastError = '';
     let totalTokens = 0;
+    let inputTokens = 0;
+    let outputTokens = 0;
     for (let attempt = 0; attempt < 2; attempt++) {
       const messages: ChatMessage[] =
         attempt === 0
@@ -369,6 +372,8 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
         messages,
       });
       totalTokens += response.usage?.total_tokens ?? 0;
+      inputTokens += response.usage?.prompt_tokens ?? 0;
+      outputTokens += response.usage?.completion_tokens ?? 0;
       const raw = response.choices[0]?.message?.content;
       if (!raw) {
         if (attempt === 1) throw new AiEmptyResponseException(operation);
@@ -377,7 +382,7 @@ export class OpenAITranslationAdapter extends TranslationLlmPort {
       }
       const parsed = this.parseJson(raw, operation);
       const result = schema.safeParse(parsed);
-      if (result.success) return { data: result.data, tokensUsed: totalTokens };
+      if (result.success) return { data: result.data, tokensUsed: totalTokens, inputTokens, outputTokens };
       lastError = result.error.message.slice(0, 500);
       this.logger.warn(
         `${operation} schema validation failed (attempt ${attempt + 1}/2): ${lastError}`,

@@ -48,8 +48,8 @@ export class VerificationTokenAlreadySentException extends DomainException {
 /**
  * Email Already Registered Exception
  *
- * Thrown when the pre-signup verification flow is started for an e-mail
- * that already has an account. Reuses the `ACCOUNT_ALREADY_EXISTS`
+ * Thrown when the identifier-first verification flow is started for an e-mail
+ * that already has a verified account. Reuses the `ACCOUNT_ALREADY_EXISTS`
  * dictionary code (same user-facing meaning as the signup collision) so
  * no new i18n surface is introduced; kept BC-local to avoid a domain
  * import across bounded contexts.

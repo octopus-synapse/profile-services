@@ -20,6 +20,7 @@
  */
 
 import type { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import type { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
 import { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
@@ -49,7 +50,6 @@ import { PrismaResumeExistence } from './infrastructure/adapters/persistence/pri
 import { PrismaResumeQualitySource } from './infrastructure/adapters/persistence/prisma-resume-quality-source.repository';
 import { PrismaScoresRead } from './infrastructure/adapters/persistence/prisma-scores-read.repository';
 import { PrismaTargetRoleCoverage } from './infrastructure/adapters/persistence/prisma-target-role-coverage.repository';
-import { PrismaUserFitStateAdapter } from './infrastructure/adapters/persistence/prisma-user-fit-state.repository';
 import { RedisMatchCacheAdapter } from './infrastructure/adapters/redis-match-cache.adapter';
 import { RoleSkillsAdapter } from './infrastructure/adapters/role-skills.adapter';
 import { JobMatchRecomputeOnResumeUpdatedHandler } from './infrastructure/handlers/job-match-recompute-on-resume-updated.handler';
@@ -71,6 +71,7 @@ export type { JobMatchBundle };
 export { ComputeMatchUseCase };
 
 export interface JobMatchDeps {
+  readonly billing: PaidAccessPort & AiUsageRecorderPort;
   readonly prisma: PrismaService;
   readonly cache: CacheService;
   readonly flags: FeatureFlagService;
@@ -88,10 +89,21 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
 
   const resumeExistence = new PrismaResumeExistence(prisma);
   const jobLoader = new PrismaJobLoader(prisma, logger);
-  const fitState = new PrismaUserFitStateAdapter(prisma);
   const keywordSource = new PrismaResumeKeywordSource(prisma);
-  const requirementsMatcher = new AiRequirementsMatcherAdapter(scoringLlm, prisma, logger);
-  const semanticMatcher = new AiSemanticMatcherAdapter(embeddings, cache, prisma, flags, logger);
+  const requirementsMatcher = new AiRequirementsMatcherAdapter(
+    scoringLlm,
+    prisma,
+    logger,
+    deps.billing,
+  );
+  const semanticMatcher = new AiSemanticMatcherAdapter(
+    embeddings,
+    cache,
+    prisma,
+    flags,
+    logger,
+    deps.billing,
+  );
   const matchCache = new RedisMatchCacheAdapter(cache, logger);
 
   const computeMatch = new ComputeMatchUseCase(
@@ -106,9 +118,8 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
   );
   const computeMatchBatch = new ComputeMatchBatchUseCase(computeMatch, logger);
 
-  // Readiness: job-independent master-resume score. Reuses the keyword +
-  // fit-state adapters above; adds a quality-source read + its own
-  // append-only history table.
+  // Readiness: job-independent master-resume score. Reuses the keyword
+  // adapter above; adds a quality-source read + its own history table.
   const qualitySource = new PrismaResumeQualitySource(prisma);
   const readinessHistory = new PrismaReadinessHistory(prisma);
   // Market-relative coverage: in-demand skills of the target role (real job
@@ -119,7 +130,6 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
     qualitySource,
     keywordSource,
     targetRoleCoverage,
-    fitState,
     readinessHistory,
     logger,
   );
@@ -133,7 +143,7 @@ export function buildJobMatchUseCases(deps: JobMatchDeps): JobMatchBundle {
     logger,
   );
 
-  return { computeMatch, computeMatchBatch, computeReadiness, getMeScores };
+  return { billing: deps.billing, computeMatch, computeMatchBatch, computeReadiness, getMeScores };
 }
 
 /**
@@ -162,6 +172,7 @@ export function buildJobMatchComposition(
     bundle.computeMatch,
     deps.prisma,
     deps.logger,
+    deps.billing,
   );
   const readinessOnQualityComputed = new ReadinessRecomputeOnQualityComputedHandler(
     deps.prisma,
@@ -196,6 +207,7 @@ export function buildJobMatchComposition(
     deps.notifications,
     deps.queue,
     deps.logger,
+    deps.billing,
   );
 
   const workers: ReadonlyArray<BcWorkerBinding> = [

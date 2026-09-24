@@ -17,6 +17,9 @@ export type TailorResumeBullet = {
 };
 
 export type TailorResumeInput = {
+  candidateContext?: string;
+  sourceLocale?: 'pt-BR' | 'en';
+  targetLocale?: 'pt-BR' | 'en';
   /** The master resume in the shape the prompt expects (free-form; the service
    * trims it to fit the model's context). */
   resume: {
@@ -39,6 +42,7 @@ export type TailorResumeInput = {
 };
 
 export type TailorResumeOutput = {
+  usage?: { model: string; inputTokens: number; outputTokens: number };
   /** Rewritten summary (null to leave as-is). */ summary: string | null;
   /** Optional new job title to mirror the target role. */
   jobTitle: string | null;

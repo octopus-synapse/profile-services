@@ -87,7 +87,20 @@ export class PrismaSavedExternalJobsRepository extends SavedExternalJobsReposito
       }),
       this.prisma.savedExternalJob.count({ where: { userId } }),
     ]);
-    return { items, total };
+    const live = items.length
+      ? await this.prisma.externalJobListing.findMany({
+          where: { externalId: { in: items.map((item) => item.externalId) } },
+          select: { id: true, externalId: true },
+        })
+      : [];
+    const byExternalId = new Map(live.map((item) => [item.externalId, item.id]));
+    return {
+      items: items.map((item) => ({
+        ...item,
+        listingId: byExternalId.get(item.externalId) ?? null,
+      })),
+      total,
+    };
   }
 
   async listSavedExternalIds(

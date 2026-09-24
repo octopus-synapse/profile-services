@@ -6,12 +6,7 @@ import type {
 import type { ResumeKeywordSourcePort } from '../../domain/ports/resume-keyword-source.port';
 import type { ResumeQualitySourcePort } from '../../domain/ports/resume-quality-source.port';
 import type { TargetRoleCoveragePort } from '../../domain/ports/target-role-coverage.port';
-import type { UserFitStatePort } from '../../domain/ports/user-fit-state.port';
-import {
-  blendReadiness,
-  scoreCoverage,
-  scoreFitFreshness,
-} from '../../domain/readiness/blend-readiness.rules';
+import { blendReadiness, scoreCoverage } from '../../domain/readiness/blend-readiness.rules';
 import {
   READINESS_RULES_VERSION,
   type ReadinessBreakdown,
@@ -34,8 +29,8 @@ export interface ComputeReadinessResult {
 
 /**
  * Computes the job-independent Readiness Score for a resume by blending
- * three signals the platform already produces (Quality, skill coverage,
- * fit freshness). Deterministic and cheap — no AI calls. Each signal is
+ * two signals the platform already produces (Quality and skill coverage).
+ * Deterministic and cheap — no AI calls. Each signal is
  * read behind its own port so a failure degrades to `null` and the
  * blender reallocates its weight rather than throwing.
  */
@@ -44,7 +39,6 @@ export class ComputeReadinessUseCase {
     private readonly qualitySource: ResumeQualitySourcePort,
     private readonly keywordSource: ResumeKeywordSourcePort,
     private readonly targetRoleCoverage: TargetRoleCoveragePort,
-    private readonly fitState: UserFitStatePort,
     private readonly history: ReadinessHistoryPort,
     private readonly logger: LoggerPort,
   ) {}
@@ -52,13 +46,14 @@ export class ComputeReadinessUseCase {
   async execute(input: ComputeReadinessInput): Promise<ComputeReadinessResult> {
     const { userId, resumeId } = input;
 
-    const [quality, coverage, fit] = await Promise.all([
+    const [quality, coverage] = await Promise.all([
       this.readQuality(resumeId),
       this.readCoverage(userId, resumeId),
-      this.readFit(userId),
     ]);
 
-    const factors = { quality, coverage, fit } as const;
+    // Keep the legacy slot null until the response contract is retired. It has
+    // zero configured weight and can never affect the score.
+    const factors = { quality, coverage, fit: { score: null } } as const;
     const { overallScore, effectiveWeights } = blendReadiness({ ...factors });
 
     const breakdown: ReadinessBreakdown = {
@@ -118,19 +113,6 @@ export class ComputeReadinessUseCase {
     } catch (err) {
       this.logger.warn(
         `Readiness coverage read failed: ${(err as Error).message}`,
-        'ComputeReadinessUseCase',
-      );
-      return { score: null };
-    }
-  }
-
-  private async readFit(userId: string): Promise<{ score: number | null }> {
-    try {
-      const { status } = await this.fitState.getStatus(userId);
-      return { score: scoreFitFreshness(status) };
-    } catch (err) {
-      this.logger.warn(
-        `Readiness fit read failed: ${(err as Error).message}`,
         'ComputeReadinessUseCase',
       );
       return { score: null };

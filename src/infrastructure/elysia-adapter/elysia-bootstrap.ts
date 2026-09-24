@@ -26,9 +26,11 @@ import { CuratedSelectorService } from '@/bounded-contexts/automation/applicatio
 import { buildAutomationComposition } from '@/bounded-contexts/automation/automation.composition';
 import { KeywordJobMatcherAdapter } from '@/bounded-contexts/automation/infrastructure/adapters/external-services/keyword-job-matcher.adapter';
 import { PrismaCuratedSelectorRepository } from '@/bounded-contexts/automation/infrastructure/adapters/persistence/prisma-curated-selector.repository';
-import { PatchGoBilling } from '@/bounded-contexts/billing/patch-go.billing';
-import { patchGoRoutes } from '@/bounded-contexts/billing/patch-go.routes';
-import { registerPatchGoWebhook } from '@/bounded-contexts/billing/patch-go.webhook';
+import {
+  buildBillingComposition,
+  registerBillingAuditHandlers,
+  registerBillingWebhook,
+} from '@/bounded-contexts/billing';
 import { buildCollaborationComposition } from '@/bounded-contexts/collaboration/collaboration.composition';
 import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
 import { buildDslComposition } from '@/bounded-contexts/dsl/dsl.composition';
@@ -127,6 +129,7 @@ import {
   VersionCreatedEvent,
   VersionRestoredEvent,
 } from '@/bounded-contexts/resumes/domain/events';
+import { TailorEngineUnavailableException } from '@/bounded-contexts/resumes/domain/exceptions';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters/resume-event-publisher.adapter';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories/section-type.repository';
 import {
@@ -246,8 +249,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const prisma = new PrismaClient(createPrismaClientOptions());
   await prisma.$connect();
   logger.log('Prisma connected', 'ElysiaBootstrap');
-  const patchGo = new PatchGoBilling(prisma, config.env);
-
   const userSnapshot = new PrismaUserSnapshotAdapter(prisma);
   // Cache is needed by the auth extractor (token-valid-after gate) and
   // by every BC that takes `CachePort`. Construct early so it can be
@@ -391,6 +392,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     );
   }
 
+  const billing = buildBillingComposition({
+    prisma,
+    config: config.env,
+    logger,
+    events: eventBus,
+    queue,
+    lock: distributedLock,
+  });
+  for (const lifecycle of billing.lifecycles ?? []) lifecycles.push(lifecycle);
+
   // --- Cross-cutting service factories (no routes; consumed by BCs) ---
   // Decision 5: mail goes out in the account's language.
   const { emailService } = buildEmailComposition(config, logger, async (email) => {
@@ -480,13 +491,19 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const resumeEvents = new ResumeEventPublisherAdapter(eventBus);
   let tailorMatchEngine: TailorComputeMatchLike | null = null;
   const tailorMatch = new JobMatchTailorAdapter(() => tailorMatchEngine, logger);
+  let ensureLocaleForTailor: ((resumeId: string, locale: 'pt-BR' | 'en') => Promise<void>) | null =
+    null;
   const resumeVersions = buildResumeVersionsComposition(
     prisma as never,
     logger,
     ai.bundle.llm,
     resumeEvents,
     tailorMatch,
-    patchGo,
+    billing.preparationMeter,
+    async (resumeId, locale) => {
+      if (!ensureLocaleForTailor) throw new TailorEngineUnavailableException();
+      await ensureLocaleForTailor(resumeId, locale);
+    },
   );
 
   // Jobs needs llm + email + eventBus + safeFetch
@@ -501,6 +518,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     safeFetch,
     cache,
     config,
+    billing.access,
   );
   // Cron workers (anti-ghosting sweep + JSearch ingestion). This call was
   // missing in the Elysia bootstrap — `registerJobsJobs` existed but was
@@ -584,6 +602,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Service factories first (no routes; consumed by other compositions).
   const auditLog = buildAuditLogService(prisma as never, logger);
   const auditPort = new AuditLogServiceAdapter(auditLog, logger);
+  registerBillingAuditHandlers(eventBus, auditPort, logger);
   const rateLimit = buildRateLimitService(cache as never);
   // FitProfile bundle to extract `similarity` for job-match cross-BC dep.
   const fitProfileBundle = buildFitProfileBundle(prisma as never, eventBus, logger);
@@ -645,6 +664,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus as never,
     authenticationUseCases.createSession,
     emailService as never,
+    cache as never,
     logger,
   ) as never;
   const authorization = buildAuthorizationUseCases(prisma as never, eventBus, logger, sharedRedis);
@@ -759,6 +779,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
     queue,
     Number(config.getOrDefault<string>('OPENAI_SCORING_PRICE_USD_MICROS_PER_1K_TOKENS', '0')),
+    billing.access,
   ) as never;
   for (const binding of (
     resumeQuality as {
@@ -785,6 +806,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Bilingual write-through (ADR-003): the BC declares its event handlers
   // and worker; both are registered below with everyone else's.
   const translation = buildTranslationComposition({
+    billing: billing.freeTranslationMeter,
     translationLlm: ai.bundle.translation,
     logger,
     prisma: prisma as never,
@@ -796,10 +818,14 @@ export async function bootstrap(): Promise<BootstrapHandle> {
         config.getOrDefault<string>('OPENAI_TRANSLATION_PRICE_USD_MICROS_PER_1K_TOKENS', '0'),
       ),
       monthlyCapUsdMicros: BigInt(
-        config.getOrDefault<string>('TRANSLATION_MONTHLY_CAP_USD_MICROS', '1000000'),
+        config.getOrDefault<string>('TRANSLATION_MONTHLY_CAP_USD_MICROS', '0'),
       ),
     },
   });
+  ensureLocaleForTailor = async (resumeId, locale) => {
+    const report = await translation.useCases.translateResume.execute(resumeId, { locale });
+    if (report.status !== 'completed') throw new TailorEngineUnavailableException();
+  };
   for (const binding of translation.eventHandlers ?? []) {
     eventBus.on(binding.eventType, binding.handler);
   }
@@ -818,6 +844,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Job-match: shares the `flags` null-object declared above with
   // resume-quality, until the Redis-backed feature-flags BC is wired.
   const jobMatch = buildJobMatchComposition({
+    billing: billing.access,
     prisma: prisma as never,
     cache: cache as never,
     flags: flags as never,
@@ -857,6 +884,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
         { name: 'resume-quality', workers: (resumeQuality as BoundedContextComposition).workers },
         { name: 'job-match', workers: (jobMatch as BoundedContextComposition).workers },
         { name: 'translation', workers: translation.workers },
+        { name: 'billing', workers: billing.workers },
       ]);
     },
   });
@@ -1194,7 +1222,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     },
     { bundle: mecSync, routes: mecSyncRoutes },
     { bundle: platformUseCases, routes: platformRoutes },
-    { bundle: patchGo, routes: patchGoRoutes },
+    { bundle: billing.useCases, routes: billing.routes },
     {
       bundle: (onboarding as { useCases: unknown }).useCases ?? onboarding,
       // `buildOnboardingComposition` returns both sets, but this group was
@@ -1238,7 +1266,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     );
   }
 
-  registerPatchGoWebhook(app, patchGo, logger);
+  registerBillingWebhook(app, billing.useCases, logger);
 
   // SSE bundles use a different bundle type than the BC's main
   // useCases — mount them separately.

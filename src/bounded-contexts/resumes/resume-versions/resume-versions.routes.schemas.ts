@@ -31,6 +31,8 @@ export const TailorResumeBody = z
     jobDescription: z.string().min(10).optional(),
     jobTitle: z.string().max(200).optional(),
     jobCompany: z.string().max(200).optional(),
+    candidateContext: z.string().trim().max(3000).optional(),
+    targetLocale: z.enum(['pt-BR', 'en']).optional(),
   })
   .openapi({
     example: {
@@ -122,6 +124,7 @@ export const TailorMatchEstimateSchema = z.object({
 });
 
 export const TailorResumeResponseSchema = z.object({
+  targetLocale: z.enum(['pt-BR', 'en']),
   versionId: z.string().uuid(),
   versionNumber: z.number().int(),
   label: z.string(),

@@ -9,14 +9,15 @@ import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.ser
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SessionInvalidationPort } from '../../../domain/ports';
 
-// Token invalidation TTL: 24 hours (refresh tokens typically last this long)
-const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
+// Keep the revocation marker for the longest possible session lifetime.
+const SECONDS_PER_DAY = 24 * 60 * 60;
 const TOKEN_VALID_AFTER_KEY_PREFIX = 'auth:token_valid_after:';
 
 export class SessionInvalidationAdapter implements SessionInvalidationPort {
   constructor(
     private readonly cacheService: CacheService,
     private readonly prisma: PrismaService,
+    private readonly maxSessionDays = 30,
   ) {}
 
   async invalidateAllSessions(userId: string): Promise<void> {
@@ -27,7 +28,7 @@ export class SessionInvalidationAdapter implements SessionInvalidationPort {
     await this.cacheService.setSecure(
       `${TOKEN_VALID_AFTER_KEY_PREFIX}${userId}`,
       now,
-      TOKEN_INVALIDATION_TTL_SECONDS,
+      Math.max(1, this.maxSessionDays) * SECONDS_PER_DAY,
     );
 
     // Delete all refresh tokens for the user

@@ -8,13 +8,11 @@ import type {
 import type { ResumeKeywordSourcePort } from '../../domain/ports/resume-keyword-source.port';
 import type { ResumeQualitySourcePort } from '../../domain/ports/resume-quality-source.port';
 import type { TargetRoleCoveragePort } from '../../domain/ports/target-role-coverage.port';
-import type { FitStatus, UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import { ComputeReadinessUseCase } from './compute-readiness.use-case';
 
 function build(opts: {
   quality: number | null;
   keywords: readonly string[];
-  fit: FitStatus;
   /** market-relative coverage; null (default) → falls back to count-based. */
   marketCoverage?: number | null;
   history?: Partial<ReadinessHistoryPort>;
@@ -27,9 +25,6 @@ function build(opts: {
   };
   const targetRoleCoverage: TargetRoleCoveragePort = {
     computeCoverage: async () => opts.marketCoverage ?? null,
-  };
-  const fitState: UserFitStatePort = {
-    getStatus: async (userId: string) => ({ userId, status: opts.fit }),
   };
   const saved: SavedReadinessScore[] = [];
   const history: ReadinessHistoryPort = {
@@ -55,7 +50,6 @@ function build(opts: {
     qualitySource,
     keywordSource,
     targetRoleCoverage,
-    fitState,
     history,
     stubLogger,
   );
@@ -63,9 +57,9 @@ function build(opts: {
 }
 
 describe('ComputeReadinessUseCase', () => {
-  it('blends quality, coverage, and fit into an overall score', async () => {
-    // quality 80, 12 distinct keywords → coverage 100, fit responded → 100
-    // 80*0.55 + 100*0.25 + 100*0.20 = 44 + 25 + 20 = 89
+  it('blends quality and coverage without a Fit contribution', async () => {
+    // quality 80, 12 distinct keywords → coverage 100
+    // 80*0.6875 + 100*0.3125 = 86.25 → 86
     const { useCase } = build({
       quality: 80,
       keywords: [
@@ -82,16 +76,16 @@ describe('ComputeReadinessUseCase', () => {
         'rust',
         'python',
       ],
-      fit: 'responded',
     });
     const { breakdown } = await useCase.execute({ userId: 'u1', resumeId: 'r1' });
-    expect(breakdown.overallScore).toBe(89);
+    expect(breakdown.overallScore).toBe(86);
     expect(breakdown.factors.coverage.score).toBe(100);
-    expect(breakdown.factors.fit.score).toBe(100);
+    expect(breakdown.factors.fit.score).toBeNull();
+    expect(breakdown.effectiveWeights.fit).toBe(0);
   });
 
   it('degrades gracefully when quality has never been computed', async () => {
-    const { useCase } = build({ quality: null, keywords: ['ts', 'react'], fit: 'never' });
+    const { useCase } = build({ quality: null, keywords: ['ts', 'react'] });
     const { breakdown } = await useCase.execute({ userId: 'u1', resumeId: 'r1' });
     expect(breakdown.factors.quality.score).toBeNull();
     expect(breakdown.effectiveWeights.quality).toBe(0);
@@ -100,7 +94,7 @@ describe('ComputeReadinessUseCase', () => {
 
   it('uses market-relative coverage when available (over the count fallback)', async () => {
     // 12 keywords would give count-coverage 100, but market coverage is 40 →
-    // the market number wins. 80*0.55 + 40*0.25 + 100*0.20 = 44 + 10 + 20 = 74.
+    // the market number wins. 80*0.6875 + 40*0.3125 = 67.5 → 68.
     const { useCase } = build({
       quality: 80,
       keywords: [
@@ -117,19 +111,17 @@ describe('ComputeReadinessUseCase', () => {
         'rust',
         'python',
       ],
-      fit: 'responded',
       marketCoverage: 40,
     });
     const { breakdown } = await useCase.execute({ userId: 'u1', resumeId: 'r1' });
     expect(breakdown.factors.coverage.score).toBe(40);
-    expect(breakdown.overallScore).toBe(74);
+    expect(breakdown.overallScore).toBe(68);
   });
 
   it('deduplicates keywords case-insensitively for coverage', async () => {
     const { useCase } = build({
       quality: null,
       keywords: ['React', 'react', 'REACT'],
-      fit: 'never',
     });
     const { breakdown } = await useCase.execute({ userId: 'u1', resumeId: 'r1' });
     // 1 distinct of 12 target → coverage round(1/12*100) = 8
@@ -137,7 +129,7 @@ describe('ComputeReadinessUseCase', () => {
   });
 
   it('persists a history row only when persist is requested', async () => {
-    const { useCase, saved } = build({ quality: 70, keywords: ['ts'], fit: 'responded' });
+    const { useCase, saved } = build({ quality: 70, keywords: ['ts'] });
     await useCase.execute({ userId: 'u1', resumeId: 'r1' });
     expect(saved).toHaveLength(0);
     const { saved: row } = await useCase.execute({ userId: 'u1', resumeId: 'r1', persist: true });

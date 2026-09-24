@@ -44,7 +44,7 @@ export class OpenAIEmbeddingsAdapter extends EmbeddingsPort {
     const response = await this.client.embeddings.create({ model: this.model, input: trimmed });
     const first = response.data[0];
     if (!first) throw new Error('openai embeddings returned no data');
-    return { vector: first.embedding, tokensUsed: response.usage.total_tokens };
+    return { vector: first.embedding, tokensUsed: response.usage.total_tokens, model: this.model };
   }
 
   async embedMany(texts: readonly string[]): Promise<readonly EmbeddingsResult[]> {
@@ -64,6 +64,7 @@ export class OpenAIEmbeddingsAdapter extends EmbeddingsPort {
     return response.data.map((item, idx) => ({
       vector: item.embedding,
       tokensUsed: idx === 0 ? response.usage.total_tokens : 0,
+      model: this.model,
     }));
   }
 

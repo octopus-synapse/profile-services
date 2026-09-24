@@ -13,6 +13,9 @@ export type TailorLlmBullet = {
 };
 
 export type TailorLlmInput = {
+  candidateContext?: string;
+  sourceLocale?: 'pt-BR' | 'en';
+  targetLocale?: 'pt-BR' | 'en';
   resume: {
     summary?: string | null;
     jobTitle?: string | null;
@@ -33,6 +36,7 @@ export type TailorLlmInput = {
 };
 
 export type TailorLlmOutput = {
+  usage?: { model: string; inputTokens: number; outputTokens: number };
   summary: string | null;
   jobTitle: string | null;
   bullets: TailorLlmBullet[];

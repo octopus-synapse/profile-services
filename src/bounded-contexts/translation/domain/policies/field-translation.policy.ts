@@ -101,6 +101,8 @@ export const FIELD_TRANSLATION_POLICY: Readonly<Record<string, SectionPolicy>> =
     [SEMANTIC_ROLE.ORGANIZATION]: NO(PROPER_NOUN),
     [SEMANTIC_ROLE.ISSUE_DATE]: NO(DATE),
     [SEMANTIC_ROLE.EXPIRY_DATE]: NO(DATE),
+    [SEMANTIC_ROLE.CREDENTIAL_ID]: NO('Issuer-assigned identifier; translating breaks it.'),
+    [SEMANTIC_ROLE.URL]: NO(LOCATOR),
   },
 
   // Deactivated in the catalog (`isActive: false`) but still carried by

@@ -101,6 +101,21 @@ describe('GenericResumeSectionsService', () => {
       expect(created.content).toEqual({ company: 'Octopus' });
     });
 
+    it('stores reviewed translation atomically with a new item', async () => {
+      repository.seedResume({ id: 'resume-1', userId: 'user-1' });
+      repository.seedSectionType({
+        id: 'section-type-1', key: 'work_experience_v1', maxItems: null,
+        definition: { schemaVersion: 1, kind: 'WORK_EXPERIENCE',
+          fields: [{ key: 'description', type: 'string', required: true }] },
+      });
+      const created = await service.createItem('resume-1', 'work_experience_v1', 'user-1',
+        { description: 'Liderei a migração.' },
+        { locale: 'en', data: { description: 'Led the migration.' }, origin: 'manual' });
+      expect(created.translations).toMatchObject({ en: {
+        data: { description: 'Led the migration.' }, origin: 'manual',
+      } });
+    });
+
     it('validates required fields in content', async () => {
       repository.seedResume({ id: 'resume-1', userId: 'user-1' });
       repository.seedSectionType({

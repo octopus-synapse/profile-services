@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { hashSource } from '@/shared-kernel/i18n/translation-envelope';
 import type { ResumeEventPublisher } from '../../../../domain/ports';
 import { ItemContentValidatorPolicy } from '../policies/item-content-validator.policy';
 import { ItemLimitPolicy } from '../policies/item-limit.policy';
@@ -21,6 +22,11 @@ export class CreateSectionItemUseCase {
     sectionTypeKey: string,
     userId: string,
     content: Record<string, unknown>,
+    initialTranslation?: {
+      locale: 'en' | 'pt-BR';
+      data: Record<string, unknown>;
+      origin: 'manual' | 'diverged';
+    },
   ) {
     await this.ownershipPolicy.ensureOwned(resumeId, userId);
 
@@ -61,10 +67,24 @@ export class CreateSectionItemUseCase {
 
         const nextItemOrder = await orderingPolicy.nextItemOrder(resumeSection.id);
 
+        const canonical = await transactionRepository.findResumeLanguage(resumeId);
+        const translations =
+          initialTranslation && initialTranslation.locale !== canonical
+            ? {
+                [initialTranslation.locale]: {
+                  data: initialTranslation.data,
+                  sourceHash: hashSource(validatedContent),
+                  translatedAt: new Date().toISOString(),
+                  origin: initialTranslation.origin,
+                },
+              }
+            : undefined;
+
         const item = await transactionRepository.createSectionItem(
           resumeSection.id,
           nextItemOrder,
           validatedContent as Prisma.InputJsonValue,
+          translations as Prisma.InputJsonValue | undefined,
         );
         return { item, semanticKind: sectionType.semanticKind };
       },

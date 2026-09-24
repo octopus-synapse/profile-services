@@ -101,13 +101,18 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       { role: 'system' as const, content: ANALYZE_CONTENT_QUALITY_SYSTEM_PROMPT },
       { role: 'user' as const, content: buildAnalyzeContentQualityUserMessage(input) },
     ];
-    const { data, tokensUsed } = await this.callWithRetry(
+    const { data, tokensUsed, inputTokens, outputTokens } = await this.callWithRetry(
       'analyzeContentQuality',
       baseMessages,
       ContentQualityOutputSchema,
       0.1,
     );
-    return { score: data.score, issues: data.issues, tokensUsed };
+    return {
+      score: data.score,
+      issues: data.issues,
+      tokensUsed,
+      usage: { model: this.model, inputTokens, outputTokens },
+    };
   }
 
   async normalizeRequirements(
@@ -118,7 +123,7 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       { role: 'system' as const, content: NORMALIZE_REQUIREMENTS_SYSTEM_PROMPT },
       { role: 'user' as const, content: buildNormalizeRequirementsUserMessage(input) },
     ];
-    const { data, tokensUsed } = await this.callWithRetry(
+    const { data, tokensUsed, inputTokens, outputTokens } = await this.callWithRetry(
       'normalizeRequirements',
       baseMessages,
       NormalizedRequirementsOutputSchema,
@@ -130,6 +135,7 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       certifications: data.certifications,
       seniority: data.seniority,
       tokensUsed,
+      usage: { model: this.model, inputTokens, outputTokens },
     };
   }
 
@@ -176,9 +182,11 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       ) => { success: true; data: T } | { success: false; error: { message: string } };
     },
     temperature: number,
-  ): Promise<{ data: T; tokensUsed: number }> {
+  ): Promise<{ data: T; tokensUsed: number; inputTokens: number; outputTokens: number }> {
     let lastError = '';
     let totalTokens = 0;
+    let inputTokens = 0;
+    let outputTokens = 0;
     for (let attempt = 0; attempt < 2; attempt++) {
       const messages =
         attempt === 0
@@ -198,6 +206,8 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
         messages,
       });
       totalTokens += response.usage?.total_tokens ?? 0;
+      inputTokens += response.usage?.prompt_tokens ?? 0;
+      outputTokens += response.usage?.completion_tokens ?? 0;
       const raw = response.choices[0]?.message?.content;
       if (!raw) {
         if (attempt === 1) throw new AiEmptyResponseException(operation);
@@ -206,7 +216,8 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       }
       const parsed = this.parseJson(raw, operation);
       const result = schema.safeParse(parsed);
-      if (result.success) return { data: result.data, tokensUsed: totalTokens };
+      if (result.success)
+        return { data: result.data, tokensUsed: totalTokens, inputTokens, outputTokens };
       lastError = result.error.message.slice(0, 500);
       this.logger.warn(
         `${operation} schema validation failed (attempt ${attempt + 1}/2): ${lastError}`,

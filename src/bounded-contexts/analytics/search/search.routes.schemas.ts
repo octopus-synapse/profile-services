@@ -58,7 +58,7 @@ export const GlobalSearchItemSchema = z.object({
 export const GlobalSearchResponseSchema = z.object({
   groups: z.array(
     z.object({
-      type: z.enum(['users', 'jobs', 'resumes', 'posts']),
+      type: z.enum(['users', 'jobs']),
       label: z.string(),
       items: z.array(GlobalSearchItemSchema),
     }),

@@ -57,10 +57,10 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     query: GlobalSearchQuerySchema,
     response: GlobalSearchResponseSchema,
     openapi: {
-      summary: 'Global multi-type search (resumes, users, jobs, posts)',
+      summary: 'Search people and jobs',
       tags: ['search'],
       description:
-        'Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Groups: `resumes`, `users`, `jobs`, `posts`.',
+        'Returns people and jobs grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}`. Groups: `users`, `jobs`.',
     },
     sdk: { exported: true },
     handler: async (ctx, service) => {

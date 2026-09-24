@@ -52,10 +52,10 @@ There are **four** top-level scores. Each belongs to a single subject (the thing
 
 - **Subject:** the master (`primaryResumeId`) `Resume`
 - **Question answered:** "how ready is my resume to compete in the market?" — the single **job-independent** number the Match Score can't provide (Match needs a `(resume, job)` pair).
-- **No job context required.** Owned by `job-match/` (reuses its keyword + fit-state adapters). Fit freshness is a questionnaire-completion signal, not a personality rating.
-- **Deterministic blend (v1)** of signals already computed (no extra AI calls): `0.55·Quality + 0.25·Coverage + 0.20·Fit-freshness`, renormalising any unavailable factor so a brand-new resume still yields a proper 0-100.
+- **No job context required.** Owned by `job-match/` and reuses its keyword adapter.
+- **Deterministic blend (v1.2)** of signals already computed (no extra AI calls): `0.6875·Quality + 0.3125·Coverage`, renormalising an unavailable factor so a brand-new resume still yields a proper 0-100.
 - **Computed:** event-driven on `ResumeQualityComputedEvent` for the master (so it always blends a fresh Quality number); also on-demand inside `GET /v1/me/scores`. History append-only in `ReadinessScoreHistory` (feeds the trend chart).
-- **Served by:** `GET /v1/me/scores` (unified payload: Readiness + Quality + Style + Fit, each with its `rank`).
+- **Served by:** `GET /v1/me/scores` (unified payload: Readiness + Quality + Style). The deprecated Fit fields remain inert until the next contract cleanup.
 - **Follow-up:** market-relative coverage (skills vs the user's target-role in-demand skills) — see `SCORES_TODO.md`.
 
 ### Match Score
@@ -67,7 +67,6 @@ There are **four** top-level scores. Each belongs to a single subject (the thing
   - **Keyword Match** (code): exact + stemming + curated synonyms + fuzzy (Levenshtein ≤ 2)
   - **Requirements Match** (AI + code): AI normalizes ambiguous resume strings ("Proficient Portuguese" → C2); code compares against structured slots the recruiter filled
   - **Semantic Match** (AI): embeddings similarity between resume sections and job description
-  - **Fit Score:** retained as a null compatibility field with zero weight. Personality and extroversion do not affect candidate Match.
 - **Weights (v1.2):** Keyword 31.25%, Requirements 37.5%, Semantic 31.25%. If a provider is unavailable, its weight is redistributed among available signals.
 - **Computed:** on-demand, cached in Redis with hierarchical keys; composed of cached sub-computations so only what changed gets recomputed
 - **Persisted:** only on deliberate user action (apply/save) as a snapshot on the `Application` row

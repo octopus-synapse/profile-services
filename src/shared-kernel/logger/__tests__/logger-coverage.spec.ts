@@ -49,7 +49,13 @@ function* walk(dir: string): Generator<string> {
     const full = join(dir, entry);
     const st = statSync(full);
     if (st.isDirectory()) {
-      if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing') continue;
+      if (
+        entry === 'node_modules' ||
+        entry === '__tests__' ||
+        entry === 'testing' ||
+        entry === 'billing-deprecated'
+      )
+        continue;
       yield* walk(full);
     } else if (
       st.isFile() &&

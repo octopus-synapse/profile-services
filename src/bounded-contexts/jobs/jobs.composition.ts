@@ -8,6 +8,7 @@
  */
 
 import type { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
+import type { PaidAccessPort } from '@/bounded-contexts/billing';
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
@@ -29,6 +30,7 @@ import { DeleteJobUseCase } from './application/use-cases/delete-job/delete-job.
 import { EnsureSubmittedEventUseCase } from './application/use-cases/ensure-submitted-event/ensure-submitted-event.use-case';
 import { FindSimilarJobsUseCase } from './application/use-cases/find-similar-jobs/find-similar-jobs.use-case';
 import { GetCompanyResponseStatsUseCase } from './application/use-cases/get-company-response-stats/get-company-response-stats.use-case';
+import { GetExternalJobUseCase } from './application/use-cases/get-external-job/get-external-job.use-case';
 import { GetJobUseCase } from './application/use-cases/get-job/get-job.use-case';
 import { ImportJobFromUrlUseCase } from './application/use-cases/import-job-from-url/import-job-from-url.use-case';
 import { ListApplicationTimelineUseCase } from './application/use-cases/list-application-timeline/list-application-timeline.use-case';
@@ -76,6 +78,7 @@ export function buildJobsUseCases(
   safeFetch: SafeFetchPort,
   cache: CachePort,
   config: ConfigPort,
+  billing?: PaidAccessPort,
 ): JobsUseCases {
   // Repos
   const jobsRepo = new PrismaJobsRepository(prisma, logger);
@@ -99,6 +102,7 @@ export function buildJobsUseCases(
   const listJobs = new ListJobsUseCase(jobsRepo, enrichment, logger);
 
   return {
+    billing,
     // Catalog
     listJobs,
     listMyJobs: new ListMyJobsUseCase(jobsRepo),
@@ -139,6 +143,7 @@ export function buildJobsUseCases(
       savedExternalJobsRepo,
       logger,
     ),
+    getExternalJob: new GetExternalJobUseCase(externalListingsRepo, savedExternalJobsRepo, logger),
     saveExternalJob: new SaveExternalJobUseCase(
       externalListingsRepo,
       savedExternalJobsRepo,
@@ -191,8 +196,19 @@ export function buildJobsComposition(
   safeFetch: SafeFetchPort,
   cache: CachePort,
   config: ConfigPort,
+  billing?: PaidAccessPort,
 ): BoundedContextComposition<JobsUseCases> {
-  const useCases = buildJobsUseCases(prisma, email, logger, events, llm, safeFetch, cache, config);
+  const useCases = buildJobsUseCases(
+    prisma,
+    email,
+    logger,
+    events,
+    llm,
+    safeFetch,
+    cache,
+    config,
+    billing,
+  );
 
   return {
     useCases,

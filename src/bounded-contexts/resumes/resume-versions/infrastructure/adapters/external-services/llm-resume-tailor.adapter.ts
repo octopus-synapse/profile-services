@@ -24,6 +24,7 @@ export class LlmResumeTailorAdapter extends ResumeTailorLlmPort {
       jobTitle: out.jobTitle,
       bullets: out.bullets,
       coverLetter: out.coverLetter ?? null,
+      ...(out.usage ? { usage: out.usage } : {}),
     };
   }
 }

@@ -1,4 +1,5 @@
 import type { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
+import type { AiUsageRecorderPort } from '@/bounded-contexts/billing';
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -32,6 +33,7 @@ export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
     private readonly prisma: PrismaService,
     private readonly flags: FeatureFlagService,
     private readonly logger: LoggerPort,
+    private readonly billing?: AiUsageRecorderPort,
   ) {
     super();
   }
@@ -49,8 +51,8 @@ export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
       if (!resumeText || !jobText) return { score: null };
 
       const [resumeVec, jobVec] = await Promise.all([
-        this.embedCached('resume', input.resumeId, resumeText),
-        this.embedCached('job', input.jobId, jobText),
+        this.embedCached('resume', input.resumeId, resumeText.text, resumeText.userId),
+        this.embedCached('job', input.jobId, jobText, resumeText.userId),
       ]);
 
       const similarity = cosineSimilarity(resumeVec, jobVec);
@@ -67,16 +69,16 @@ export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
     }
   }
 
-  private async loadResumeText(resumeId: string): Promise<string | null> {
+  private async loadResumeText(resumeId: string): Promise<{ text: string; userId: string } | null> {
     const row = await this.prisma.resume.findUnique({
       where: { id: resumeId },
-      select: { summary: true, jobTitle: true, primaryStack: true },
+      select: { userId: true, summary: true, jobTitle: true, primaryStack: true },
     });
     if (!row) return null;
     const parts = [row.jobTitle, row.summary, (row.primaryStack ?? []).join(', ')]
       .filter((p) => typeof p === 'string' && p.trim().length > 0)
       .join('\n\n');
-    return parts || null;
+    return parts ? { text: parts, userId: row.userId } : null;
   }
 
   private async loadJobText(jobId: string): Promise<string | null> {
@@ -114,11 +116,28 @@ export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
     kind: 'resume' | 'job',
     id: string,
     text: string,
+    userId: string,
   ): Promise<readonly number[]> {
     const cacheKey = `ai:embedding:${kind}:${id}:${shortHash(text)}`;
     const hit = await this.cache.get<number[]>(cacheKey);
     if (hit) return hit;
     const result = await this.embeddings.embed(text);
+    if (result.tokensUsed > 0) {
+      await this.billing
+        ?.recordAiUsage({
+          userId,
+          operation: `embedding-${kind}`,
+          model: result.model ?? 'text-embedding-3-small',
+          inputTokens: result.tokensUsed,
+          outputTokens: 0,
+        })
+        .catch((error) => {
+          this.logger.warn(
+            `Could not record embedding cost: ${error instanceof Error ? error.message : 'unknown'}`,
+            'AiSemanticMatcherAdapter',
+          );
+        });
+    }
     await this.cache.set(cacheKey, result.vector, EMBEDDING_TTL_SECONDS).catch(() => {});
     return result.vector;
   }

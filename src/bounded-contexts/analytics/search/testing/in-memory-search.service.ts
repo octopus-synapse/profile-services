@@ -101,14 +101,6 @@ export class InMemorySearchService implements SearchServicePort {
     if (trimmed.length === 0) return { groups: [] };
     const cap = Math.max(1, Math.min(20, Number(limit) || 5));
 
-    const resumeMatches = this.resumes
-      .filter(
-        (r) =>
-          r.fullName?.toLowerCase().includes(trimmed) ||
-          r.jobTitle?.toLowerCase().includes(trimmed) ||
-          r.summary?.toLowerCase().includes(trimmed),
-      )
-      .slice(0, cap);
     const userMatches = this.users
       .filter(
         (u) =>
@@ -125,21 +117,7 @@ export class InMemorySearchService implements SearchServicePort {
           j.description?.toLowerCase().includes(trimmed),
       )
       .slice(0, cap);
-    const postMatches = this.posts
-      .filter((p) => p.content?.toLowerCase().includes(trimmed))
-      .slice(0, cap);
-
     const groups: GlobalSearchGroup[] = [
-      {
-        type: 'resumes',
-        label: 'Currículos',
-        items: resumeMatches.map<GlobalSearchItem>((r) => ({
-          id: r.id,
-          title: r.fullName ?? r.jobTitle ?? 'Untitled',
-          snippet: r.summary ?? undefined,
-          href: `/resumes/${r.slug ?? r.id}`,
-        })),
-      },
       {
         type: 'users',
         label: 'Pessoas',
@@ -159,17 +137,6 @@ export class InMemorySearchService implements SearchServicePort {
           snippet: j.description,
           href: `/jobs/${j.id}`,
           badge: j.company,
-        })),
-      },
-      {
-        type: 'posts',
-        label: 'Publicações',
-        items: postMatches.map<GlobalSearchItem>((p) => ({
-          id: p.id,
-          title: (p.content ?? '').slice(0, 80) || 'Post',
-          snippet: p.content ?? undefined,
-          href: `/feed/${p.id}`,
-          badge: p.type,
         })),
       },
     ];

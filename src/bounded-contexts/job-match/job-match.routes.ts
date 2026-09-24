@@ -42,6 +42,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      await bundle.billing.requirePaid(pickUserId(ctx));
       const body = ctx.body as ComputeMatchRequestDto;
       const breakdown = await bundle.computeMatch.execute({
         userId: pickUserId(ctx),
@@ -65,6 +66,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      await bundle.billing.requirePaid(pickUserId(ctx));
       const body = ctx.body as { resumeId: string; jobIds: string[] };
       return bundle.computeMatchBatch.execute({
         userId: pickUserId(ctx),
@@ -87,6 +89,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      await bundle.billing.requirePaid(pickUserId(ctx));
       const { resumeId, jobId } = ctx.params as { resumeId: string; jobId: string };
       const breakdown = await bundle.computeMatch.execute({
         userId: pickUserId(ctx),
@@ -111,6 +114,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      await bundle.billing.requirePaid(pickUserId(ctx));
       const { id: jobId } = ctx.params as { id: string };
       const body = ctx.body as { resumeId: string };
       const breakdown = await bundle.computeMatch.execute({
@@ -135,6 +139,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      await bundle.billing.requirePaid(pickUserId(ctx));
       const view = await bundle.getMeScores.execute(pickUserId(ctx));
       return toMeScoresResponseDto(view);
     },
@@ -156,6 +161,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<JobMatchBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      await bundle.billing.requirePaid(pickUserId(ctx));
       const { resumeId } = ctx.params as { resumeId: string };
       const view = await bundle.getMeScores.executeForResume(pickUserId(ctx), resumeId);
       return toMeScoresResponseDto(view);

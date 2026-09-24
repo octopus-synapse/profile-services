@@ -10,6 +10,7 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { envelopeFor } from '@/shared-kernel/i18n/translation-envelope';
 import type {
   ResumeForSnapshot,
   ResumeVersionListItem,
@@ -239,29 +240,40 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
 
   // -------- Tailor --------
 
-  async findResumeForTailor(resumeId: string): Promise<ResumeForTailor | null> {
+  async findResumeForTailor(
+    resumeId: string,
+    locale?: 'pt-BR' | 'en',
+  ): Promise<ResumeForTailor | null> {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       select: {
         id: true,
         userId: true,
+        language: true,
         summary: true,
         jobTitle: true,
         primaryStack: true,
+        translations: true,
         resumeSections: {
           include: {
             sectionType: { select: { key: true, semanticKind: true } },
-            items: { orderBy: { order: 'asc' }, select: { id: true, content: true } },
+            items: {
+              orderBy: { order: 'asc' },
+              select: { id: true, content: true, translations: true },
+            },
           },
         },
       },
     });
     if (!resume) return null;
+    const target = locale && locale !== resume.language ? locale : null;
+    const prose = target ? envelopeFor(resume.translations, target)?.data : null;
     return {
       id: resume.id,
       userId: resume.userId,
-      summary: resume.summary,
-      jobTitle: resume.jobTitle,
+      language: resume.language,
+      summary: typeof prose?.summary === 'string' ? prose.summary : resume.summary,
+      jobTitle: typeof prose?.jobTitle === 'string' ? prose.jobTitle : resume.jobTitle,
       primaryStack: resume.primaryStack ?? [],
       resumeSections: resume.resumeSections.map((section) => ({
         sectionType: {
@@ -270,7 +282,10 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         },
         items: section.items.map((item) => ({
           id: item.id,
-          content: (item.content ?? {}) as Record<string, unknown>,
+          content: {
+            ...((item.content ?? {}) as Record<string, unknown>),
+            ...(target ? (envelopeFor(item.translations, target)?.data ?? {}) : {}),
+          },
         })),
       })),
     };

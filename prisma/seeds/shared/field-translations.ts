@@ -180,6 +180,14 @@ export const certificationFieldTranslations: FieldTranslationsMap = {
     en: { label: 'Expiry Date', helpText: 'Leave empty if no expiration' },
     'pt-BR': { label: 'Data de Expiração', helpText: 'Deixe vazio se não expira' },
   },
+  credentialId: {
+    en: { label: 'Exam Code', placeholder: 'e.g., CLF-C02' },
+    'pt-BR': { label: 'Código do Exame', placeholder: 'ex: CLF-C02' },
+  },
+  credentialUrl: {
+    en: { label: 'Credential Link', placeholder: 'https://...' },
+    'pt-BR': { label: 'Link da Credencial', placeholder: 'https://...' },
+  },
 };
 
 // ============================================================================

@@ -101,6 +101,15 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
     };
   }
 
+  async completeUnverified(email: string, passwordHash: string): Promise<AccountData | null> {
+    const claimed = await this.prisma.user.updateMany({
+      where: { email, emailVerified: null, isActive: true },
+      data: { passwordHash, emailVerified: new Date() },
+    });
+    if (claimed.count !== 1) return null;
+    return this.findByEmail(email);
+  }
+
   async deactivate(userId: string): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },

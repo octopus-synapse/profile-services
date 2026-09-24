@@ -188,6 +188,13 @@ export const UpdateResumeBody = CreateResumeBody.partial().openapi('UpdateResume
 export const SectionItemBody = z
   .object({
     content: z.record(z.unknown()).optional(),
+    initialTranslation: z
+      .object({
+        locale: z.enum(['pt-BR', 'en']),
+        data: z.record(z.union([z.string(), z.array(z.string())])),
+        origin: z.enum(['manual', 'diverged']),
+      })
+      .optional(),
   })
   .openapi({
     example: {

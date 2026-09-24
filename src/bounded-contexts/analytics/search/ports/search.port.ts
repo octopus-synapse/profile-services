@@ -6,7 +6,7 @@
 
 import type { SearchParams, SearchResult, SearchResultItem } from '../resume-search.service';
 
-export type GlobalSearchGroupType = 'users' | 'jobs' | 'resumes' | 'posts';
+export type GlobalSearchGroupType = 'users' | 'jobs';
 
 export interface GlobalSearchItem {
   readonly id: string;

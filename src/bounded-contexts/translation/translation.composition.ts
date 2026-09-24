@@ -8,6 +8,7 @@
 
 import type { Observable } from 'rxjs';
 import type { TranslationLlmPort } from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
+import type { AiUsageRecorderPort, FreeTranslationMeterPort } from '@/bounded-contexts/billing';
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeCreatedEvent, ResumeUpdatedEvent } from '@/bounded-contexts/resumes/domain/events';
@@ -61,6 +62,7 @@ export interface TranslationBundle {
 }
 
 export interface BuildTranslationDeps {
+  readonly billing?: FreeTranslationMeterPort & AiUsageRecorderPort;
   readonly translationLlm: TranslationLlmPort;
   readonly logger: LoggerPort;
   readonly prisma: PrismaService;
@@ -78,7 +80,7 @@ export interface TranslationComposition extends BoundedContextComposition<Transl
 }
 
 export function buildTranslationComposition(deps: BuildTranslationDeps): TranslationComposition {
-  const { translationLlm, logger, prisma, queue, sse, flags, pricing } = deps;
+  const { translationLlm, logger, prisma, queue, sse, flags, pricing, billing } = deps;
   const core = new TranslationCoreService(translationLlm, logger);
   const resume = new ResumeTranslationService(translationLlm);
   const service = new TranslationService(core, resume);
@@ -94,9 +96,17 @@ export function buildTranslationComposition(deps: BuildTranslationDeps): Transla
     flags,
     pricing,
     logger,
+    undefined,
+    billing,
   );
 
-  const proposeRewrite = new ProposeItemRewriteUseCase(store, translationLlm, logger);
+  const proposeRewrite = new ProposeItemRewriteUseCase(
+    store,
+    translationLlm,
+    logger,
+    billing,
+    prisma,
+  );
   const writeItemTranslation = new WriteItemTranslationUseCase(store, logger);
 
   const onChanged = new TranslationOnResumeChangedHandler(queue, logger);

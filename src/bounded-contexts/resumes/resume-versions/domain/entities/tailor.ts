@@ -24,6 +24,7 @@ export type TailorMatchEstimate = {
 };
 
 export type TailorResumeResult = {
+  targetLocale: 'pt-BR' | 'en';
   versionId: string;
   versionNumber: number;
   label: string;
@@ -60,6 +61,7 @@ export type TailoredVersionSummary = {
 export type ResumeForTailor = {
   id: string;
   userId: string;
+  language?: string;
   summary: string | null;
   jobTitle: string | null;
   primaryStack: string[];
@@ -93,6 +95,8 @@ export type TailorJobInput = {
   jobDescription?: string;
   jobTitle?: string;
   jobCompany?: string;
+  candidateContext?: string;
+  targetLocale?: 'pt-BR' | 'en';
 };
 
 /**

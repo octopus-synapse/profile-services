@@ -52,7 +52,14 @@ export function buildPasswordManagementUseCases(
   const passwordHasher = new BcryptPasswordHasher(config.env.BCRYPT_COST);
   const tokenService = new PrismaPasswordResetTokenService(prisma);
   const emailSender = new EmailPasswordResetSender(emailService, config);
-  const sessionInvalidation = new SessionInvalidationAdapter(cache, prisma);
+  const sessionInvalidation = new SessionInvalidationAdapter(
+    cache,
+    prisma,
+    Math.max(
+      Number(config.getOrDefault<number>('SESSION_EXPIRY_DAYS', 7)) || 7,
+      Number(config.getOrDefault<number>('PERSISTENT_SESSION_EXPIRY_DAYS', 30)) || 30,
+    ),
+  );
   // Reuse the shared 6-digit-code engine (same EmailVerificationToken table)
   // as the password-change code store — structural conformance to
   // VerificationCodeStorePort, no duplicate adapter.

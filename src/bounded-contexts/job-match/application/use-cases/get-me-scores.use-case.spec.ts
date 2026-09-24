@@ -14,22 +14,14 @@ import type {
   ScoreTrendRead,
 } from '../../domain/ports/scores-read.port';
 import type { TargetRoleCoveragePort } from '../../domain/ports/target-role-coverage.port';
-import type { FitStatus, UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import { ComputeReadinessUseCase } from './compute-readiness.use-case';
 import { GetMeScoresUseCase } from './get-me-scores.use-case';
 
-function buildReadiness(opts: {
-  quality: number | null;
-  keywords: readonly string[];
-  fit: FitStatus;
-}) {
+function buildReadiness(opts: { quality: number | null; keywords: readonly string[] }) {
   const qualitySource: ResumeQualitySourcePort = {
     getLatestOverallScore: async () => opts.quality,
   };
   const keywordSource: ResumeKeywordSourcePort = { getKeywords: async () => opts.keywords };
-  const fitState: UserFitStatePort = {
-    getStatus: async (userId) => ({ userId, status: opts.fit }),
-  };
   const history: ReadinessHistoryPort = {
     save: async () => ({}) as SavedReadinessScore,
     findLatest: async () => null,
@@ -40,7 +32,6 @@ function buildReadiness(opts: {
     qualitySource,
     keywordSource,
     targetRoleCoverage,
-    fitState,
     history,
     stubLogger,
   );
@@ -64,10 +55,10 @@ const emptyHistory: ReadinessHistoryPort = {
 };
 
 describe('GetMeScoresUseCase', () => {
-  it('returns a cold-start view (readiness + fit only) when there is no master resume', async () => {
+  it('returns a cold-start view when there is no master resume', async () => {
     const useCase = new GetMeScoresUseCase(
       reads({ getPrimaryResumeId: async () => null }),
-      buildReadiness({ quality: null, keywords: [], fit: 'never' }),
+      buildReadiness({ quality: null, keywords: [] }),
       emptyHistory,
       stubLogger,
     );
@@ -79,7 +70,7 @@ describe('GetMeScoresUseCase', () => {
     expect(Number.isNaN(view.readiness.breakdown.overallScore)).toBe(false);
   });
 
-  it('composes readiness + quality + style + fit for a master resume', async () => {
+  it('composes readiness + quality + style for a master resume', async () => {
     const useCase = new GetMeScoresUseCase(
       reads({
         getPrimaryResumeId: async () => 'resume-1',
@@ -90,12 +81,8 @@ describe('GetMeScoresUseCase', () => {
           computedAt: new Date('2026-06-01T00:00:00Z'),
         }),
         getStyleScoreForResume: async () => 88,
-        getFitLifecycle: async () => ({
-          status: 'responded',
-          expiresAt: new Date('2026-12-01T00:00:00Z'),
-        }),
       }),
-      buildReadiness({ quality: 82, keywords: ['ts', 'react'], fit: 'responded' }),
+      buildReadiness({ quality: 82, keywords: ['ts', 'react'] }),
       emptyHistory,
       stubLogger,
     );
@@ -103,7 +90,7 @@ describe('GetMeScoresUseCase', () => {
     expect(view.resumeId).toBe('resume-1');
     expect(view.quality?.latest.overallScore).toBe(82);
     expect(view.style?.score).toBe(88);
-    expect(view.fit.status).toBe('responded');
+    expect(view.fit.status).toBe('never');
     // rank of readiness overall is served at the top level
     expect(['S', 'A', 'B', 'C', 'D', 'F']).toContain(view.rank);
   });

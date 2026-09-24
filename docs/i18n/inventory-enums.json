@@ -1,9 +1,22 @@
 {
   "summary": {
-    "enumCount": 35,
-    "valueCount": 200
+    "enumCount": 40,
+    "valueCount": 227
   },
   "enums": {
+    "JobApplicationEventType": {
+      "values": [
+        "SUBMITTED",
+        "VIEWED",
+        "INTERVIEW_SCHEDULED",
+        "INTERVIEW_COMPLETED",
+        "OFFER_RECEIVED",
+        "REJECTED",
+        "WITHDRAWN",
+        "FOLLOW_UP_SENT"
+      ],
+      "exposedIn": []
+    },
     "CollaboratorRole": {
       "values": [
         "VIEWER",
@@ -12,38 +25,63 @@
       ],
       "exposedIn": []
     },
-    "BadgeKind": {
+    "LanguageLevel": {
       "values": [
-        "FIRST_BUILD",
-        "ATS_90_PLUS",
-        "MENTORED_10",
-        "INTERVIEWS_5",
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2",
+        "NATIVE"
+      ],
+      "exposedIn": []
+    },
+    "DegreeType": {
+      "values": [
+        "HIGH_SCHOOL",
+        "TECHNICAL",
+        "BACHELOR",
+        "MASTER",
+        "DOCTORATE",
+        "BOOTCAMP",
+        "SELF_TAUGHT"
+      ],
+      "exposedIn": []
+    },
+    "EducationStatus": {
+      "values": [
+        "IN_PROGRESS",
+        "COMPLETED",
+        "PAUSED",
+        "DROPPED"
+      ],
+      "exposedIn": []
+    },
+    "OpenSourceRole": {
+      "values": [
+        "MAINTAINER",
         "CONTRIBUTOR",
-        "EVENT_SPEAKER"
+        "CREATOR"
       ],
       "exposedIn": []
     },
-    "AnalyticsEvent": {
+    "Severity": {
       "values": [
-        "VIEW",
-        "DOWNLOAD"
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
       ],
       "exposedIn": []
     },
-    "ConnectionStatus": {
+    "LinkKind": {
       "values": [
-        "PENDING",
-        "ACCEPTED",
-        "REJECTED"
-      ],
-      "exposedIn": []
-    },
-    "SkillProficiency": {
-      "values": [
-        "BEGINNER",
-        "INTERMEDIATE",
-        "ADVANCED",
-        "EXPERT"
+        "LINKEDIN",
+        "GITHUB",
+        "WEBSITE",
+        "PORTFOLIO",
+        "CUSTOM"
       ],
       "exposedIn": []
     },
@@ -65,35 +103,33 @@
       ],
       "exposedIn": []
     },
-    "EmailDeliveryMode": {
+    "ImportSource": {
       "values": [
-        "INSTANT",
-        "DAILY",
-        "WEEKLY",
-        "OFF"
+        "LINKEDIN",
+        "PDF",
+        "DOCX"
       ],
       "exposedIn": []
     },
-    "ThemeStatus": {
+    "ImportStatus": {
       "values": [
-        "DRAFT",
-        "PRIVATE",
-        "PENDING_APPROVAL",
-        "PUBLISHED",
-        "REJECTED"
+        "PENDING",
+        "PROCESSING",
+        "MAPPING",
+        "VALIDATING",
+        "IMPORTING",
+        "COMPLETED",
+        "FAILED",
+        "PARTIAL"
       ],
-      "exposedIn": []
+      "exposedIn": [
+        "src/bounded-contexts/import/infrastructure/dto/import-result.schema.ts"
+      ]
     },
-    "ThemeCategory": {
+    "LayoutKind": {
       "values": [
-        "PROFESSIONAL",
-        "CREATIVE",
-        "TECHNICAL",
-        "ACADEMIC",
-        "MINIMAL",
-        "MODERN",
-        "CLASSIC",
-        "EXECUTIVE"
+        "SINGLE_COLUMN",
+        "DOUBLE_COLUMN"
       ],
       "exposedIn": []
     },
@@ -119,8 +155,8 @@
         "OTHER"
       ],
       "exposedIn": [
-        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-niche.dto.ts",
-        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-area.dto.ts"
+        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-niche.schema.ts",
+        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-area.schema.ts"
       ]
     },
     "SkillType": {
@@ -137,7 +173,7 @@
         "OTHER"
       ],
       "exposedIn": [
-        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-skill.dto.ts"
+        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-skill.schema.ts"
       ]
     },
     "AuditAction": {
@@ -162,7 +198,24 @@
         "DATA_EXPORT_DOWNLOADED",
         "ROLE_CHANGED",
         "TWO_FACTOR_ENABLED",
-        "TWO_FACTOR_DISABLED"
+        "TWO_FACTOR_DISABLED",
+        "FEATURE_FLAG_TOGGLED",
+        "ACCESS_MODIFIER_APPLIED",
+        "ACCESS_MODIFIER_REVOKED",
+        "LOGIN_FAILED",
+        "USER_LOGGED_IN",
+        "USER_LOGGED_OUT",
+        "SESSION_CREATED",
+        "SESSION_TERMINATED",
+        "TOKEN_REFRESHED",
+        "EXPORT_REQUESTED",
+        "EXPORT_COMPLETED",
+        "EXPORT_FAILED",
+        "USER_FOLLOWED",
+        "CONNECTION_REQUESTED",
+        "SHARE_DOWNLOADED",
+        "RESUME_VERSION_CREATED",
+        "RESUME_VERSION_RESTORED"
       ],
       "exposedIn": []
     },
@@ -171,33 +224,6 @@
         "TERMS_OF_SERVICE",
         "PRIVACY_POLICY",
         "MARKETING_CONSENT"
-      ],
-      "exposedIn": []
-    },
-    "ResumeTemplate": {
-      "values": [
-        "PROFESSIONAL",
-        "CREATIVE",
-        "TECHNICAL",
-        "MINIMAL",
-        "MODERN",
-        "EXECUTIVE",
-        "ACADEMIC"
-      ],
-      "exposedIn": []
-    },
-    "ActivityType": {
-      "values": [
-        "RESUME_CREATED",
-        "RESUME_UPDATED",
-        "RESUME_SHARED",
-        "RESUME_PUBLISHED",
-        "THEME_PUBLISHED",
-        "ACHIEVEMENT_EARNED",
-        "SKILL_ADDED",
-        "PROFILE_UPDATED",
-        "FOLLOWED_USER",
-        "CONNECTED_USER"
       ],
       "exposedIn": []
     },
@@ -210,61 +236,48 @@
       ],
       "exposedIn": []
     },
-    "PostType": {
-      "values": [
-        "ACHIEVEMENT",
-        "OPPORTUNITY",
-        "LEARNING",
-        "BUILD",
-        "QUESTION",
-        "REPOST",
-        "CHALLENGE"
-      ],
-      "exposedIn": [
-        "src/bounded-contexts/feed/dto/create-post-request.dto.ts"
-      ]
-    },
-    "AnonymousCategory": {
-      "values": [
-        "SALARY",
-        "INTERVIEW",
-        "LAYOFF",
-        "TOXIC_CULTURE",
-        "HARASSMENT"
-      ],
-      "exposedIn": []
-    },
-    "ReactionType": {
-      "values": [
-        "LIKE",
-        "CELEBRATE",
-        "LOVE",
-        "INSIGHTFUL",
-        "CURIOUS"
-      ],
-      "exposedIn": []
-    },
-    "ReportStatus": {
-      "values": [
-        "PENDING",
-        "REVIEWED",
-        "DISMISSED"
-      ],
-      "exposedIn": []
-    },
     "NotificationType": {
       "values": [
-        "POST_LIKED",
-        "POST_COMMENTED",
-        "POST_REPOSTED",
-        "POST_BOOKMARKED",
-        "COMMENT_REPLIED",
-        "CONNECTION_REQUEST",
-        "CONNECTION_ACCEPTED",
-        "FOLLOW_NEW",
-        "SKILL_DECAY",
         "APPLICATION_STALE",
-        "CONNECTION_RECOMMENDATION"
+        "FIT_PROFILE_EXPIRED",
+        "FIT_PROFILE_EXPIRY_REMINDER",
+        "MATCH_RECOMMENDATIONS_READY",
+        "RESUME_QUALITY_IMPROVED",
+        "RESUME_QUALITY_REGRESSED",
+        "MESSAGE_RECEIVED"
+      ],
+      "exposedIn": []
+    },
+    "VerificationPurpose": {
+      "values": [
+        "EMAIL_VERIFY",
+        "EMAIL_CHANGE",
+        "PASSWORD_CHANGE",
+        "ACCOUNT_DELETION"
+      ],
+      "exposedIn": []
+    },
+    "ProfileVisibility": {
+      "values": [
+        "PUBLIC",
+        "RECRUITERS_ONLY",
+        "PRIVATE"
+      ],
+      "exposedIn": []
+    },
+    "MessagePrivacy": {
+      "values": [
+        "EVERYONE",
+        "RECRUITERS_ONLY",
+        "NOBODY"
+      ],
+      "exposedIn": []
+    },
+    "DevicePlatform": {
+      "values": [
+        "IOS",
+        "ANDROID",
+        "WEB"
       ],
       "exposedIn": []
     },
@@ -278,7 +291,7 @@
         "FREELANCE"
       ],
       "exposedIn": [
-        "src/bounded-contexts/jobs/dto/job.dto.ts"
+        "src/bounded-contexts/jobs/dto/job.schema.ts"
       ]
     },
     "PaymentCurrency": {
@@ -289,8 +302,8 @@
         "GBP"
       ],
       "exposedIn": [
-        "src/bounded-contexts/jobs/presenters/job.presenter.ts",
-        "src/bounded-contexts/jobs/dto/job.dto.ts"
+        "src/bounded-contexts/jobs/dto/job.schema.ts",
+        "src/bounded-contexts/jobs/presenters/job.presenter.ts"
       ]
     },
     "RemotePolicy": {
@@ -300,8 +313,8 @@
         "ONSITE"
       ],
       "exposedIn": [
-        "src/bounded-contexts/jobs/presenters/job.presenter.ts",
-        "src/bounded-contexts/jobs/dto/job.dto.ts"
+        "src/bounded-contexts/jobs/dto/job.schema.ts",
+        "src/bounded-contexts/jobs/presenters/job.presenter.ts"
       ]
     },
     "EnglishLevel": {
@@ -312,7 +325,7 @@
         "FLUENT"
       ],
       "exposedIn": [
-        "src/bounded-contexts/jobs/dto/job.dto.ts"
+        "src/bounded-contexts/jobs/dto/job.schema.ts"
       ]
     },
     "ApplyMode": {
@@ -323,35 +336,73 @@
       ],
       "exposedIn": []
     },
-    "ImportSource": {
+    "FitDimension": {
       "values": [
-        "LINKEDIN",
-        "PDF",
-        "DOCX",
-        "JSON",
-        "GITHUB"
+        "BIG_FIVE_OPENNESS",
+        "BIG_FIVE_CONSCIENTIOUSNESS",
+        "BIG_FIVE_EXTRAVERSION",
+        "BIG_FIVE_AGREEABLENESS",
+        "BIG_FIVE_NEUROTICISM",
+        "SCHWARTZ_SELF_DIRECTION",
+        "SCHWARTZ_STIMULATION",
+        "SCHWARTZ_HEDONISM",
+        "SCHWARTZ_ACHIEVEMENT",
+        "SCHWARTZ_POWER",
+        "SCHWARTZ_SECURITY",
+        "SCHWARTZ_CONFORMITY",
+        "SCHWARTZ_TRADITION",
+        "SCHWARTZ_BENEVOLENCE",
+        "SCHWARTZ_UNIVERSALISM",
+        "SDT_AUTONOMY",
+        "SDT_COMPETENCE",
+        "SDT_RELATEDNESS"
       ],
       "exposedIn": []
     },
-    "ImportStatus": {
+    "SkillProficiency": {
       "values": [
-        "PENDING",
-        "PROCESSING",
-        "MAPPING",
-        "VALIDATING",
-        "IMPORTING",
-        "COMPLETED",
-        "FAILED",
-        "PARTIAL"
+        "BEGINNER",
+        "INTERMEDIATE",
+        "ADVANCED",
+        "EXPERT"
       ],
       "exposedIn": []
     },
-    "SuccessStoryStatus": {
+    "ModifierEffect": {
       "values": [
-        "DRAFT",
-        "PENDING_REVIEW",
-        "PUBLISHED",
-        "ARCHIVED"
+        "DENY",
+        "GRANT"
+      ],
+      "exposedIn": []
+    },
+    "ModifierType": {
+      "values": [
+        "SUSPEND_EMAIL_VERIFIED",
+        "SUSPEND_ONBOARDING",
+        "SUSPEND_ROLE_USER",
+        "SUSPEND_ROLE_ADMIN",
+        "GRANT_PERMISSION"
+      ],
+      "exposedIn": []
+    },
+    "JobApplicationStatus": {
+      "values": [
+        "SUBMITTED",
+        "VIEWED",
+        "REJECTED",
+        "ACCEPTED",
+        "WITHDRAWN"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/jobs/dto/job.schema.ts"
+      ]
+    },
+    "EmailDeliveryMode": {
+      "values": [
+        "INSTANT",
+        "DAILY",
+        "WEEKLY",
+        "OFF"
       ],
       "exposedIn": []
     },
@@ -373,26 +424,29 @@
       ],
       "exposedIn": []
     },
-    "JobApplicationStatus": {
+    "RoleTitleSource": {
       "values": [
-        "SUBMITTED",
-        "VIEWED",
-        "REJECTED",
-        "ACCEPTED",
-        "WITHDRAWN"
+        "ESCO",
+        "CBO",
+        "ONET",
+        "CURATED"
       ],
       "exposedIn": []
     },
-    "JobApplicationEventType": {
+    "RoleTitleLang": {
       "values": [
-        "SUBMITTED",
-        "VIEWED",
-        "INTERVIEW_SCHEDULED",
-        "INTERVIEW_COMPLETED",
-        "OFFER_RECEIVED",
-        "REJECTED",
-        "WITHDRAWN",
-        "FOLLOW_UP_SENT"
+        "EN",
+        "PT"
+      ],
+      "exposedIn": []
+    },
+    "RoleSeniority": {
+      "values": [
+        "INTERN",
+        "JUNIOR",
+        "MID",
+        "SENIOR",
+        "TRAINEE"
       ],
       "exposedIn": []
     }

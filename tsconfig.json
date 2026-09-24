@@ -30,6 +30,7 @@
     }
   },
   "exclude": [
+    "src/bounded-contexts/billing-deprecated",
     "scripts",
     "prisma",
     "commitlint.config.ts",

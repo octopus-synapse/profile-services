@@ -16,7 +16,7 @@ import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
-import { overlayTailoredVersion } from './tailored-version-overlay';
+import { overlayTailoredVersion, tailoredVersionLocale } from './tailored-version-overlay';
 import type { TypstCompilerService } from './typst-compiler.service';
 import type { TypstDataSerializerService } from './typst-data-serializer.service';
 
@@ -52,7 +52,10 @@ export class TypstPdfGeneratorService {
     // 1. Find resume: explicit resumeId, else the user's primary.
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeIdOrNull(userId));
     const locale = resolveLocale(
-      options.lang,
+      options.lang ??
+        (resumeId
+          ? ((await tailoredVersionLocale(this.prisma, resumeId, options.versionId)) ?? undefined)
+          : undefined),
       resumeId ? await this.findResumeLanguage(resumeId) : null,
     );
 

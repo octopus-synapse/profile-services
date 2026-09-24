@@ -1,4 +1,4 @@
-.PHONY: help dev prod build up down logs clean restart status tailor-lab-setup
+.PHONY: help dev dev-build prod build up down logs clean restart status tailor-lab-setup
 
 DOCKER_COMPOSE ?= docker compose
 
@@ -7,7 +7,7 @@ help:
 	@echo "Profile Application - Docker Commands"
 	@echo ""
 	@echo "Development:"
-	@echo "  make dev              - Start development environment"
+	@echo "  make dev              - Build and start development environment (waits for API health)"
 	@echo "  make dev-build        - Build and start development environment"
 	@echo "  make dev-down         - Stop development environment"
 	@echo "  make dev-logs         - Show development logs"
@@ -43,15 +43,14 @@ help:
 # ==========================================
 # Development Environment
 # ==========================================
+# Rebuild changed dependencies and refresh the anonymous node_modules volume;
+# otherwise bind-mounted source can import packages absent from the old image.
 dev:
 	@export GITHUB_TOKEN="$${GITHUB_TOKEN:-$${GH_PAT:-$$(gh auth token 2>/dev/null)}}"; \
 	export BUN_AUTH_TOKEN="$$GITHUB_TOKEN"; \
-	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --remove-orphans
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --build --renew-anon-volumes --remove-orphans --wait --wait-timeout 180
 
-dev-build:
-	@export GITHUB_TOKEN="$${GITHUB_TOKEN:-$${GH_PAT:-$$(gh auth token 2>/dev/null)}}"; \
-	export BUN_AUTH_TOKEN="$$GITHUB_TOKEN"; \
-	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --build --remove-orphans
+dev-build: dev
 
 dev-down:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml down

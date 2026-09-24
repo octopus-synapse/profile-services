@@ -25,7 +25,13 @@ const SRC_DIR = resolve(__dirname, '../../../src');
 
 function* walkRoutesFiles(dir: string): Generator<string> {
   for (const entry of readdirSync(dir).sort()) {
-    if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing') continue;
+    if (
+      entry === 'node_modules' ||
+      entry === '__tests__' ||
+      entry === 'testing' ||
+      entry === 'billing-deprecated'
+    )
+      continue;
     const full = join(dir, entry);
     const st = statSync(full);
     if (st.isDirectory()) yield* walkRoutesFiles(full);

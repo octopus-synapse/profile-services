@@ -12,6 +12,22 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { applyTailoredSnapshotToAst } from '../../helpers/apply-tailored-snapshot.helper';
 
+export async function tailoredVersionLocale(
+  prisma: PrismaService,
+  resumeId: string,
+  versionId?: string,
+): Promise<'pt-BR' | 'en' | null> {
+  if (!versionId) return null;
+  const version = await prisma.resumeVersion.findUnique({
+    where: { id: versionId },
+    select: { resumeId: true, isTailored: true, snapshot: true },
+  });
+  if (!version || version.resumeId !== resumeId || !version.isTailored)
+    throw new EntityNotFoundException('ResumeVersion', versionId);
+  const locale = (version.snapshot as { targetLocale?: unknown } | null)?.targetLocale;
+  return locale === 'en' || locale === 'pt-BR' ? locale : null;
+}
+
 export async function overlayTailoredVersion<T>(
   prisma: PrismaService,
   ast: T,

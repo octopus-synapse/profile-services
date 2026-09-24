@@ -100,6 +100,14 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
     return account;
   }
 
+  async completeUnverified(email: string, passwordHash: string): Promise<AccountData | null> {
+    const account = await this.findByEmail(email);
+    if (!account?.isActive || this.verifiedEmails.has(account.id)) return null;
+    this.passwordHashes.set(account.id, passwordHash);
+    this.verifiedEmails.add(account.id);
+    return account;
+  }
+
   async deactivate(userId: string): Promise<void> {
     const account = this.accounts.get(userId);
     if (account) {

@@ -14,15 +14,11 @@
  * `SseStreamPort.subscribe(...)`. Both ends share the same in-process
  * channel id.
  *
- * Background jobs:
- *  - `fit-profile-expiry-reminder` BullMQ-shaped queue: surfaced as a
- *    `BcWorkerBinding` (composition `workers`).
- *  - The daily fan-out tick + the daily digest cron live in a
- *    `lifecycle.init()` so we don't re-run them on hot-reload.
+ * Background jobs: the daily digest cron lives in a `lifecycle.init()` so
+ * it is not re-registered on hot-reload.
  */
 
 import { filter, map } from 'rxjs';
-import { UserFitProfileUpdatedEvent } from '@/bounded-contexts/fit-profile/domain/events';
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
@@ -62,13 +58,7 @@ import { PrismaFitProfileExpiryAdapter } from './infrastructure/adapters/persist
 import { PrismaNotificationsRepository } from './infrastructure/adapters/persistence/prisma-notifications.repository';
 import { PrismaPushDeviceRepository } from './infrastructure/adapters/persistence/prisma-push-device.repository';
 import { PrismaResumeQualitySnapshotAdapter } from './infrastructure/adapters/persistence/prisma-resume-quality-snapshot.adapter';
-import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
 import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
-import {
-  FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-  type FitProfileExpiryReminderJobData,
-  FitProfileExpiryReminderWorker,
-} from './infrastructure/workers/fit-profile-expiry-reminder.worker';
 import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
 import {
   NotificationsSseBundle,
@@ -193,29 +183,17 @@ export function buildNotificationsComposition(
   const sseBundle = buildNotificationsSseBundle(sse);
 
   // --- Event handlers (POJO `@OnEvent` replacements) ---
-  const fitProfileExpired = new FitProfileExpiredNotificationHandler(useCases, logger);
   const qualityRank = new ResumeQualityRankNotificationHandler(useCases, logger);
 
   const eventHandlers: ReadonlyArray<BcEventBinding> = [
-    {
-      eventType: UserFitProfileUpdatedEvent.TYPE,
-      handler: fitProfileExpired.handle.bind(fitProfileExpired),
-    },
     {
       eventType: ResumeQualityComputedEvent.TYPE,
       handler: qualityRank.handle.bind(qualityRank),
     },
   ];
 
-  // --- Workers (BullMQ-shaped queue processors) ---
-  const expiryReminder = new FitProfileExpiryReminderWorker(useCases, queue, logger);
-
-  const workers: ReadonlyArray<BcWorkerBinding> = [
-    {
-      queue: FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-      process: expiryReminder.process.bind(expiryReminder) as BcWorkerBinding['process'],
-    },
-  ];
+  // Fit expiry reminders are intentionally disabled while Fit is out of the product.
+  const workers: ReadonlyArray<BcWorkerBinding> = [];
 
   // --- Cron + repeat-job lifecycle (digests + fan-out tick) ---
   const dailyDigest = new NotificationDigestWorker(useCases, logger, lock);
@@ -224,16 +202,6 @@ export function buildNotificationsComposition(
     {
       init: async (): Promise<void> => {
         cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
-        // Daily 09:00 America/Sao_Paulo fan-out tick — through the queue's
-        // repeat semantics so multiple instances booting don't double-tick.
-        await queue.schedule<FitProfileExpiryReminderJobData>(
-          FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-          { kind: 'schedule' },
-          {
-            repeat: { pattern: '0 9 * * *', tz: 'America/Sao_Paulo' },
-            jobId: 'fit-profile-expiry-reminder-schedule-cron',
-          },
-        );
       },
     },
   ];
@@ -243,6 +211,7 @@ export function buildNotificationsComposition(
   // `eventHandlers` bindings — keep the param so cross-BC composition
   // call sites stay symmetric.
   void eventBus;
+  void queue;
 
   return {
     useCases,

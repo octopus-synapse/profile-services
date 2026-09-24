@@ -15,6 +15,7 @@ import type { JobsUseCases } from './application/ports/jobs.port';
 import {
   DidApplyExternalJobResponseSchema,
   DidApplyExternalJobSchema,
+  ExternalJobItemSchema,
   ExternalJobListQuerySchema,
   ExternalJobsListResponseSchema,
   SavedExternalJobsListResponseSchema,
@@ -46,6 +47,7 @@ export const externalJobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
       const result = await bc.listExternalJobs.execute(
         {
           q: query.q,
+          location: query.location,
           workMode: query.workMode,
           employmentType: query.employmentType,
           postedWithin: query.postedWithin,
@@ -74,6 +76,24 @@ export const externalJobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
       const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       const result = await bc.listSavedExternalJobs.execute(ctx.user!.userId, page, limit);
       return { ...result, items: result.items.map(toSavedExternalJobResponseDto) };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/jobs/external/:id',
+    auth: { kind: 'jwt' },
+    permission: Permission.FEED_USE,
+    params: IdParamSchema,
+    response: ExternalJobItemSchema,
+    openapi: {
+      summary: 'Get an external listing or an owned saved snapshot by id',
+      tags: ['jobs'],
+      description: 'Resolves job detail links without requiring a previous catalog request.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { id } = ctx.params as { id: string };
+      return toExternalJobResponseDto(await bc.getExternalJob.execute(id, ctx.user!.userId));
     },
   },
   {

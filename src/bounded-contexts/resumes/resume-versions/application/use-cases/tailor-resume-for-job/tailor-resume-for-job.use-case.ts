@@ -42,28 +42,46 @@ export class TailorResumeForJobUseCase {
     /** Best-effort compatibility estimate; null disables the signal. */
     private readonly match: TailorMatchPort | null = null,
     private readonly meter: PreparationMeterPort | null = null,
+    private readonly ensureTargetLocale?: (
+      resumeId: string,
+      locale: 'pt-BR' | 'en',
+    ) => Promise<void>,
   ) {}
 
   async execute(input: TailorJobInput): Promise<TailorResumeResult> {
     const resume = await this.loadOwnedResume(input.resumeId, input.userId);
     const resolved = await this.resolveJob(input);
+    const sourceLocale = resume.language === 'en' ? 'en' : 'pt-BR';
+    const targetLocale =
+      input.targetLocale ??
+      detectJobLocale(resolved.job.description, resolved.job.title) ??
+      sourceLocale;
     const reservation = (await this.meter?.reserve(input.userId)) ?? null;
 
     try {
+      let contentResume = resume;
+      if (targetLocale !== sourceLocale && this.ensureTargetLocale) {
+        await this.ensureTargetLocale(resume.id, targetLocale);
+        contentResume =
+          (await this.repository.findResumeForTailor(resume.id, targetLocale)) ?? resume;
+      }
       let tailored: Awaited<ReturnType<typeof this.llm.tailorResume>>;
       try {
         tailored = await this.llm.tailorResume({
           resume: {
-            summary: resume.summary,
-            jobTitle: resume.jobTitle,
-            primaryStack: resume.primaryStack,
-            sections: resume.resumeSections.map((section) => ({
+            summary: contentResume.summary,
+            jobTitle: contentResume.jobTitle,
+            primaryStack: contentResume.primaryStack,
+            sections: contentResume.resumeSections.map((section) => ({
               key: section.sectionType.key,
               semanticKind: section.sectionType.semanticKind,
               items: section.items.map((item) => ({ id: item.id, content: item.content })),
             })),
           },
           job: resolved.job,
+          sourceLocale: contentResume === resume ? sourceLocale : targetLocale,
+          targetLocale,
+          ...(input.candidateContext ? { candidateContext: input.candidateContext } : {}),
         });
       } catch (err) {
         // The LLM port can fail in many ways (rate limit, network, provider
@@ -77,13 +95,29 @@ export class TailorResumeForJobUseCase {
         throw new TailorEngineUnavailableException();
       }
 
+      if (tailored.usage) {
+        try {
+          await this.meter?.recordAiUsage?.({
+            userId: input.userId,
+            operation: 'tailor-resume',
+            ...tailored.usage,
+          });
+        } catch (error) {
+          this.logger.warn(
+            `Could not record AI usage: ${error instanceof Error ? error.message : 'unknown'}`,
+            'TailorResumeForJobUseCase',
+          );
+        }
+      }
+
       const label = this.labelFor(resolved.job);
 
       const snapshot = {
+        targetLocale,
         master: {
-          summary: resume.summary,
-          jobTitle: resume.jobTitle,
-          bullets: this.flattenBullets(resume),
+          summary: contentResume.summary,
+          jobTitle: contentResume.jobTitle,
+          bullets: this.flattenBullets(contentResume),
         },
         tailored: {
           summary: tailored.summary,
@@ -109,6 +143,7 @@ export class TailorResumeForJobUseCase {
       const match = await this.estimateMatch(input, resolved, tailored.bullets);
 
       return {
+        targetLocale,
         versionId: created.id,
         versionNumber: created.versionNumber,
         label: created.label ?? label,
@@ -204,4 +239,33 @@ export class TailorResumeForJobUseCase {
     const clean = (s: string) => s.replace(/\s+/g, ' ').trim();
     return `Tailored for ${clean(job.company)} — ${clean(job.title)}`.slice(0, 180);
   }
+}
+
+function detectJobLocale(description: string, title: string): 'pt-BR' | 'en' | null {
+  const text = ` ${description} ${title} `.toLowerCase();
+  const words = text.match(/[a-zà-ÿ]+/gu) ?? [];
+  const pt = new Set([
+    'para',
+    'com',
+    'experiência',
+    'conhecimento',
+    'vaga',
+    'requisitos',
+    'trabalho',
+    'equipe',
+  ]);
+  const en = new Set([
+    'with',
+    'experience',
+    'requirements',
+    'role',
+    'team',
+    'work',
+    'skills',
+    'you',
+  ]);
+  const ptCount = words.filter((word) => pt.has(word)).length;
+  const enCount = words.filter((word) => en.has(word)).length;
+  if (Math.max(ptCount, enCount) < 2 || Math.abs(ptCount - enCount) < 2) return null;
+  return ptCount > enCount ? 'pt-BR' : 'en';
 }

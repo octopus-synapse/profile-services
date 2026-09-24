@@ -1,4 +1,5 @@
 export * from './accept-consent';
+export { CompleteUnverifiedAccountUseCase } from './complete-unverified-account/complete-unverified-account.use-case';
 export * from './confirm-account-deletion';
 export * from './create-account';
 export * from './deactivate-account';

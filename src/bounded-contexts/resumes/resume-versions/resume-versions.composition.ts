@@ -52,6 +52,7 @@ export function buildResumeVersionsUseCases(
   tailorMatch: TailorMatchPort | null = null,
   repository: ResumeVersionsRepositoryPort = buildResumeVersionsRepository(prisma, logger),
   meter: PreparationMeterPort | null = null,
+  ensureTargetLocale?: (resumeId: string, locale: 'pt-BR' | 'en') => Promise<void>,
 ): ResumeVersionsUseCases {
   // Repos
   const repo = repository;
@@ -66,7 +67,14 @@ export function buildResumeVersionsUseCases(
     createSnapshot,
     getVersions: new GetVersionsUseCase(repo),
     restoreVersion: new RestoreVersionUseCase(repo, createSnapshot, events, logger),
-    tailorResumeForJob: new TailorResumeForJobUseCase(repo, tailorLlm, logger, tailorMatch, meter),
+    tailorResumeForJob: new TailorResumeForJobUseCase(
+      repo,
+      tailorLlm,
+      logger,
+      tailorMatch,
+      meter,
+      ensureTargetLocale,
+    ),
     getTailoredVersions: new GetTailoredVersionsUseCase(repo),
     getTailoredVersionDiff: new GetTailoredVersionDiffUseCase(repo),
   };
@@ -92,6 +100,7 @@ export function buildResumeVersionsComposition(
   events: ResumeEventPublisher,
   tailorMatch: TailorMatchPort | null = null,
   meter: PreparationMeterPort | null = null,
+  ensureTargetLocale?: (resumeId: string, locale: 'pt-BR' | 'en') => Promise<void>,
 ): BoundedContextComposition<ResumeVersionsUseCases> & ResumeVersionsCompositionExtras {
   const repository = buildResumeVersionsRepository(prisma, logger);
   const useCases = buildResumeVersionsUseCases(
@@ -102,6 +111,7 @@ export function buildResumeVersionsComposition(
     tailorMatch,
     repository,
     meter,
+    ensureTargetLocale,
   );
   const tailor = new ResumeTailorService(
     useCases.tailorResumeForJob,

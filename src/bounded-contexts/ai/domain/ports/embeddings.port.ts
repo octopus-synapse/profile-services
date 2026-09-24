@@ -14,6 +14,7 @@ export interface EmbeddingsResult {
   /** 1536-dim vector for OpenAI small; providers may differ. */ readonly vector: readonly number[];
   /** Provider-reported token count for cost logging. */
   readonly tokensUsed: number;
+  readonly model?: string;
 }
 
 export abstract class EmbeddingsPort {

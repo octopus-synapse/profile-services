@@ -21,7 +21,7 @@ import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { normalizeLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { AstHtmlRendererService } from './ast-html-renderer.service';
-import { overlayTailoredVersion } from './tailored-version-overlay';
+import { overlayTailoredVersion, tailoredVersionLocale } from './tailored-version-overlay';
 
 /**
  * `?lang=` → `Locale`. Delegates the spelling rules to the shared
@@ -90,7 +90,12 @@ export class ResumeHtmlGeneratorService {
     if (!userId) throw new TypstUserIdRequiredException();
 
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
-    const locale = resolveLocale(options.lang, await this.findResumeLanguage(resumeId));
+    const locale = resolveLocale(
+      options.lang ??
+        (await tailoredVersionLocale(this.prisma, resumeId, options.versionId)) ??
+        undefined,
+      await this.findResumeLanguage(resumeId),
+    );
 
     let { ast } = await this.dsl.renderResumeDsl.execute({
       resumeId,

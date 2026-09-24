@@ -82,9 +82,12 @@ export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepo
         OR: [
           { title: { contains: filters.q, mode: 'insensitive' } },
           { company: { contains: filters.q, mode: 'insensitive' } },
+          { description: { contains: filters.q, mode: 'insensitive' } },
         ],
       });
     }
+    if (filters.location)
+      and.push({ location: { contains: filters.location, mode: 'insensitive' } });
     if (filters.postedAfter) {
       // COALESCE(postedAt, fetchedAt) >= cutoff — same fallback the UI
       // uses to display recency (postedAt is often null for BR rows).
@@ -122,6 +125,11 @@ export class PrismaExternalJobListingsRepository extends ExternalJobListingsRepo
     const row = await this.prisma.externalJobListing.findUnique({ where: { id } });
     if (!row) return null;
     return { ...row, raw: (row.raw ?? {}) as Record<string, unknown> };
+  }
+
+  async findListingByExternalId(externalId: string): Promise<ExternalJobListingRecord | null> {
+    const row = await this.prisma.externalJobListing.findUnique({ where: { externalId } });
+    return row ? { ...row, raw: (row.raw ?? {}) as Record<string, unknown> } : null;
   }
 
   async deleteFetchedBefore(cutoff: Date): Promise<number> {

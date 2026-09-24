@@ -9,6 +9,7 @@
  * swallows (logger.warn) rather than rethrowing into the event-bus loop.
  */
 
+import type { PaidAccessPort } from '@/bounded-contexts/billing';
 import type { JobApplicationSubmittedEvent } from '@/bounded-contexts/jobs/domain/events';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
@@ -21,12 +22,14 @@ export class SnapshotMatchOnApplicationSubmittedHandler {
     private readonly computeMatch: ComputeMatchUseCase,
     private readonly prisma: PrismaService,
     private readonly logger: LoggerPort,
+    private readonly billing?: PaidAccessPort,
   ) {}
 
   async onApplicationSubmitted(event: JobApplicationSubmittedEvent): Promise<void> {
     const applicationId = event.aggregateId;
     const { userId, jobId, resumeId } = event.payload;
     try {
+      if (this.billing && !(await this.billing.isPaid(userId))) return;
       const breakdown = await this.computeMatch.execute({ userId, resumeId, jobId });
       await this.prisma.jobApplication.update({
         where: { id: applicationId },

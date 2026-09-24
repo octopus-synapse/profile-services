@@ -17,9 +17,10 @@ export abstract class DomainEvent<TPayload = unknown> {
     readonly aggregateId: string,
     readonly payload: TPayload,
     schemaVersion = 1,
+    metadata?: { readonly eventId: string; readonly occurredAt: Date },
   ) {
-    this.eventId = randomUUID();
-    this.occurredAt = new Date();
+    this.eventId = metadata?.eventId ?? randomUUID();
+    this.occurredAt = metadata?.occurredAt ?? new Date();
     this.schemaVersion = schemaVersion;
   }
 }

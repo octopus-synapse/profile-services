@@ -4,14 +4,13 @@
  * The Readiness Score answers "how ready is this (master) resume to
  * compete in the market?" WITHOUT a specific job in context — the one
  * job-independent number the Match Score can't provide (Match needs a
- * `(resume, job)` pair + a valid fit profile).
+ * `(resume, job)` pair).
  *
  * v1 is a deterministic blend of signals the platform already computes,
  * so it costs no extra AI calls:
  *   - quality   — the latest Resume Quality Score (writing + completeness)
  *   - coverage  — breadth of distinct skills/keywords on the resume
- *   - fit       — fit-questionnaire freshness (does the user have a valid
- *                 behavioural vector, i.e. has matching been unlocked)
+ *   - fit       — legacy response slot, disabled and always null
  *
  * A market-relative enrichment (coverage measured against the user's
  * target role's in-demand skills) is a deliberate follow-up — see
@@ -37,21 +36,21 @@ export interface ReadinessBreakdown {
 }
 
 /** Semver of the Readiness blend. Bump on any weight/rule change.
- * 1.1.0 — coverage became market-relative (résumé skills vs target-role
- * in-demand skills), falling back to the count-based coverage. */
-export const READINESS_RULES_VERSION = '1.1.0';
+ * 1.2.0 — Fit was removed from scoring; Quality and Coverage are the only
+ * active factors. */
+export const READINESS_RULES_VERSION = '1.2.0';
 
 /**
  * Default factor weights — must sum to 1.0.
  *
- * - quality 55% — the dominant "is the CV any good" signal
- * - coverage 25% — breadth of demonstrated skills
- * - fit 20% — has the user unlocked matching (completed the questionnaire)
+ * - quality 68.75% — the dominant "is the CV any good" signal
+ * - coverage 31.25% — breadth of demonstrated skills
+ * - fit 0% — legacy compatibility slot; intentionally inactive
  */
 export const READINESS_WEIGHTS = {
-  quality: 0.55,
-  coverage: 0.25,
-  fit: 0.2,
+  quality: 0.6875,
+  coverage: 0.3125,
+  fit: 0,
 } as const satisfies Record<ReadinessFactorKey, number>;
 
 /**

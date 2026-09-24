@@ -79,6 +79,7 @@ function inferUiType(fieldType: string, widget: unknown): string {
   if (fieldType === 'date') return 'date';
   if (fieldType === 'number') return 'number';
   if (fieldType === 'boolean') return 'checkbox';
+  if (typeof widget === 'string' && widget === 'url') return 'url';
   if (typeof widget === 'string' && widget === 'textarea') return 'textarea';
   return 'text';
 }

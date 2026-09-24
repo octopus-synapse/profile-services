@@ -5,9 +5,11 @@
  */
 
 import type { ComputeQualityUseCase } from '../use-cases/compute-quality.use-case';
+import type { AiUsageRecorderPort, PaidAccessPort } from '@/bounded-contexts/billing';
 import type { GetLatestQualityUseCase } from '../use-cases/get-latest-quality.use-case';
 
 export abstract class ResumeQualityUseCases {
+  readonly billing?: PaidAccessPort & AiUsageRecorderPort;
   abstract readonly computeQuality: ComputeQualityUseCase;
   abstract readonly getLatestQuality: GetLatestQualityUseCase;
 }

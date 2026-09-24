@@ -2,6 +2,7 @@ import {
   type NormalizedRequirementsResult,
   ScoringLlmPort,
 } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
+import type { AiUsageRecorderPort } from '@/bounded-contexts/billing';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import {
@@ -35,6 +36,7 @@ export class AiRequirementsMatcherAdapter extends RequirementsMatcherPort {
     private readonly scoringLlm: ScoringLlmPort,
     private readonly prisma: PrismaService,
     private readonly logger: LoggerPort,
+    private readonly billing?: AiUsageRecorderPort,
   ) {
     super();
   }
@@ -56,6 +58,20 @@ export class AiRequirementsMatcherAdapter extends RequirementsMatcherPort {
         summary: resume.summary,
         targetSlots,
       });
+      if (normalized.usage) {
+        await this.billing
+          ?.recordAiUsage({
+            userId: resume.userId,
+            operation: 'match-requirements',
+            ...normalized.usage,
+          })
+          .catch((error) =>
+            this.logger.warn(
+              `Could not record match cost: ${error instanceof Error ? error.message : 'unknown'}`,
+              'AiRequirementsMatcherAdapter',
+            ),
+          );
+      }
     } catch (err) {
       this.logger.warn(
         `Requirements normaliser failed: ${(err as Error).message}`,
@@ -146,16 +162,18 @@ export class AiRequirementsMatcherAdapter extends RequirementsMatcherPort {
   }
 
   private async loadResume(resumeId: string): Promise<{
+    userId: string;
     bullets: ReadonlyArray<{ id: string; text: string }>;
     skills: readonly string[];
     summary: string | null;
   } | null> {
     const row = await this.prisma.resume.findUnique({
       where: { id: resumeId },
-      select: { summary: true, jobTitle: true, primaryStack: true },
+      select: { userId: true, summary: true, jobTitle: true, primaryStack: true },
     });
     if (!row) return null;
     return {
+      userId: row.userId,
       bullets: row.jobTitle ? [{ id: 'role', text: row.jobTitle }] : [],
       skills: row.primaryStack ?? [],
       summary: row.summary,

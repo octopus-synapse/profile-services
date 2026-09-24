@@ -66,20 +66,25 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     body: StartPreSignupVerificationSchema,
     response: StartPreSignupVerificationResponseSchema,
     guards: [
-      // Sends an e-mail per hit — cap hard. 5/5min per IP covers a human
-      // (first send + a couple of resends after the 60s cooldown) while a
-      // spammer burning our sender reputation starves. The use case adds a
-      // per-e-mail 60s cooldown on top.
-      { id: 'rate-limit', metadata: { points: 5, durationSeconds: 300, keyStrategy: 'ip' } }, // lint-allow-magic-number: the budget IS the policy — rationale above
+      // Production caps sends at 5/5min per IP. Local development uses a
+      // larger budget because several test accounts share the same loopback
+      // address; the per-e-mail 60s cooldown still applies in every env.
+      {
+        id: 'rate-limit',
+        metadata: {
+          points: process.env.NODE_ENV === 'production' ? 5 : 30,
+          durationSeconds: 300,
+          keyStrategy: 'ip',
+        },
+      }, // lint-allow-magic-number: explicit per-environment send budgets
       { id: 'multi-step-flow' },
     ],
     openapi: {
-      summary: 'Start pre-signup e-mail verification (identifier-first)',
+      summary: 'Start identifier-first e-mail verification',
       tags: ['email-verification'],
       description:
-        'Sends a 6-digit code to an e-mail that has no account yet — step 2 of the unified ' +
-        '"sign in or create account" flow (e-mail → code → password). Rejects e-mails that ' +
-        'already have an account; the code lives 15 minutes and resends respect a 60s cooldown.',
+        'Sends a 6-digit code to a new e-mail or an existing account awaiting verification. ' +
+        'Rejects verified accounts; the code lives 15 minutes and resends respect a 60s cooldown.',
     },
     sdk: { exported: true, name: 'startPreSignupVerification' },
     handler: async (ctx, bc) => {
@@ -113,12 +118,12 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
       { id: 'multi-step-flow' },
     ],
     openapi: {
-      summary: 'Confirm pre-signup e-mail verification code',
+      summary: 'Confirm identifier-first e-mail verification code',
       tags: ['email-verification'],
       description:
-        'Checks the 6-digit code sent by /start and, on success, returns the registration ' +
-        'token `POST /v1/accounts` accepts as `emailVerificationToken` — the account is then ' +
-        'created with the e-mail already verified.',
+        'Checks the 6-digit code sent by /start and returns an email verification token. ' +
+        'A new account sends it to POST /v1/accounts; a pending account sends it to ' +
+        'POST /v1/auth/complete-unverified-account.',
     },
     sdk: { exported: true, name: 'confirmPreSignupVerification' },
     handler: async (ctx, bc) => {

@@ -72,7 +72,7 @@ export abstract class ResumeVersionsRepositoryPort {
   abstract deleteVersionsByIds(ids: string[]): Promise<void>;
 
   // -------- Tailor --------
-  abstract findResumeForTailor(resumeId: string): Promise<ResumeForTailor | null>;
+  abstract findResumeForTailor(resumeId: string, locale?: 'pt-BR' | 'en'): Promise<ResumeForTailor | null>;
 
   abstract findJobById(jobId: string): Promise<JobForTailor | null>;
 

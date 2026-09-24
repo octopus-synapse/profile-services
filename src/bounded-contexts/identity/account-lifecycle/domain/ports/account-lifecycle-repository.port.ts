@@ -39,6 +39,8 @@ export abstract class AccountLifecycleRepositoryPort {
   /** Identify projection — `null` when the e-mail has no account. */
   abstract findIdentitySignalsByEmail(email: string): Promise<AccountIdentitySignals | null>;
   abstract create(data: CreateAccountData): Promise<AccountData>;
+  /** Atomically claim an existing, active, unverified account. */
+  abstract completeUnverified(email: string, passwordHash: string): Promise<AccountData | null>;
   abstract deactivate(userId: string): Promise<void>;
   abstract reactivate(userId: string): Promise<void>;
   abstract delete(userId: string): Promise<void>;

@@ -1,4 +1,3 @@
-import type { FitStatus } from '../ports/user-fit-state.port';
 import {
   READINESS_COVERAGE_TARGET,
   READINESS_WEIGHTS,
@@ -36,22 +35,6 @@ export function scoreOverlapCoverage(
 }
 
 /**
- * Maps fit-questionnaire freshness to a 0..100 sub-score. A valid vector
- * means matching is unlocked (full credit); an expired one is a partial
- * signal (the user did the work once); never-answered is zero. Pure.
- */
-export function scoreFitFreshness(status: FitStatus): number {
-  switch (status) {
-    case 'responded':
-      return 100;
-    case 'expired':
-      return 40;
-    case 'never':
-      return 0;
-  }
-}
-
-/**
  * Blends the readiness factors into the overall Readiness Score.
  *
  * Mirrors `blendMatch`: any `null` factor is dropped and the remaining
@@ -63,7 +46,7 @@ export function blendReadiness(
   factors: Record<ReadinessFactorKey, ReadinessFactorResult>,
 ): Pick<ReadinessBreakdown, 'overallScore' | 'effectiveWeights'> {
   const keys = Object.keys(READINESS_WEIGHTS) as ReadinessFactorKey[];
-  const presentKeys = keys.filter((k) => factors[k].score !== null);
+  const presentKeys = keys.filter((k) => READINESS_WEIGHTS[k] > 0 && factors[k].score !== null);
 
   const zeroWeights = Object.fromEntries(keys.map((k) => [k, 0])) as Record<
     ReadinessFactorKey,

@@ -20,6 +20,7 @@ import type {
   GetConsentHistoryUseCasePort,
   GetConsentStatusUseCasePort,
 } from '../use-cases/tokens';
+import type { CompleteUnverifiedAccountPort } from './complete-unverified-account.port';
 import type { ConfirmAccountDeletionPort } from './confirm-account-deletion.port';
 import type { CreateAccountPort } from './create-account.port';
 import type { DeactivateAccountPort } from './deactivate-account.port';
@@ -28,6 +29,7 @@ import type { RequestAccountDeletionPort } from './request-account-deletion.port
 
 export abstract class AccountLifecycleUseCases {
   abstract readonly createAccount: CreateAccountPort;
+  abstract readonly completeUnverifiedAccount: CompleteUnverifiedAccountPort;
   abstract readonly identifyAccount: IdentifyAccountPort;
   abstract readonly createSession: CreateSessionPort;
   abstract readonly deactivateAccount: DeactivateAccountPort;

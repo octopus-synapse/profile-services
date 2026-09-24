@@ -348,7 +348,10 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     method: 'GET',
     path: '/v1/users/preferences/full',
     auth: { kind: 'jwt' },
-    permission: Permission.USER_PROFILE_READ,
+    // The language picker reads this during onboarding, before the `user`
+    // role (and its profile permissions) is assigned. The JWT still scopes
+    // the response to the account owner; email verification remains required.
+    guards: [{ id: 'skip-tos-check' }],
     response: UserFullPreferencesDataSchema,
     openapi: {
       summary: 'Get all user preferences',
@@ -367,7 +370,9 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     method: 'PATCH',
     path: '/v1/users/preferences/full',
     auth: { kind: 'jwt' },
-    permission: Permission.USER_PROFILE_UPDATE,
+    // The first onboarding step saves the chosen UI language here. It must
+    // work before onboarding completion and before the `user` role exists.
+    guards: [{ id: 'skip-tos-check' }],
     body: UpdateFullPreferencesSchema,
     response: UserFullPreferencesDataSchema,
     openapi: {

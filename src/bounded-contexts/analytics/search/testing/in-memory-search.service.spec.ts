@@ -8,7 +8,7 @@ describe('InMemorySearchService.globalSearch', () => {
     svc = new InMemorySearchService();
   });
 
-  it('returns four groups in canonical order (resumes, users, jobs, posts)', async () => {
+  it('returns only people and jobs, even when resumes and posts match', async () => {
     svc.seedResume({ id: 'r1', fullName: 'react developer' });
     svc.seedUser({ id: 'u1', name: 'react fan' });
     svc.seedJob({ id: 'j1', title: 'react engineer' });
@@ -16,7 +16,7 @@ describe('InMemorySearchService.globalSearch', () => {
 
     const result = await svc.globalSearch('react', 10);
 
-    expect(result.groups.map((g) => g.type)).toEqual(['resumes', 'users', 'jobs', 'posts']);
+    expect(result.groups.map((g) => g.type)).toEqual(['users', 'jobs']);
     expect(result.groups.every((g) => g.items.length === 1)).toBe(true);
   });
 

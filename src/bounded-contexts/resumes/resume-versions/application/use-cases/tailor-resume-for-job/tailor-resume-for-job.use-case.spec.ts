@@ -122,6 +122,68 @@ describe('TailorResumeForJobUseCase', () => {
     expect(saved?.snapshot).toMatchObject({ tailored: { coverLetter: result.coverLetter } });
   });
 
+  it('keeps the selected CV language in the response and saved version', async () => {
+    repository.seedTailorResume({
+      id: resumeId,
+      userId,
+      language: 'pt-BR',
+      summary: 'Resumo',
+      jobTitle: 'Engenheira',
+      primaryStack: [],
+      resumeSections: [],
+    });
+    const result = await useCase.execute({
+      resumeId,
+      userId,
+      jobDescription: 'Work with our team on this role and build services.',
+      targetLocale: 'en',
+    });
+    expect(result.targetLocale).toBe('en');
+    const saved = await repository.findResumeVersionById(result.versionId);
+    expect(saved?.snapshot).toMatchObject({ targetLocale: 'en' });
+  });
+
+  it('prepares the other language before tailoring and sends localized text to the LLM', async () => {
+    repository.seedTailorResume({
+      id: resumeId,
+      userId,
+      language: 'pt-BR',
+      summary: 'Resumo',
+      jobTitle: 'Engenheira',
+      primaryStack: [],
+      resumeSections: [],
+    });
+    const originalLoad = repository.findResumeForTailor.bind(repository);
+    repository.findResumeForTailor = async (id, locale) => {
+      const loaded = await originalLoad(id);
+      return loaded && locale === 'en'
+        ? { ...loaded, summary: 'Summary', jobTitle: 'Engineer' }
+        : loaded;
+    };
+    const calls: string[] = [];
+    const localizedLlm = new StubResumeTailorLlm((input) => {
+      calls.push(`${input.sourceLocale}:${input.resume.summary}`);
+      return { summary: 'Tailored summary', jobTitle: 'Engineer', coverLetter: null, bullets: [] };
+    });
+    const tailored = new TailorResumeForJobUseCase(
+      repository,
+      localizedLlm,
+      stubLogger,
+      null,
+      null,
+      async (_id, locale) => {
+        calls.push(`translate:${locale}`);
+      },
+    );
+    await tailored.execute({
+      resumeId,
+      userId,
+      jobDescription: 'Work with our team in this role.',
+      targetLocale: 'en',
+    });
+    expect(calls).toEqual(['translate:en', 'en:Summary']);
+  });
+
   it('wraps LLM failures in TailorEngineUnavailableException', async () => {
     repository.seedTailorResume({
       id: resumeId,
@@ -198,5 +260,32 @@ describe('TailorResumeForJobUseCase', () => {
 
     expect(result.label).toContain('Unknown company');
     expect(result.label).toContain('Target role');
+  });
+  it('passes personal motivation separately from the job and master resume', async () => {
+    repository.seedTailorResume({
+      id: resumeId,
+      userId,
+      summary: null,
+      jobTitle: null,
+      primaryStack: [],
+      resumeSections: [],
+    });
+    const context = 'I enjoy building accessible products.';
+    let received: unknown;
+    const contextualLlm = new StubResumeTailorLlm((input) => {
+      received = input;
+      return { summary: null, jobTitle: null, coverLetter: 'Letter', bullets: [] };
+    });
+    const contextual = new TailorResumeForJobUseCase(repository, contextualLlm, stubLogger);
+    await contextual.execute({
+      resumeId,
+      userId,
+      jobDescription: 'Develop accessible interfaces.',
+      candidateContext: context,
+    });
+    expect(received).toMatchObject({
+      candidateContext: context,
+      job: { description: 'Develop accessible interfaces.' },
+    });
   });
 });

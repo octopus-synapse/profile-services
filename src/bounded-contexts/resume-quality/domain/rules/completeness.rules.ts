@@ -14,6 +14,7 @@ export interface ResumeBullet {
  * Prisma model so the rule layer stays decoupled from persistence and
  * trivial to unit-test with literals. */
 export interface ResumeForCompleteness {
+  readonly userId?: string;
   readonly fullName: string | null;
   readonly summary: string | null;
   readonly jobTitle: string | null;

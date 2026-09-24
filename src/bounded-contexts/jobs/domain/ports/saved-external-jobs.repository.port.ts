@@ -12,6 +12,7 @@ export interface SavedExternalJobRecord {
   readonly id: string;
   readonly userId: string;
   readonly externalId: string;
+  readonly listingId?: string | null;
   readonly title: string;
   readonly company: string;
   readonly location: string | null;

@@ -33,8 +33,8 @@ const StyleScoreSchema = z.object({
 });
 
 const FitScoreSchema = z.object({
-  /** `responded` = valid vector, `expired` = past the 180-day window,
-   * `never` = questionnaire not taken. */
+  /** Deprecated compatibility field. Fit is currently disabled and this
+   * always resolves to `never`/null. */
   status: z.enum(['never', 'responded', 'expired']),
   expiresAt: IsoDateTimeSchema.nullable(),
 });

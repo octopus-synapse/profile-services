@@ -148,13 +148,14 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
     resumeSectionId: string,
     order: number,
     content: Prisma.InputJsonValue,
+    translations?: Prisma.InputJsonValue,
   ): Promise<SectionItemDto> {
     const id = `item-${this.idCounter++}`;
     const now = new Date();
     const item: SectionItemDto = {
       id,
       resumeSectionId,
-      translations: null,
+      translations: (translations as Prisma.JsonValue | undefined) ?? null,
       order,
       isVisible: true,
       content: content as Prisma.JsonValue,
