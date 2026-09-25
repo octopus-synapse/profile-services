@@ -142,36 +142,24 @@ jobs:
           docker logs profile-services-postgres
           exit 1
 
-      - name: Start MinIO
-        # Manual container, like Postgres above: a GHA `services:` block
-        # can't override the image command, and MinIO needs
-        # `server /data` to start at all.
+      - name: Start S3-compatible object storage
+        # MinIO removed the pinned community image from its public registry.
+        # S3Mock covers the upload and presigned-URL contract exercised here.
         if: inputs.needs-object-storage
         run: |
           docker run -d \
             --name profile-minio-ci \
-            -e MINIO_ROOT_USER=minioadmin \
-            -e MINIO_ROOT_PASSWORD=minioadmin \
-            -p 9100:9000 \
-            quay.io/minio/minio:RELEASE.2024-10-13T13-34-11Z server /data
+            -e COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS=profile-uploads \
+            -p 9100:9090 \
+            adobe/s3mock:5.2.3@sha256:ab01a6946750f451ca215a47e91030695b260e4003b8a5a6201d25029b8fca92
           for i in {1..30}; do
-            if curl -sf http://localhost:9100/minio/health/live > /dev/null; then
-              echo "MinIO is ready."
-              # The upload has to have a target bucket to land in.
-              # `--entrypoint` is required: the image's entrypoint IS `mc`, so
-              # without it `/bin/sh` arrives as an argument to mc itself
-              # ("`/bin/sh` is not a recognized command").
-              docker run --rm --network host \
-                --entrypoint /bin/sh \
-                quay.io/minio/mc:RELEASE.2024-10-08T09-37-26Z -c "
-                  mc alias set local http://localhost:9100 minioadmin minioadmin &&
-                  mc mb local/profile-uploads --ignore-existing &&
-                  mc anonymous set download local/profile-uploads"
+            if curl -sf http://localhost:9100/favicon.ico > /dev/null; then
+              echo "S3Mock is ready."
               exit 0
             fi
             sleep 1
           done
-          echo "::error::MinIO failed to become ready within 30s."
+          echo "::error::S3Mock failed to become ready within 30s."
           docker logs profile-minio-ci
           exit 1
 
