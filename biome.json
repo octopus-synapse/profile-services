@@ -10,8 +10,7 @@
       "!enums.json",
       "!error-codes.json",
       "!docs",
-      "!test/infrastructure/_legacy",
-      "!src/bounded-contexts/billing-deprecated"
+      "!test/infrastructure/_legacy"
     ]
   },
   "overrides": [

@@ -6047,19 +6047,9 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "public"
       }
     },
     "/api/v1/billing/subscription": {

@@ -23,7 +23,8 @@ export const billingRoutes: ReadonlyArray<Route<BillingHttpBundle>> = [
   {
     method: 'GET',
     path: '/v1/billing/offers',
-    auth: { kind: 'jwt' },
+    // Sign-up needs the pricing catalogue before an account and JWT exist.
+    auth: { kind: 'public' },
     response: OffersResponseSchema,
     openapi: { summary: 'List billing offers', tags: ['billing'] },
     sdk: { exported: true },

@@ -1,6 +1,6 @@
 {
   "summary": {
-    "schemas": 999,
+    "schemas": 978,
     "refinements": 14
   },
   "zodIssueShapes": [
@@ -72,13 +72,13 @@
     },
     {
       "file": "src/shared-kernel/config/config.schema.ts",
-      "line": 273,
+      "line": 276,
       "snippet": "() .regex(/^\\d+(\\.\\d+)?$/u) .refine((value) => Number(value) > 0) .optional(), // Translation reuses OPENAI_MODEL but caps output tokens s"
     },
     {
       "file": "src/shared-kernel/config/config.schema.ts",
-      "line": 319,
-      "snippet": ").positive().default(5_000_000), }) .superRefine((data, ctx) => { if (data.BILLING_ENABLED) { for (const key of [ 'MERCADO_PAGO_ACCESS_TOK"
+      "line": 322,
+      "snippet": ").positive().default(5_000_000), }) .superRefine((data, ctx) => { if (data.BILLING_ENABLED) { for (const key of ['AI_COST_BRL_PER_USD', 'FRONTEND_"
     },
     {
       "file": "src/shared-kernel/schemas/create-localized-schema.ts",

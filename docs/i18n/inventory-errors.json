@@ -1,8 +1,8 @@
 {
   "summary": {
-    "classifiedCount": 400,
+    "classifiedCount": 396,
     "ambiguousCount": 99,
-    "unstableCount": 72,
+    "unstableCount": 62,
     "distinctCodes": 307
   },
   "classified": [
@@ -1333,21 +1333,9 @@
       "extends": "DomainException"
     },
     {
-      "className": "PatchFreeTranslationLimitReachedException",
-      "code": "PATCH_FREE_TRANSLATION_LIMIT_REACHED",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.exceptions.ts",
-      "extends": "DomainException"
-    },
-    {
       "className": "PatchGoLimitReachedException",
       "code": "PATCH_GO_LIMIT_REACHED",
       "file": "src/bounded-contexts/billing/domain/exceptions/billing.exceptions.ts",
-      "extends": "DomainException"
-    },
-    {
-      "className": "PatchGoLimitReachedException",
-      "code": "PATCH_GO_LIMIT_REACHED",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.exceptions.ts",
       "extends": "DomainException"
     },
     {
@@ -1357,21 +1345,9 @@
       "extends": "DomainException"
     },
     {
-      "className": "PatchGoNotConfiguredException",
-      "code": "PATCH_GO_NOT_CONFIGURED",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.exceptions.ts",
-      "extends": "DomainException"
-    },
-    {
       "className": "PatchGoRequiredException",
       "code": "PATCH_GO_REQUIRED",
       "file": "src/bounded-contexts/billing/domain/exceptions/billing.exceptions.ts",
-      "extends": "DomainException"
-    },
-    {
-      "className": "PatchGoRequiredException",
-      "code": "PATCH_GO_REQUIRED",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.exceptions.ts",
       "extends": "DomainException"
     },
     {
@@ -3118,86 +3094,26 @@
     {
       "kind": "Error",
       "message": "Malformed Mercado Pago webhook signature",
-      "file": "src/bounded-contexts/billing-deprecated/mercado-pago.adapter.ts",
-      "line": 272
-    },
-    {
-      "kind": "Error",
-      "message": "Expired Mercado Pago webhook signature",
-      "file": "src/bounded-contexts/billing-deprecated/mercado-pago.adapter.ts",
-      "line": 276
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid Mercado Pago webhook signature",
-      "file": "src/bounded-contexts/billing-deprecated/mercado-pago.adapter.ts",
-      "line": 282
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/billing-deprecated/mercado-pago.adapter.ts",
-      "line": 329
-    },
-    {
-      "kind": "Error",
-      "message": "Mercado Pago returned an invalid authorized subscription",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.billing.ts",
-      "line": 618
-    },
-    {
-      "kind": "Error",
-      "message": "Mercado Pago returned an invalid subscription",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.billing.ts",
-      "line": 728
-    },
-    {
-      "kind": "Error",
-      "message": "Unexpected Mercado Pago subscription currency",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.billing.ts",
-      "line": 953
-    },
-    {
-      "kind": "Error",
-      "message": "Unknown billing offer",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.billing.ts",
-      "line": 1248
-    },
-    {
-      "kind": "Error",
-      "message": "Mercado Pago did not apply the requested plan price",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.billing.ts",
-      "line": 1479
-    },
-    {
-      "kind": "Error",
-      "message": "Mercado Pago did not roll back the recurring plan price",
-      "file": "src/bounded-contexts/billing-deprecated/patch-go.billing.ts",
-      "line": 1532
-    },
-    {
-      "kind": "Error",
-      "message": "Malformed Mercado Pago webhook signature",
       "file": "src/bounded-contexts/billing/infrastructure/adapters/external-services/mercado-pago-payment.adapter.ts",
-      "line": 169
+      "line": 182
     },
     {
       "kind": "Error",
       "message": "Expired Mercado Pago webhook signature",
       "file": "src/bounded-contexts/billing/infrastructure/adapters/external-services/mercado-pago-payment.adapter.ts",
-      "line": 173
+      "line": 186
     },
     {
       "kind": "Error",
       "message": "Invalid Mercado Pago webhook signature",
       "file": "src/bounded-contexts/billing/infrastructure/adapters/external-services/mercado-pago-payment.adapter.ts",
-      "line": 179
+      "line": 198
     },
     {
       "kind": "Error",
       "message": "",
       "file": "src/bounded-contexts/billing/infrastructure/adapters/external-services/mercado-pago-payment.adapter.ts",
-      "line": 226
+      "line": 252
     },
     {
       "kind": "Error",

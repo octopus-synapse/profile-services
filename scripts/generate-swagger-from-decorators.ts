@@ -80,13 +80,7 @@ interface SwaggerReport {
 function* walk(dir: string): Generator<string> {
   const entries = [...readdirSync(dir)].sort();
   for (const entry of entries) {
-    if (
-      entry === 'node_modules' ||
-      entry === '__tests__' ||
-      entry === 'testing' ||
-      entry === 'billing-deprecated'
-    )
-      continue;
+    if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing') continue;
     const full = join(dir, entry);
     const st = statSync(full);
     if (st.isDirectory()) yield* walk(full);
