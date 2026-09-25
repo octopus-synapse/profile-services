@@ -1,5 +1,5 @@
 #!/bin/sh
-# Schema migration + idempotent reference seeds.
+# Schema migration + reference catalogs.
 #
 # Single source of truth for "bring the database up to date", called from two
 # places:
@@ -16,6 +16,8 @@
 # before the API serves traffic that reads reference data (the onboarding
 # session resolver needs section-type field translations — this is what broke
 # in v0.2.7).
+# The role-title importer only downloads the external taxonomies when a source
+# is missing or incomplete. A failed import stops the deploy before the swap.
 set -e
 
 echo "[migrate-and-seed] prisma migrate deploy…"
@@ -23,5 +25,8 @@ bunx prisma migrate deploy --config ./prisma.config.ts
 
 echo "[migrate-and-seed] seeding reference catalogs…"
 bun dist/seed.deploy.js
+
+echo "[migrate-and-seed] ensuring role-title catalog…"
+bun dist/import-roles.js --ensure
 
 echo "[migrate-and-seed] done."
