@@ -37,15 +37,17 @@ export class ManageCheckoutUseCase {
       0,
       100 - (await this.store.founderReserved('max_pix_year_founder', this.clock.now())),
     );
-    return Object.values(PATCH_BILLING_OFFERS)
+    const items = Object.values(PATCH_BILLING_OFFERS)
       .filter((offer) =>
         offer.paymentMethod === 'card' ? this.config.cardEnabled : this.config.pixEnabled,
       )
       .filter((offer) => offer.code !== 'max_pix_year_founder' || remaining > 0)
       .map((offer) => ({ ...offer, founderRemaining: offer.founderLimit ? remaining : null }));
+    return { checkoutEnabled: this.config.enabled && Boolean(this.provider), items };
   }
 
   async create(userId: string, offerCode: BillingOfferCode) {
+    if (!this.config.enabled) throw new PatchGoNotConfiguredException();
     const provider = this.requireProvider();
     const offer = PATCH_BILLING_OFFERS[offerCode];
     if (
@@ -69,6 +71,8 @@ export class ManageCheckoutUseCase {
             }
             const entitlement = await tx.findActiveEntitlement(userId, now);
             const subscription = await tx.findCurrentSubscription(userId, now);
+            if (entitlement?.plan === 'max' && offer.plan === 'go')
+              throw new PatchGoRequiredException();
             const proration =
               entitlement && entitlement.plan !== offer.plan
                 ? await this.unusedValue(
@@ -139,6 +143,24 @@ export class ManageCheckoutUseCase {
     if (!created) throw new BillingBusyException();
     let purchase = created.purchase;
     if (purchase.amountCents === 0) {
+      if (purchase.kind === 'card_plan_change') {
+        const subscription = await this.store.findCurrentSubscription(userId, this.clock.now());
+        if (!subscription?.providerSubscriptionId) throw new PatchGoRequiredException();
+        const remote = await provider.updateSubscriptionAmount(
+          subscription.providerSubscriptionId,
+          offer.amountCents,
+        );
+        if (remote.currency !== 'BRL' || remote.amountCents !== offer.amountCents)
+          throw new BillingInvariantException('provider subscription amount or currency mismatch');
+        await this.store.updateSubscription({
+          ...subscription,
+          plan: offer.plan,
+          pendingPlan: null,
+          amountCents: offer.amountCents,
+          providerVersion: remote.version,
+          nextPaymentAt: remote.nextPaymentAt,
+        });
+      }
       await this.processProvider?.approve(purchase.id, `credit:${purchase.id}`, this.clock.now());
       return this.status(userId, purchase.id, false);
     }

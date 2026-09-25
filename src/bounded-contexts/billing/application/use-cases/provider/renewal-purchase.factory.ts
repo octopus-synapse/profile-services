@@ -7,18 +7,20 @@ export const createRenewalPurchase = (
   purchaseId: string,
   paymentId: string,
   paidAt: Date,
+  amountCents: number,
 ): BillingPurchase => {
   const expiresAt = new Date(paidAt);
   expiresAt.setUTCMonth(expiresAt.getUTCMonth() + 1);
+  const plan = subscription.pendingPlan ?? subscription.plan;
   const purchase = BillingPurchase.create({
     id: purchaseId,
     userId: subscription.userId,
     subscriptionId: subscription.id,
-    offerCode: `${subscription.plan}_card_month` as BillingOfferCode,
-    plan: subscription.plan,
+    offerCode: `${plan}_card_month` as BillingOfferCode,
+    plan,
     kind: 'card_subscription',
-    amountCents: subscription.amountCents,
-    listAmountCents: subscription.amountCents,
+    amountCents,
+    listAmountCents: amountCents,
     prorationCreditCents: 0,
     creditAppliedCents: 0,
     currency: 'BRL',

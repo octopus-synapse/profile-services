@@ -62,11 +62,19 @@ export class ProcessProviderEventUseCase {
       return;
     const now = this.clock.now();
     const active = remote.status === 'active';
+    const pendingPlan =
+      local.plan === 'max' && remote.amountCents === PATCH_BILLING_OFFERS.go_card_month.amountCents
+        ? 'go'
+        : local.plan === 'max' &&
+            remote.amountCents === PATCH_BILLING_OFFERS.max_card_month.amountCents
+          ? null
+          : local.pendingPlan;
     await this.store.updateSubscription({
       ...local,
       providerPayerId: remote.payerId,
       providerVersion: remote.version,
       status: remote.status,
+      pendingPlan,
       amountCents: remote.amountCents,
       currency: remote.currency,
       periodStart: active ? (local.periodStart ?? now) : local.periodStart,
@@ -97,12 +105,23 @@ export class ProcessProviderEventUseCase {
     let purchase = await this.store.findPurchaseByPaymentProvider(remote.id);
     purchase ??= await this.store.findPurchaseBySubscriptionProvider(remote.subscriptionId);
     if (remote.status === 'approved') {
+      const renewalPlan = subscription.pendingPlan ?? subscription.plan;
+      const expectedAmount = PATCH_BILLING_OFFERS[`${renewalPlan}_card_month`].amountCents;
+      if (remote.amountCents !== expectedAmount) return;
       if (!purchase || purchase.status === 'approved')
-        purchase = await this.createRenewalPurchase(subscription, remote.id, paidAt);
+        purchase = await this.createRenewalPurchase(
+          subscription,
+          remote.id,
+          paidAt,
+          remote.amountCents,
+        );
       await this.approve(purchase.id, remote.id, paidAt);
       await this.store.updateSubscription({
         ...subscription,
+        plan: renewalPlan,
+        pendingPlan: null,
         status: 'active',
+        amountCents: expectedAmount,
         periodStart: paidAt,
         periodEnd: end,
         nextPaymentAt: end,
@@ -143,6 +162,7 @@ export class ProcessProviderEventUseCase {
         await this.store.updateSubscription({
           ...subscription,
           plan: state.plan,
+          pendingPlan: null,
           amountCents: PATCH_BILLING_OFFERS[state.offerCode].amountCents,
         });
       }
@@ -279,8 +299,15 @@ export class ProcessProviderEventUseCase {
     subscription: Parameters<typeof createRenewalPurchase>[0],
     paymentId: string,
     paidAt: Date,
+    amountCents: number,
   ) {
-    const purchase = createRenewalPurchase(subscription, this.ids.id(), paymentId, paidAt);
+    const purchase = createRenewalPurchase(
+      subscription,
+      this.ids.id(),
+      paymentId,
+      paidAt,
+      amountCents,
+    );
     await this.unit.execute(async (tx) => {
       await tx.savePurchase(purchase);
       await tx.appendEvents(purchase.pullEvents());

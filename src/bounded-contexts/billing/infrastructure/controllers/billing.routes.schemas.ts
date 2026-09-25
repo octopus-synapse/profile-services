@@ -25,10 +25,19 @@ export const StatusResponseSchema = z.object({
   quotaPeriodEnd: z.string().nullable().openapi({ example: '2026-10-24T12:00:00.000Z' }),
   renews: z.boolean().openapi({ example: true }),
   billingSource: z.string().nullable().openapi({ example: 'mercado_pago_subscription' }),
+  paymentMode: z.enum(['card_recurring', 'pix_prepaid']).nullable(),
   creditBalanceCents: z.number().int().nonnegative().openapi({ example: 0 }),
   cancelAtPeriodEnd: z.boolean().openapi({ example: false }),
   freeTranslationsUsed: z.number().int().openapi({ example: 3 }),
   freeTranslationsLimit: z.number().int().openapi({ example: 20 }),
+  openCheckout: z
+    .object({
+      id: z.string().uuid(),
+      offerCode: OfferCodeSchema,
+      status: z.string(),
+      expiresAt: z.string(),
+    })
+    .nullable(),
 });
 export const OfferResponseSchema = z.object({
   code: OfferCodeSchema,
@@ -42,7 +51,11 @@ export const OfferResponseSchema = z.object({
   founderLimit: z.number().int().positive().optional().openapi({ example: 100 }),
   founderRemaining: z.number().int().nonnegative().nullable().openapi({ example: 87 }),
 });
-export const OffersResponseSchema = z.object({ items: z.array(OfferResponseSchema) });
+export const OffersResponseSchema = z.object({
+  checkoutEnabled: z.boolean().openapi({ example: true }),
+  items: z.array(OfferResponseSchema),
+});
+export const ChangePlanBodySchema = z.object({ plan: z.literal('go') });
 export const CheckoutResponseSchema = z.object({
   id: z.string().uuid(),
   offerCode: OfferCodeSchema,

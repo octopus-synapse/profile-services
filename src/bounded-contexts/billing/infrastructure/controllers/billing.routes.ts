@@ -5,6 +5,7 @@ import type { BillingHttpBundle } from '../../application/ports/billing-http.bun
 import type { BillingOfferCode } from '../../domain/policies/billing-offer.policy';
 import {
   CardBodySchema,
+  ChangePlanBodySchema,
   CheckoutResponseSchema,
   CreateCheckoutBodySchema,
   OffersResponseSchema,
@@ -28,7 +29,7 @@ export const billingRoutes: ReadonlyArray<Route<BillingHttpBundle>> = [
     response: OffersResponseSchema,
     openapi: { summary: 'List billing offers', tags: ['billing'] },
     sdk: { exported: true },
-    handler: async (_ctx, bc) => ({ items: await bc.checkout.offers() }),
+    handler: async (_ctx, bc) => bc.checkout.offers(),
   },
   {
     method: 'POST',
@@ -83,6 +84,34 @@ export const billingRoutes: ReadonlyArray<Route<BillingHttpBundle>> = [
     openapi: { summary: 'Current billing status', tags: ['billing'] },
     sdk: { exported: true },
     handler: async (ctx, bc) => bc.status.execute(ctx.user!.userId),
+  },
+  {
+    method: 'POST',
+    path: '/v1/billing/subscription/change-plan',
+    auth: { kind: 'jwt' },
+    body: ChangePlanBodySchema,
+    response: StatusResponseSchema,
+    openapi: { summary: 'Schedule a recurring plan downgrade', tags: ['billing'] },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      await bc.subscription.schedulePlanChange(
+        ctx.user!.userId,
+        (ctx.body as z.infer<typeof ChangePlanBodySchema>).plan,
+      );
+      return bc.status.execute(ctx.user!.userId);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/billing/subscription/change-plan/cancel',
+    auth: { kind: 'jwt' },
+    response: StatusResponseSchema,
+    openapi: { summary: 'Cancel a scheduled recurring plan downgrade', tags: ['billing'] },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      await bc.subscription.cancelPlanChange(ctx.user!.userId);
+      return bc.status.execute(ctx.user!.userId);
+    },
   },
   {
     method: 'POST',

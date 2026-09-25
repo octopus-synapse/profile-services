@@ -113,6 +113,7 @@ export class PrismaBillingCoreRepository {
         providerPayerId: record.providerPayerId,
         providerVersion: record.providerVersion,
         plan: record.plan,
+        pendingPlan: record.pendingPlan,
         status: record.status,
         amountCents: record.amountCents,
         currency: record.currency,
@@ -166,7 +167,8 @@ export class PrismaBillingCoreRepository {
       where: {
         userId,
         OR: [
-          { status: { in: ['pending', 'reversing'] } },
+          { status: 'pending', expiresAt: { gt: at } },
+          { status: 'reversing' },
           { status: 'created', expiresAt: { gt: at } },
           { status: 'created', subscriptionId: { not: null } },
         ],
@@ -251,6 +253,7 @@ export class PrismaBillingCoreRepository {
       providerPayerId: row.providerPayerId ? String(row.providerPayerId) : null,
       providerVersion: row.providerVersion === null ? null : Number(row.providerVersion),
       plan: String(row.plan) as PaidPatchPlan,
+      pendingPlan: row.pendingPlan === 'go' || row.pendingPlan === 'max' ? row.pendingPlan : null,
       status: String(row.status),
       amountCents: Number(row.amountCents),
       currency: String(row.currency),

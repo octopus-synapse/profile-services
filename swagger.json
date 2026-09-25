@@ -5929,6 +5929,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "checkoutEnabled": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "items": {
                       "type": "array",
                       "items": {
@@ -6032,6 +6036,7 @@
                     }
                   },
                   "required": [
+                    "checkoutEnabled",
                     "items"
                   ]
                 }
@@ -6117,6 +6122,14 @@
                       "nullable": true,
                       "example": "mercado_pago_subscription"
                     },
+                    "paymentMode": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "card_recurring",
+                        "pix_prepaid"
+                      ]
+                    },
                     "creditBalanceCents": {
                       "type": "integer",
                       "minimum": 0,
@@ -6133,6 +6146,40 @@
                     "freeTranslationsLimit": {
                       "type": "integer",
                       "example": 20
+                    },
+                    "openCheckout": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "offerCode": {
+                          "type": "string",
+                          "enum": [
+                            "go_card_month",
+                            "max_card_month",
+                            "go_pix_quarter",
+                            "max_pix_quarter",
+                            "go_pix_year",
+                            "max_pix_year",
+                            "max_pix_year_founder"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "offerCode",
+                        "status",
+                        "expiresAt"
+                      ]
                     }
                   },
                   "required": [
@@ -6147,10 +6194,12 @@
                     "quotaPeriodEnd",
                     "renews",
                     "billingSource",
+                    "paymentMode",
                     "creditBalanceCents",
                     "cancelAtPeriodEnd",
                     "freeTranslationsUsed",
-                    "freeTranslationsLimit"
+                    "freeTranslationsLimit",
+                    "openCheckout"
                   ]
                 }
               }
@@ -6245,6 +6294,14 @@
                       "nullable": true,
                       "example": "mercado_pago_subscription"
                     },
+                    "paymentMode": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "card_recurring",
+                        "pix_prepaid"
+                      ]
+                    },
                     "creditBalanceCents": {
                       "type": "integer",
                       "minimum": 0,
@@ -6261,6 +6318,40 @@
                     "freeTranslationsLimit": {
                       "type": "integer",
                       "example": 20
+                    },
+                    "openCheckout": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "offerCode": {
+                          "type": "string",
+                          "enum": [
+                            "go_card_month",
+                            "max_card_month",
+                            "go_pix_quarter",
+                            "max_pix_quarter",
+                            "go_pix_year",
+                            "max_pix_year",
+                            "max_pix_year_founder"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "offerCode",
+                        "status",
+                        "expiresAt"
+                      ]
                     }
                   },
                   "required": [
@@ -6275,10 +6366,376 @@
                     "quotaPeriodEnd",
                     "renews",
                     "billingSource",
+                    "paymentMode",
                     "creditBalanceCents",
                     "cancelAtPeriodEnd",
                     "freeTranslationsUsed",
-                    "freeTranslationsLimit"
+                    "freeTranslationsLimit",
+                    "openCheckout"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/subscription/change-plan": {
+      "post": {
+        "summary": "Schedule a recurring plan downgrade",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_subscription_change_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "enum": [
+                      "go"
+                    ]
+                  }
+                },
+                "required": [
+                  "plan"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "pendingPlan": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "used": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "periodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "quotaPeriodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "renews": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "billingSource": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "mercado_pago_subscription"
+                    },
+                    "paymentMode": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "card_recurring",
+                        "pix_prepaid"
+                      ]
+                    },
+                    "creditBalanceCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "cancelAtPeriodEnd": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "freeTranslationsUsed": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "freeTranslationsLimit": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "openCheckout": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "offerCode": {
+                          "type": "string",
+                          "enum": [
+                            "go_card_month",
+                            "max_card_month",
+                            "go_pix_quarter",
+                            "max_pix_quarter",
+                            "go_pix_year",
+                            "max_pix_year",
+                            "max_pix_year_founder"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "offerCode",
+                        "status",
+                        "expiresAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "status",
+                    "active",
+                    "plan",
+                    "pendingPlan",
+                    "used",
+                    "limit",
+                    "periodEnd",
+                    "quotaPeriodEnd",
+                    "renews",
+                    "billingSource",
+                    "paymentMode",
+                    "creditBalanceCents",
+                    "cancelAtPeriodEnd",
+                    "freeTranslationsUsed",
+                    "freeTranslationsLimit",
+                    "openCheckout"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/billing/subscription/change-plan/cancel": {
+      "post": {
+        "summary": "Cancel a scheduled recurring plan downgrade",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_subscription_change_plan_cancel",
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "pendingPlan": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "used": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "periodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "quotaPeriodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "2026-10-24T12:00:00.000Z"
+                    },
+                    "renews": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "billingSource": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "mercado_pago_subscription"
+                    },
+                    "paymentMode": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "card_recurring",
+                        "pix_prepaid"
+                      ]
+                    },
+                    "creditBalanceCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "cancelAtPeriodEnd": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "freeTranslationsUsed": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "freeTranslationsLimit": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "openCheckout": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "offerCode": {
+                          "type": "string",
+                          "enum": [
+                            "go_card_month",
+                            "max_card_month",
+                            "go_pix_quarter",
+                            "max_pix_quarter",
+                            "go_pix_year",
+                            "max_pix_year",
+                            "max_pix_year_founder"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "offerCode",
+                        "status",
+                        "expiresAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "status",
+                    "active",
+                    "plan",
+                    "pendingPlan",
+                    "used",
+                    "limit",
+                    "periodEnd",
+                    "quotaPeriodEnd",
+                    "renews",
+                    "billingSource",
+                    "paymentMode",
+                    "creditBalanceCents",
+                    "cancelAtPeriodEnd",
+                    "freeTranslationsUsed",
+                    "freeTranslationsLimit",
+                    "openCheckout"
                   ]
                 }
               }

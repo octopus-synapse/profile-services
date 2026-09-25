@@ -112,6 +112,7 @@ export class PrismaBillingEventsRepository {
       providerPayerId: row.providerPayerId,
       providerVersion: row.providerVersion,
       plan: row.plan as PaidPatchPlan,
+      pendingPlan: row.pendingPlan === 'go' || row.pendingPlan === 'max' ? row.pendingPlan : null,
       status: row.status,
       amountCents: row.amountCents,
       currency: row.currency,

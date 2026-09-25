@@ -1,7 +1,9 @@
+import type { LoggerPort } from '@/shared-kernel';
 import {
   PatchGoNotConfiguredException,
   PatchGoRequiredException,
 } from '../../../domain/exceptions/billing.exceptions';
+import { PATCH_PLAN_PRICES } from '../../../domain/policies/billing-offer.policy';
 import type { BillingStorePort } from '../../../domain/ports/billing-store.port';
 import type { PaymentProviderPort } from '../../../domain/ports/payment-provider.port';
 import type { BillingRuntimeConfig } from '../../ports/billing-runtime.port';
@@ -28,6 +30,55 @@ export class ManageSubscriptionUseCase {
       ...subscription,
       status: 'canceled',
       cancelAtPeriodEnd: true,
+    });
+  }
+
+  async schedulePlanChange(userId: string, plan: 'go'): Promise<void> {
+    if (!this.config.enabled) throw new PatchGoNotConfiguredException();
+    const provider = this.requireProvider();
+    const subscription = await this.store.findCurrentSubscription(userId, this.clock.now());
+    if (
+      !subscription?.providerSubscriptionId ||
+      subscription.plan !== 'max' ||
+      !['active', 'paused'].includes(subscription.status)
+    )
+      throw new PatchGoRequiredException();
+    if (subscription.pendingPlan === plan) return;
+    const amountCents = PATCH_PLAN_PRICES.go.BRL.cents;
+    const remote = await provider.updateSubscriptionAmount(
+      subscription.providerSubscriptionId,
+      amountCents,
+    );
+    if (remote.currency !== 'BRL' || remote.amountCents !== amountCents)
+      throw new PatchGoRequiredException();
+    await this.store.updateSubscription({
+      ...subscription,
+      pendingPlan: plan,
+      amountCents,
+      providerVersion: remote.version,
+      nextPaymentAt: remote.nextPaymentAt,
+    });
+  }
+
+  async cancelPlanChange(userId: string): Promise<void> {
+    if (!this.config.enabled) throw new PatchGoNotConfiguredException();
+    const provider = this.requireProvider();
+    const subscription = await this.store.findCurrentSubscription(userId, this.clock.now());
+    if (!subscription?.providerSubscriptionId || subscription.pendingPlan !== 'go')
+      throw new PatchGoRequiredException();
+    const amountCents = PATCH_PLAN_PRICES.max.BRL.cents;
+    const remote = await provider.updateSubscriptionAmount(
+      subscription.providerSubscriptionId,
+      amountCents,
+    );
+    if (remote.currency !== 'BRL' || remote.amountCents !== amountCents)
+      throw new PatchGoRequiredException();
+    await this.store.updateSubscription({
+      ...subscription,
+      pendingPlan: null,
+      amountCents,
+      providerVersion: remote.version,
+      nextPaymentAt: remote.nextPaymentAt,
     });
   }
 
@@ -124,5 +175,3 @@ export class ManageSubscriptionUseCase {
     return this.provider;
   }
 }
-
-import type { LoggerPort } from '@/shared-kernel';

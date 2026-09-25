@@ -19,7 +19,16 @@ export class GetBillingStatusUseCase {
     const now = this.clock.now();
     const entitlement = await this.store.findActiveEntitlement(userId, now);
     const subscription = await this.store.findCurrentSubscription(userId, now);
-    const active = entitlement ? entitlement.endsAt > now : await this.access.isPaid(userId);
+    const openCheckout = await this.store.findOpenPurchase(userId, now);
+    const active = Boolean(
+      entitlement?.endsAt && entitlement.endsAt > now
+        ? true
+        : subscription?.periodStart &&
+            subscription.periodEnd &&
+            subscription.periodStart <= now &&
+            subscription.periodEnd > now &&
+            !['revoked', 'failed'].includes(subscription.status),
+    );
     const plan = active ? (entitlement?.plan ?? subscription?.plan ?? 'free') : 'free';
     const window = entitlement ? this.access.quotaWindow(entitlement.quotaAnchorAt, now) : null;
     const periodStart = window?.start ?? subscription?.periodStart ?? null;
@@ -31,7 +40,7 @@ export class GetBillingStatusUseCase {
       status: entitlement?.status ?? subscription?.status ?? 'none',
       active,
       plan,
-      pendingPlan: null,
+      pendingPlan: subscription?.pendingPlan ?? null,
       used,
       limit: plan === 'free' ? 0 : PATCH_PLAN_LIMITS[plan],
       periodEnd: (entitlement?.endsAt ?? subscription?.periodEnd)?.toISOString() ?? null,
@@ -42,10 +51,24 @@ export class GetBillingStatusUseCase {
           !subscription.cancelAtPeriodEnd,
       ),
       billingSource: entitlement?.source ?? (subscription ? 'mercado_pago_subscription' : null),
+      paymentMode:
+        entitlement?.source === 'mercado_pago_pix'
+          ? ('pix_prepaid' as const)
+          : subscription?.providerSubscriptionId
+            ? ('card_recurring' as const)
+            : null,
       creditBalanceCents: await this.store.creditBalance(userId),
       cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false,
       freeTranslationsUsed: await this.store.freeTranslationUsed(userId, monthStart),
       freeTranslationsLimit: PATCH_FREE_TRANSLATION_LIMIT,
+      openCheckout: openCheckout
+        ? {
+            id: openCheckout.id,
+            offerCode: openCheckout.offerCode,
+            status: openCheckout.status,
+            expiresAt: openCheckout.expiresAt.toISOString(),
+          }
+        : null,
     };
   }
 }

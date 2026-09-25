@@ -14,6 +14,7 @@ export interface BillingSubscriptionRecord {
   readonly providerPayerId: string | null;
   readonly providerVersion: number | null;
   readonly plan: PaidPatchPlan;
+  readonly pendingPlan: PaidPatchPlan | null;
   readonly status: string;
   readonly amountCents: number;
   readonly currency: string;

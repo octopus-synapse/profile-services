@@ -64,6 +64,7 @@ describe('ManageBillingAccessUseCase', () => {
       providerPayerId: null,
       providerVersion: 1,
       plan: 'go',
+      pendingPlan: null,
       status: 'active',
       amountCents: 3999,
       currency: 'BRL',

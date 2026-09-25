@@ -1,165 +1,165 @@
 {
   "version": "3",
-  "tree_hash": "cc7e4b2cd9609aa5a237b5a490af00b2a7f62db3",
+  "tree_hash": "b39c0e8ea1def6da4235420b4bd3ae270fdacc7d",
   "checks": "swagger typecheck lint unit arch contract static",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 175
+      "time_ms": 259
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 901
+      "time_ms": 2264
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 3690
+      "time_ms": 5856
     },
     "lint": {
       "status": "ok",
-      "time_ms": 1213
+      "time_ms": 2580
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 636
+      "time_ms": 1323
     },
     "unit": {
       "status": "ok",
-      "time_ms": 5075,
-      "passed": 2642,
+      "time_ms": 7990,
+      "passed": 2646,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 1967,
+      "time_ms": 3578,
       "passed": 78,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 1174,
+      "time_ms": 1939,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "static": {
       "status": "ok",
-      "time_ms": 5364,
+      "time_ms": 7810,
       "passed": 317,
       "failed": 0,
       "skipped": 1
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 161
+      "time_ms": 238
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 160
+      "time_ms": 237
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 159
+      "time_ms": 311
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 158
+      "time_ms": 233
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 105
+      "time_ms": 178
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 268
+      "time_ms": 264
     },
     "pii-in-logs": {
       "status": "ok",
-      "time_ms": 101
+      "time_ms": 181
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 101
+      "time_ms": 239
     },
     "cache-direct-delete": {
       "status": "ok",
-      "time_ms": 105
+      "time_ms": 227
     },
     "ts-directives": {
       "status": "ok",
-      "time_ms": 189
+      "time_ms": 459
     },
     "no-prisma-mock-in-integration": {
       "status": "ok",
-      "time_ms": 96
+      "time_ms": 161
     },
     "no-db-helpers-in-unit": {
       "status": "ok",
-      "time_ms": 154
+      "time_ms": 197
     },
     "skip-todo-deadline": {
       "status": "ok",
-      "time_ms": 181
+      "time_ms": 175
     },
     "e2e-cleanup": {
       "status": "ok",
-      "time_ms": 92
+      "time_ms": 148
     },
     "cron-wrapper": {
       "status": "ok",
-      "time_ms": 97
+      "time_ms": 205
     },
     "ws-validate": {
       "status": "ok",
-      "time_ms": 89
+      "time_ms": 200
     },
     "no-mutable-module-state": {
       "status": "ok",
-      "time_ms": 120
+      "time_ms": 297
     },
     "no-process-env-in-domain": {
       "status": "ok",
-      "time_ms": 182
+      "time_ms": 251
     },
     "deprecated-removeby": {
       "status": "ok",
-      "time_ms": 147
+      "time_ms": 195
     },
     "no-unknown-cast": {
       "status": "ok",
-      "time_ms": 235
+      "time_ms": 276
     },
     "pagination-adhoc": {
       "status": "ok",
-      "time_ms": 114
+      "time_ms": 323
     },
     "file-size": {
       "status": "ok",
-      "time_ms": 154
+      "time_ms": 209
     },
     "no-cyclic-imports": {
       "status": "ok",
-      "time_ms": 239
+      "time_ms": 540
     },
     "boolean-trap": {
       "status": "ok",
-      "time_ms": 375
+      "time_ms": 670
     },
     "jsdoc-params": {
       "status": "ok",
-      "time_ms": 158
+      "time_ms": 394
     },
     "no-console-in-features": {
       "status": "ok",
-      "time_ms": 179
+      "time_ms": 312
     },
     "magic-numbers": {
       "status": "ok",
-      "time_ms": 673
+      "time_ms": 1383
     }
   },
-  "timestamp": "2026-09-25T00:22:59Z",
+  "timestamp": "2026-09-25T12:20:00Z",
   "git_user": "efpatti.dev@gmail.com"
 }

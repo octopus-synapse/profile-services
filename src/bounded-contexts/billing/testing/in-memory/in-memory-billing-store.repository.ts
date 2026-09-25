@@ -97,7 +97,8 @@ export class InMemoryBillingStore extends BillingStorePort {
       [...this.purchases.values()].find(
         (x) =>
           x.userId === userId &&
-          (['pending', 'reversing'].includes(x.status) ||
+          ((x.status === 'pending' && x.expiresAt > at) ||
+            x.status === 'reversing' ||
             (x.status === 'created' && x.expiresAt > at)),
       ) ?? null,
     );
@@ -113,6 +114,7 @@ export class InMemoryBillingStore extends BillingStorePort {
       providerPayerId: null,
       providerVersion: null,
       plan,
+      pendingPlan: null,
       status: 'creating',
       amountCents,
       currency: 'BRL',

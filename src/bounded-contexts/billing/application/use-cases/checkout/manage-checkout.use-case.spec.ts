@@ -91,6 +91,41 @@ class FakePaymentProvider extends PaymentProviderPort {
 }
 
 describe('ManageCheckoutUseCase', () => {
+  it('publishes prices but refuses to create a checkout while billing is disabled', async () => {
+    const store = new InMemoryBillingStore();
+    const unit = new InMemoryBillingUnitOfWork(store);
+    const provider = new FakePaymentProvider();
+    const ids = new SequentialIds();
+    const clock = new FixedClock();
+    store.emails.set('user-1', 'person@example.com');
+    const useCase = new ManageCheckoutUseCase(
+      store,
+      unit,
+      provider,
+      new ProcessProviderEventUseCase(store, unit, provider, ids, clock),
+      new InMemoryDistributedLockAdapter(),
+      ids,
+      clock,
+      {
+        enabled: false,
+        cardEnabled: true,
+        pixEnabled: true,
+        ordersPublicKey: 'orders-public-key',
+        subscriptionsPublicKey: 'subscriptions-public-key',
+        frontendUrl: 'https://patchcareers.org',
+        aiCostBrlPerUsd: 5,
+      },
+    );
+
+    await expect(useCase.offers()).resolves.toMatchObject({
+      checkoutEnabled: false,
+      items: expect.arrayContaining([expect.objectContaining({ code: 'go_card_month' })]),
+    });
+    await expect(useCase.create('user-1', 'go_card_month')).rejects.toThrow(
+      'Patch Go checkout is not configured',
+    );
+  });
+
   it('creates discounted Pix in-app and grants no entitlement while payment is pending', async () => {
     const store = new InMemoryBillingStore();
     const unit = new InMemoryBillingUnitOfWork(store);

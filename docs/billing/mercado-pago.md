@@ -47,10 +47,12 @@ subscriptions are reconciled in the background, so a delayed or duplicated
 webhook is safe.
 
 Pix access is prepaid and quota resets monthly within the purchased term. Buying
-the same plan extends the current entitlement. Changing plans applies the unused
+the same plan extends the current entitlement. Upgrading to Max applies the unused
 value immediately; any surplus is stored in the immutable Patch credit ledger,
-with no expiration, transfer, or cash withdrawal. Moving from recurring card to
-Pix cancels the recurring charge before the new entitlement is activated.
+with no expiration, transfer, or cash withdrawal. A recurring Max-to-Go downgrade
+is scheduled for the next approved renewal. Prepaid Max cannot be downgraded before
+expiry, and prepaid Go can upgrade to Max through Pix. Moving from recurring card
+to Pix cancels the recurring charge before the new entitlement is activated.
 
 Mobile store billing is deliberately separate. Google Play and Apple purchases
 must use their native billing and proration mechanisms when those clients are
