@@ -5,6 +5,9 @@ export interface BillingRuntimeConfig {
   readonly ordersPublicKey: string | null;
   readonly subscriptionsPublicKey: string | null;
   readonly frontendUrl: string;
+  readonly paymentReturnUrl?: string;
+  readonly testBuyerEmail?: string | null;
+  readonly testPixFirstName?: 'APRO' | null;
   readonly aiCostBrlPerUsd: number;
 }
 

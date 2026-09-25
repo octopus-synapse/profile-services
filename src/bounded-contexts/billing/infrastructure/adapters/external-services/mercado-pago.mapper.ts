@@ -43,7 +43,10 @@ export const AuthorizedPaymentSchema = z
   })
   .passthrough();
 export const AuthorizedPaymentSearchSchema = z
-  .object({ results: z.array(AuthorizedPaymentSchema).default([]) })
+  .object({
+    results: z.array(AuthorizedPaymentSchema).default([]),
+    paging: z.object({ offset: z.number(), limit: z.number(), total: z.number() }).optional(),
+  })
   .passthrough();
 export const OrderSchema = z
   .object({
@@ -134,7 +137,12 @@ export function toPayment(row: z.infer<typeof AuthorizedPaymentSchema>): Provide
 }
 export function toOrder(row: z.infer<typeof OrderSchema>): ProviderOrder {
   const payment = row.transactions.payments[0];
-  const status = paymentStatus(payment?.status ?? row.status);
+  // The order is authoritative for terminal states. A cancellation response
+  // can still carry an older action_required payment snapshot.
+  const orderStatus = paymentStatus(row.status);
+  const status = ['approved', 'canceled', 'refunded', 'charged_back'].includes(orderStatus)
+    ? orderStatus
+    : paymentStatus(payment?.status ?? row.status);
   return {
     id: row.id,
     externalReference: row.external_reference ?? null,

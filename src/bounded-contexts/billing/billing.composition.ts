@@ -4,6 +4,7 @@ import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EnvConfig } from '@/shared-kernel/config/config.schema';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { BillingHttpBundle } from './application/ports/billing-http.bundle';
+import type { BillingRuntimeConfig } from './application/ports/billing-runtime.port';
 import { ManageBillingAccessUseCase } from './application/use-cases/access/manage-billing-access.use-case';
 import { ManageCheckoutUseCase } from './application/use-cases/checkout/manage-checkout.use-case';
 import { PublishBillingOutboxUseCase } from './application/use-cases/outbox/publish-billing-outbox.use-case';
@@ -45,13 +46,23 @@ export function buildBillingComposition(deps: {
   const unit = new PrismaBillingUnitOfWork(prisma, logger);
   const clock = new SystemBillingClock();
   const ids = new SystemBillingIds();
-  const runtime = {
+  const runtime: BillingRuntimeConfig = {
     enabled: config.BILLING_ENABLED === true,
     cardEnabled: config.BILLING_CARD_ENABLED !== false,
     pixEnabled: config.BILLING_PIX_ENABLED !== false,
     ordersPublicKey: config.MERCADO_PAGO_ORDERS_PUBLIC_KEY ?? null,
     subscriptionsPublicKey: config.MERCADO_PAGO_SUBSCRIPTIONS_PUBLIC_KEY ?? null,
     frontendUrl: config.FRONTEND_URL ?? 'http://localhost:8081',
+    paymentReturnUrl:
+      config.MERCADO_PAGO_RETURN_URL ?? config.FRONTEND_URL ?? 'http://localhost:8081',
+    testBuyerEmail:
+      config.NODE_ENV === 'production' ? null : (config.MERCADO_PAGO_TEST_BUYER_EMAIL ?? null),
+    testPixFirstName:
+      config.NODE_ENV === 'development' &&
+      config.MERCADO_PAGO_TEST_BUYER_EMAIL &&
+      config.MERCADO_PAGO_TEST_PIX_FIRST_NAME === 'APRO'
+        ? 'APRO'
+        : null,
     aiCostBrlPerUsd: Number(config.AI_COST_BRL_PER_USD),
   };
   const provider =

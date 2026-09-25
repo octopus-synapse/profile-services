@@ -13,6 +13,10 @@
  *  - `SseStreamPort` from the shared kernel.
  */
 
+import {
+  type BillingOfferCode,
+  PATCH_BILLING_OFFERS,
+} from '@/bounded-contexts/billing/domain/policies/billing-offer.policy';
 import type { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import type { CacheLockService } from '@/bounded-contexts/platform/common/cache/cache-lock.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -21,6 +25,7 @@ import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { buildOnboardingUseCases } from './application/compositions/onboarding.composition';
 import { buildOnboardingProgressUseCases } from './application/compositions/onboarding-progress.composition';
+import { OnboardingFlowService } from './application/onboarding-flow.service';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { ActivateOnboardingExtrasUseCase } from './application/use-cases/activate-onboarding-extras/activate-onboarding-extras.use-case';
 import {
@@ -126,6 +131,18 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
     sseStream,
     activateExtras,
     renderOnboardingPreview,
+    flow: new OnboardingFlowService(
+      prisma,
+      (code, plan) => PATCH_BILLING_OFFERS[code as BillingOfferCode]?.plan === plan,
+      async (userId, plan) => {
+        const now = new Date();
+        return Boolean(
+          await prisma.billingEntitlement.findFirst({
+            where: { userId, plan, status: 'active', startsAt: { lte: now }, endsAt: { gt: now } },
+          }),
+        );
+      },
+    ),
     ...(onResumeReady ? { onResumeReady } : {}),
   };
 

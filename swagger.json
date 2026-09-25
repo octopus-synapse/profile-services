@@ -5728,6 +5728,159 @@
         "x-auth": "jwt"
       }
     },
+    "/api/v1/billing/checkouts/{id}/cancel": {
+      "post": {
+        "summary": "Cancel an unpaid Pix checkout",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "post_v1_billing_checkouts_id_cancel",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Resource UUID (path parameter).",
+              "example": "01900000-0000-7000-a000-000000000001"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000001"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "offerCode": {
+                      "type": "string",
+                      "enum": [
+                        "go_card_month",
+                        "max_card_month",
+                        "go_pix_quarter",
+                        "max_pix_quarter",
+                        "go_pix_year",
+                        "max_pix_year",
+                        "max_pix_year_founder"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "card",
+                        "pix"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "amountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 39990
+                    },
+                    "listAmountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "example": 47988
+                    },
+                    "creditAppliedCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "example": 0
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "BRL"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "publicKey": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "APP_USR-public-key"
+                    },
+                    "qrCode": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "qrCodeBase64": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "iVBORw0KGgoAAAANSUhEUgAA"
+                    },
+                    "ticketUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://www.mercadopago.com.br/payments/1/ticket"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offerCode",
+                    "kind",
+                    "status",
+                    "amountCents",
+                    "listAmountCents",
+                    "creditAppliedCents",
+                    "currency",
+                    "expiresAt",
+                    "publicKey",
+                    "qrCode",
+                    "qrCodeBase64",
+                    "ticketUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
     "/api/v1/billing/checkouts/{id}/card": {
       "post": {
         "summary": "Submit tokenized card",
@@ -5773,6 +5926,10 @@
                       1
                     ],
                     "default": 1
+                  },
+                  "test": {
+                    "type": "boolean",
+                    "example": false
                   }
                 },
                 "required": [
@@ -20157,6 +20314,381 @@
         },
         "x-auth": "jwt",
         "x-permission": "notification:read"
+      }
+    },
+    "/api/v1/onboarding/flow": {
+      "get": {
+        "summary": "Get durable onboarding flow cursor",
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "get_v1_onboarding_flow",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "step": {
+                      "type": "string",
+                      "enum": [
+                        "language",
+                        "plan",
+                        "payment",
+                        "location",
+                        "personal",
+                        "username",
+                        "experience",
+                        "headline",
+                        "links",
+                        "education",
+                        "review"
+                      ]
+                    },
+                    "resumeStep": {
+                      "type": "string",
+                      "enum": [
+                        "language",
+                        "plan",
+                        "payment",
+                        "location",
+                        "personal",
+                        "username",
+                        "experience",
+                        "headline",
+                        "links",
+                        "education",
+                        "review"
+                      ]
+                    },
+                    "completedSteps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "selectedPlan": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "free",
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "selectedOfferCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "go_pix_quarter"
+                    },
+                    "selectedLocale": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "pt-BR"
+                    },
+                    "drafts": {
+                      "type": "object",
+                      "additionalProperties": {},
+                      "example": {}
+                    }
+                  },
+                  "required": [
+                    "step",
+                    "resumeStep",
+                    "completedSteps",
+                    "selectedPlan",
+                    "selectedOfferCode",
+                    "selectedLocale",
+                    "drafts"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/onboarding/flow/draft": {
+      "put": {
+        "summary": "Persist an onboarding step draft",
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "put_v1_onboarding_flow_draft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "step": {
+                    "type": "string",
+                    "enum": [
+                      "language",
+                      "plan",
+                      "payment",
+                      "location",
+                      "personal",
+                      "username",
+                      "experience",
+                      "headline",
+                      "links",
+                      "education",
+                      "review"
+                    ]
+                  },
+                  "draft": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "step",
+                  "draft"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "saved": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "saved"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/onboarding/flow/step": {
+      "post": {
+        "summary": "Advance or return one onboarding step",
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "post_v1_onboarding_flow_step",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "enum": [
+                      "language",
+                      "plan",
+                      "payment",
+                      "location",
+                      "personal",
+                      "username",
+                      "experience",
+                      "headline",
+                      "links",
+                      "education",
+                      "review"
+                    ]
+                  },
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "pt-BR"
+                    ]
+                  },
+                  "plan": {
+                    "type": "string",
+                    "enum": [
+                      "free",
+                      "go",
+                      "max"
+                    ]
+                  },
+                  "offerCode": {
+                    "type": "string",
+                    "enum": [
+                      "go_card_month",
+                      "max_card_month",
+                      "go_pix_quarter",
+                      "max_pix_quarter",
+                      "go_pix_year",
+                      "max_pix_year",
+                      "max_pix_year_founder"
+                    ]
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "step": {
+                      "type": "string",
+                      "enum": [
+                        "language",
+                        "plan",
+                        "payment",
+                        "location",
+                        "personal",
+                        "username",
+                        "experience",
+                        "headline",
+                        "links",
+                        "education",
+                        "review"
+                      ]
+                    },
+                    "resumeStep": {
+                      "type": "string",
+                      "enum": [
+                        "language",
+                        "plan",
+                        "payment",
+                        "location",
+                        "personal",
+                        "username",
+                        "experience",
+                        "headline",
+                        "links",
+                        "education",
+                        "review"
+                      ]
+                    },
+                    "completedSteps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "selectedPlan": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "free",
+                        "go",
+                        "max"
+                      ]
+                    },
+                    "selectedOfferCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "go_pix_quarter"
+                    },
+                    "selectedLocale": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "pt-BR"
+                    },
+                    "drafts": {
+                      "type": "object",
+                      "additionalProperties": {},
+                      "example": {}
+                    }
+                  },
+                  "required": [
+                    "step",
+                    "resumeStep",
+                    "completedSteps",
+                    "selectedPlan",
+                    "selectedOfferCode",
+                    "selectedLocale",
+                    "drafts"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session": {

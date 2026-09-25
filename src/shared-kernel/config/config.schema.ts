@@ -270,6 +270,9 @@ export const EnvConfigSchema = z
     MERCADO_PAGO_SUBSCRIPTIONS_ACCESS_TOKEN: z.string().optional(),
     MERCADO_PAGO_SUBSCRIPTIONS_PUBLIC_KEY: z.string().optional(),
     MERCADO_PAGO_SUBSCRIPTIONS_WEBHOOK_SECRET: z.string().optional(),
+    MERCADO_PAGO_RETURN_URL: OptionalUrl,
+    MERCADO_PAGO_TEST_BUYER_EMAIL: z.string().email().optional(),
+    MERCADO_PAGO_TEST_PIX_FIRST_NAME: z.literal('APRO').optional(),
     AI_COST_BRL_PER_USD: z
       .string()
       .regex(/^\d+(\.\d+)?$/u)

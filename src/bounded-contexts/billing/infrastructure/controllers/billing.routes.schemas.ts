@@ -79,6 +79,7 @@ export const SubmitCardBodySchema = z.object({
   cardToken: z.string().min(10).max(512).openapi({ example: 'card-token-example' }),
   paymentMethodId: z.string().min(2).max(64).optional().openapi({ example: 'visa' }),
   installments: z.literal(1).default(1),
+  test: z.boolean().optional().openapi({ example: false }),
 });
 export const ReturnUrlBodySchema = z.object({
   returnUrl: z.string().max(500).optional().openapi({ example: 'https://patchcareers.org/go' }),

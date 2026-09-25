@@ -1,5 +1,8 @@
 import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
-import { BillingPurchase } from '../../../domain/entities/billing-purchase.entity';
+import {
+  BillingPurchase,
+  type BillingPurchaseState,
+} from '../../../domain/entities/billing-purchase.entity';
 import {
   BillingBusyException,
   BillingInvariantException,
@@ -18,6 +21,8 @@ import type { PaymentProviderPort } from '../../../domain/ports/payment-provider
 import type { BillingRuntimeConfig } from '../../ports/billing-runtime.port';
 import { BillingClockPort, BillingIdPort } from '../../ports/billing-runtime.port';
 import { ProcessProviderEventUseCase } from '../provider/process-provider-event.use-case';
+
+const PIX_ORDER_LOCK_TTL_MS = 60_000;
 
 export class ManageCheckoutUseCase {
   constructor(
@@ -118,7 +123,10 @@ export class ManageCheckoutUseCase {
               creditAppliedCents: creditApplied,
               currency: 'BRL',
               termMonths: offer.termMonths,
-              externalReference: `patch:${purchaseId}`,
+              // Orders rejects ':' in external_reference. Keep this stable,
+              // unique and limited to the documented alphanumeric/underscore
+              // shape so the same value can reconcile Pix and card orders.
+              externalReference: `patch_${purchaseId.replaceAll('-', '')}`,
               expiresAt: new Date(
                 now.getTime() +
                   (offer.paymentMethod === 'pix' ? PIX_CHECKOUT_TTL_MS : CARD_CHECKOUT_TTL_MS),
@@ -167,17 +175,92 @@ export class ManageCheckoutUseCase {
     if (!created.fresh && (offer.paymentMethod === 'card' || purchase.providerOrderId))
       return this.status(userId, purchase.id, false);
     if (offer.paymentMethod === 'card') return this.response(purchase);
-    const order = await provider.createPixOrder({
+    const pixResult = await this.lock.withLock(
+      `billing:pix-order:${purchase.id}`,
+      { ttlMs: PIX_ORDER_LOCK_TTL_MS },
+      async () => {
+        // Creating the provider order and canceling it must be serialized.
+        // Otherwise a user could cancel the local purchase while its QR code
+        // is still being created, leaving an orphan payable order behind.
+        const latest = await this.store.findPurchase(purchase.id, userId);
+        if (!latest || !['created', 'pending'].includes(latest.status))
+          throw new PatchGoRequiredException();
+        if (latest.providerOrderId) return this.status(userId, latest.id, false);
+        const order = await this.createPixProviderOrder(provider, latest, email);
+        await this.processProvider?.syncOrder(order);
+        purchase = (await this.store.findPurchase(latest.id, userId)) ?? latest;
+        return this.response(purchase);
+      },
+    );
+    if (!pixResult) throw new BillingBusyException();
+    return pixResult;
+  }
+
+  async cancelPix(userId: string, purchaseId: string) {
+    const result = await this.lock.withLock(
+      `billing:pix-order:${purchaseId}`,
+      { ttlMs: PIX_ORDER_LOCK_TTL_MS },
+      async () => {
+        let purchase = await this.store.findPurchase(purchaseId, userId);
+        if (!purchase || purchase.kind !== 'pix_prepaid') throw new PatchGoRequiredException();
+        if (!['created', 'pending'].includes(purchase.status)) return this.response(purchase);
+        const provider = this.requireProvider();
+        const processor = this.processProvider;
+        if (!processor) throw new PatchGoNotConfiguredException();
+        let orderId = purchase.providerOrderId;
+        if (!orderId) {
+          // The create response may have been lost after Mercado Pago created
+          // the order. Repeat the original idempotent request to recover it;
+          // never cancel only the local row while a payable QR may exist.
+          const email = await this.store.findCustomerEmail(userId);
+          if (!email) throw new PatchGoRequiredException();
+          const recovered = await this.createPixProviderOrder(provider, purchase, email);
+          await processor.syncOrder(recovered);
+          orderId = recovered.id;
+          purchase = (await this.store.findPurchase(purchaseId, userId)) ?? purchase;
+          if (purchase.status !== 'pending') return this.response(purchase);
+        }
+        // Reconcile before cancellation: Pix may have been paid while the
+        // confirmation dialog was open.
+        await processor.syncOrder(await provider.getOrder(orderId));
+        purchase = (await this.store.findPurchase(purchaseId, userId)) ?? purchase;
+        if (purchase.status !== 'pending') return this.response(purchase);
+        try {
+          await processor.syncOrder(await provider.cancelOrder(orderId, `cancel-${purchaseId}`));
+        } catch (error) {
+          // A timeout or 409 can mean that the order was paid or that the
+          // cancellation succeeded but its response was lost.
+          await processor.syncOrder(await provider.getOrder(orderId));
+          purchase = (await this.store.findPurchase(purchaseId, userId)) ?? purchase;
+          if (purchase.status !== 'pending') return this.response(purchase);
+          throw error;
+        }
+        purchase = (await this.store.findPurchase(purchaseId, userId)) ?? purchase;
+        if (purchase.status === 'pending')
+          throw new BillingInvariantException('provider order was not canceled');
+        return this.response(purchase);
+      },
+    );
+    if (!result) throw new BillingBusyException();
+    return result;
+  }
+
+  private createPixProviderOrder(
+    provider: PaymentProviderPort,
+    purchase: BillingPurchaseState,
+    customerEmail: string,
+  ) {
+    return provider.createPixOrder({
       purchaseId: purchase.id,
       externalReference: purchase.externalReference,
-      email,
+      // Sandbox Pix orders must identify a Mercado Pago test buyer; the
+      // Patch account's real email remains the customer identity in our DB.
+      email: this.config.testBuyerEmail ?? customerEmail,
+      firstName: this.config.testPixFirstName ?? undefined,
       amountCents: purchase.amountCents,
       currency: 'BRL',
       expirationMinutes: PIX_CHECKOUT_TTL_MS / 60_000,
     });
-    await this.processProvider?.syncOrder(order);
-    purchase = (await this.store.findPurchase(purchase.id, userId)) ?? purchase;
-    return this.response(purchase);
   }
 
   async submitCard(
@@ -186,6 +269,7 @@ export class ManageCheckoutUseCase {
     cardToken: string,
     paymentMethodId?: string,
     installments = 1,
+    test = false,
   ) {
     const provider = this.requireProvider();
     const state = await this.store.findPurchase(purchaseId, userId);
@@ -197,7 +281,9 @@ export class ManageCheckoutUseCase {
     )
       throw new PatchGoRequiredException();
     const offer = PATCH_BILLING_OFFERS[state.offerCode];
-    const email = await this.store.findCustomerEmail(userId);
+    if (test && !this.config.testBuyerEmail) throw new PatchGoNotConfiguredException();
+    const customerEmail = await this.store.findCustomerEmail(userId);
+    const email = test && this.config.testBuyerEmail ? this.config.testBuyerEmail : customerEmail;
     if (!email || !cardToken || installments !== 1) throw new PatchGoRequiredException();
     if (state.kind === 'card_plan_change') {
       if (!paymentMethodId) throw new PatchGoRequiredException();
@@ -229,7 +315,7 @@ export class ManageCheckoutUseCase {
       plan: offer.plan,
       amountCents: offer.amountCents,
       currency: 'BRL',
-      returnUrl: `${this.config.frontendUrl}/billing/checkout?checkout=${purchaseId}`,
+      returnUrl: `${this.config.paymentReturnUrl ?? this.config.frontendUrl}/billing/checkout?checkout=${purchaseId}`,
       cardToken,
     });
     if (remote.currency !== 'BRL' || remote.amountCents !== offer.amountCents)
@@ -251,6 +337,32 @@ export class ManageCheckoutUseCase {
   async status(userId: string, id: string, refresh = true) {
     let purchase = await this.store.findPurchase(id, userId);
     if (!purchase) throw new PatchGoRequiredException();
+    if (
+      refresh &&
+      purchase.providerSubscriptionId &&
+      ['created', 'pending'].includes(purchase.status) &&
+      this.processProvider
+    ) {
+      // The browser may be faster than Mercado Pago's webhook (and localhost
+      // cannot receive one). Reconcile the exact subscription on status reads
+      // so an approved first charge can unlock onboarding without waiting for
+      // the hourly maintenance job. Never treat an active subscription alone
+      // as payment: only syncPayment grants the purchase entitlement.
+      try {
+        const provider = this.requireProvider();
+        const remote = await provider.getSubscription(purchase.providerSubscriptionId);
+        await this.processProvider.syncSubscription(remote);
+        for (const payment of await provider.listAuthorizedPayments(remote.id)) {
+          await this.processProvider.syncPayment(payment);
+        }
+        purchase = (await this.store.findPurchase(id, userId)) ?? purchase;
+      } catch (error) {
+        this.logger?.error('Card checkout refresh failed', {
+          context: 'ManageCheckoutUseCase',
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+      }
+    }
     if (
       refresh &&
       purchase.providerOrderId &&

@@ -221,6 +221,16 @@ model OnboardingProgress {
   completedSteps String[] @default([])
   username       String?
 
+  // Canonical app flow is independent of the legacy backend form cursor.
+  // Null means a pre-migration account that must revisit language and plan.
+  flowStep           String?
+  flowResumeStep     String?
+  flowCompletedSteps String[] @default([])
+  selectedPlan       String?
+  selectedOfferCode  String?
+  selectedLocale     String?
+  flowDrafts         Json?
+
   // Section-step keys the user opted into via the "what else?" gate
   // (e.g. `section:project_v1`). Core required steps are always
   // returned by the session presenter regardless of this list; only
@@ -242,7 +252,7 @@ model OnboardingProgress {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  expiresAt DateTime? // TTL: Auto-cleanup for abandoned sessions (30 days)
+  expiresAt DateTime? // Legacy column; incomplete onboarding no longer expires.
 
   @@index([userId])
   @@index([expiresAt])

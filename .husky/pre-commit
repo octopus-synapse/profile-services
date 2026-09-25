@@ -1,3 +1,4 @@
 #!/bin/sh
+set -e
 bunx octopus-run-parallel --config .precommit.yaml
 bunx octopus-attest generate --checks "swagger,typecheck,lint,unit,arch,contract,static"

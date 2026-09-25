@@ -58,6 +58,17 @@ export const billingRoutes: ReadonlyArray<Route<BillingHttpBundle>> = [
   },
   {
     method: 'POST',
+    path: '/v1/billing/checkouts/:id/cancel',
+    auth: { kind: 'jwt' },
+    params: IdParamSchema,
+    response: CheckoutResponseSchema,
+    openapi: { summary: 'Cancel an unpaid Pix checkout', tags: ['billing'] },
+    sdk: { exported: true },
+    handler: async (ctx, bc) =>
+      bc.checkout.cancelPix(ctx.user!.userId, (ctx.params as { id: string }).id),
+  },
+  {
+    method: 'POST',
     path: '/v1/billing/checkouts/:id/card',
     auth: { kind: 'jwt' },
     params: IdParamSchema,
@@ -73,6 +84,7 @@ export const billingRoutes: ReadonlyArray<Route<BillingHttpBundle>> = [
         body.cardToken,
         body.paymentMethodId,
         body.installments,
+        body.test,
       );
     },
   },

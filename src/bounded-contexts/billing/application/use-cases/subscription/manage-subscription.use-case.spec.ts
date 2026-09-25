@@ -59,6 +59,9 @@ class PlanChangeProvider extends PaymentProviderPort {
   getOrder(_id: string): Promise<ProviderOrder> {
     throw new Error('not used');
   }
+  cancelOrder(_id: string, _idempotencyKey: string): Promise<ProviderOrder> {
+    throw new Error('not used');
+  }
   getSubscription(_id: string): Promise<ProviderSubscription> {
     throw new Error('not used');
   }

@@ -18,6 +18,7 @@ import type { OnboardingConfigPort } from '../../domain/ports/onboarding-config.
 import type { OnboardingProgressUseCases } from '../../domain/ports/onboarding-progress.port';
 import type { ResumeStylesQueryPort } from '../../domain/ports/resume-styles-query.port';
 import type { SectionTypeDefinitionPort } from '../../domain/ports/section-type-definition.port';
+import type { OnboardingFlowService } from '../onboarding-flow.service';
 import type { ActivateOnboardingExtrasUseCase } from '../use-cases/activate-onboarding-extras/activate-onboarding-extras.use-case';
 import type { RenderOnboardingPreviewUseCase } from '../use-cases/render-onboarding-preview/render-onboarding-preview.use-case';
 
@@ -32,6 +33,7 @@ export abstract class OnboardingHttpBundle {
   abstract readonly activateExtras: ActivateOnboardingExtrasUseCase;
   /** Live résumé preview from saved progress (resume-style picker). */
   abstract readonly renderOnboardingPreview: RenderOnboardingPreviewUseCase;
+  abstract readonly flow: OnboardingFlowService;
   /**
    * Called with the résumé id once completion has committed (ADR-003 §13:
    * a new account leaves onboarding with both locales). Never inside the

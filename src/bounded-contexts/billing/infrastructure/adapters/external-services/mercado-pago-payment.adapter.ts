@@ -78,7 +78,10 @@ export class MercadoPagoPaymentAdapter extends PaymentProviderPort {
             },
           ],
         },
-        payer: { email: input.email },
+        payer: {
+          email: input.email,
+          ...(input.firstName ? { first_name: input.firstName } : {}),
+        },
       },
     });
     return toOrder(OrderSchema.parse(raw));
@@ -120,6 +123,17 @@ export class MercadoPagoPaymentAdapter extends PaymentProviderPort {
     );
   }
 
+  async cancelOrder(id: string, idempotencyKey: string): Promise<ProviderOrder> {
+    return toOrder(
+      OrderSchema.parse(
+        await this.request(`/v1/orders/${encodeURIComponent(id)}/cancel`, 'orders', {
+          method: 'POST',
+          idempotencyKey,
+        }),
+      ),
+    );
+  }
+
   getSubscription(id: string): Promise<ProviderSubscription> {
     return this.requestSubscription(`/preapproval/${encodeURIComponent(id)}`, { method: 'GET' });
   }
@@ -157,15 +171,27 @@ export class MercadoPagoPaymentAdapter extends PaymentProviderPort {
   }
 
   async listAuthorizedPayments(subscriptionId: string): Promise<ReadonlyArray<ProviderPayment>> {
-    const query = new URLSearchParams({ preapproval_id: subscriptionId, limit: '100' });
-    const raw = await this.request(
-      `/authorized_payments/search?${query.toString()}`,
-      'subscriptions',
-      {
-        method: 'GET',
-      },
-    );
-    return AuthorizedPaymentSearchSchema.parse(raw).results.map(toPayment);
+    // This endpoint rejects an explicit `limit` even though it returns one in
+    // `paging`. Follow its default-sized pages with `offset` so renewals older
+    // than the first page are still reconciled.
+    const payments: ProviderPayment[] = [];
+    let offset = 0;
+    for (;;) {
+      const query = new URLSearchParams({ preapproval_id: subscriptionId });
+      if (offset > 0) query.set('offset', String(offset));
+      const raw = await this.request(
+        `/authorized_payments/search?${query.toString()}`,
+        'subscriptions',
+        { method: 'GET' },
+      );
+      const page = AuthorizedPaymentSearchSchema.parse(raw);
+      payments.push(...page.results.map(toPayment));
+      if (!page.paging || !page.results.length) break;
+      const nextOffset = page.paging.offset + page.paging.limit;
+      if (nextOffset <= offset || nextOffset >= page.paging.total) break;
+      offset = nextOffset;
+    }
+    return payments;
   }
 
   verifyWebhook(input: VerifyWebhookInput): ProviderWebhookEvent {

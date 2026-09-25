@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import { ONBOARDING_FLOW_STEPS } from './application/onboarding-flow.service';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { resolveAuthoredLocale } from './application/resolve-authored-locale';
 import { OnboardingCompletionInProgressException } from './domain/exceptions/onboarding-extra.exceptions';
@@ -24,6 +25,74 @@ import {
 } from './onboarding.routes.schemas';
 
 export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
+  {
+    method: 'GET',
+    path: '/v1/onboarding/flow',
+    auth: { kind: 'jwt' },
+    response: z.object({
+      step: z.enum(ONBOARDING_FLOW_STEPS),
+      resumeStep: z.enum(ONBOARDING_FLOW_STEPS),
+      completedSteps: z.array(z.string()),
+      selectedPlan: z.enum(['free', 'go', 'max']).nullable(),
+      selectedOfferCode: z.string().nullable().openapi({ example: 'go_pix_quarter' }),
+      selectedLocale: z.string().nullable().openapi({ example: 'pt-BR' }),
+      drafts: z.record(z.unknown()).openapi({ example: {} }),
+    }),
+    openapi: { summary: 'Get durable onboarding flow cursor', tags: ['onboarding'] },
+    handler: (ctx, bundle) => bundle.flow.get((ctx.user! as AuthUser).userId),
+  },
+  {
+    method: 'POST',
+    path: '/v1/onboarding/flow/step',
+    auth: { kind: 'jwt' },
+    body: z.object({
+      to: z.enum(ONBOARDING_FLOW_STEPS),
+      locale: z.enum(['en', 'pt-BR']).optional(),
+      plan: z.enum(['free', 'go', 'max']).optional(),
+      offerCode: z
+        .enum([
+          'go_card_month',
+          'max_card_month',
+          'go_pix_quarter',
+          'max_pix_quarter',
+          'go_pix_year',
+          'max_pix_year',
+          'max_pix_year_founder',
+        ])
+        .optional(),
+    }),
+    response: z.object({
+      step: z.enum(ONBOARDING_FLOW_STEPS),
+      resumeStep: z.enum(ONBOARDING_FLOW_STEPS),
+      completedSteps: z.array(z.string()),
+      selectedPlan: z.enum(['free', 'go', 'max']).nullable(),
+      selectedOfferCode: z.string().nullable().openapi({ example: 'go_pix_quarter' }),
+      selectedLocale: z.string().nullable().openapi({ example: 'pt-BR' }),
+      drafts: z.record(z.unknown()).openapi({ example: {} }),
+    }),
+    openapi: { summary: 'Advance or return one onboarding step', tags: ['onboarding'] },
+    handler: (ctx, bundle) =>
+      bundle.flow.move(
+        (ctx.user! as AuthUser).userId,
+        ctx.body as Parameters<OnboardingHttpBundle['flow']['move']>[1],
+      ),
+  },
+  {
+    method: 'PUT',
+    path: '/v1/onboarding/flow/draft',
+    auth: { kind: 'jwt' },
+    body: z.object({ step: z.enum(ONBOARDING_FLOW_STEPS), draft: z.record(z.unknown()) }),
+    response: z.object({ saved: z.literal(true) }),
+    openapi: { summary: 'Persist an onboarding step draft', tags: ['onboarding'] },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as {
+        step: (typeof ONBOARDING_FLOW_STEPS)[number];
+        draft: Record<string, unknown>;
+      };
+      await bundle.flow.saveDraft((ctx.user! as AuthUser).userId, body.step, body.draft);
+      return { saved: true as const };
+    },
+  },
   // ===== Session / Commands API =====
   {
     method: 'GET',
@@ -157,6 +226,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const user = ctx.user! as AuthUser;
+      await bundle.flow.assertCanComplete(user.userId);
       const lockKey = `onboarding:complete:${user.userId}`;
       const acquired = await bundle.cacheLock.acquireLock(lockKey, 60);
       if (!acquired) {

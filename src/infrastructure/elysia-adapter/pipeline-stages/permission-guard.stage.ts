@@ -123,9 +123,17 @@ export function permissionGuardStage(
       // be a contradiction.
       const isOnboardingRoute =
         route.path.startsWith('/v1/onboarding/') || route.path === '/v1/onboarding';
+      // Checkout is a mandatory onboarding step for paid plans. The narrow
+      // billing allowlist intentionally excludes cancellation, plan changes,
+      // and all other account APIs until onboarding is complete.
+      const isOnboardingBillingRoute =
+        route.path === '/v1/billing/checkouts' ||
+        route.path.startsWith('/v1/billing/checkouts/') ||
+        (route.method === 'GET' && route.path === '/v1/billing/subscription');
       const allowsIncompleteOnboarding =
         skipOnboardingGlobally ||
         isOnboardingRoute ||
+        isOnboardingBillingRoute ||
         allowsUnverified ||
         route.guards?.some((g) => g.id === 'skip-tos-check') === true;
       const effectiveOnboarding = ctx.user.hasCompletedOnboarding === true && !suspendsOnboarding;

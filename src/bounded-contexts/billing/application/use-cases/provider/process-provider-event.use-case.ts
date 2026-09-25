@@ -140,6 +140,11 @@ export class ProcessProviderEventUseCase {
       remote.externalReference !== state.externalReference
     )
       return;
+    // A delayed pending webhook must never reopen an order that was canceled.
+    // A real late approval must still be honored and grant the paid entitlement.
+    if (state.status === 'canceled' && remote.status !== 'approved') return;
+    if (state.status === 'approved' && !['refunded', 'charged_back'].includes(remote.status))
+      return;
     const purchase = BillingPurchase.restore(state);
     purchase.attachPix(
       remote.id,

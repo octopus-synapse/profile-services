@@ -6,7 +6,6 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { OnboardingSessionExpiredException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type {
   OnboardingProgressData,
   ProgressRecord,
@@ -119,22 +118,14 @@ describe('GetProgressUseCase', () => {
     expect(result).toEqual(INITIAL_PROGRESS);
   });
 
-  it('deletes and returns initial progress when expired', async () => {
-    const expiredDate = new Date(Date.now() - 37 * 60 * 60 * 1000); // 37 hours ago
-    repository.setProgress('user-1', { ...mockProgress, updatedAt: expiredDate });
+  it('retains progress after years of inactivity', async () => {
+    const oldDate = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000);
+    repository.setProgress('user-1', { ...mockProgress, updatedAt: oldDate });
 
     const result = await useCase.execute('user-1');
 
-    expect(repository.deleteProgressCalledWith).toBe('user-1');
-    expect(result).toEqual(INITIAL_PROGRESS);
-  });
-
-  it('throws OnboardingSessionExpiredException in strict mode when progress is expired', async () => {
-    const expiredDate = new Date(Date.now() - 37 * 60 * 60 * 1000);
-    repository.setProgress('user-1', { ...mockProgress, updatedAt: expiredDate });
-
-    await expect(useCase.execute('user-1', { strict: true })).rejects.toThrow(
-      OnboardingSessionExpiredException,
-    );
+    expect(repository.deleteProgressCalledWith).toBeNull();
+    expect(result.currentStep).toBe('personal-info');
+    expect(result.personalInfo).toEqual({ fullName: 'John Doe' });
   });
 });

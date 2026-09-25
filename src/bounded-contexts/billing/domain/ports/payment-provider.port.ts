@@ -65,6 +65,7 @@ export interface CreatePixOrderInput {
   readonly purchaseId: string;
   readonly externalReference: string;
   readonly email: string;
+  readonly firstName?: string;
   readonly amountCents: number;
   readonly currency: 'BRL';
   readonly expirationMinutes: number;
@@ -93,6 +94,7 @@ export abstract class PaymentProviderPort {
   abstract createCardOrder(input: CreateCardOrderInput): Promise<ProviderOrder>;
   abstract createPixOrder(input: CreatePixOrderInput): Promise<ProviderOrder>;
   abstract getOrder(id: string): Promise<ProviderOrder>;
+  abstract cancelOrder(id: string, idempotencyKey: string): Promise<ProviderOrder>;
   abstract getSubscription(id: string): Promise<ProviderSubscription>;
   abstract updateSubscriptionAmount(id: string, amountCents: number): Promise<ProviderSubscription>;
   abstract cancelSubscription(id: string): Promise<ProviderSubscription>;

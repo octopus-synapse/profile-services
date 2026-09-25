@@ -134,6 +134,11 @@ services:
       target: deps
       secrets:
         - GITHUB_TOKEN
+    # Keep opt-in integrations (billing/provider credentials, feature flags,
+    # etc.) available inside the dev container. Explicit values below still
+    # win for service-network addresses such as Postgres, Redis, SMTP and S3.
+    env_file:
+      - .env
     container_name: profile-backend-dev
     restart: unless-stopped
     command: sh -c "bunx prisma generate && bunx prisma migrate deploy && bun run prisma/seed.ts && bun run start:dev"
@@ -151,6 +156,8 @@ services:
       retries: 3
     environment:
       NODE_ENV: ${NODE_ENV:-development}
+      # Mercado Pago sandbox: auto-approve new Pix orders for the test buyer.
+      MERCADO_PAGO_TEST_PIX_FIRST_NAME: APRO
       PORT: ${BACKEND_PORT:-3001}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile_dev}?schema=public
       # Geo lookup source: `postgres` serves the GeoNames import (bun run geo:import);
