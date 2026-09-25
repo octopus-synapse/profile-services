@@ -59,6 +59,9 @@ RUN bun run build
 # self-contained. Mirror main.ts's externals.
 RUN bun build prisma/seed.deploy.ts --target=bun --outdir=dist \
     --external puppeteer --external puppeteer-extra --external puppeteer-extra-plugin-stealth
+# The role-title importer is run by migrate-and-seed.sh when the catalog is
+# absent or incomplete. The runtime image does not include src/.
+RUN bun build src/scripts/import-roles.ts --target=bun --outfile=dist/import-roles.js
 
 RUN mkdir -p dist/templates/typst && \
     cp -r src/bounded-contexts/export/infrastructure/typst/templates/* dist/templates/typst/

@@ -17,8 +17,9 @@
  *          (override the release with ONET_DB_VERSION, default db_30_1).
  *
  * Usage:
- *   bun run roles:import --source=all            # esco → cbo → onet
- *   bun run roles:import --source=esco|cbo|onet
+ *   bun run roles:import --source=all            # esco → cbo → onet → curated
+ *   bun run roles:import --source=esco|cbo|onet|curated
+ *   bun run roles:import --ensure                # deploy: import only if incomplete
  *
  * Prereqs: `DATABASE_URL` set and the 20260610000000_add_role_titles
  * migration applied. Everything downloads on the fly — no data dir needed.
@@ -61,16 +62,19 @@ interface RoleTitleRow {
   baseRoleKey?: string | null;
 }
 
-function parseArgs(): { source: string } {
+function parseArgs(): { source: string; ensure: boolean } {
   let source = 'all';
+  let ensure = false;
   for (const arg of process.argv.slice(2)) {
     if (arg.startsWith('--source=')) source = arg.slice('--source='.length);
+    else if (arg === '--ensure') ensure = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (!['all', 'esco', 'cbo', 'onet', 'curated'].includes(source)) {
     throw new Error(`--source must be all|esco|cbo|onet|curated, got "${source}"`);
   }
-  return { source };
+  if (ensure && source !== 'all') throw new Error('--ensure requires --source=all');
+  return { source, ensure };
 }
 
 /** Minimal RFC4180 parser — ESCO's `altLabels` cell is quoted and
@@ -132,18 +136,48 @@ function collect(rows: Iterable<Omit<RoleTitleRow, 'normalizedLabel'>>): RoleTit
 const prisma = new PrismaClient(createPrismaClientOptions());
 
 async function replaceSource(source: RoleTitleSource, rows: RoleTitleRow[]): Promise<void> {
-  await prisma.roleTitle.deleteMany({ where: { source } });
-  let inserted = 0;
-  for (let i = 0; i < rows.length; i += BATCH) {
-    const batch = rows.slice(i, i + BATCH);
-    // skipDuplicates: a title another source already owns is kept there
-    // (the `all` order makes ESCO win cross-source overlaps).
-    const result = await prisma.roleTitle.createMany({ data: batch, skipDuplicates: true });
-    inserted += result.count;
-  }
+  // Keep the previous source visible if an import fails or is interrupted.
+  // Otherwise the next deploy could see a partially populated catalog.
+  const inserted = await prisma.$transaction(
+    async (tx) => {
+      await tx.roleTitle.deleteMany({ where: { source } });
+      let count = 0;
+      for (let i = 0; i < rows.length; i += BATCH) {
+        const batch = rows.slice(i, i + BATCH);
+        // A title another source already owns stays with that source.
+        const result = await tx.roleTitle.createMany({ data: batch, skipDuplicates: true });
+        count += result.count;
+      }
+      return count;
+    },
+    { timeout: 120_000 },
+  );
   console.log(
     `✓ ${source}: ${inserted} titles inserted (${rows.length - inserted} already owned by another source)`,
   );
+}
+
+// Conservative floors based on the complete dev catalog. A missing source or
+// interrupted import must be retried instead of letting deploy silently pass.
+const MIN_COUNTS: ReadonlyArray<{ source: RoleTitleSource; lang: RoleTitleLang; min: number }> = [
+  { source: 'ESCO', lang: 'EN', min: 24_000 },
+  { source: 'ESCO', lang: 'PT', min: 7_500 },
+  { source: 'CBO', lang: 'PT', min: 8_000 },
+  { source: 'ONET', lang: 'EN', min: 42_000 },
+  { source: 'CURATED', lang: 'EN', min: 900 },
+  { source: 'CURATED', lang: 'PT', min: 1_200 },
+];
+
+async function catalogGaps(): Promise<string[]> {
+  const counts = await prisma.roleTitle.groupBy({
+    by: ['source', 'lang'],
+    _count: { _all: true },
+  });
+  return MIN_COUNTS.flatMap(({ source, lang, min }) => {
+    const actual =
+      counts.find((row) => row.source === source && row.lang === lang)?._count._all ?? 0;
+    return actual < min ? [`${source}/${lang}: ${actual} < ${min}`] : [];
+  });
 }
 
 const ESCO_API = 'https://ec.europa.eu/esco/api/search';
@@ -317,8 +351,16 @@ async function importCurated(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const { source } = parseArgs();
+  const { source, ensure } = parseArgs();
   console.log(`💼 Role-title import — source="${source}"`);
+  if (ensure) {
+    const gaps = await catalogGaps();
+    if (gaps.length === 0) {
+      console.log('✓ Role-title catalog already complete; skipping import.');
+      return;
+    }
+    console.log(`  incomplete catalog: ${gaps.join(', ')}`);
+  }
   // `all` runs in dedup-precedence order: ESCO rows carry the conceptUri,
   // so they should own any title that also exists in CBO/O*NET. CURATED is
   // last so it only adds the seniority variants the taxonomies lack.
@@ -326,6 +368,10 @@ async function main(): Promise<void> {
   if (source === 'all' || source === 'cbo') await importCbo();
   if (source === 'all' || source === 'onet') await importOnet();
   if (source === 'all' || source === 'curated') await importCurated();
+  if (ensure) {
+    const gaps = await catalogGaps();
+    if (gaps.length > 0) throw new Error(`role-title catalog incomplete: ${gaps.join(', ')}`);
+  }
   const counts = await prisma.roleTitle.groupBy({ by: ['source', 'lang'], _count: { _all: true } });
   for (const c of counts) console.log(`  ${c.source}/${c.lang}: ${c._count._all} titles`);
   console.log('✅ Role-title import complete.');
